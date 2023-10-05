@@ -14,7 +14,27 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Install rustup
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Install cargo fmt, clippy
+      run: rustup component add rustfmt clippy
+
     - name: Build
       run: cargo build --verbose
+
+    - name: Check Code Formatting
+      run: cargo fmt -- --check
+
+    - name: Check Code Linting
+      run: cargo clippy --all-targets --all-features -- -D warnings
+
+    - name: Generate Documentation
+      run: cargo doc --no-deps --document-private-items --all-features
+
     - name: Run tests
       run: cargo test --verbose
