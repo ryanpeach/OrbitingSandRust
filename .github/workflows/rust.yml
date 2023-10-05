@@ -16,5 +16,11 @@ jobs:
     - uses: actions/checkout@v3
     - name: Build
       run: cargo build --verbose
+    - name: Check Code Formatting
+      run: cargo fmt -- --check
+    - name: Check Code Linting
+      run: cargo clippy --all-targets --all-features -- -D warnings
+    - name: Generate Documentation
+      run: cargo doc --no-deps --document-private-items --all-features --all-targets
     - name: Run tests
       run: cargo test --verbose

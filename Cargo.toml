@@ -1,8 +1,16 @@
 [package]
-name = "OrbitingSandRust"
+name = "orbiting_sand_rust"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+egui = "0.23.0"
+macroquad = "0.4.4"
+ndarray = "0.15.6"
+serde = "1.0.188"
+
+[dev-dependencies]
+clippy = "0.0.302"
+rustfmt = "0.10.0"
