@@ -10,7 +10,8 @@ use crate::physics::fallingsand::chunks::partial_layer::PartialLayerChunk;
 async fn main() {
     let core = CoreChunk::default();
     let core_mesh = core.get_mesh();
-    let first_layer = PartialLayerChunk::new(1.0, 12, 2, 1, 1, 0);
+    // let first_layer = PartialLayerChunk::new(1.0, 0, 12,12, 2, 0, 1);
+    let first_layer = PartialLayerChunk::new(1.0, 1, 11, 12, 1, 1, 2);
     let first_layer_mesh = first_layer.get_mesh();
     loop {
         // Set the scene

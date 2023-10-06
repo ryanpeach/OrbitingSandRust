@@ -11,57 +11,63 @@ pub struct PartialLayerChunk {
     start_concentric_circle_layer_relative: usize,
     start_concentric_circle_absolute: usize,
     start_radial_line: usize,
-    num_radial_lines: usize,
+    end_radial_line: usize,
+    layer_num_radial_lines: usize,
     num_concentric_circles: usize,
 }
 
 impl PartialLayerChunk {
     pub fn new(
         cell_radius: f32,
-        num_radial_lines: usize,
+        start_radial_line: usize,
+        end_radial_line: usize,
+        layer_num_radial_lines: usize,
         num_concentric_circles: usize,
         start_concentric_circle_layer_relative: usize,
         start_concentric_circle_absolute: usize,
-        start_radial_line: usize,
     ) -> PartialLayerChunk {
         if num_concentric_circles == 0 {
             panic!("num_concentric_circles must be greater than 0");
         }
-        if num_radial_lines == 0 {
-            panic!("num_radial_lines must be greater than 0");
+        if end_radial_line <= start_radial_line {
+            panic!("end_radial_line must be greater than start_radial_line");
+        }
+        if layer_num_radial_lines <= 0 {
+            panic!("layer_num_radial_lines must be greater than 0");
+        }
+        if end_radial_line > layer_num_radial_lines {
+            panic!("end_radial_line must be less than or equal to layer_num_radial_lines");
         }
         if cell_radius <= 0.0 {
             panic!("cell_radius must be greater than 0");
         }
         PartialLayerChunk {
             cell_radius,
-            num_radial_lines,
-            num_concentric_circles,
             start_concentric_circle_layer_relative,
             start_concentric_circle_absolute,
             start_radial_line,
+            end_radial_line,
+            layer_num_radial_lines,
+            num_concentric_circles,
         }
     }
     fn get_circle_vertexes(&self) -> Vec<Vec3> {
         let mut vertexes: Vec<Vec3> = Vec::new();
 
-        let start_concentric = self.get_start_concentric_circle_layer_relative();
-        let start_radial = self.get_start_radial_line();
-
-        let ith_num_concentric_circles = self.num_concentric_circles;
-        let ith_num_radial_lines = self.num_radial_lines;
+        let start_concentric = self.start_concentric_circle_layer_relative;
+        let start_radial = self.start_radial_line;
 
         let starting_r = self.get_start_radius();
         let ending_r = self.get_end_radius();
         let circle_separation_distance =
-            (ending_r - starting_r) / ith_num_concentric_circles as f32;
-        let theta = (-2.0 * PI) / ith_num_radial_lines as f32;
+            (ending_r - starting_r) / (self.num_concentric_circles + 1) as f32;
+        let theta = (-2.0 * PI) / self.layer_num_radial_lines as f32;
 
-        for j in start_concentric..=ith_num_concentric_circles {
-            let diff = j as f32 * circle_separation_distance;
+        for j in start_concentric..=self.num_concentric_circles + start_concentric {
+            let diff = (j - start_concentric) as f32 * circle_separation_distance;
             let mut v_next = vec3(0.0, 0.0, 0.0);
 
-            for k in start_radial..=ith_num_radial_lines {
+            for k in start_radial..=self.end_radial_line {
                 if j == 0 && k % 2 == 1 {
                     let angle_next = (k + 1) as f32 * theta;
                     let radius = starting_r + diff;
@@ -87,9 +93,9 @@ impl PartialLayerChunk {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
         for j in 0..=self.num_concentric_circles {
-            for k in 0..=self.num_radial_lines {
+            for k in 0..=self.get_num_radial_lines() {
                 let new_vec = vec2(
-                    k as f32 / self.num_radial_lines as f32,
+                    k as f32 / self.get_num_radial_lines() as f32,
                     j as f32 / self.num_concentric_circles as f32,
                 );
                 vertexes.push(new_vec);
@@ -103,12 +109,12 @@ impl PartialLayerChunk {
         let mut indices = Vec::new();
 
         for j in 0..self.num_concentric_circles {
-            for k in 0..self.num_radial_lines {
+            for k in 0..self.get_num_radial_lines() {
                 // Compute the four corners of our current grid cell
-                let v0 = j * (self.num_radial_lines + 1) + k; // Top-left
+                let v0 = j * (self.get_num_radial_lines() + 1) + k; // Top-left
                 let v1 = v0 + 1; // Top-right
-                let v2 = v0 + (self.num_radial_lines + 1) + 1; // Bottom-right
-                let v3 = v0 + (self.num_radial_lines + 1); // Bottom-left
+                let v2 = v0 + (self.get_num_radial_lines() + 1) + 1; // Bottom-right
+                let v3 = v0 + (self.get_num_radial_lines() + 1); // Bottom-left
 
                 // First triangle (top-left, bottom-left, top-right)
                 indices.push(v0 as u16);
@@ -142,13 +148,13 @@ impl PartialLayerChunk {
     /// Right now we are just going to return a checkerboard texture
     fn get_texture(&self) -> Texture2D {
         let mut image = Image::gen_image_color(
-            self.num_radial_lines.try_into().unwrap(),
+            self.get_num_radial_lines().try_into().unwrap(),
             self.num_concentric_circles.try_into().unwrap(),
             WHITE,
         );
         let mut i = 0;
         for j in 0..self.num_concentric_circles {
-            for k in 0..self.num_radial_lines {
+            for k in 0..self.get_num_radial_lines() {
                 image.set_pixel(
                     k.try_into().unwrap(),
                     j.try_into().unwrap(),
@@ -179,32 +185,22 @@ impl Chunk for PartialLayerChunk {
         self.start_concentric_circle_absolute as f32 * self.cell_radius
     }
     fn get_end_radius(&self) -> f32 {
-        self.get_start_radius() + self.cell_radius * self.num_concentric_circles as f32
+        self.get_start_radius() + self.cell_radius * ((self.num_concentric_circles + 1) as f32)
     }
     fn get_num_radial_lines(&self) -> usize {
-        self.num_radial_lines
+        self.end_radial_line - self.start_radial_line
     }
     fn get_num_concentric_circles(&self) -> usize {
         self.num_concentric_circles
     }
-    fn get_start_radial_line(&self) -> usize {
-        self.start_radial_line
-    }
-    fn get_end_radial_line(&self) -> usize {
-        self.start_radial_line + self.num_radial_lines
-    }
-    fn get_start_concentric_circle_absolute(&self) -> usize {
-        self.start_concentric_circle_absolute
-    }
-    fn get_end_concentric_circle_absolute(&self) -> usize {
-        self.start_concentric_circle_absolute + self.num_concentric_circles
-    }
-    fn get_start_concentric_circle_layer_relative(&self) -> usize {
-        self.start_concentric_circle_layer_relative
-    }
-    fn get_end_concentric_circle_relative(&self) -> usize {
-        self.start_concentric_circle_layer_relative + self.num_concentric_circles
-    }
+    // fn get_end_radial_theta(&self) -> f32 {
+    //     let diff = (-2.0 * PI) / self.layer_num_radial_lines as f32;
+    //     self.end_radial_line as f32 * diff
+    // }
+    // fn get_start_radial_theta(&self) -> f32 {
+    //     let diff = (-2.0 * PI) / self.layer_num_radial_lines as f32;
+    //     self.start_radial_line as f32 * diff
+    // }
 }
 
 #[cfg(test)]
@@ -226,7 +222,7 @@ mod tests {
                 "Vectors not approximately equal: {:?} vs {:?}",
                 $a,
                 $b
-            );
+            )
         };
     }
 
@@ -243,26 +239,23 @@ mod tests {
 
     const FIRST_LAYER: PartialLayerChunk = PartialLayerChunk {
         cell_radius: 1.0,
-        num_radial_lines: 12,
         num_concentric_circles: 2,
         start_concentric_circle_layer_relative: 0,
         start_radial_line: 0,
+        end_radial_line: 12,
+        layer_num_radial_lines: 12,
         start_concentric_circle_absolute: 1,
     };
 
     #[test]
     fn test_first_layer_circle() {
         let vertices = FIRST_LAYER.get_circle_vertexes();
-        assert_eq!(
-            vertices.len(),
-            (FIRST_LAYER.get_num_radial_lines() + 1)
-                * (FIRST_LAYER.get_num_concentric_circles() + 1)
-        );
+        assert_eq!(vertices.len(), 13 * 3);
 
         // The inner circle
         // every other vertex is actually an interpolation of the previous layer's num_radial_lines
-        let radius = FIRST_LAYER.get_start_radius();
-        let num_radial_lines = FIRST_LAYER.get_num_radial_lines();
+        let radius = 1.0;
+        let num_radial_lines = 12;
         assert_approx_eq_v3!(vertices[0], vec3(radius, 0.0, 0.0));
         assert_approx_eq_v3!(vertices[1], interpolate_points(vertices[0], vertices[2]));
         assert_approx_eq_v3!(
@@ -320,8 +313,8 @@ mod tests {
         );
 
         // The middle circle
-        let radius = FIRST_LAYER.get_start_radius() + FIRST_LAYER.get_cell_radius();
-        let num_radial_lines = FIRST_LAYER.get_num_radial_lines();
+        let radius = 2.0;
+        let num_radial_lines = 12;
         assert_approx_eq_v3!(vertices[13], vec3(radius, 0.0, 0.0));
         assert_approx_eq_v3!(
             vertices[14],
@@ -421,8 +414,8 @@ mod tests {
         );
 
         // The outer circle
-        let radius = FIRST_LAYER.get_start_radius() + FIRST_LAYER.get_cell_radius() * 2.0;
-        let num_radial_lines = FIRST_LAYER.get_num_radial_lines();
+        let radius = 3.0;
+        let num_radial_lines = 12;
         assert_approx_eq_v3!(vertices[26], vec3(radius, 0.0, 0.0));
         assert_approx_eq_v3!(
             vertices[27],
@@ -525,14 +518,10 @@ mod tests {
     #[test]
     fn test_first_layer_uv() {
         let uvs = FIRST_LAYER.get_uv_vertexes();
-        assert_eq!(
-            uvs.len(),
-            (FIRST_LAYER.get_num_radial_lines() + 1)
-                * (FIRST_LAYER.get_num_concentric_circles() + 1)
-        );
+        assert_eq!(uvs.len(), 13 * 3);
 
         // Test first layer
-        let num_radial_lines = FIRST_LAYER.get_num_radial_lines() as f32;
+        let num_radial_lines = 12.0;
         assert_approx_eq_v2!(uvs[0], vec2(0.0, 0.0));
         assert_approx_eq_v2!(uvs[1], vec2(1.0 / num_radial_lines, 0.0));
         assert_approx_eq_v2!(uvs[2], vec2(2.0 / num_radial_lines, 0.0));
@@ -548,8 +537,8 @@ mod tests {
         assert_approx_eq_v2!(uvs[12], vec2(12.0 / num_radial_lines, 0.0));
 
         // Middle layer
-        let num_radial_lines = FIRST_LAYER.get_num_radial_lines() as f32;
-        let num_concentric_circles = FIRST_LAYER.get_num_concentric_circles() as f32;
+        let num_radial_lines = 12.0;
+        let num_concentric_circles = 2.0;
         assert_approx_eq_v2!(uvs[13], vec2(0.0, 1.0 / num_concentric_circles));
         assert_approx_eq_v2!(
             uvs[14],
@@ -601,8 +590,8 @@ mod tests {
         );
 
         // Outer layer
-        let num_radial_lines = FIRST_LAYER.get_num_radial_lines() as f32;
-        let num_concentric_circles = FIRST_LAYER.get_num_concentric_circles() as f32;
+        let num_radial_lines = 12.0;
+        let num_concentric_circles = 2.0;
         assert_approx_eq_v2!(uvs[26], vec2(0.0, 2.0 / num_concentric_circles));
         assert_approx_eq_v2!(
             uvs[27],
@@ -679,20 +668,23 @@ mod tests {
 
     const FIRST_LAYER_PARTIAL: PartialLayerChunk = PartialLayerChunk {
         cell_radius: 1.0,
-        num_radial_lines: 6,
         num_concentric_circles: 1,
         start_concentric_circle_layer_relative: 1,
         start_concentric_circle_absolute: 2,
         start_radial_line: 6,
+        end_radial_line: 12,
+        layer_num_radial_lines: 12,
     };
 
     #[test]
     fn test_first_layer_circle_partial() {
         let vertices = FIRST_LAYER_PARTIAL.get_circle_vertexes();
-        assert_eq!(vertices.len(), 7);
+        assert_eq!(vertices.len(), 14);
 
-        let radius = FIRST_LAYER_PARTIAL.get_start_radius();
-        let num_radial_lines = FIRST_LAYER_PARTIAL.get_num_radial_lines();
+        let radius = 2.0;
+        let num_radial_lines = 12;
+        println!("radius: {}", radius);
+        println!("num_radial_lines: {}", num_radial_lines);
         assert_approx_eq_v3!(
             vertices[0],
             vec3(
@@ -750,7 +742,7 @@ mod tests {
             )
         );
 
-        let radius = FIRST_LAYER_PARTIAL.get_start_radius() + FIRST_LAYER_PARTIAL.get_cell_radius();
+        let radius = 3.0;
         assert_approx_eq_v3!(
             vertices[7],
             vec3(
@@ -812,15 +804,11 @@ mod tests {
     #[test]
     fn test_first_layer_uv_partial() {
         let uvs = FIRST_LAYER_PARTIAL.get_uv_vertexes();
-        assert_eq!(
-            uvs.len(),
-            (FIRST_LAYER_PARTIAL.get_num_radial_lines() + 1)
-                * (FIRST_LAYER_PARTIAL.get_num_concentric_circles() + 1)
-        );
+        assert_eq!(uvs.len(), 14);
 
         // Middle layer
-        let num_radial_lines = FIRST_LAYER_PARTIAL.get_num_radial_lines() as f32;
-        let num_concentric_circles = FIRST_LAYER_PARTIAL.get_num_concentric_circles() as f32;
+        let num_radial_lines = 6.0;
+        let num_concentric_circles = 1.0;
         assert_approx_eq_v2!(
             uvs[0],
             vec2(0.0 / num_radial_lines, 0.0 / num_concentric_circles)
@@ -878,11 +866,5 @@ mod tests {
             uvs[13],
             vec2(6.0 / num_radial_lines, 1.0 / num_concentric_circles)
         );
-    }
-
-    #[test]
-    fn test_first_layer_indices_partial() {
-        let indices = FIRST_LAYER_PARTIAL.get_indices();
-        panic!("Unimplemented")
     }
 }
