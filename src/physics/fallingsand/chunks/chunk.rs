@@ -22,6 +22,10 @@ pub trait Chunk {
     }
 
     /* Identity */
-    fn get_layer_num(&self) -> usize;
-    fn get_start_concentric_circle(&self) -> usize;
+    fn get_start_concentric_circle_layer_relative(&self) -> usize;
+    fn get_start_concentric_circle_absolute(&self) -> usize;
+    fn get_start_radial_line(&self) -> usize;
+    fn get_end_concentric_circle_absolute(&self) -> usize;
+    fn get_end_concentric_circle_relative(&self) -> usize;
+    fn get_end_radial_line(&self) -> usize;
 }

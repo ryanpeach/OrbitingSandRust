@@ -4,13 +4,13 @@ mod physics;
 
 use crate::physics::fallingsand::chunks::chunk::Chunk;
 use crate::physics::fallingsand::chunks::core::CoreChunk;
-use crate::physics::fallingsand::chunks::full_layer::FullLayerChunk;
+use crate::physics::fallingsand::chunks::partial_layer::PartialLayerChunk;
 
 #[macroquad::main("Sand Mesh")]
 async fn main() {
     let core = CoreChunk::default();
     let core_mesh = core.get_mesh();
-    let first_layer = FullLayerChunk::from_previous_layer(&core);
+    let first_layer = PartialLayerChunk::new(1.0, 12, 2, 1, 1, 0);
     let first_layer_mesh = first_layer.get_mesh();
     loop {
         // Set the scene
