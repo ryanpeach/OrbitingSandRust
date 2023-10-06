@@ -11,6 +11,7 @@ async fn main() {
         .first_num_radial_lines(6)
         .second_num_concentric_circles(2)
         .build();
+    let meshes = radial_mesh.get_meshes();
 
     loop {
         // Set the scene
@@ -25,7 +26,7 @@ async fn main() {
         });
 
         // Draw each mesh
-        for mesh in radial_mesh.get_meshes().iter() {
+        for mesh in meshes.iter() {
             draw_mesh(mesh);
         }
 
