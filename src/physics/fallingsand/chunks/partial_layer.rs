@@ -51,6 +51,7 @@ impl PartialLayerChunk {
             num_concentric_circles,
         }
     }
+
     fn get_circle_vertexes(&self) -> Vec<Vec3> {
         let mut vertexes: Vec<Vec3> = Vec::new();
 

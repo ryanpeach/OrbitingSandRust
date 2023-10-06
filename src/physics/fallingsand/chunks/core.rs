@@ -27,6 +27,13 @@ impl Default for CoreChunk {
 }
 
 impl CoreChunk {
+    pub fn new(radius: f32, num_radial_lines: usize) -> Self {
+        Self {
+            radius,
+            num_radial_lines,
+        }
+    }
+
     /// The goal is to go from the center to the outer edge and then one "unit" around the circle
     /// each vertex triplet for the position.
     /// For the uv, go from top left, to bottom left, to top right of a unit square for each triplet
