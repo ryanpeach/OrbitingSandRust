@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::physics::fallingsand::chunks::radial_mesh::RadialMeshBuilder;
 use macroquad::models::{Mesh, Vertex};
 use macroquad::prelude::*;

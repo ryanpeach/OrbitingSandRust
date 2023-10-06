@@ -1,5 +1,4 @@
 use crate::physics::fallingsand::chunks::chunk::{interpolate_points, Chunk};
-use macroquad::models::{Mesh, Vertex};
 use macroquad::prelude::{vec2, vec3, Vec2, Vec3, BLUE, RED, WHITE};
 use macroquad::texture::{FilterMode, Image, Texture2D};
 use std::f32::consts::PI;
@@ -194,20 +193,6 @@ impl PartialLayerChunk {
         }
 
         indices
-    }
-
-    fn get_vertices(&self) -> Vec<Vertex> {
-        let positions = self.get_circle_vertexes();
-        let uvs = self.get_uv_vertexes();
-        let mut vertices = Vec::with_capacity(positions.len());
-        for i in 0..positions.len() {
-            vertices.push(Vertex {
-                position: positions[i],
-                uv: uvs[i],
-                color: WHITE,
-            });
-        }
-        vertices
     }
 
     /// Right now we are just going to return a checkerboard texture

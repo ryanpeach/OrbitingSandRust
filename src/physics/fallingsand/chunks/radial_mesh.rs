@@ -1,10 +1,8 @@
-#![feature(core_panic)]
-
 use super::chunk::Chunk;
 use super::core::CoreChunk;
 use super::partial_layer::{PartialLayerChunk, PartialLayerChunkBuilder};
 use macroquad::models::Vertex;
-use macroquad::prelude::{Texture2D, Vec2, Vec3};
+use macroquad::prelude::Texture2D;
 
 pub struct RadialMesh {
     // cell_radius: f32,
@@ -206,23 +204,23 @@ impl RadialMeshBuilder {
 }
 
 impl RadialMesh {
-    pub fn get_positions(&self) -> Vec<Vec<Vec3>> {
-        let mut positions = Vec::new();
-        positions.push(self._core_chunk.get_positions());
-        for partial_chunk in &self._partial_chunks {
-            positions.push(partial_chunk.get_positions());
-        }
-        positions
-    }
+    // pub fn get_positions(&self) -> Vec<Vec<Vec3>> {
+    //     let mut positions = Vec::new();
+    //     positions.push(self._core_chunk.get_positions());
+    //     for partial_chunk in &self._partial_chunks {
+    //         positions.push(partial_chunk.get_positions());
+    //     }
+    //     positions
+    // }
 
-    pub fn get_uvs(&self) -> Vec<Vec<Vec2>> {
-        let mut uvs = Vec::new();
-        uvs.push(self._core_chunk.get_uvs());
-        for partial_chunk in &self._partial_chunks {
-            uvs.push(partial_chunk.get_uvs());
-        }
-        uvs
-    }
+    // pub fn get_uvs(&self) -> Vec<Vec<Vec2>> {
+    //     let mut uvs = Vec::new();
+    //     uvs.push(self._core_chunk.get_uvs());
+    //     for partial_chunk in &self._partial_chunks {
+    //         uvs.push(partial_chunk.get_uvs());
+    //     }
+    //     uvs
+    // }
 
     pub fn get_vertices(&self) -> Vec<Vec<Vertex>> {
         let mut vertices = Vec::new();
