@@ -1,6 +1,6 @@
 use crate::physics::fallingsand::chunks::chunk::Chunk;
-use macroquad::models::{Mesh, Vertex};
-use macroquad::prelude::{vec2, vec3, BLUE, RED, WHITE};
+use macroquad::models::Vertex;
+use macroquad::prelude::{vec2, vec3, Vec2, Vec3, BLUE, RED, WHITE};
 use macroquad::texture::{FilterMode, Image, Texture2D};
 use std::f32::consts::PI;
 
@@ -71,6 +71,17 @@ impl CoreChunk {
         vertices
     }
 
+    fn get_positions(&self) -> Vec<Vec3> {
+        self.get_vertices()
+            .iter()
+            .map(|vertex| vertex.position)
+            .collect()
+    }
+
+    fn get_uvs(&self) -> Vec<Vec2> {
+        self.get_vertices().iter().map(|vertex| vertex.uv).collect()
+    }
+
     /// The indices are just the indices of the vertices in order
     fn get_indices(&self) -> Vec<u16> {
         (0..self.num_radial_lines * 3).map(|i| i as u16).collect()
@@ -93,12 +104,17 @@ impl CoreChunk {
 }
 
 impl Chunk for CoreChunk {
-    fn get_mesh(&self) -> Mesh {
-        Mesh {
-            vertices: self.get_vertices(),
-            indices: self.get_indices(),
-            texture: Some(self.get_texture()),
-        }
+    fn get_positions(&self) -> Vec<Vec3> {
+        self.get_positions()
+    }
+    fn get_indices(&self) -> Vec<u16> {
+        self.get_indices()
+    }
+    fn get_uvs(&self) -> Vec<Vec2> {
+        self.get_uvs()
+    }
+    fn get_texture(&self) -> Texture2D {
+        self.get_texture()
     }
     fn get_cell_radius(&self) -> f32 {
         self.radius

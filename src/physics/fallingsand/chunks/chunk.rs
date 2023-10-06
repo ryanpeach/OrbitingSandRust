@@ -1,5 +1,7 @@
-use macroquad::models::Mesh;
-use macroquad::prelude::{vec3, Vec3};
+use macroquad::color::WHITE;
+use macroquad::models::Vertex;
+use macroquad::prelude::{vec3, Vec2, Vec3};
+use macroquad::texture::Texture2D;
 
 /// Finds a point halfway between two points
 pub fn interpolate_points(p1: &Vec3, p2: &Vec3) -> Vec3 {
@@ -9,7 +11,23 @@ pub fn interpolate_points(p1: &Vec3, p2: &Vec3) -> Vec3 {
 /// A chunk that can be rendered and simulated
 pub trait Chunk {
     /* Drawing */
-    fn get_mesh(&self) -> Mesh;
+    fn get_positions(&self) -> Vec<Vec3>;
+    fn get_indices(&self) -> Vec<u16>;
+    fn get_uvs(&self) -> Vec<Vec2>;
+    fn get_vertices(&self) -> Vec<Vertex> {
+        let positions = self.get_positions();
+        let uvs = self.get_uvs();
+        let mut vertices: Vec<Vertex> = Vec::new();
+        for i in 0..positions.len() {
+            vertices.push(Vertex {
+                position: positions[i],
+                uv: uvs[i],
+                color: WHITE,
+            });
+        }
+        vertices
+    }
+    fn get_texture(&self) -> Texture2D;
 
     /* Shape Parameter Getters */
     fn get_cell_radius(&self) -> f32;

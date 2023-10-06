@@ -236,12 +236,17 @@ impl PartialLayerChunk {
 }
 
 impl Chunk for PartialLayerChunk {
-    fn get_mesh(&self) -> Mesh {
-        Mesh {
-            vertices: self.get_vertices(),
-            indices: self.get_indices(),
-            texture: Some(self.get_texture()),
-        }
+    fn get_positions(&self) -> Vec<Vec3> {
+        self.get_circle_vertexes()
+    }
+    fn get_indices(&self) -> Vec<u16> {
+        self.get_indices()
+    }
+    fn get_uvs(&self) -> Vec<Vec2> {
+        self.get_uv_vertexes()
+    }
+    fn get_texture(&self) -> Texture2D {
+        self.get_texture()
     }
     fn get_cell_radius(&self) -> f32 {
         self.cell_radius

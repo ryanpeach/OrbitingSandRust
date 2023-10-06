@@ -3,7 +3,8 @@
 use super::chunk::Chunk;
 use super::core::CoreChunk;
 use super::partial_layer::{PartialLayerChunk, PartialLayerChunkBuilder};
-use macroquad::prelude::Mesh;
+use macroquad::models::Vertex;
+use macroquad::prelude::{Texture2D, Vec2, Vec3};
 
 pub struct RadialMesh {
     // cell_radius: f32,
@@ -205,13 +206,49 @@ impl RadialMeshBuilder {
 }
 
 impl RadialMesh {
-    pub fn get_meshes(&self) -> Vec<Mesh> {
-        let mut meshes: Vec<Mesh> = Vec::with_capacity(self._partial_chunks.len() + 1);
-        meshes.push(self._core_chunk.get_mesh());
-        for partial_chunk in self._partial_chunks.iter() {
-            meshes.push(partial_chunk.get_mesh());
+    pub fn get_positions(&self) -> Vec<Vec<Vec3>> {
+        let mut positions = Vec::new();
+        positions.push(self._core_chunk.get_positions());
+        for partial_chunk in &self._partial_chunks {
+            positions.push(partial_chunk.get_positions());
         }
-        meshes
+        positions
+    }
+
+    pub fn get_uvs(&self) -> Vec<Vec<Vec2>> {
+        let mut uvs = Vec::new();
+        uvs.push(self._core_chunk.get_uvs());
+        for partial_chunk in &self._partial_chunks {
+            uvs.push(partial_chunk.get_uvs());
+        }
+        uvs
+    }
+
+    pub fn get_vertices(&self) -> Vec<Vec<Vertex>> {
+        let mut vertices = Vec::new();
+        vertices.push(self._core_chunk.get_vertices());
+        for partial_chunk in &self._partial_chunks {
+            vertices.push(partial_chunk.get_vertices());
+        }
+        vertices
+    }
+
+    pub fn get_indices(&self) -> Vec<Vec<u16>> {
+        let mut indices = Vec::new();
+        indices.push(self._core_chunk.get_indices());
+        for partial_chunk in &self._partial_chunks {
+            indices.push(partial_chunk.get_indices());
+        }
+        indices
+    }
+
+    pub fn get_textures(&self) -> Vec<Texture2D> {
+        let mut textures = Vec::new();
+        textures.push(self._core_chunk.get_texture());
+        for partial_chunk in &self._partial_chunks {
+            textures.push(partial_chunk.get_texture());
+        }
+        textures
     }
 }
 
