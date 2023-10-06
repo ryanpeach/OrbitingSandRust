@@ -4,11 +4,19 @@ use macroquad::prelude::{vec2, vec3, BLUE, RED, WHITE};
 use macroquad::texture::{FilterMode, Image, Texture2D};
 use std::f32::consts::PI;
 
+/// The core is always the first layer
+/// It defines the radius of all future layers cell_radius
+/// All future layers have 2x their previous layers num_radial_lines
+/// Making this num_radial_lines the only variable layer to layer
 pub struct CoreChunk {
     radius: f32,
-    num_radial_lines: u32,
+    num_radial_lines: usize,
 }
 
+/// The default constructor
+/// 6 is a good number for num_radial_lines as it is divisible by 2 and 3
+/// 1 is a normal default for radius, but if you wanted a "bigger" planet without
+/// changing the "resolution" of its simulation, you could increase this
 impl Default for CoreChunk {
     fn default() -> Self {
         Self {
@@ -19,6 +27,10 @@ impl Default for CoreChunk {
 }
 
 impl CoreChunk {
+    /// The goal is to go from the center to the outer edge and then one "unit" around the circle
+    /// each vertex triplet for the position.
+    /// For the uv, go from top left, to bottom left, to top right of a unit square for each triplet
+    /// where the top left of the unit square is the index of the cell normalized.
     fn get_vertices(&self) -> Vec<Vertex> {
         let mut vertices = Vec::new();
 
@@ -52,24 +64,20 @@ impl CoreChunk {
         vertices
     }
 
+    /// The indices are just the indices of the vertices in order
     fn get_indices(&self) -> Vec<u16> {
-        let mut indices = Vec::new();
-
-        // Triangles
-        for i in (0..(self.num_radial_lines * 3)).step_by(3) {
-            indices.push(i as u16);
-            indices.push((i + 1) as u16);
-            indices.push((i + 2) as u16);
-        }
-
-        indices
+        (0..self.num_radial_lines * 3).map(|i| i as u16).collect()
     }
 
     /// Right now we are just going to return a checkerboard texture
     fn get_texture(&self) -> Texture2D {
         let mut image = Image::gen_image_color(self.num_radial_lines.try_into().unwrap(), 1, WHITE);
         for i in 0..self.num_radial_lines {
-            image.set_pixel(i, 0, if i % 2 == 0 { RED } else { BLUE });
+            image.set_pixel(
+                i.try_into().unwrap(),
+                0,
+                if i % 2 == 0 { RED } else { BLUE },
+            );
         }
         let tex = Texture2D::from_image(&image);
         tex.set_filter(FilterMode::Nearest);
@@ -85,6 +93,45 @@ impl Chunk for CoreChunk {
             texture: Some(self.get_texture()),
         }
     }
+    fn get_cell_radius(&self) -> f32 {
+        self.radius
+    }
+    fn get_start_radius(&self) -> f32 {
+        0.0
+    }
+    fn get_end_radius(&self) -> f32 {
+        self.radius
+    }
+    fn get_num_radial_lines(&self) -> usize {
+        self.num_radial_lines
+    }
+    fn get_num_concentric_circles(&self) -> usize {
+        1
+    }
+    // fn get_start_radial_theta(&self) -> f32 {
+    //     0.0
+    // }
+    // fn get_end_radial_theta(&self) -> f32 {
+    //     2.0*PI*self.radius
+    // }
+    // fn get_start_radial_line(&self) -> usize {
+    //     0
+    // }
+    // fn get_end_radial_line(&self) -> usize {
+    //     self.num_radial_lines
+    // }
+    // fn get_start_concentric_circle_absolute(&self) -> usize {
+    //     0
+    // }
+    // fn get_start_concentric_circle_layer_relative(&self) -> usize {
+    //     0
+    // }
+    // fn get_end_concentric_circle_absolute(&self) -> usize {
+    //     1
+    // }
+    // fn get_end_concentric_circle_relative(&self) -> usize {
+    //     1
+    // }
 }
 
 #[cfg(test)]
