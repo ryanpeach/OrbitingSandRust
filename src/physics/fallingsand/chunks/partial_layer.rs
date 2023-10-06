@@ -32,7 +32,7 @@ impl PartialLayerChunk {
         if end_radial_line <= start_radial_line {
             panic!("end_radial_line must be greater than start_radial_line");
         }
-        if layer_num_radial_lines <= 0 {
+        if layer_num_radial_lines == 0 {
             panic!("layer_num_radial_lines must be greater than 0");
         }
         if end_radial_line > layer_num_radial_lines {
@@ -72,9 +72,9 @@ impl PartialLayerChunk {
                 if j == 0 && k % 2 == 1 {
                     let angle_next = (k + 1) as f32 * theta;
                     let radius = starting_r + diff;
-                    let v_last = vertexes.last().unwrap().clone();
+                    let v_last = vertexes.last().unwrap();
                     v_next = vec3(angle_next.cos() * radius, angle_next.sin() * radius, 0.0);
-                    vertexes.push(interpolate_points(v_last, v_next));
+                    vertexes.push(interpolate_points(v_last, &v_next));
                 } else if j == 0 && k % 2 == 0 && k != start_radial {
                     vertexes.push(v_next);
                 } else {
@@ -258,7 +258,7 @@ mod tests {
         let radius = 1.0;
         let num_radial_lines = 12;
         assert_approx_eq_v3!(vertices[0], vec3(radius, 0.0, 0.0));
-        assert_approx_eq_v3!(vertices[1], interpolate_points(vertices[0], vertices[2]));
+        assert_approx_eq_v3!(vertices[1], interpolate_points(&vertices[0], &vertices[2]));
         assert_approx_eq_v3!(
             vertices[2],
             vec3(
@@ -267,7 +267,7 @@ mod tests {
                 0.0
             )
         );
-        assert_approx_eq_v3!(vertices[3], interpolate_points(vertices[2], vertices[4]));
+        assert_approx_eq_v3!(vertices[3], interpolate_points(&vertices[2], &vertices[4]));
         assert_approx_eq_v3!(
             vertices[4],
             vec3(
@@ -276,7 +276,7 @@ mod tests {
                 0.0
             )
         );
-        assert_approx_eq_v3!(vertices[5], interpolate_points(vertices[4], vertices[6]));
+        assert_approx_eq_v3!(vertices[5], interpolate_points(&vertices[4], &vertices[6]));
         assert_approx_eq_v3!(
             vertices[6],
             vec3(
@@ -285,7 +285,7 @@ mod tests {
                 0.0
             )
         );
-        assert_approx_eq_v3!(vertices[7], interpolate_points(vertices[6], vertices[8]));
+        assert_approx_eq_v3!(vertices[7], interpolate_points(&vertices[6], &vertices[8]));
         assert_approx_eq_v3!(
             vertices[8],
             vec3(
@@ -294,7 +294,7 @@ mod tests {
                 0.0
             )
         );
-        assert_approx_eq_v3!(vertices[9], interpolate_points(vertices[8], vertices[10]));
+        assert_approx_eq_v3!(vertices[9], interpolate_points(&vertices[8], &vertices[10]));
         assert_approx_eq_v3!(
             vertices[10],
             vec3(
@@ -303,7 +303,10 @@ mod tests {
                 0.0
             )
         );
-        assert_approx_eq_v3!(vertices[11], interpolate_points(vertices[10], vertices[12]));
+        assert_approx_eq_v3!(
+            vertices[11],
+            interpolate_points(&vertices[10], &vertices[12])
+        );
         assert_approx_eq_v3!(
             vertices[12],
             vec3(
