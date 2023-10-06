@@ -18,6 +18,16 @@ async fn main() {
     // Pre-compute all vertices and indices
     let all_indices: Vec<Vec<u16>> = radial_mesh.get_indices();
     let all_vertices: Vec<Vec<Vertex>> = radial_mesh.get_vertices();
+    let all_mesh: Vec<Mesh> = {
+        let mut all_mesh: Vec<Mesh> = Vec::new();
+        for i in 0..all_vertices.len() {
+            all_mesh.push(Mesh {
+                vertices: all_vertices[i].clone(),
+                indices: all_indices[i].clone(),
+            });
+        }
+        all_mesh
+    };
 
     loop {
         // Set the scene
@@ -34,12 +44,7 @@ async fn main() {
         // Generate new textures and draw them
         let all_textures = radial_mesh.get_textures();
         for (i, texture) in all_textures.into_iter().enumerate() {
-            // Under profiling this does nothing, even though the clone is unattractive
-            draw_mesh(&Mesh {
-                vertices: all_vertices[i].clone(),
-                indices: all_indices[i].clone(),
-                texture: Some(texture),
-            });
+            draw_mesh(&all_mesh[i], Some(&texture));
         }
 
         // Fin
