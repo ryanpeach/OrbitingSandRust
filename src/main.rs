@@ -1,13 +1,75 @@
 #![allow(dead_code)]
 
 use ggez::event::{self, EventHandler};
-use ggez::glam::Vec2;
-use ggez::graphics::{self, Color, Mesh, MeshBuilder, MeshData, Vertex};
+use ggez::glam::*;
+use ggez::graphics::{
+    self, BlendMode, Color, FilterMode, Mesh, MeshBuilder, MeshData, Sampler, Vertex,
+};
+use ggez::input::keyboard::{KeyCode, KeyInput};
+use ggez::input::mouse::MouseButton;
 use ggez::{Context, GameResult};
 
 use crate::physics::fallingsand::chunks::radial_mesh::{RadialMesh, RadialMeshBuilder};
 
 mod physics;
+
+/// ================================
+/// Create a camera implementation
+/// ================================
+struct Camera {
+    world_coords: Vec2,
+    zoom: f32,
+    zoom_speed: f32,
+    min_zoom: f32,
+    max_zoom: f32,
+    rotation: f32,
+}
+
+impl Default for Camera {
+    fn default() -> Self {
+        Self {
+            world_coords: Vec2::new(0.0, 0.0),
+            zoom: 1.0,
+            zoom_speed: 1.1,
+            min_zoom: 0.0, // Unbounded
+            max_zoom: 100.0,
+            rotation: 0.0,
+        }
+    }
+}
+
+impl Camera {
+    pub fn ZoomIn(&mut self) {
+        self.zoom *= self.zoom_speed;
+        if self.zoom > self.max_zoom {
+            self.zoom = self.max_zoom;
+        }
+    }
+    pub fn ZoomOut(&mut self) {
+        self.zoom /= self.zoom_speed;
+        if self.zoom < self.min_zoom {
+            self.zoom = self.min_zoom;
+        }
+    }
+    pub fn MoveUp(&mut self) {
+        self.world_coords.y += 2.0;
+    }
+    pub fn MoveDown(&mut self) {
+        self.world_coords.y -= 2.0;
+    }
+    pub fn MoveLeft(&mut self) {
+        self.world_coords.x -= 2.0;
+    }
+    pub fn MoveRight(&mut self) {
+        self.world_coords.x += 2.0;
+    }
+    pub fn RotateLeft(&mut self) {
+        self.rotation -= 0.1;
+    }
+    pub fn RotateRight(&mut self) {
+        self.rotation += 0.1;
+    }
+}
 
 struct MainState {
     res: u16,
@@ -15,28 +77,45 @@ struct MainState {
     all_vertices: Vec<Vec<Vertex>>,
     all_indices: Vec<Vec<u32>>,
     all_outlines: Vec<Vec<Vec2>>,
+    screen_width: f32,
+    screen_height: f32,
+    camera: Camera,
+}
+
+/// Translates the world coordinate system, which
+/// has Y pointing up and the origin at the center,
+/// to the screen coordinate system, which has Y
+/// pointing downward and the origin at the top-left,
+fn world_to_screen_coords(screen_width: f32, screen_height: f32, point: Vec2) -> Vec2 {
+    let x = point.x + screen_width / 2.0;
+    let y = screen_height - (point.y + screen_height / 2.0);
+    Vec2::new(x, y)
 }
 
 impl MainState {
-    fn new() -> GameResult<MainState> {
+    fn new(ctx: &mut Context) -> GameResult<MainState> {
         let radial_mesh = RadialMeshBuilder::new()
             .cell_radius(1.0)
-            .num_layers(6)
+            .num_layers(2)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(2)
             .build();
 
-        let res = 0;
-        let all_vertices = radial_mesh.get_vertexes(res);
-        let all_indices = radial_mesh.get_indices(res);
-        let all_outlines = radial_mesh.get_outlines(res);
+        let (width, height) = ctx.gfx.drawable_size();
+        let draw_resolution = 0;
+        let all_vertices = radial_mesh.get_vertexes(draw_resolution);
+        let all_indices = radial_mesh.get_indices(draw_resolution);
+        let all_outlines = radial_mesh.get_outlines(draw_resolution);
 
         Ok(MainState {
-            res,
+            res: draw_resolution,
             radial_mesh,
             all_vertices,
             all_indices,
             all_outlines,
+            screen_width: width,
+            screen_height: height,
+            camera: Camera::default(),
         })
     }
 }
@@ -49,7 +128,19 @@ impl EventHandler<ggez::GameError> for MainState {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         let mut canvas = graphics::Canvas::from_frame(ctx, graphics::Color::BLACK);
+        canvas.set_sampler(Sampler::from(FilterMode::Nearest));
         let all_textures = self.radial_mesh.get_textures(ctx, self.res);
+
+        let pos = world_to_screen_coords(
+            self.screen_width,
+            self.screen_height,
+            self.camera.world_coords,
+        );
+        let draw_params = graphics::DrawParam::new()
+            .dest(pos)
+            .scale(Vec2::new(self.camera.zoom, self.camera.zoom))
+            .rotation(self.camera.rotation)
+            .offset(Vec2::new(0.5, 0.5));
 
         for (i, texture) in all_textures.into_iter().enumerate() {
             // Draw the mesh
@@ -60,17 +151,15 @@ impl EventHandler<ggez::GameError> for MainState {
                     indices: &self.all_indices[i][..],
                 },
             );
-            canvas.draw_textured_mesh(mesh, texture, graphics::DrawParam::new());
+            canvas.draw_textured_mesh(mesh, texture, draw_params);
 
-            // // Draw the outlines
-            // for outline in &self.all_outlines {
-            //     let mut mb = MeshBuilder::new();
-            //     let line_mesh_data = mb
-            //         .line(&outline[..], 1.0, Color::RED)?
-            //         .build();
-            //     let line_mesh = Mesh::from_data(ctx, line_mesh_data);
-            //     canvas.draw(&line_mesh, graphics::DrawParam::new());
-            // }
+            // Draw the outlines
+            for outline in &self.all_outlines {
+                let mut mb = MeshBuilder::new();
+                let line_mesh_data = mb.line(&outline[..], 0.1, Color::RED)?.build();
+                let line_mesh = Mesh::from_data(ctx, line_mesh_data);
+                canvas.draw(&line_mesh, draw_params);
+            }
         }
 
         let fps_text = graphics::Text::new(format!("FPS: {}", ctx.time.fps()));
@@ -82,11 +171,55 @@ impl EventHandler<ggez::GameError> for MainState {
         let _ = canvas.finish(ctx);
         Ok(())
     }
+
+    fn key_down_event(
+        &mut self,
+        ctx: &mut Context,
+        input: KeyInput,
+        _repeated: bool,
+    ) -> GameResult {
+        match input.keycode {
+            Some(KeyCode::W) => {
+                self.camera.MoveDown();
+            }
+            Some(KeyCode::A) => {
+                self.camera.MoveRight();
+            }
+            Some(KeyCode::S) => {
+                self.camera.MoveUp();
+            }
+            Some(KeyCode::D) => {
+                self.camera.MoveLeft();
+            }
+            // Some(KeyCode::Q) => {
+            //     self.camera.RotateLeft();
+            // }
+            // Some(KeyCode::E) => {
+            //     self.camera.RotateRight();
+            // }
+            _ => (), // Do nothing
+        }
+        Ok(())
+    }
+
+    fn mouse_wheel_event(
+        &mut self,
+        _ctx: &mut Context,
+        _x: f32,
+        _y: f32,
+    ) -> Result<(), ggez::GameError> {
+        if _y > 0.0 {
+            self.camera.ZoomIn();
+        } else if _y < 0.0 {
+            self.camera.ZoomOut();
+        }
+        Ok(())
+    }
 }
 
 pub fn main() -> GameResult {
     let cb = ggez::ContextBuilder::new("drawing", "ggez");
-    let (ctx, events_loop) = cb.build()?;
-    let state = MainState::new().unwrap();
+    let (mut ctx, events_loop) = cb.build()?;
+    let state = MainState::new(&mut ctx).unwrap();
     event::run(ctx, events_loop, state)
 }
