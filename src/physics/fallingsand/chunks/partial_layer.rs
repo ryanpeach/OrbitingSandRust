@@ -124,7 +124,7 @@ impl PartialLayerChunk {
         let starting_r = self.get_start_radius();
         let ending_r = self.get_end_radius();
         let circle_separation_distance =
-            (ending_r - starting_r) / (self.num_concentric_circles + 1) as f32;
+            (ending_r - starting_r) / self.num_concentric_circles as f32;
         let theta = (-2.0 * PI) / self.layer_num_radial_lines as f32;
 
         for j in start_concentric..=self.num_concentric_circles + start_concentric {
@@ -238,9 +238,10 @@ impl Chunk for PartialLayerChunk {
     }
     fn get_start_radius(&self) -> f32 {
         self.start_concentric_circle_absolute as f32 * self.cell_radius
+            + self.start_concentric_circle_layer_relative as f32 * self.cell_radius
     }
     fn get_end_radius(&self) -> f32 {
-        self.get_start_radius() + self.cell_radius * ((self.num_concentric_circles + 1) as f32)
+        self.get_start_radius() + self.cell_radius * (self.num_concentric_circles as f32)
     }
     fn get_num_radial_lines(&self) -> usize {
         self.end_radial_line - self.start_radial_line
@@ -248,14 +249,32 @@ impl Chunk for PartialLayerChunk {
     fn get_num_concentric_circles(&self) -> usize {
         self.num_concentric_circles
     }
-    // fn get_end_radial_theta(&self) -> f32 {
-    //     let diff = (-2.0 * PI) / self.layer_num_radial_lines as f32;
-    //     self.end_radial_line as f32 * diff
-    // }
-    // fn get_start_radial_theta(&self) -> f32 {
-    //     let diff = (-2.0 * PI) / self.layer_num_radial_lines as f32;
-    //     self.start_radial_line as f32 * diff
-    // }
+    fn get_end_radial_theta(&self) -> f32 {
+        let diff = (2.0 * PI) / self.layer_num_radial_lines as f32;
+        self.end_radial_line as f32 * diff
+    }
+    fn get_start_radial_theta(&self) -> f32 {
+        let diff = (2.0 * PI) / self.layer_num_radial_lines as f32;
+        self.start_radial_line as f32 * diff
+    }
+    fn get_start_concentric_circle_layer_relative(&self) -> usize {
+        self.start_concentric_circle_layer_relative
+    }
+    fn get_start_concentric_circle_absolute(&self) -> usize {
+        self.start_concentric_circle_absolute
+    }
+    fn get_end_concentric_circle_absolute(&self) -> usize {
+        self.start_concentric_circle_absolute + self.num_concentric_circles
+    }
+    fn get_end_concentric_circle_relative(&self) -> usize {
+        self.start_concentric_circle_layer_relative + self.num_concentric_circles
+    }
+    fn get_end_radial_line(&self) -> usize {
+        self.end_radial_line
+    }
+    fn get_start_radial_line(&self) -> usize {
+        self.start_radial_line
+    }
 }
 
 #[cfg(test)]
@@ -739,7 +758,7 @@ mod tests {
         let vertices = FIRST_LAYER_PARTIAL.get_circle_vertexes();
         assert_eq!(vertices.len(), 14);
 
-        let radius = 2.0;
+        let radius = 3.0;
         let num_radial_lines = 12;
         println!("radius: {}", radius);
         println!("num_radial_lines: {}", num_radial_lines);
@@ -800,7 +819,7 @@ mod tests {
             )
         );
 
-        let radius = 3.0;
+        let radius = 4.0;
         assert_approx_eq_v3!(
             vertices[7],
             vec3(

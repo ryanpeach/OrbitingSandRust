@@ -14,6 +14,7 @@ pub trait Chunk {
     fn get_positions(&self) -> Vec<Vec3>;
     fn get_indices(&self) -> Vec<u16>;
     fn get_uvs(&self) -> Vec<Vec2>;
+    fn get_texture(&self) -> Texture2D;
     fn get_vertices(&self) -> Vec<Vertex> {
         let positions = self.get_positions();
         let uvs = self.get_uvs();
@@ -27,14 +28,13 @@ pub trait Chunk {
         }
         vertices
     }
-    fn get_texture(&self) -> Texture2D;
 
     /* Shape Parameter Getters */
     fn get_cell_radius(&self) -> f32;
     fn get_start_radius(&self) -> f32;
     fn get_end_radius(&self) -> f32;
-    // fn get_start_radial_theta(&self) -> f32;
-    // fn get_end_radial_theta(&self) -> f32;
+    fn get_start_radial_theta(&self) -> f32;
+    fn get_end_radial_theta(&self) -> f32;
     fn get_num_radial_lines(&self) -> usize;
     fn get_num_concentric_circles(&self) -> usize;
     fn total_size(&self) -> usize {
@@ -42,10 +42,10 @@ pub trait Chunk {
     }
 
     /* Identity */
-    // fn get_start_concentric_circle_layer_relative(&self) -> usize;
-    // fn get_start_concentric_circle_absolute(&self) -> usize;
-    // fn get_end_concentric_circle_absolute(&self) -> usize;
-    // fn get_end_concentric_circle_relative(&self) -> usize;
-    // fn get_end_radial_line(&self) -> usize;
-    // fn get_start_radial_line(&self) -> usize;
+    fn get_start_concentric_circle_layer_relative(&self) -> usize;
+    fn get_start_concentric_circle_absolute(&self) -> usize;
+    fn get_end_concentric_circle_absolute(&self) -> usize;
+    fn get_end_concentric_circle_relative(&self) -> usize;
+    fn get_end_radial_line(&self) -> usize;
+    fn get_start_radial_line(&self) -> usize;
 }

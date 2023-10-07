@@ -32,7 +32,10 @@ async fn main() {
 
         // Generate new textures and draw them
         let all_textures = radial_mesh.get_textures();
+
+        // This into_iter consumes the all_textures vector, because it is no longer needed
         for (i, texture) in all_textures.into_iter().enumerate() {
+            // We need to own the vertices and indices to draw them
             let vertices = replace(&mut all_vertices[i], Vec::new());
             let indices = replace(&mut all_indices[i], Vec::new());
             let mesh = Mesh {
@@ -41,6 +44,8 @@ async fn main() {
                 texture: Some(texture),
             };
             draw_mesh(&mesh);
+
+            // Now we can put the vertices and indices back
             let _ = replace(&mut all_vertices[i], mesh.vertices);
             let _ = replace(&mut all_indices[i], mesh.indices);
         }
