@@ -6,19 +6,12 @@ use std::f32::consts::PI;
 /// This is like the "skip" method but it always keeps the first and last item
 /// If it is larger than the number of items, it will just return the first and last item
 /// If the step is not a multiple of the number of items, it will round down to the previous multiple
-fn grid_iter<I>(iter: I, mut step: usize) -> impl Iterator<Item = I::Item>
-where
-    I: Iterator + Clone + ExactSizeIterator,
-    I::Item: PartialEq + Copy,
-{
-    let len = iter.len();
-    debug_assert_ne!(
-        len, 0,
-        "Grid iterator must have at least 2 elements, got 0."
-    );
-    debug_assert_ne!(
-        len, 1,
-        "Grid iterator must have at least 2 elements, got 1."
+fn grid_iter(start: usize, end: usize, mut step: usize) -> impl Iterator<Item = usize> {
+    let len = end - start;
+    debug_assert!(
+        len >= 2,
+        "Grid range must have at least 2 elements, got {}.",
+        len
     );
     debug_assert_ne!(step, 0, "Step should not be 0.");
 
@@ -30,10 +23,10 @@ where
         step -= 1;
     }
 
-    let start = iter.clone().take(1);
-    let end = iter.clone().last().into_iter();
+    let start_item = start;
+    let end_item = end - 1;
 
-    let middle = iter.enumerate().filter_map(move |(i, item)| {
+    let middle = (start..end).enumerate().filter_map(move |(i, item)| {
         if i % step == 0 && i != 0 && i != len - 1 {
             Some(item)
         } else {
@@ -41,7 +34,9 @@ where
         }
     });
 
-    start.chain(middle).chain(end)
+    std::iter::once(start_item)
+        .chain(middle)
+        .chain(std::iter::once(end_item))
 }
 
 /// This is a chunk that represents a "full" layer.
@@ -164,20 +159,14 @@ impl PartialLayerChunk {
         let theta = (-2.0 * PI) / self.layer_num_radial_lines as f32;
 
         for j in grid_iter(
-            (start_concentric..=self.get_num_concentric_circles() + start_concentric)
-                .collect::<Vec<_>>()
-                .into_iter(),
+            start_concentric,
+            self.get_num_concentric_circles() + start_concentric + 1,
             step,
         ) {
             let diff = (j - start_concentric) as f32 * circle_separation_distance;
             let mut v_next = vec3(0.0, 0.0, 0.0);
 
-            for k in grid_iter(
-                (start_radial..=self.end_radial_line)
-                    .collect::<Vec<_>>()
-                    .into_iter(),
-                step,
-            ) {
+            for k in grid_iter(start_radial, self.end_radial_line + 1, step) {
                 if j == 0 && k % 2 == 1 {
                     let angle_next = (k + 1) as f32 * theta;
                     let radius = starting_r + diff;
@@ -207,18 +196,8 @@ impl PartialLayerChunk {
     fn get_uv_vertexes(&self, step: usize) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
-        for j in grid_iter(
-            (0..=self.get_num_concentric_circles())
-                .collect::<Vec<_>>()
-                .into_iter(),
-            step,
-        ) {
-            for k in grid_iter(
-                (0..=self.get_num_radial_lines())
-                    .collect::<Vec<_>>()
-                    .into_iter(),
-                step,
-            ) {
+        for j in grid_iter(0, self.get_num_concentric_circles() + 1, step) {
+            for k in grid_iter(0, self.get_num_radial_lines() + 1, step) {
                 let new_vec = vec2(
                     k as f32 / self.get_num_radial_lines() as f32,
                     j as f32 / self.get_num_concentric_circles() as f32,
@@ -232,11 +211,9 @@ impl PartialLayerChunk {
 
     fn get_indices(&self, step: usize) -> Vec<u16> {
         let mut indices = Vec::new();
-        let j_values: Vec<usize> = (0..=self.get_num_concentric_circles()).collect();
-        let j_iter = grid_iter(j_values.into_iter(), step);
+        let j_iter = grid_iter(0, self.get_num_concentric_circles() + 1, step);
         let j_count = j_iter.count();
-        let k_values: Vec<usize> = (0..=self.get_num_radial_lines()).collect();
-        let k_iter = grid_iter(k_values.into_iter(), step);
+        let k_iter = grid_iter(0, self.get_num_radial_lines() + 1, step);
         let k_count = k_iter.count();
         for j in 0..j_count {
             for k in 0..k_count {
@@ -263,11 +240,9 @@ impl PartialLayerChunk {
 
     /// Right now we are just going to return a checkerboard texture
     fn get_texture(&self, step: usize) -> Texture2D {
-        let j_values: Vec<usize> = (0..=self.get_num_concentric_circles()).collect();
-        let j_iter = grid_iter(j_values.into_iter(), step);
+        let j_iter = grid_iter(0, self.get_num_concentric_circles() + 1, step);
         let j_count = j_iter.count();
-        let k_values: Vec<usize> = (0..=self.get_num_radial_lines()).collect();
-        let k_iter = grid_iter(k_values.into_iter(), step);
+        let k_iter = grid_iter(0, self.get_num_radial_lines() + 1, step);
         let k_count = k_iter.count();
         let mut image = Image::gen_image_color(
             k_count.try_into().unwrap(),
@@ -356,26 +331,26 @@ mod tests {
     /// We will always return 0 or 2 elements minimum, never 1
     #[test]
     fn test_two_elements() {
-        let v: Vec<_> = grid_iter(0..2, 16).collect();
+        let v: Vec<_> = grid_iter(0, 2, 16).collect();
         assert_eq!(v, vec![0, 1]);
     }
 
     #[test]
     fn test_basic() {
-        let v: Vec<_> = grid_iter(0..11, 2).collect();
+        let v: Vec<_> = grid_iter(0, 11, 2).collect();
         assert_eq!(v, vec![0, 2, 4, 6, 8, 10]);
     }
 
     #[test]
     fn test_step_one() {
-        let v: Vec<_> = grid_iter(0..11, 1).collect();
+        let v: Vec<_> = grid_iter(0, 11, 1).collect();
         assert_eq!(v, vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     }
 
     /// At a large step size, we should just get the first and last elements
     #[test]
     fn test_large_step() {
-        let v: Vec<_> = grid_iter(0..10, 20).collect();
+        let v: Vec<_> = grid_iter(0, 10, 20).collect();
         assert_eq!(v, vec![0, 9]);
     }
 
@@ -385,26 +360,26 @@ mod tests {
     /// So we round down to 1
     #[test]
     fn test_weird_number_4_by_2() {
-        let v: Vec<_> = grid_iter(0..4, 2).collect();
+        let v: Vec<_> = grid_iter(0, 4, 2).collect();
         assert_eq!(v, vec![0, 1, 2, 3]);
     }
 
     #[test]
     fn test_basic_5() {
-        let v: Vec<_> = grid_iter(0..5, 2).collect();
+        let v: Vec<_> = grid_iter(0, 5, 2).collect();
         assert_eq!(v, vec![0, 2, 4]);
     }
 
     #[test]
     fn test_weird_6() {
-        let v: Vec<_> = grid_iter(0..6, 3).collect();
+        let v: Vec<_> = grid_iter(0, 6, 3).collect();
         assert_eq!(v, vec![0, 1, 2, 3, 4, 5]);
     }
 
     /// In this case, because three doesnt work, we automatically round down to 2
     #[test]
     fn test_round_7() {
-        let v: Vec<_> = grid_iter(0..7, 3).collect();
+        let v: Vec<_> = grid_iter(0, 7, 3).collect();
         assert_eq!(v, vec![0, 3, 6]);
     }
 

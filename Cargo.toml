@@ -11,3 +11,10 @@ macroquad = "0.4.1"
 ndarray = "0.15.6"
 serde = "1.0.188"
 uom = "0.35.0"
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
+debug = true
