@@ -439,7 +439,7 @@ mod tests {
         // So the first 8 chunks are in a concentric circle
         assert_quad!(
             radial_mesh,
-            08,
+            8,
             31.0,
             47.0,
             0.0 * 2.0 * std::f32::consts::PI / 8.0,
@@ -447,7 +447,7 @@ mod tests {
         );
         assert_quad!(
             radial_mesh,
-            09,
+            9,
             31.0,
             47.0,
             1.0 * 2.0 * std::f32::consts::PI / 8.0,

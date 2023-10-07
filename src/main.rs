@@ -3,7 +3,6 @@
 use crate::physics::fallingsand::chunks::radial_mesh::RadialMeshBuilder;
 use macroquad::models::{Mesh, Vertex};
 use macroquad::prelude::*;
-use std::mem::replace;
 
 mod physics;
 
@@ -38,8 +37,8 @@ async fn main() {
         // This into_iter consumes the all_textures vector, because it is no longer needed
         for (i, texture) in all_textures.into_iter().enumerate() {
             // We need to own the vertices and indices to draw them
-            let vertices = replace(&mut all_vertices[i], Vec::new());
-            let indices = replace(&mut all_indices[i], Vec::new());
+            let vertices = std::mem::take(&mut all_vertices[i]);
+            let indices = std::mem::take(&mut all_indices[i]);
             let mesh = Mesh {
                 vertices,
                 indices,
@@ -48,8 +47,8 @@ async fn main() {
             draw_mesh(&mesh);
 
             // Now we can put the vertices and indices back
-            let _ = replace(&mut all_vertices[i], mesh.vertices);
-            let _ = replace(&mut all_indices[i], mesh.indices);
+            let _ = std::mem::replace(&mut all_vertices[i], mesh.vertices);
+            let _ = std::mem::replace(&mut all_indices[i], mesh.indices);
         }
 
         // Fin
