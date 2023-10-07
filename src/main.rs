@@ -16,8 +16,9 @@ async fn main() {
         .build();
 
     // Pre-compute all vertices and indices
-    let mut all_indices: Vec<Vec<u16>> = radial_mesh.get_indices();
-    let mut all_vertices: Vec<Vec<Vertex>> = radial_mesh.get_vertices();
+    let res = 6;
+    let mut all_indices: Vec<Vec<u16>> = radial_mesh.get_indices(res);
+    let mut all_vertices: Vec<Vec<Vertex>> = radial_mesh.get_vertices(res);
 
     loop {
         // Set the scene
@@ -32,7 +33,7 @@ async fn main() {
         });
 
         // Generate new textures and draw them
-        let all_textures = radial_mesh.get_textures();
+        let all_textures = radial_mesh.get_textures(res);
 
         // This into_iter consumes the all_textures vector, because it is no longer needed
         for (i, texture) in all_textures.into_iter().enumerate() {
@@ -47,8 +48,8 @@ async fn main() {
             draw_mesh(&mesh);
 
             // Now we can put the vertices and indices back
-            let _ = std::mem::replace(&mut all_vertices[i], mesh.vertices);
-            let _ = std::mem::replace(&mut all_indices[i], mesh.indices);
+            all_vertices[i] = mesh.vertices;
+            all_indices[i] = mesh.indices;
         }
 
         // Fin

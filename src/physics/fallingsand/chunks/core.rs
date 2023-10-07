@@ -104,16 +104,23 @@ impl CoreChunk {
 }
 
 impl Chunk for CoreChunk {
-    fn get_positions(&self) -> Vec<Vec3> {
+    /// Res does not matter at all for the core chunk
+    #[allow(unused_variables)]
+    fn get_positions(&self, res: u16) -> Vec<Vec3> {
         self.get_positions()
     }
-    fn get_indices(&self) -> Vec<u16> {
+    /// Res does not matter at all for the core chunk
+    #[allow(unused_variables)]
+    fn get_indices(&self, res: u16) -> Vec<u16> {
         self.get_indices()
     }
-    fn get_uvs(&self) -> Vec<Vec2> {
+    /// Res does not matter at all for the core chunk
+    #[allow(unused_variables)]
+    fn get_uvs(&self, res: u16) -> Vec<Vec2> {
         self.get_uvs()
     }
-    fn get_texture(&self) -> Texture2D {
+    #[allow(unused_variables)]
+    fn get_texture(&self, res: u16) -> Texture2D {
         self.get_texture()
     }
     fn get_cell_radius(&self) -> f32 {

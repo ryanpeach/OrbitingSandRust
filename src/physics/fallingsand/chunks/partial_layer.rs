@@ -3,6 +3,47 @@ use macroquad::prelude::{vec2, vec3, Vec2, Vec3, BLUE, RED, WHITE};
 use macroquad::texture::{FilterMode, Image, Texture2D};
 use std::f32::consts::PI;
 
+/// This is like the "skip" method but it always keeps the first and last item
+/// If it is larger than the number of items, it will just return the first and last item
+/// If the step is not a multiple of the number of items, it will round down to the previous multiple
+fn grid_iter<I>(iter: I, mut step: usize) -> impl Iterator<Item = I::Item>
+where
+    I: Iterator + Clone + ExactSizeIterator,
+    I::Item: PartialEq + Copy,
+{
+    let len = iter.len();
+    debug_assert_ne!(
+        len, 0,
+        "Grid iterator must have at least 2 elements, got 0."
+    );
+    debug_assert_ne!(
+        len, 1,
+        "Grid iterator must have at least 2 elements, got 1."
+    );
+    debug_assert_ne!(step, 0, "Step should not be 0.");
+
+    fn valid_step(len: usize, step: usize) -> bool {
+        step == 1 || step == len - 1 || (len - 1) % step == 0
+    }
+
+    while !valid_step(len, step) && step > 1 {
+        step -= 1;
+    }
+
+    let start = iter.clone().take(1);
+    let end = iter.clone().last().into_iter();
+
+    let middle = iter.enumerate().filter_map(move |(i, item)| {
+        if i % step == 0 && i != 0 && i != len - 1 {
+            Some(item)
+        } else {
+            None
+        }
+    });
+
+    start.chain(middle).chain(end)
+}
+
 /// This is a chunk that represents a "full" layer.
 /// It doesn't split itself in either the radial or concentric directions.
 pub struct PartialLayerChunk {
@@ -40,9 +81,7 @@ impl PartialLayerChunkBuilder {
     }
 
     pub fn cell_radius(mut self, cell_radius: f32) -> PartialLayerChunkBuilder {
-        if cell_radius <= 0.0 {
-            panic!("cell_radius must be greater than 0");
-        }
+        debug_assert!(cell_radius > 0.0);
         self.cell_radius = cell_radius;
         self
     }
@@ -77,9 +116,7 @@ impl PartialLayerChunkBuilder {
         mut self,
         layer_num_radial_lines: usize,
     ) -> PartialLayerChunkBuilder {
-        if layer_num_radial_lines == 0 {
-            panic!("layer_num_radial_lines must be greater than 0");
-        }
+        debug_assert_ne!(layer_num_radial_lines, 0);
         self.layer_num_radial_lines = layer_num_radial_lines;
         self
     }
@@ -88,20 +125,14 @@ impl PartialLayerChunkBuilder {
         mut self,
         num_concentric_circles: usize,
     ) -> PartialLayerChunkBuilder {
-        if num_concentric_circles == 0 {
-            panic!("num_concentric_circles must be greater than 0");
-        }
+        debug_assert_ne!(num_concentric_circles, 0);
         self.num_concentric_circles = num_concentric_circles;
         self
     }
 
     pub fn build(self) -> PartialLayerChunk {
-        if self.end_radial_line <= self.start_radial_line {
-            panic!("end_radial_line must be greater than start_radial_line");
-        }
-        if self.end_radial_line > self.layer_num_radial_lines {
-            panic!("end_radial_line must be less than or equal to layer_num_radial_lines");
-        }
+        debug_assert!(self.end_radial_line > self.start_radial_line);
+        debug_assert!(self.end_radial_line <= self.layer_num_radial_lines);
         PartialLayerChunk {
             cell_radius: self.cell_radius,
             start_concentric_circle_layer_relative: self.start_concentric_circle_layer_relative,
@@ -115,7 +146,12 @@ impl PartialLayerChunkBuilder {
 }
 
 impl PartialLayerChunk {
-    fn get_circle_vertexes(&self) -> Vec<Vec3> {
+    /// Gets the positions of the vertexes of the chunk
+    /// These represent a radial grid of cells
+    /// If you set skip to 1, you will get the full resolution
+    /// If you set skip to 2, you will get half the resolution
+    /// ...
+    fn get_circle_vertexes(&self, step: usize) -> Vec<Vec3> {
         let mut vertexes: Vec<Vec3> = Vec::new();
 
         let start_concentric = self.start_concentric_circle_layer_relative;
@@ -124,14 +160,24 @@ impl PartialLayerChunk {
         let starting_r = self.get_start_radius();
         let ending_r = self.get_end_radius();
         let circle_separation_distance =
-            (ending_r - starting_r) / self.num_concentric_circles as f32;
+            (ending_r - starting_r) / self.get_num_concentric_circles() as f32;
         let theta = (-2.0 * PI) / self.layer_num_radial_lines as f32;
 
-        for j in start_concentric..=self.num_concentric_circles + start_concentric {
+        for j in grid_iter(
+            (start_concentric..=self.get_num_concentric_circles() + start_concentric)
+                .collect::<Vec<_>>()
+                .into_iter(),
+            step,
+        ) {
             let diff = (j - start_concentric) as f32 * circle_separation_distance;
             let mut v_next = vec3(0.0, 0.0, 0.0);
 
-            for k in start_radial..=self.end_radial_line {
+            for k in grid_iter(
+                (start_radial..=self.end_radial_line)
+                    .collect::<Vec<_>>()
+                    .into_iter(),
+                step,
+            ) {
                 if j == 0 && k % 2 == 1 {
                     let angle_next = (k + 1) as f32 * theta;
                     let radius = starting_r + diff;
@@ -153,14 +199,29 @@ impl PartialLayerChunk {
         vertexes
     }
 
-    fn get_uv_vertexes(&self) -> Vec<Vec2> {
+    /// Gets the UV coordinates of the vertexes of the chunk
+    /// This is a more traditional square grid
+    /// If you set skip to 1, you will get the full resolution
+    /// If you set skip to 2, you will get half the resolution
+    /// ...
+    fn get_uv_vertexes(&self, step: usize) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
-        for j in 0..=self.num_concentric_circles {
-            for k in 0..=self.get_num_radial_lines() {
+        for j in grid_iter(
+            (0..=self.get_num_concentric_circles())
+                .collect::<Vec<_>>()
+                .into_iter(),
+            step,
+        ) {
+            for k in grid_iter(
+                (0..=self.get_num_radial_lines())
+                    .collect::<Vec<_>>()
+                    .into_iter(),
+                step,
+            ) {
                 let new_vec = vec2(
                     k as f32 / self.get_num_radial_lines() as f32,
-                    j as f32 / self.num_concentric_circles as f32,
+                    j as f32 / self.get_num_concentric_circles() as f32,
                 );
                 vertexes.push(new_vec);
             }
@@ -169,11 +230,16 @@ impl PartialLayerChunk {
         vertexes
     }
 
-    fn get_indices(&self) -> Vec<u16> {
+    fn get_indices(&self, step: usize) -> Vec<u16> {
         let mut indices = Vec::new();
-
-        for j in 0..self.num_concentric_circles {
-            for k in 0..self.get_num_radial_lines() {
+        let j_values: Vec<usize> = (0..=self.get_num_concentric_circles()).collect();
+        let j_iter = grid_iter(j_values.into_iter(), step);
+        let j_count = j_iter.count();
+        let k_values: Vec<usize> = (0..=self.get_num_radial_lines()).collect();
+        let k_iter = grid_iter(k_values.into_iter(), step);
+        let k_count = k_iter.count();
+        for j in 0..j_count {
+            for k in 0..k_count {
                 // Compute the four corners of our current grid cell
                 let v0 = j * (self.get_num_radial_lines() + 1) + k; // Top-left
                 let v1 = v0 + 1; // Top-right
@@ -196,15 +262,21 @@ impl PartialLayerChunk {
     }
 
     /// Right now we are just going to return a checkerboard texture
-    fn get_texture(&self) -> Texture2D {
+    fn get_texture(&self, step: usize) -> Texture2D {
+        let j_values: Vec<usize> = (0..=self.get_num_concentric_circles()).collect();
+        let j_iter = grid_iter(j_values.into_iter(), step);
+        let j_count = j_iter.count();
+        let k_values: Vec<usize> = (0..=self.get_num_radial_lines()).collect();
+        let k_iter = grid_iter(k_values.into_iter(), step);
+        let k_count = k_iter.count();
         let mut image = Image::gen_image_color(
-            self.get_num_radial_lines().try_into().unwrap(),
-            self.num_concentric_circles.try_into().unwrap(),
+            k_count.try_into().unwrap(),
+            j_count.try_into().unwrap(),
             WHITE,
         );
         let mut i = 0;
-        for j in 0..self.num_concentric_circles {
-            for k in 0..self.get_num_radial_lines() {
+        for j in 0..j_count {
+            for k in 0..k_count {
                 image.set_pixel(
                     k.try_into().unwrap(),
                     j.try_into().unwrap(),
@@ -221,17 +293,17 @@ impl PartialLayerChunk {
 }
 
 impl Chunk for PartialLayerChunk {
-    fn get_positions(&self) -> Vec<Vec3> {
-        self.get_circle_vertexes()
+    fn get_positions(&self, res: u16) -> Vec<Vec3> {
+        self.get_circle_vertexes(2usize.pow(res.into()))
     }
-    fn get_indices(&self) -> Vec<u16> {
-        self.get_indices()
+    fn get_indices(&self, res: u16) -> Vec<u16> {
+        self.get_indices(2usize.pow(res.into()))
     }
-    fn get_uvs(&self) -> Vec<Vec2> {
-        self.get_uv_vertexes()
+    fn get_uvs(&self, res: u16) -> Vec<Vec2> {
+        self.get_uv_vertexes(2usize.pow(res.into()))
     }
-    fn get_texture(&self) -> Texture2D {
-        self.get_texture()
+    fn get_texture(&self, res: u16) -> Texture2D {
+        self.get_texture(2usize.pow(res.into()))
     }
     fn get_cell_radius(&self) -> f32 {
         self.cell_radius
@@ -281,6 +353,61 @@ impl Chunk for PartialLayerChunk {
 mod tests {
     use super::*;
 
+    /// We will always return 0 or 2 elements minimum, never 1
+    #[test]
+    fn test_two_elements() {
+        let v: Vec<_> = grid_iter(0..2, 16).collect();
+        assert_eq!(v, vec![0, 1]);
+    }
+
+    #[test]
+    fn test_basic() {
+        let v: Vec<_> = grid_iter(0..11, 2).collect();
+        assert_eq!(v, vec![0, 2, 4, 6, 8, 10]);
+    }
+
+    #[test]
+    fn test_step_one() {
+        let v: Vec<_> = grid_iter(0..11, 1).collect();
+        assert_eq!(v, vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    }
+
+    /// At a large step size, we should just get the first and last elements
+    #[test]
+    fn test_large_step() {
+        let v: Vec<_> = grid_iter(0..10, 20).collect();
+        assert_eq!(v, vec![0, 9]);
+    }
+
+    /// In this case there is no "middle" element
+    /// Two could either produce 0, 1, 3 or 0, 2, 3 both of
+    /// which are invalid because they don't have constant spacing
+    /// So we round down to 1
+    #[test]
+    fn test_weird_number_4_by_2() {
+        let v: Vec<_> = grid_iter(0..4, 2).collect();
+        assert_eq!(v, vec![0, 1, 2, 3]);
+    }
+
+    #[test]
+    fn test_basic_5() {
+        let v: Vec<_> = grid_iter(0..5, 2).collect();
+        assert_eq!(v, vec![0, 2, 4]);
+    }
+
+    #[test]
+    fn test_weird_6() {
+        let v: Vec<_> = grid_iter(0..6, 3).collect();
+        assert_eq!(v, vec![0, 1, 2, 3, 4, 5]);
+    }
+
+    /// In this case, because three doesnt work, we automatically round down to 2
+    #[test]
+    fn test_round_7() {
+        let v: Vec<_> = grid_iter(0..7, 3).collect();
+        assert_eq!(v, vec![0, 3, 6]);
+    }
+
     fn vec3_approx_eq(a: Vec3, b: Vec3, epsilon: f32) -> bool {
         (a.x - b.x).abs() < epsilon && (a.y - b.y).abs() < epsilon && (a.z - b.z).abs() < epsilon
     }
@@ -323,7 +450,7 @@ mod tests {
 
     #[test]
     fn test_first_layer_circle() {
-        let vertices = FIRST_LAYER.get_circle_vertexes();
+        let vertices = FIRST_LAYER.get_circle_vertexes(1);
         assert_eq!(vertices.len(), 13 * 3);
 
         // The inner circle
@@ -594,7 +721,7 @@ mod tests {
 
     #[test]
     fn test_first_layer_uv() {
-        let uvs = FIRST_LAYER.get_uv_vertexes();
+        let uvs = FIRST_LAYER.get_uv_vertexes(1);
         assert_eq!(uvs.len(), 13 * 3);
 
         // Test first layer
@@ -722,7 +849,7 @@ mod tests {
 
     #[test]
     fn test_first_layer_indices() {
-        let indices = FIRST_LAYER.get_indices();
+        let indices = FIRST_LAYER.get_indices(1);
 
         assert_eq!(indices[0], 0);
         assert_eq!(indices[1], 13);
@@ -755,7 +882,7 @@ mod tests {
 
     #[test]
     fn test_first_layer_circle_partial() {
-        let vertices = FIRST_LAYER_PARTIAL.get_circle_vertexes();
+        let vertices = FIRST_LAYER_PARTIAL.get_circle_vertexes(1);
         assert_eq!(vertices.len(), 14);
 
         let radius = 3.0;
@@ -880,7 +1007,7 @@ mod tests {
 
     #[test]
     fn test_first_layer_uv_partial() {
-        let uvs = FIRST_LAYER_PARTIAL.get_uv_vertexes();
+        let uvs = FIRST_LAYER_PARTIAL.get_uv_vertexes(1);
         assert_eq!(uvs.len(), 14);
 
         // Middle layer

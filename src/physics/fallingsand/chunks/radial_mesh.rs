@@ -55,9 +55,7 @@ impl RadialMeshBuilder {
     }
 
     pub fn build(self) -> RadialMesh {
-        if self.num_layers <= 1 {
-            panic!("RadialMesh::new: num_layers must be greater than 1");
-        }
+        debug_assert_ne!(self.num_layers, 0);
         let _core_chunk = CoreChunk::new(self.cell_radius, self.first_num_radial_lines);
         let mut _partial_chunks: Vec<PartialLayerChunk> = Vec::new();
 
@@ -81,13 +79,7 @@ impl RadialMeshBuilder {
                 .start_radial_line(0)
                 .end_radial_line(layer_num_radial_lines)
                 .build();
-            if next_layer.total_size() > self.max_cells {
-                panic!(
-                    "RadialMesh::new: next_layer.total_size() > self.max_cells: {} > {}",
-                    next_layer.total_size(),
-                    self.max_cells
-                );
-            }
+            debug_assert!(next_layer.total_size() <= self.max_cells);
             _partial_chunks.push(next_layer);
 
             // Modify the variables
@@ -120,9 +112,7 @@ impl RadialMeshBuilder {
                     .start_radial_line(i * (layer_num_radial_lines / num_radial_chunks))
                     .end_radial_line((i + 1) * (layer_num_radial_lines / num_radial_chunks))
                     .build();
-                if next_layer.total_size() > self.max_cells {
-                    panic!("RadialMesh::new: i: {}/{} next_layer.total_size() > self.max_cells: {} > {}", i, num_radial_chunks, next_layer.total_size(), self.max_cells);
-                }
+                debug_assert!(next_layer.total_size() <= self.max_cells);
                 _partial_chunks.push(next_layer);
             }
 
@@ -167,9 +157,7 @@ impl RadialMeshBuilder {
                         .start_radial_line(k * (layer_num_radial_lines / num_radial_chunks))
                         .end_radial_line((k + 1) * (layer_num_radial_lines / num_radial_chunks))
                         .build();
-                    if next_layer.total_size() > self.max_cells {
-                        panic!("RadialMesh::new: i: {}/{} j: {}/{} next_layer.total_size() > self.max_cells: {} > {}", k, num_radial_chunks, j, num_concentric_chunks, next_layer.total_size(), self.max_cells);
-                    }
+                    debug_assert!(next_layer.total_size() <= self.max_cells);
                     _partial_chunks.push(next_layer);
                 }
             }
@@ -199,29 +187,29 @@ impl RadialMeshBuilder {
 }
 
 impl RadialMesh {
-    pub fn get_vertices(&self) -> Vec<Vec<Vertex>> {
+    pub fn get_vertices(&self, res: u16) -> Vec<Vec<Vertex>> {
         let mut vertices = Vec::new();
-        vertices.push(self.core_chunk.get_vertices());
+        vertices.push(self.core_chunk.get_vertices(res));
         for partial_chunk in &self.partial_chunks {
-            vertices.push(partial_chunk.get_vertices());
+            vertices.push(partial_chunk.get_vertices(res));
         }
         vertices
     }
 
-    pub fn get_indices(&self) -> Vec<Vec<u16>> {
+    pub fn get_indices(&self, res: u16) -> Vec<Vec<u16>> {
         let mut indices = Vec::new();
-        indices.push(self.core_chunk.get_indices());
+        indices.push(self.core_chunk.get_indices(res));
         for partial_chunk in &self.partial_chunks {
-            indices.push(partial_chunk.get_indices());
+            indices.push(partial_chunk.get_indices(res));
         }
         indices
     }
 
-    pub fn get_textures(&self) -> Vec<Texture2D> {
+    pub fn get_textures(&self, res: u16) -> Vec<Texture2D> {
         let mut textures = Vec::new();
-        textures.push(self.core_chunk.get_texture());
+        textures.push(self.core_chunk.get_texture(res));
         for partial_chunk in &self.partial_chunks {
-            textures.push(partial_chunk.get_texture());
+            textures.push(partial_chunk.get_texture(res));
         }
         textures
     }

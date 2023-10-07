@@ -11,13 +11,13 @@ pub fn interpolate_points(p1: &Vec3, p2: &Vec3) -> Vec3 {
 /// A chunk that can be rendered and simulated
 pub trait Chunk {
     /* Drawing */
-    fn get_positions(&self) -> Vec<Vec3>;
-    fn get_indices(&self) -> Vec<u16>;
-    fn get_uvs(&self) -> Vec<Vec2>;
-    fn get_texture(&self) -> Texture2D;
-    fn get_vertices(&self) -> Vec<Vertex> {
-        let positions = self.get_positions();
-        let uvs = self.get_uvs();
+    fn get_positions(&self, res: u16) -> Vec<Vec3>;
+    fn get_indices(&self, res: u16) -> Vec<u16>;
+    fn get_uvs(&self, res: u16) -> Vec<Vec2>;
+    fn get_texture(&self, res: u16) -> Texture2D;
+    fn get_vertices(&self, res: u16) -> Vec<Vertex> {
+        let positions = self.get_positions(res);
+        let uvs = self.get_uvs(res);
         let mut vertices: Vec<Vertex> = Vec::new();
         for i in 0..positions.len() {
             vertices.push(Vertex {
