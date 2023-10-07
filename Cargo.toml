@@ -11,3 +11,11 @@ macroquad = "0.4.4"
 ndarray = "0.15.6"
 serde = "1.0.188"
 uom = "0.35.0"
+
+[dependencies.uuid]
+version = "1.4.1"
+features = [
+    "v4",                # Lets you generate random UUIDs
+    "fast-rng",          # Use a faster (but still sufficiently random) RNG
+    "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
+]
