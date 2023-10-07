@@ -188,6 +188,15 @@ impl RadialMeshBuilder {
 }
 
 impl RadialMesh {
+    pub fn get_outlines(&self, res: u16) -> Vec<Vec<Vec2>> {
+        let mut outlines = Vec::new();
+        outlines.push(self.core_chunk.get_outline(res));
+        for partial_chunk in &self.partial_chunks {
+            outlines.push(partial_chunk.get_outline(res));
+        }
+        outlines
+    }
+
     pub fn get_vertexes(&self, res: u16) -> Vec<Vec<Vertex>> {
         let mut vertexes = Vec::new();
         vertexes.push(self.core_chunk.get_vertices(res));

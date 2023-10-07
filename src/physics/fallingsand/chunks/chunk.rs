@@ -11,6 +11,7 @@ pub fn interpolate_points(p1: &Vec2, p2: &Vec2) -> Vec2 {
 /// A chunk that can be rendered and simulated
 pub trait Chunk {
     /* Drawing */
+    fn get_outline(&self, res: u16) -> Vec<Vec2>;
     fn get_positions(&self, res: u16) -> Vec<Vec2>;
     fn get_indices(&self, res: u16) -> Vec<u32>;
     fn get_uvs(&self, res: u16) -> Vec<Vec2>;

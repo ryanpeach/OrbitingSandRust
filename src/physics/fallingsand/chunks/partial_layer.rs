@@ -189,6 +189,48 @@ impl PartialLayerChunk {
         vertexes
     }
 
+    /// Similar to get_circle_vertexes, but the j index just iterates on the 0th and last element
+    fn get_outline(&self, step: usize) -> Vec<Vec2> {
+        let mut vertexes: Vec<Vec2> = Vec::new();
+
+        let start_concentric = self.start_concentric_circle_layer_relative;
+        let start_radial = self.start_radial_line;
+
+        let starting_r = self.get_start_radius();
+        let ending_r = self.get_end_radius();
+        let circle_separation_distance =
+            (ending_r - starting_r) / self.get_num_concentric_circles() as f32;
+        let theta = (-2.0 * PI) / self.layer_num_radial_lines as f32;
+
+        for j in [
+            start_concentric,
+            self.get_num_concentric_circles() + start_concentric + 1,
+        ] {
+            let diff = (j - start_concentric) as f32 * circle_separation_distance;
+            let mut v_next = Vec2::new(0.0, 0.0);
+
+            for k in grid_iter(start_radial, self.end_radial_line + 1, step) {
+                if j == 0 && k % 2 == 1 {
+                    let angle_next = (k + 1) as f32 * theta;
+                    let radius = starting_r + diff;
+                    let v_last = vertexes.last().unwrap();
+                    v_next = Vec2::new(angle_next.cos() * radius, angle_next.sin() * radius);
+                    vertexes.push(interpolate_points(v_last, &v_next));
+                } else if j == 0 && k % 2 == 0 && k != start_radial {
+                    vertexes.push(v_next);
+                } else {
+                    let angle_point = k as f32 * theta;
+                    let radius = starting_r + diff;
+                    let new_coord =
+                        Vec2::new(angle_point.cos() * radius, angle_point.sin() * radius);
+                    vertexes.push(new_coord);
+                }
+            }
+        }
+
+        vertexes
+    }
+
     /// Gets the UV coordinates of the vertexes of the chunk
     /// This is a more traditional square grid
     /// If you set skip to 1, you will get the full resolution
@@ -249,7 +291,11 @@ impl PartialLayerChunk {
         let mut i = 0;
         for _ in 0..j_count {
             for _ in 0..k_count {
-                let color = if i % 2 == 0 { Color::RED } else { Color::BLUE };
+                let color = if i % 2 == 0 {
+                    Color::YELLOW
+                } else {
+                    Color::BLUE
+                };
                 let rgba = color.to_rgba();
                 pixels.push(rgba.0);
                 pixels.push(rgba.1);
@@ -270,6 +316,9 @@ impl PartialLayerChunk {
 }
 
 impl Chunk for PartialLayerChunk {
+    fn get_outline(&self, res: u16) -> Vec<Vec2> {
+        self.get_outline(2usize.pow(res.into()))
+    }
     fn get_positions(&self, res: u16) -> Vec<Vec2> {
         self.get_circle_vertexes(2usize.pow(res.into()))
     }

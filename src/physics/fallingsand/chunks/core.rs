@@ -54,6 +54,20 @@ impl CoreChunk {
         vertices
     }
 
+    /// Just the outer sphere
+    fn get_outline(&self) -> Vec<Vec2> {
+        let mut vertices = Vec::new();
+
+        // Outer vertices
+        for i in 0..=self.num_radial_lines {
+            let angle1 = i as f32 * 2.0 * PI / self.num_radial_lines as f32;
+            let pos = Vec2::new(self.radius * angle1.cos(), self.radius * angle1.sin());
+            vertices.push(pos);
+        }
+
+        vertices
+    }
+
     /// For the uv, go from top left, to bottom left, to top right of a unit square for each triplet
     /// where the top left of the unit square is the index of the cell normalized.
     fn get_uvs(&self) -> Vec<Vec2> {
@@ -83,7 +97,11 @@ impl CoreChunk {
         let height = 1;
         let mut pixels: Vec<u8> = Vec::with_capacity(self.num_radial_lines * 4);
         for i in 0..self.num_radial_lines {
-            let color = if i % 2 == 0 { Color::RED } else { Color::BLUE };
+            let color = if i % 2 == 0 {
+                Color::YELLOW
+            } else {
+                Color::BLUE
+            };
             let rgba = color.to_rgba();
             pixels.push(rgba.0);
             pixels.push(rgba.1);
@@ -95,6 +113,10 @@ impl CoreChunk {
 }
 
 impl Chunk for CoreChunk {
+    #[allow(unused_variables)]
+    fn get_outline(&self, res: u16) -> Vec<Vec2> {
+        self.get_outline()
+    }
     /// Res does not matter at all for the core chunk
     #[allow(unused_variables)]
     fn get_positions(&self, res: u16) -> Vec<Vec2> {

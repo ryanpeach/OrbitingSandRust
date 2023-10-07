@@ -2,7 +2,7 @@
 
 use ggez::event::{self, EventHandler};
 use ggez::glam::Vec2;
-use ggez::graphics::{self, Mesh, MeshData, Vertex};
+use ggez::graphics::{self, Color, Mesh, MeshBuilder, MeshData, Vertex};
 use ggez::{Context, GameResult};
 
 use crate::physics::fallingsand::chunks::radial_mesh::{RadialMesh, RadialMeshBuilder};
@@ -14,26 +14,29 @@ struct MainState {
     radial_mesh: RadialMesh,
     all_vertices: Vec<Vec<Vertex>>,
     all_indices: Vec<Vec<u32>>,
+    all_outlines: Vec<Vec<Vec2>>,
 }
 
 impl MainState {
     fn new() -> GameResult<MainState> {
         let radial_mesh = RadialMeshBuilder::new()
             .cell_radius(1.0)
-            .num_layers(10)
+            .num_layers(6)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(2)
             .build();
 
-        let res = 6;
+        let res = 0;
         let all_vertices = radial_mesh.get_vertexes(res);
         let all_indices = radial_mesh.get_indices(res);
+        let all_outlines = radial_mesh.get_outlines(res);
 
         Ok(MainState {
             res,
             radial_mesh,
             all_vertices,
             all_indices,
+            all_outlines,
         })
     }
 }
@@ -49,6 +52,7 @@ impl EventHandler<ggez::GameError> for MainState {
         let all_textures = self.radial_mesh.get_textures(ctx, self.res);
 
         for (i, texture) in all_textures.into_iter().enumerate() {
+            // Draw the mesh
             let mesh = Mesh::from_data(
                 ctx,
                 MeshData {
@@ -56,8 +60,17 @@ impl EventHandler<ggez::GameError> for MainState {
                     indices: &self.all_indices[i][..],
                 },
             );
-
             canvas.draw_textured_mesh(mesh, texture, graphics::DrawParam::new());
+
+            // // Draw the outlines
+            // for outline in &self.all_outlines {
+            //     let mut mb = MeshBuilder::new();
+            //     let line_mesh_data = mb
+            //         .line(&outline[..], 1.0, Color::RED)?
+            //         .build();
+            //     let line_mesh = Mesh::from_data(ctx, line_mesh_data);
+            //     canvas.draw(&line_mesh, graphics::DrawParam::new());
+            // }
         }
 
         let fps_text = graphics::Text::new(format!("FPS: {}", ctx.time.fps()));
