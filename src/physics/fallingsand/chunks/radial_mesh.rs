@@ -1,8 +1,9 @@
 use super::chunk::Chunk;
 use super::core::CoreChunk;
 use super::partial_layer::{PartialLayerChunk, PartialLayerChunkBuilder};
-use macroquad::models::Vertex;
-use macroquad::prelude::Texture2D;
+use ggez::glam::Vec2;
+use ggez::graphics::{Image, Vertex};
+use ggez::Context;
 
 pub struct RadialMesh {
     num_layers: usize,
@@ -25,7 +26,7 @@ impl RadialMeshBuilder {
             num_layers: 1,
             first_num_radial_lines: 1,
             second_num_concentric_circles: 1,
-            max_cells: 576, // 24x24
+            max_cells: 128 * 128,
         }
     }
 
@@ -187,16 +188,34 @@ impl RadialMeshBuilder {
 }
 
 impl RadialMesh {
-    pub fn get_vertices(&self, res: u16) -> Vec<Vec<Vertex>> {
-        let mut vertices = Vec::new();
-        vertices.push(self.core_chunk.get_vertices(res));
+    pub fn get_vertexes(&self, res: u16) -> Vec<Vec<Vertex>> {
+        let mut vertexes = Vec::new();
+        vertexes.push(self.core_chunk.get_vertices(res));
         for partial_chunk in &self.partial_chunks {
-            vertices.push(partial_chunk.get_vertices(res));
+            vertexes.push(partial_chunk.get_vertices(res));
         }
-        vertices
+        vertexes
     }
 
-    pub fn get_indices(&self, res: u16) -> Vec<Vec<u16>> {
+    pub fn get_positions(&self, res: u16) -> Vec<Vec<Vec2>> {
+        let mut positions = Vec::new();
+        positions.push(self.core_chunk.get_positions(res));
+        for partial_chunk in &self.partial_chunks {
+            positions.push(partial_chunk.get_positions(res));
+        }
+        positions
+    }
+
+    pub fn get_uvs(&self, res: u16) -> Vec<Vec<Vec2>> {
+        let mut uvs = Vec::new();
+        uvs.push(self.core_chunk.get_uvs(res));
+        for partial_chunk in &self.partial_chunks {
+            uvs.push(partial_chunk.get_uvs(res));
+        }
+        uvs
+    }
+
+    pub fn get_indices(&self, res: u16) -> Vec<Vec<u32>> {
         let mut indices = Vec::new();
         indices.push(self.core_chunk.get_indices(res));
         for partial_chunk in &self.partial_chunks {
@@ -205,11 +224,11 @@ impl RadialMesh {
         indices
     }
 
-    pub fn get_textures(&self, res: u16) -> Vec<Texture2D> {
+    pub fn get_textures(&self, ctx: &mut Context, res: u16) -> Vec<Image> {
         let mut textures = Vec::new();
-        textures.push(self.core_chunk.get_texture(res));
+        textures.push(self.core_chunk.get_texture(ctx, res));
         for partial_chunk in &self.partial_chunks {
-            textures.push(partial_chunk.get_texture(res));
+            textures.push(partial_chunk.get_texture(ctx, res));
         }
         textures
     }
@@ -286,7 +305,7 @@ mod tests {
             .num_layers(7)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(2)
-            .max_cells(576)
+            .max_cells(576) // 24x24
             .build();
 
         // Layer 0
