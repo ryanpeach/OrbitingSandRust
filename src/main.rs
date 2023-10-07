@@ -1,6 +1,7 @@
 use crate::physics::fallingsand::chunks::radial_mesh::RadialMeshBuilder;
 use macroquad::models::{Mesh, Vertex};
 use macroquad::prelude::*;
+use std::mem::replace;
 
 mod physics;
 
@@ -14,18 +15,8 @@ async fn main() {
         .build();
 
     // Pre-compute all vertices and indices
-    let all_indices: Vec<Vec<u16>> = radial_mesh.get_indices();
-    let all_vertices: Vec<Vec<Vertex>> = radial_mesh.get_vertices();
-    let all_mesh: Vec<Mesh> = {
-        let mut all_mesh: Vec<Mesh> = Vec::new();
-        for i in 0..all_vertices.len() {
-            all_mesh.push(Mesh {
-                vertices: all_vertices[i].clone(),
-                indices: all_indices[i].clone(),
-            });
-        }
-        all_mesh
-    };
+    let mut all_indices: Vec<Vec<u16>> = radial_mesh.get_indices();
+    let mut all_vertices: Vec<Vec<Vertex>> = radial_mesh.get_vertices();
 
     loop {
         // Set the scene
@@ -42,7 +33,16 @@ async fn main() {
         // Generate new textures and draw them
         let all_textures = radial_mesh.get_textures();
         for (i, texture) in all_textures.into_iter().enumerate() {
-            draw_mesh(&all_mesh[i], Some(&texture));
+            let vertices = replace(&mut all_vertices[i], Vec::new());
+            let indices = replace(&mut all_indices[i], Vec::new());
+            let mesh = Mesh {
+                vertices,
+                indices,
+                texture: Some(texture),
+            };
+            draw_mesh(&mesh);
+            let _ = replace(&mut all_vertices[i], mesh.vertices);
+            let _ = replace(&mut all_indices[i], mesh.indices);
         }
 
         // Fin
