@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 egui = "0.23.0"
-macroquad = "0.4.4"
+macroquad = "0.4.1"
 ndarray = "0.15.6"
 serde = "1.0.188"
 uom = "0.35.0"

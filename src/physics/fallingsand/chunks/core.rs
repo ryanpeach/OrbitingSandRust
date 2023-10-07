@@ -1,6 +1,6 @@
 use crate::physics::fallingsand::chunks::chunk::Chunk;
-use macroquad::models::{Mesh, Vertex};
-use macroquad::prelude::{vec2, vec3, BLUE, RED, WHITE};
+use macroquad::models::Vertex;
+use macroquad::prelude::{vec2, vec3, Vec2, Vec3, BLUE, RED, WHITE};
 use macroquad::texture::{FilterMode, Image, Texture2D};
 use std::f32::consts::PI;
 
@@ -27,6 +27,13 @@ impl Default for CoreChunk {
 }
 
 impl CoreChunk {
+    pub fn new(radius: f32, num_radial_lines: usize) -> Self {
+        Self {
+            radius,
+            num_radial_lines,
+        }
+    }
+
     /// The goal is to go from the center to the outer edge and then one "unit" around the circle
     /// each vertex triplet for the position.
     /// For the uv, go from top left, to bottom left, to top right of a unit square for each triplet
@@ -64,6 +71,17 @@ impl CoreChunk {
         vertices
     }
 
+    fn get_positions(&self) -> Vec<Vec3> {
+        self.get_vertices()
+            .iter()
+            .map(|vertex| vertex.position)
+            .collect()
+    }
+
+    fn get_uvs(&self) -> Vec<Vec2> {
+        self.get_vertices().iter().map(|vertex| vertex.uv).collect()
+    }
+
     /// The indices are just the indices of the vertices in order
     fn get_indices(&self) -> Vec<u16> {
         (0..self.num_radial_lines * 3).map(|i| i as u16).collect()
@@ -86,12 +104,17 @@ impl CoreChunk {
 }
 
 impl Chunk for CoreChunk {
-    fn get_mesh(&self) -> Mesh {
-        Mesh {
-            vertices: self.get_vertices(),
-            indices: self.get_indices(),
-            texture: Some(self.get_texture()),
-        }
+    fn get_positions(&self) -> Vec<Vec3> {
+        self.get_positions()
+    }
+    fn get_indices(&self) -> Vec<u16> {
+        self.get_indices()
+    }
+    fn get_uvs(&self) -> Vec<Vec2> {
+        self.get_uvs()
+    }
+    fn get_texture(&self) -> Texture2D {
+        self.get_texture()
     }
     fn get_cell_radius(&self) -> f32 {
         self.radius
@@ -108,30 +131,30 @@ impl Chunk for CoreChunk {
     fn get_num_concentric_circles(&self) -> usize {
         1
     }
-    // fn get_start_radial_theta(&self) -> f32 {
-    //     0.0
-    // }
-    // fn get_end_radial_theta(&self) -> f32 {
-    //     2.0*PI*self.radius
-    // }
-    // fn get_start_radial_line(&self) -> usize {
-    //     0
-    // }
-    // fn get_end_radial_line(&self) -> usize {
-    //     self.num_radial_lines
-    // }
-    // fn get_start_concentric_circle_absolute(&self) -> usize {
-    //     0
-    // }
-    // fn get_start_concentric_circle_layer_relative(&self) -> usize {
-    //     0
-    // }
-    // fn get_end_concentric_circle_absolute(&self) -> usize {
-    //     1
-    // }
-    // fn get_end_concentric_circle_relative(&self) -> usize {
-    //     1
-    // }
+    fn get_start_radial_theta(&self) -> f32 {
+        0.0
+    }
+    fn get_end_radial_theta(&self) -> f32 {
+        2.0 * PI * self.radius
+    }
+    fn get_start_concentric_circle_absolute(&self) -> usize {
+        0
+    }
+    fn get_start_concentric_circle_layer_relative(&self) -> usize {
+        0
+    }
+    fn get_end_concentric_circle_absolute(&self) -> usize {
+        1
+    }
+    fn get_end_concentric_circle_relative(&self) -> usize {
+        1
+    }
+    fn get_end_radial_line(&self) -> usize {
+        self.num_radial_lines
+    }
+    fn get_start_radial_line(&self) -> usize {
+        0
+    }
 }
 
 #[cfg(test)]

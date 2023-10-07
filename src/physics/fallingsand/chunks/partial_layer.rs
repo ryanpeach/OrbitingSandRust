@@ -1,5 +1,4 @@
 use crate::physics::fallingsand::chunks::chunk::{interpolate_points, Chunk};
-use macroquad::models::{Mesh, Vertex};
 use macroquad::prelude::{vec2, vec3, Vec2, Vec3, BLUE, RED, WHITE};
 use macroquad::texture::{FilterMode, Image, Texture2D};
 use std::f32::consts::PI;
@@ -16,41 +15,106 @@ pub struct PartialLayerChunk {
     num_concentric_circles: usize,
 }
 
-impl PartialLayerChunk {
-    pub fn new(
-        cell_radius: f32,
-        start_radial_line: usize,
-        end_radial_line: usize,
-        layer_num_radial_lines: usize,
-        num_concentric_circles: usize,
-        start_concentric_circle_layer_relative: usize,
-        start_concentric_circle_absolute: usize,
-    ) -> PartialLayerChunk {
-        if num_concentric_circles == 0 {
-            panic!("num_concentric_circles must be greater than 0");
+pub struct PartialLayerChunkBuilder {
+    cell_radius: f32,
+    start_concentric_circle_layer_relative: usize,
+    start_concentric_circle_absolute: usize,
+    start_radial_line: usize,
+    end_radial_line: usize,
+    layer_num_radial_lines: usize,
+    num_concentric_circles: usize,
+}
+
+impl PartialLayerChunkBuilder {
+    /// Defaults to first layer defaults
+    pub fn new() -> PartialLayerChunkBuilder {
+        PartialLayerChunkBuilder {
+            cell_radius: 1.0,
+            start_concentric_circle_layer_relative: 0,
+            start_concentric_circle_absolute: 1,
+            start_radial_line: 0,
+            end_radial_line: 12,
+            layer_num_radial_lines: 12,
+            num_concentric_circles: 2,
         }
-        if end_radial_line <= start_radial_line {
-            panic!("end_radial_line must be greater than start_radial_line");
-        }
-        if layer_num_radial_lines == 0 {
-            panic!("layer_num_radial_lines must be greater than 0");
-        }
-        if end_radial_line > layer_num_radial_lines {
-            panic!("end_radial_line must be less than or equal to layer_num_radial_lines");
-        }
+    }
+
+    pub fn cell_radius(mut self, cell_radius: f32) -> PartialLayerChunkBuilder {
         if cell_radius <= 0.0 {
             panic!("cell_radius must be greater than 0");
         }
+        self.cell_radius = cell_radius;
+        self
+    }
+
+    pub fn start_concentric_circle_layer_relative(
+        mut self,
+        start_concentric_circle_layer_relative: usize,
+    ) -> PartialLayerChunkBuilder {
+        self.start_concentric_circle_layer_relative = start_concentric_circle_layer_relative;
+        self
+    }
+
+    pub fn start_concentric_circle_absolute(
+        mut self,
+        start_concentric_circle_absolute: usize,
+    ) -> PartialLayerChunkBuilder {
+        self.start_concentric_circle_absolute = start_concentric_circle_absolute;
+        self
+    }
+
+    pub fn start_radial_line(mut self, start_radial_line: usize) -> PartialLayerChunkBuilder {
+        self.start_radial_line = start_radial_line;
+        self
+    }
+
+    pub fn end_radial_line(mut self, end_radial_line: usize) -> PartialLayerChunkBuilder {
+        self.end_radial_line = end_radial_line;
+        self
+    }
+
+    pub fn layer_num_radial_lines(
+        mut self,
+        layer_num_radial_lines: usize,
+    ) -> PartialLayerChunkBuilder {
+        if layer_num_radial_lines == 0 {
+            panic!("layer_num_radial_lines must be greater than 0");
+        }
+        self.layer_num_radial_lines = layer_num_radial_lines;
+        self
+    }
+
+    pub fn num_concentric_circles(
+        mut self,
+        num_concentric_circles: usize,
+    ) -> PartialLayerChunkBuilder {
+        if num_concentric_circles == 0 {
+            panic!("num_concentric_circles must be greater than 0");
+        }
+        self.num_concentric_circles = num_concentric_circles;
+        self
+    }
+
+    pub fn build(self) -> PartialLayerChunk {
+        if self.end_radial_line <= self.start_radial_line {
+            panic!("end_radial_line must be greater than start_radial_line");
+        }
+        if self.end_radial_line > self.layer_num_radial_lines {
+            panic!("end_radial_line must be less than or equal to layer_num_radial_lines");
+        }
         PartialLayerChunk {
-            cell_radius,
-            start_concentric_circle_layer_relative,
-            start_concentric_circle_absolute,
-            start_radial_line,
-            end_radial_line,
-            layer_num_radial_lines,
-            num_concentric_circles,
+            cell_radius: self.cell_radius,
+            start_concentric_circle_layer_relative: self.start_concentric_circle_layer_relative,
+            start_concentric_circle_absolute: self.start_concentric_circle_absolute,
+            start_radial_line: self.start_radial_line,
+            end_radial_line: self.end_radial_line,
+            layer_num_radial_lines: self.layer_num_radial_lines,
+            num_concentric_circles: self.num_concentric_circles,
         }
     }
+}
+
+impl PartialLayerChunk {
     fn get_circle_vertexes(&self) -> Vec<Vec3> {
         let mut vertexes: Vec<Vec3> = Vec::new();
 
@@ -60,7 +124,7 @@ impl PartialLayerChunk {
         let starting_r = self.get_start_radius();
         let ending_r = self.get_end_radius();
         let circle_separation_distance =
-            (ending_r - starting_r) / (self.num_concentric_circles + 1) as f32;
+            (ending_r - starting_r) / self.num_concentric_circles as f32;
         let theta = (-2.0 * PI) / self.layer_num_radial_lines as f32;
 
         for j in start_concentric..=self.num_concentric_circles + start_concentric {
@@ -131,20 +195,6 @@ impl PartialLayerChunk {
         indices
     }
 
-    fn get_vertices(&self) -> Vec<Vertex> {
-        let positions = self.get_circle_vertexes();
-        let uvs = self.get_uv_vertexes();
-        let mut vertices = Vec::with_capacity(positions.len());
-        for i in 0..positions.len() {
-            vertices.push(Vertex {
-                position: positions[i],
-                uv: uvs[i],
-                color: WHITE,
-            });
-        }
-        vertices
-    }
-
     /// Right now we are just going to return a checkerboard texture
     fn get_texture(&self) -> Texture2D {
         let mut image = Image::gen_image_color(
@@ -171,21 +221,27 @@ impl PartialLayerChunk {
 }
 
 impl Chunk for PartialLayerChunk {
-    fn get_mesh(&self) -> Mesh {
-        Mesh {
-            vertices: self.get_vertices(),
-            indices: self.get_indices(),
-            texture: Some(self.get_texture()),
-        }
+    fn get_positions(&self) -> Vec<Vec3> {
+        self.get_circle_vertexes()
+    }
+    fn get_indices(&self) -> Vec<u16> {
+        self.get_indices()
+    }
+    fn get_uvs(&self) -> Vec<Vec2> {
+        self.get_uv_vertexes()
+    }
+    fn get_texture(&self) -> Texture2D {
+        self.get_texture()
     }
     fn get_cell_radius(&self) -> f32 {
         self.cell_radius
     }
     fn get_start_radius(&self) -> f32 {
         self.start_concentric_circle_absolute as f32 * self.cell_radius
+            + self.start_concentric_circle_layer_relative as f32 * self.cell_radius
     }
     fn get_end_radius(&self) -> f32 {
-        self.get_start_radius() + self.cell_radius * ((self.num_concentric_circles + 1) as f32)
+        self.get_start_radius() + self.cell_radius * (self.num_concentric_circles as f32)
     }
     fn get_num_radial_lines(&self) -> usize {
         self.end_radial_line - self.start_radial_line
@@ -193,14 +249,32 @@ impl Chunk for PartialLayerChunk {
     fn get_num_concentric_circles(&self) -> usize {
         self.num_concentric_circles
     }
-    // fn get_end_radial_theta(&self) -> f32 {
-    //     let diff = (-2.0 * PI) / self.layer_num_radial_lines as f32;
-    //     self.end_radial_line as f32 * diff
-    // }
-    // fn get_start_radial_theta(&self) -> f32 {
-    //     let diff = (-2.0 * PI) / self.layer_num_radial_lines as f32;
-    //     self.start_radial_line as f32 * diff
-    // }
+    fn get_end_radial_theta(&self) -> f32 {
+        let diff = (2.0 * PI) / self.layer_num_radial_lines as f32;
+        self.end_radial_line as f32 * diff
+    }
+    fn get_start_radial_theta(&self) -> f32 {
+        let diff = (2.0 * PI) / self.layer_num_radial_lines as f32;
+        self.start_radial_line as f32 * diff
+    }
+    fn get_start_concentric_circle_layer_relative(&self) -> usize {
+        self.start_concentric_circle_layer_relative
+    }
+    fn get_start_concentric_circle_absolute(&self) -> usize {
+        self.start_concentric_circle_absolute
+    }
+    fn get_end_concentric_circle_absolute(&self) -> usize {
+        self.start_concentric_circle_absolute + self.num_concentric_circles
+    }
+    fn get_end_concentric_circle_relative(&self) -> usize {
+        self.start_concentric_circle_layer_relative + self.num_concentric_circles
+    }
+    fn get_end_radial_line(&self) -> usize {
+        self.end_radial_line
+    }
+    fn get_start_radial_line(&self) -> usize {
+        self.start_radial_line
+    }
 }
 
 #[cfg(test)]
@@ -684,7 +758,7 @@ mod tests {
         let vertices = FIRST_LAYER_PARTIAL.get_circle_vertexes();
         assert_eq!(vertices.len(), 14);
 
-        let radius = 2.0;
+        let radius = 3.0;
         let num_radial_lines = 12;
         println!("radius: {}", radius);
         println!("num_radial_lines: {}", num_radial_lines);
@@ -745,7 +819,7 @@ mod tests {
             )
         );
 
-        let radius = 3.0;
+        let radius = 4.0;
         assert_approx_eq_v3!(
             vertices[7],
             vec3(
