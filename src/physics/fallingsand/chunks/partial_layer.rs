@@ -11,7 +11,10 @@ fn grid_iter(start: usize, end: usize, mut step: usize) -> Vec<usize> {
     let len = end - start;
     if len == 1 {
         // Return [0]
-        return vec![0];
+        return vec![start];
+    }
+    if step >= len {
+        return vec![start, end - 1];
     }
     debug_assert_ne!(step, 0, "Step should not be 0.");
 
@@ -300,7 +303,6 @@ impl PartialLayerChunk {
                 pixels.push(rgba.3);
                 i += 1;
             }
-            i += 1;
         }
         Image::from_pixels(
             ctx,

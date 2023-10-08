@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
 use ggez::glam::*;
 use ggez::graphics::{
@@ -123,7 +124,7 @@ fn draw_uv_wireframe(
         canvas.draw(
             &Mesh::new_line(
                 ctx,
-                &[p1_multiplied, p2_multiplied, p3_multiplied],
+                &[p1_multiplied, p2_multiplied, p3_multiplied, p1_multiplied],
                 0.1,
                 Color::WHITE,
             )
@@ -163,7 +164,7 @@ impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
         let radial_mesh = RadialMeshBuilder::new()
             .cell_radius(1.0)
-            .num_layers(2)
+            .num_layers(9)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(2)
             .build();
@@ -173,6 +174,8 @@ impl MainState {
         let all_vertices = radial_mesh.get_vertexes(draw_resolution);
         let all_indices = radial_mesh.get_indices(draw_resolution);
         let all_outlines = radial_mesh.get_outlines(draw_resolution);
+        println!("Nb of Meshes: {}", all_vertices.len());
+        println!("Nb of Vertices: {}", all_vertices.iter().flatten().count());
 
         Ok(MainState {
             res: draw_resolution,
@@ -215,17 +218,18 @@ impl EventHandler<ggez::GameError> for MainState {
                 vertices: &self.all_vertices[i],
                 indices: &self.all_indices[i][..],
             };
-            // let mesh = Mesh::from_data(ctx, mesh_data);
-            // canvas.draw_textured_mesh(mesh, texture, draw_params);
-            draw_uv_wireframe(ctx, &mut canvas, mesh_data, draw_params);
+            let mesh = Mesh::from_data(ctx, mesh_data);
+            canvas.draw_textured_mesh(mesh, texture, draw_params);
+            // draw_uv_wireframe(ctx, &mut canvas, mesh_data, draw_params);
+            // draw_triangle_wireframe(ctx, &mut canvas, mesh_data, draw_params);
 
             // Draw the outlines
-            for outline in &self.all_outlines {
-                let mut mb = MeshBuilder::new();
-                let line_mesh_data = mb.line(&outline[..], 0.1, Color::RED)?.build();
-                let line_mesh = Mesh::from_data(ctx, line_mesh_data);
-                canvas.draw(&line_mesh, draw_params);
-            }
+            // for outline in &self.all_outlines {
+            //     let mut mb = MeshBuilder::new();
+            //     let line_mesh_data = mb.line(&outline[..], 0.1, Color::RED)?.build();
+            //     let line_mesh = Mesh::from_data(ctx, line_mesh_data);
+            //     canvas.draw(&line_mesh, draw_params);
+            // }
         }
 
         let fps_text = graphics::Text::new(format!("FPS: {}", ctx.time.fps()));
@@ -284,7 +288,8 @@ impl EventHandler<ggez::GameError> for MainState {
 }
 
 pub fn main() -> GameResult {
-    let cb = ggez::ContextBuilder::new("drawing", "ggez");
+    let wm = WindowMode::default().dimensions(1920.0, 1080.0);
+    let cb = ggez::ContextBuilder::new("drawing", "ggez").window_mode(wm);
     let (mut ctx, events_loop) = cb.build()?;
     let state = MainState::new(&mut ctx).unwrap();
     event::run(ctx, events_loop, state)
