@@ -3,7 +3,7 @@
 use ggez::event::{self, EventHandler};
 use ggez::glam::*;
 use ggez::graphics::{
-    self, BlendMode, Color, FilterMode, Mesh, MeshBuilder, MeshData, Sampler, Vertex,
+    self, BlendMode, Canvas, Color, FilterMode, Mesh, MeshBuilder, MeshData, Sampler, Vertex,
 };
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::input::mouse::MouseButton;
@@ -74,11 +74,15 @@ impl Camera {
 // =================
 // Helper methods
 // =================
-fn get_triangle_wireframe(ctx: &mut Context, mesh_data: MeshData) -> Vec<Mesh> {
+fn draw_triangle_wireframe(
+    ctx: &mut Context,
+    canvas: &mut Canvas,
+    mesh_data: MeshData,
+    draw_params: graphics::DrawParam,
+) {
     let vertices = mesh_data.vertices;
     let indices = mesh_data.indices;
 
-    let mut out = Vec::new();
     for i in (0..indices.len()).step_by(3) {
         let i1 = indices[i] as usize;
         let i2 = indices[i + 1] as usize;
@@ -88,9 +92,45 @@ fn get_triangle_wireframe(ctx: &mut Context, mesh_data: MeshData) -> Vec<Mesh> {
         let p2 = vertices[i2].position;
         let p3 = vertices[i3].position;
 
-        out.push(Mesh::new_line(ctx, &[p1, p2, p3], 0.1, Color::WHITE).unwrap());
+        canvas.draw(
+            &Mesh::new_line(ctx, &[p1, p2, p3, p1], 0.1, Color::WHITE).unwrap(),
+            draw_params,
+        );
     }
-    out
+}
+
+fn draw_uv_wireframe(
+    ctx: &mut Context,
+    canvas: &mut Canvas,
+    mesh_data: MeshData,
+    draw_params: graphics::DrawParam,
+) {
+    let vertices = mesh_data.vertices;
+    let indices = mesh_data.indices;
+
+    for i in (0..indices.len()).step_by(3) {
+        let i1 = indices[i] as usize;
+        let i2 = indices[i + 1] as usize;
+        let i3 = indices[i + 2] as usize;
+
+        let p1 = vertices[i1].uv;
+        let p1_multiplied = Vec2::new(p1[0] * 10.0, p1[1] * 10.0);
+        let p2 = vertices[i2].uv;
+        let p2_multiplied = Vec2::new(p2[0] * 10.0, p2[1] * 10.0);
+        let p3 = vertices[i3].uv;
+        let p3_multiplied = Vec2::new(p3[0] * 10.0, p3[1] * 10.0);
+
+        canvas.draw(
+            &Mesh::new_line(
+                ctx,
+                &[p1_multiplied, p2_multiplied, p3_multiplied],
+                0.1,
+                Color::WHITE,
+            )
+            .unwrap(),
+            draw_params,
+        );
+    }
 }
 
 // ===================
@@ -125,7 +165,7 @@ impl MainState {
             .cell_radius(1.0)
             .num_layers(2)
             .first_num_radial_lines(6)
-            .second_num_concentric_circles(1)
+            .second_num_concentric_circles(2)
             .build();
 
         let (width, height) = ctx.gfx.drawable_size();
@@ -175,10 +215,9 @@ impl EventHandler<ggez::GameError> for MainState {
                 vertices: &self.all_vertices[i],
                 indices: &self.all_indices[i][..],
             };
-            let mesh = get_triangle_wireframe(ctx, mesh_data);
-            for m in mesh.into_iter() {
-                canvas.draw(&m, draw_params);
-            }
+            // let mesh = Mesh::from_data(ctx, mesh_data);
+            // canvas.draw_textured_mesh(mesh, texture, draw_params);
+            draw_uv_wireframe(ctx, &mut canvas, mesh_data, draw_params);
 
             // Draw the outlines
             for outline in &self.all_outlines {
