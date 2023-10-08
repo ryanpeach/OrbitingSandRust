@@ -1,13 +1,11 @@
 #![allow(dead_code)]
+#![allow(unused_variables)]
 
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
 use ggez::glam::*;
-use ggez::graphics::{
-    self, BlendMode, Canvas, Color, FilterMode, Mesh, MeshBuilder, MeshData, Sampler, Vertex,
-};
+use ggez::graphics::{self, Canvas, Color, FilterMode, Mesh, MeshData, Sampler, Vertex};
 use ggez::input::keyboard::{KeyCode, KeyInput};
-use ggez::input::mouse::MouseButton;
 use ggez::{Context, GameResult};
 
 use crate::physics::fallingsand::chunks::radial_mesh::{RadialMesh, RadialMeshBuilder};
