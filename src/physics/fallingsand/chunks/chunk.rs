@@ -5,7 +5,7 @@ use ggez::Context;
 
 /// Finds a point halfway between two points
 pub fn interpolate_points(p1: &Vec2, p2: &Vec2) -> Vec2 {
-    Vec2::new((p1.x + p2.x) * 0.5, (p1.x + p2.x) * 0.5)
+    Vec2::new((p1.x + p2.x) * 0.5, (p1.y + p2.y) * 0.5)
 }
 
 /// A chunk that can be rendered and simulated

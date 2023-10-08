@@ -11,4 +11,5 @@ opt-level = 3
 debug = true
 
 [dependencies]
+backtrace = "0.3.69"
 ggez = "0.9.3"

@@ -7,13 +7,12 @@ use std::f32::consts::PI;
 /// This is like the "skip" method but it always keeps the first and last item
 /// If it is larger than the number of items, it will just return the first and last item
 /// If the step is not a multiple of the number of items, it will round down to the previous multiple
-fn grid_iter(start: usize, end: usize, mut step: usize) -> impl Iterator<Item = usize> {
+fn grid_iter(start: usize, end: usize, mut step: usize) -> Vec<usize> {
     let len = end - start;
-    debug_assert!(
-        len >= 2,
-        "Grid range must have at least 2 elements, got {}.",
-        len
-    );
+    if len == 1 {
+        // Return [0]
+        return vec![0];
+    }
     debug_assert_ne!(step, 0, "Step should not be 0.");
 
     fn valid_step(len: usize, step: usize) -> bool {
@@ -27,17 +26,15 @@ fn grid_iter(start: usize, end: usize, mut step: usize) -> impl Iterator<Item = 
     let start_item = start;
     let end_item = end - 1;
 
-    let middle = (start..end).enumerate().filter_map(move |(i, item)| {
+    let mut out = Vec::new();
+    out.push(start_item);
+    for i in (start_item + step..end_item).step_by(step) {
         if i % step == 0 && i != 0 && i != len - 1 {
-            Some(item)
-        } else {
-            None
+            out.push(i);
         }
-    });
-
-    std::iter::once(start_item)
-        .chain(middle)
-        .chain(std::iter::once(end_item))
+    }
+    out.push(end_item);
+    out
 }
 
 /// This is a chunk that represents a "full" layer.
@@ -204,7 +201,7 @@ impl PartialLayerChunk {
 
         for j in [
             start_concentric,
-            self.get_num_concentric_circles() + start_concentric + 1,
+            self.get_num_concentric_circles() + start_concentric,
         ] {
             let diff = (j - start_concentric) as f32 * circle_separation_distance;
             let mut v_next = Vec2::new(0.0, 0.0);
@@ -253,11 +250,11 @@ impl PartialLayerChunk {
     }
 
     fn get_indices(&self, step: usize) -> Vec<u32> {
-        let mut indices = Vec::new();
-        let j_iter = grid_iter(0, self.get_num_concentric_circles() + 1, step);
-        let j_count = j_iter.count();
-        let k_iter = grid_iter(0, self.get_num_radial_lines() + 1, step);
-        let k_count = k_iter.count();
+        let j_iter = grid_iter(0, self.get_num_concentric_circles(), step);
+        let j_count = j_iter.len();
+        let k_iter = grid_iter(0, self.get_num_radial_lines(), step);
+        let k_count = k_iter.len();
+        let mut indices = Vec::with_capacity(j_count * k_count * 6);
         for j in 0..j_count {
             for k in 0..k_count {
                 // Compute the four corners of our current grid cell
@@ -284,9 +281,9 @@ impl PartialLayerChunk {
     /// Right now we are just going to return a checkerboard texture
     fn get_texture(&self, ctx: &mut Context, step: usize) -> Image {
         let j_iter = grid_iter(0, self.get_num_concentric_circles() + 1, step);
-        let j_count = j_iter.count();
+        let j_count = j_iter.len();
         let k_iter = grid_iter(0, self.get_num_radial_lines() + 1, step);
-        let k_count = k_iter.count();
+        let k_count = k_iter.len();
         let mut pixels: Vec<u8> = Vec::with_capacity(j_count * k_count * 4);
         let mut i = 0;
         for _ in 0..j_count {
@@ -379,29 +376,34 @@ impl Chunk for PartialLayerChunk {
 mod tests {
     use super::*;
 
-    /// We will always return 0 or 2 elements minimum, never 1
+    #[test]
+    fn test_one_element() {
+        let v: Vec<_> = grid_iter(0, 1, 16);
+        assert_eq!(v, vec![0]);
+    }
+
     #[test]
     fn test_two_elements() {
-        let v: Vec<_> = grid_iter(0, 2, 16).collect();
+        let v: Vec<_> = grid_iter(0, 2, 16);
         assert_eq!(v, vec![0, 1]);
     }
 
     #[test]
     fn test_basic() {
-        let v: Vec<_> = grid_iter(0, 11, 2).collect();
+        let v: Vec<_> = grid_iter(0, 11, 2);
         assert_eq!(v, vec![0, 2, 4, 6, 8, 10]);
     }
 
     #[test]
     fn test_step_one() {
-        let v: Vec<_> = grid_iter(0, 11, 1).collect();
+        let v: Vec<_> = grid_iter(0, 11, 1);
         assert_eq!(v, vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     }
 
     /// At a large step size, we should just get the first and last elements
     #[test]
     fn test_large_step() {
-        let v: Vec<_> = grid_iter(0, 10, 20).collect();
+        let v: Vec<_> = grid_iter(0, 10, 20);
         assert_eq!(v, vec![0, 9]);
     }
 
@@ -411,26 +413,26 @@ mod tests {
     /// So we round down to 1
     #[test]
     fn test_weird_number_4_by_2() {
-        let v: Vec<_> = grid_iter(0, 4, 2).collect();
+        let v: Vec<_> = grid_iter(0, 4, 2);
         assert_eq!(v, vec![0, 1, 2, 3]);
     }
 
     #[test]
     fn test_basic_5() {
-        let v: Vec<_> = grid_iter(0, 5, 2).collect();
+        let v: Vec<_> = grid_iter(0, 5, 2);
         assert_eq!(v, vec![0, 2, 4]);
     }
 
     #[test]
     fn test_weird_6() {
-        let v: Vec<_> = grid_iter(0, 6, 3).collect();
+        let v: Vec<_> = grid_iter(0, 6, 3);
         assert_eq!(v, vec![0, 1, 2, 3, 4, 5]);
     }
 
     /// In this case, because three doesnt work, we automatically round down to 2
     #[test]
     fn test_round_7() {
-        let v: Vec<_> = grid_iter(0, 7, 3).collect();
+        let v: Vec<_> = grid_iter(0, 7, 3);
         assert_eq!(v, vec![0, 3, 6]);
     }
 
@@ -831,24 +833,30 @@ mod tests {
     #[test]
     fn test_first_layer_indices() {
         let indices = FIRST_LAYER.get_indices(1);
+        assert_eq!(indices.len(), 12 * 2 * 6);
 
-        assert_eq!(indices[0], 0);
-        assert_eq!(indices[1], 13);
-        assert_eq!(indices[2], 1);
+        // The first concentric circle
+        let mut j = 0;
+        for i in 0..12u32 {
+            assert_eq!(indices[j], i, "i: {}", i);
+            assert_eq!(indices[j + 1], i + 13u32, "i: {}", i);
+            assert_eq!(indices[j + 2], i + 1u32, "i: {}", i);
+            assert_eq!(indices[j + 3], i + 1u32, "i: {}", i);
+            assert_eq!(indices[j + 4], i + 13u32, "i: {}", i);
+            assert_eq!(indices[j + 5], i + 14u32, "i: {}", i);
+            j += 6;
+        }
 
-        assert_eq!(indices[3], 1);
-        assert_eq!(indices[4], 13);
-        assert_eq!(indices[5], 14);
-
-        assert_eq!(indices[6], 1);
-        assert_eq!(indices[7], 14);
-        assert_eq!(indices[8], 2);
-
-        // ...
-
-        assert_eq!(indices[indices.len() - 3], 25);
-        assert_eq!(indices[indices.len() - 2], 37);
-        assert_eq!(indices[indices.len() - 1], 38);
+        // The second concentric circle
+        for i in 13..25u32 {
+            assert_eq!(indices[j], i, "i: {}", i);
+            assert_eq!(indices[j + 1], i + 13u32, "i: {}", i);
+            assert_eq!(indices[j + 2], i + 1u32, "i: {}", i);
+            assert_eq!(indices[j + 3], i + 1u32, "i: {}", i);
+            assert_eq!(indices[j + 4], i + 13u32, "i: {}", i);
+            assert_eq!(indices[j + 5], i + 14u32, "i: {}", i);
+            j += 6;
+        }
     }
 
     const FIRST_LAYER_PARTIAL: PartialLayerChunk = PartialLayerChunk {

@@ -13,9 +13,9 @@ use crate::physics::fallingsand::chunks::radial_mesh::{RadialMesh, RadialMeshBui
 
 mod physics;
 
-/// ================================
-/// Create a camera implementation
-/// ================================
+// ================================
+// Create a camera implementation
+// ================================
 struct Camera {
     world_coords: Vec2,
     zoom: f32,
@@ -39,37 +39,63 @@ impl Default for Camera {
 }
 
 impl Camera {
-    pub fn ZoomIn(&mut self) {
+    pub fn zoom_in(&mut self) {
         self.zoom *= self.zoom_speed;
         if self.zoom > self.max_zoom {
             self.zoom = self.max_zoom;
         }
     }
-    pub fn ZoomOut(&mut self) {
+    pub fn zoom_out(&mut self) {
         self.zoom /= self.zoom_speed;
         if self.zoom < self.min_zoom {
             self.zoom = self.min_zoom;
         }
     }
-    pub fn MoveUp(&mut self) {
+    pub fn move_up(&mut self) {
         self.world_coords.y += 2.0;
     }
-    pub fn MoveDown(&mut self) {
+    pub fn move_down(&mut self) {
         self.world_coords.y -= 2.0;
     }
-    pub fn MoveLeft(&mut self) {
+    pub fn move_left(&mut self) {
         self.world_coords.x -= 2.0;
     }
-    pub fn MoveRight(&mut self) {
+    pub fn move_right(&mut self) {
         self.world_coords.x += 2.0;
     }
-    pub fn RotateLeft(&mut self) {
+    pub fn rotate_left(&mut self) {
         self.rotation -= 0.1;
     }
-    pub fn RotateRight(&mut self) {
+    pub fn rotate_right(&mut self) {
         self.rotation += 0.1;
     }
 }
+
+// =================
+// Helper methods
+// =================
+fn get_triangle_wireframe(ctx: &mut Context, mesh_data: MeshData) -> Vec<Mesh> {
+    let vertices = mesh_data.vertices;
+    let indices = mesh_data.indices;
+
+    let mut out = Vec::new();
+    for i in (0..indices.len()).step_by(3) {
+        let i1 = indices[i] as usize;
+        let i2 = indices[i + 1] as usize;
+        let i3 = indices[i + 2] as usize;
+
+        let p1 = vertices[i1].position;
+        let p2 = vertices[i2].position;
+        let p3 = vertices[i3].position;
+
+        out.push(Mesh::new_line(ctx, &[p1, p2, p3], 0.1, Color::WHITE).unwrap());
+    }
+    out
+}
+
+// ===================
+// Main Game
+// ==================
 
 struct MainState {
     res: u16,
@@ -82,10 +108,11 @@ struct MainState {
     camera: Camera,
 }
 
-/// Translates the world coordinate system, which
-/// has Y pointing up and the origin at the center,
-/// to the screen coordinate system, which has Y
-/// pointing downward and the origin at the top-left,
+// Translates the world coordinate system, which
+// has Y pointing up and the origin at the center,
+// to the screen coordinate system, which has Y
+// pointing downward and the origin at the top-left
+
 fn world_to_screen_coords(screen_width: f32, screen_height: f32, point: Vec2) -> Vec2 {
     let x = point.x + screen_width / 2.0;
     let y = screen_height - (point.y + screen_height / 2.0);
@@ -98,7 +125,7 @@ impl MainState {
             .cell_radius(1.0)
             .num_layers(2)
             .first_num_radial_lines(6)
-            .second_num_concentric_circles(2)
+            .second_num_concentric_circles(1)
             .build();
 
         let (width, height) = ctx.gfx.drawable_size();
@@ -144,14 +171,14 @@ impl EventHandler<ggez::GameError> for MainState {
 
         for (i, texture) in all_textures.into_iter().enumerate() {
             // Draw the mesh
-            let mesh = Mesh::from_data(
-                ctx,
-                MeshData {
-                    vertices: &self.all_vertices[i],
-                    indices: &self.all_indices[i][..],
-                },
-            );
-            canvas.draw_textured_mesh(mesh, texture, draw_params);
+            let mesh_data = MeshData {
+                vertices: &self.all_vertices[i],
+                indices: &self.all_indices[i][..],
+            };
+            let mesh = get_triangle_wireframe(ctx, mesh_data);
+            for m in mesh.into_iter() {
+                canvas.draw(&m, draw_params);
+            }
 
             // Draw the outlines
             for outline in &self.all_outlines {
@@ -180,16 +207,16 @@ impl EventHandler<ggez::GameError> for MainState {
     ) -> GameResult {
         match input.keycode {
             Some(KeyCode::W) => {
-                self.camera.MoveDown();
+                self.camera.move_down();
             }
             Some(KeyCode::A) => {
-                self.camera.MoveRight();
+                self.camera.move_right();
             }
             Some(KeyCode::S) => {
-                self.camera.MoveUp();
+                self.camera.move_up();
             }
             Some(KeyCode::D) => {
-                self.camera.MoveLeft();
+                self.camera.move_left();
             }
             // Some(KeyCode::Q) => {
             //     self.camera.RotateLeft();
@@ -209,9 +236,9 @@ impl EventHandler<ggez::GameError> for MainState {
         _y: f32,
     ) -> Result<(), ggez::GameError> {
         if _y > 0.0 {
-            self.camera.ZoomIn();
+            self.camera.zoom_in();
         } else if _y < 0.0 {
-            self.camera.ZoomOut();
+            self.camera.zoom_out();
         }
         Ok(())
     }
