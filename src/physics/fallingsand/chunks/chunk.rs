@@ -1,32 +1,34 @@
-use macroquad::color::WHITE;
-use macroquad::models::Vertex;
-use macroquad::prelude::{vec3, Vec2, Vec3};
-use macroquad::texture::Texture2D;
+use ggez::glam::Vec2;
+use ggez::graphics::Image;
+use ggez::graphics::Vertex;
+use ggez::Context;
 
 /// Finds a point halfway between two points
-pub fn interpolate_points(p1: &Vec3, p2: &Vec3) -> Vec3 {
-    vec3((p1.x + p2.x) * 0.5, (p1.y + p2.y) * 0.5, 0.0)
+pub fn interpolate_points(p1: &Vec2, p2: &Vec2) -> Vec2 {
+    Vec2::new((p1.x + p2.x) * 0.5, (p1.y + p2.y) * 0.5)
 }
 
 /// A chunk that can be rendered and simulated
 pub trait Chunk {
     /* Drawing */
-    fn get_positions(&self) -> Vec<Vec3>;
-    fn get_indices(&self) -> Vec<u16>;
-    fn get_uvs(&self) -> Vec<Vec2>;
-    fn get_texture(&self) -> Texture2D;
-    fn get_vertices(&self) -> Vec<Vertex> {
-        let positions = self.get_positions();
-        let uvs = self.get_uvs();
-        let mut vertices: Vec<Vertex> = Vec::new();
-        for i in 0..positions.len() {
-            vertices.push(Vertex {
-                position: positions[i],
-                uv: uvs[i],
-                color: WHITE,
-            });
-        }
-        vertices
+    fn get_outline(&self, res: u16) -> Vec<Vec2>;
+    fn get_positions(&self, res: u16) -> Vec<Vec2>;
+    fn get_indices(&self, res: u16) -> Vec<u32>;
+    fn get_uvs(&self, res: u16) -> Vec<Vec2>;
+    fn get_texture(&self, ctx: &mut Context, res: u16) -> Image;
+    fn get_vertices(&self, res: u16) -> Vec<Vertex> {
+        let positions = self.get_positions(res);
+        let uvs = self.get_uvs(res);
+        let vertexes: Vec<Vertex> = positions
+            .iter()
+            .zip(uvs.iter())
+            .map(|(p, uv)| Vertex {
+                position: [p.x, p.y],
+                uv: [uv.x, uv.y],
+                color: [1.0, 1.0, 1.0, 1.0],
+            })
+            .collect();
+        vertexes
     }
 
     /* Shape Parameter Getters */
