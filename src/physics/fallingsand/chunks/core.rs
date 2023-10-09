@@ -1,6 +1,6 @@
 use crate::physics::fallingsand::chunks::chunk::Chunk;
 use ggez::glam::Vec2;
-use ggez::graphics::{Color, Image, ImageFormat};
+use ggez::graphics::{Color, Image, ImageFormat, Rect};
 use ggez::Context;
 use std::f32::consts::PI;
 
@@ -174,6 +174,14 @@ impl Chunk for CoreChunk {
     }
     fn get_start_radial_line(&self) -> usize {
         0
+    }
+    fn get_bounding_box(&self) -> Rect {
+        Rect::new(
+            -self.radius,
+            -self.radius,
+            self.radius * 2.0,
+            self.radius * 2.0,
+        )
     }
 }
 
