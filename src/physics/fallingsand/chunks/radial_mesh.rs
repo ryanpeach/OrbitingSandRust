@@ -1,4 +1,4 @@
-use crate::physics::fallingsand::chunks::util::{is_pow_2, valid_step};
+use crate::physics::fallingsand::chunks::util::is_pow_2;
 
 use super::chunk::Chunk;
 use super::core::CoreChunk;
@@ -367,6 +367,8 @@ impl RadialMesh {
 
 #[cfg(test)]
 mod tests {
+    use crate::physics::fallingsand::chunks::util::valid_step;
+
     use super::*;
 
     #[test]

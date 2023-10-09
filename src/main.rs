@@ -59,7 +59,7 @@ impl MainState {
         Ok(MainState {
             celestial: Celestial::new(&radial_mesh, DrawMode::TexturedMesh, res),
             radial_mesh,
-            res: res,
+            res,
             draw_mode: DrawMode::TexturedMesh,
             camera: Camera::default(),
             gui: Gui::new(ctx),
