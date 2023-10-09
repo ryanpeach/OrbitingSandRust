@@ -4,7 +4,7 @@ use ggegui::{egui, Gui};
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
 use ggez::glam::*;
-use ggez::graphics::{self, DrawParam, Drawable, FilterMode, Mesh, Sampler};
+use ggez::graphics::{self, DrawParam, FilterMode, Mesh, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 use physics::fallingsand::chunks::radial_mesh::RadialMesh;
@@ -71,8 +71,8 @@ impl EventHandler<ggez::GameError> for MainState {
         let gui_ctx = self.gui.ctx();
 
         // Handle res updates
-        let mut res = self.res.clone();
-        let mut draw_mode = self.draw_mode.clone();
+        let mut res = self.res;
+        let mut draw_mode = self.draw_mode;
         egui::Window::new("Title").show(&gui_ctx, |ui| {
             ui.label(format!("zoom: {}", self.camera.get_zoom()));
             ui.label(format!("FPS: {}", ctx.time.fps()));

@@ -32,7 +32,7 @@ impl OwnedMeshData {
     pub fn to_mesh_data(&self) -> MeshData {
         MeshData {
             vertices: &self.vertices,
-            indices: &self.indices.as_slice(),
+            indices: self.indices.as_slice(),
         }
     }
 }
