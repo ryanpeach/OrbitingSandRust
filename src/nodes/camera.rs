@@ -16,7 +16,8 @@ impl Default for Camera {
             zoom: 1.0,
             zoom_speed: 1.1,
             min_zoom: 0.0, // Unbounded
-            max_zoom: 7.0,
+            max_zoom: 100.0,
+            // max_zoom: 7.0,
             rotation: 0.0,
         }
     }

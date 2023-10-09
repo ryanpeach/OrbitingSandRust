@@ -230,13 +230,13 @@ impl PartialLayerChunk {
     }
 
     fn get_indices(&self, step: usize) -> Vec<u32> {
-        let j_iter = grid_iter(0, self.get_num_concentric_circles(), step);
+        let j_iter = grid_iter(0, self.get_num_concentric_circles() + 1, step);
         let j_count = j_iter.len();
-        let k_iter = grid_iter(0, self.get_num_radial_lines(), step);
+        let k_iter = grid_iter(0, self.get_num_radial_lines() + 1, step);
         let k_count = k_iter.len();
         let mut indices = Vec::with_capacity(j_count * k_count * 6);
-        for j in 0..j_count {
-            for k in 0..k_count {
+        for j in 0..j_count - 1 {
+            for k in 0..k_count - 1 {
                 // Compute the four corners of our current grid cell
                 let v0 = j * (self.get_num_radial_lines() + 1) + k; // Top-left
                 let v1 = v0 + 1; // Top-right
@@ -259,11 +259,9 @@ impl PartialLayerChunk {
     }
 
     /// Right now we are just going to return a checkerboard texture
-    fn get_texture(&self, step: usize) -> RawImage {
-        let j_iter = grid_iter(0, self.get_num_concentric_circles() + 1, step);
-        let j_count = j_iter.len();
-        let k_iter = grid_iter(0, self.get_num_radial_lines() + 1, step);
-        let k_count = k_iter.len();
+    fn get_texture(&self, _step: usize) -> RawImage {
+        let j_count = self.get_num_concentric_circles();
+        let k_count = self.get_num_radial_lines();
         let mut pixels: Vec<u8> = Vec::with_capacity(j_count * k_count * 4);
         let mut i = 0;
         for _ in 0..j_count {
@@ -280,6 +278,7 @@ impl PartialLayerChunk {
                 pixels.push(rgba.3);
                 i += 1;
             }
+            i += 1;
         }
         RawImage {
             pixels,

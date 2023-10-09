@@ -51,14 +51,15 @@ impl MainState {
         let radial_mesh = RadialMeshBuilder::new()
             .cell_radius(1.0)
             .num_layers(9)
-            .first_num_radial_lines(6)
+            .first_num_radial_lines(8)
             .second_num_concentric_circles(2)
             .build();
+        let res = 1;
 
         Ok(MainState {
-            celestial: Celestial::new(&radial_mesh, DrawMode::TexturedMesh, 0),
+            celestial: Celestial::new(&radial_mesh, DrawMode::TexturedMesh, res),
             radial_mesh,
-            res: 0,
+            res: res,
             draw_mode: DrawMode::TexturedMesh,
             camera: Camera::default(),
             gui: Gui::new(ctx),
