@@ -125,14 +125,13 @@ impl EventHandler<ggez::GameError> for MainState {
             }
             let meshes = self.celestial.get_all_meshes();
             let textures = self.celestial.get_all_textures();
-            for i in 0..self.celestial.get_num_chunks() {
-                let mesh = Mesh::from_data(ctx, meshes[i].to_mesh_data());
-                let img = textures[i].to_image(ctx);
-                match self.draw_mode {
-                    DrawMode::TexturedMesh => canvas.draw_textured_mesh(mesh, img, draw_params),
-                    DrawMode::TriangleWireframe => canvas.draw(&mesh, draw_params),
-                    DrawMode::UVWireframe => canvas.draw(&mesh, draw_params),
-                }
+            let meshdata = meshes[i].to_mesh_data();
+            let mesh = Mesh::from_data(ctx, meshdata);
+            let img = textures[i].to_image(ctx);
+            match self.draw_mode {
+                DrawMode::TexturedMesh => canvas.draw_textured_mesh(mesh, img, draw_params),
+                DrawMode::TriangleWireframe => canvas.draw(&mesh, draw_params),
+                DrawMode::UVWireframe => canvas.draw(&mesh, draw_params),
             }
         }
 
