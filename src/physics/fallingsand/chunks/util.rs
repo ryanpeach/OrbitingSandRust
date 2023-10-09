@@ -1,4 +1,4 @@
-use ggez::{glam::Vec2, graphics::{ImageFormat, Image}};
+use ggez::{glam::Vec2, graphics::{ImageFormat, Image, Vertex, MeshData}};
 
 /// For some reason ggez::graphics::Image requires a Context to be created
 pub struct RawImage {
@@ -11,6 +11,26 @@ impl RawImage {
     pub fn to_image(&self, ctx: &mut ggez::Context) -> ggez::graphics::Image {
         Image::from_pixels(ctx, &self.pixels[..], ImageFormat::Rgba8Unorm, self.width, self.height)
     }
+}
+
+/// For some reason a MeshData object has a lifetime and is a set of borrows.
+pub struct OwnedMeshData {
+    pub vertices: Vec<Vertex>,
+    pub indices: Vec<u32>,
+}
+
+impl OwnedMeshData {
+    pub fn to_mesh_data(&self) -> MeshData {
+        MeshData { vertices: &self.vertices, indices: &self.indices.as_slice() }
+    }
+}
+
+/// The different ways to draw a chunk
+#[derive(Copy, Clone, PartialEq)]
+pub enum DrawMode {
+    TexturedMesh,
+    TriangleWireframe,
+    UVWireframe,
 }
 
 /// This is like the "skip" method but it always keeps the first and last item
