@@ -1,10 +1,10 @@
 #![allow(dead_code)]
-#![allow(unused_variables)]
 
+use ggegui::{egui, Gui};
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
 use ggez::glam::*;
-use ggez::graphics::{self, Canvas, Color, FilterMode, Mesh, MeshData, Sampler, Vertex};
+use ggez::graphics::{self, Canvas, Color, DrawParam, FilterMode, Mesh, MeshData, Sampler, Vertex};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
@@ -31,7 +31,7 @@ impl Default for Camera {
             zoom: 1.0,
             zoom_speed: 1.1,
             min_zoom: 0.0, // Unbounded
-            max_zoom: 100.0,
+            max_zoom: 6.0, // Tested and this makes the "pixels" just big enough to see and click on
             rotation: 0.0,
         }
     }
@@ -55,17 +55,14 @@ impl Camera {
     }
     pub fn move_down(&mut self) {
         self.world_coords.y -= 2.0;
+        if self.world_coords.y <= 0.0 {
+            self.world_coords.y = 0.0;
+        }
     }
     pub fn move_left(&mut self) {
-        self.world_coords.x -= 2.0;
-    }
-    pub fn move_right(&mut self) {
-        self.world_coords.x += 2.0;
-    }
-    pub fn rotate_left(&mut self) {
         self.rotation -= 0.1;
     }
-    pub fn rotate_right(&mut self) {
+    pub fn move_right(&mut self) {
         self.rotation += 0.1;
     }
 }
@@ -137,7 +134,6 @@ fn draw_uv_wireframe(
 // ==================
 
 struct MainState {
-    res: u16,
     radial_mesh: RadialMesh,
     all_vertices: Vec<Vec<Vertex>>,
     all_indices: Vec<Vec<u32>>,
@@ -145,6 +141,7 @@ struct MainState {
     screen_width: f32,
     screen_height: f32,
     camera: Camera,
+    gui: Gui,
 }
 
 // Translates the world coordinate system, which
@@ -165,18 +162,17 @@ impl MainState {
             .num_layers(9)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(2)
+            .res(0)
             .build();
 
         let (width, height) = ctx.gfx.drawable_size();
-        let draw_resolution = 0;
-        let all_vertices = radial_mesh.get_vertexes(draw_resolution);
-        let all_indices = radial_mesh.get_indices(draw_resolution);
-        let all_outlines = radial_mesh.get_outlines(draw_resolution);
+        let all_vertices = radial_mesh.get_vertexes();
+        let all_indices = radial_mesh.get_indices();
+        let all_outlines = radial_mesh.get_outlines();
         println!("Nb of Meshes: {}", all_vertices.len());
         println!("Nb of Vertices: {}", all_vertices.iter().flatten().count());
 
         Ok(MainState {
-            res: draw_resolution,
             radial_mesh,
             all_vertices,
             all_indices,
@@ -184,21 +180,44 @@ impl MainState {
             screen_width: width,
             screen_height: height,
             camera: Camera::default(),
+            gui: Gui::new(ctx),
         })
     }
 }
 
 impl EventHandler<ggez::GameError> for MainState {
-    fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
-        // Any logic updates go here
+    fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
+        let gui_ctx = self.gui.ctx();
+
+        // Handle res updates
+        let mut res = self.radial_mesh.get_res();
+        egui::Window::new("Title").show(&gui_ctx, |ui| {
+            ui.label(format!("zoom: {}", self.camera.zoom));
+            ui.label(format!("FPS: {}", ctx.time.fps()));
+
+            ui.separator();
+            ui.label("Resolution");
+            // Create an integer selector
+            ui.add(egui::Slider::new(&mut res, 0..=6).text("res"));
+        });
+        self.gui.update(ctx);
+
+        if res != self.radial_mesh.get_res() {
+            self.radial_mesh.set_res(res);
+            self.all_vertices = self.radial_mesh.get_vertexes();
+            self.all_indices = self.radial_mesh.get_indices();
+            self.all_outlines = self.radial_mesh.get_outlines();
+        }
+
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         let mut canvas = graphics::Canvas::from_frame(ctx, graphics::Color::BLACK);
         canvas.set_sampler(Sampler::from(FilterMode::Nearest));
-        let all_textures = self.radial_mesh.get_textures(ctx, self.res);
 
+        // Draw planets
+        let all_textures = self.radial_mesh.get_textures(ctx);
         let pos = world_to_screen_coords(
             self.screen_width,
             self.screen_height,
@@ -218,7 +237,9 @@ impl EventHandler<ggez::GameError> for MainState {
             };
             let mesh = Mesh::from_data(ctx, mesh_data);
             canvas.draw_textured_mesh(mesh, texture, draw_params);
+            // if i == 1 {
             // draw_uv_wireframe(ctx, &mut canvas, mesh_data, draw_params);
+            // }
             // draw_triangle_wireframe(ctx, &mut canvas, mesh_data, draw_params);
 
             // Draw the outlines
@@ -230,11 +251,8 @@ impl EventHandler<ggez::GameError> for MainState {
             // }
         }
 
-        let fps_text = graphics::Text::new(format!("FPS: {}", ctx.time.fps()));
-        canvas.draw(
-            &fps_text,
-            graphics::DrawParam::default().dest(Vec2::new(0.0, 0.0)),
-        );
+        // Draw gui
+        canvas.draw(&self.gui, DrawParam::default().dest(Vec2::ZERO));
 
         let _ = canvas.finish(ctx);
         Ok(())
