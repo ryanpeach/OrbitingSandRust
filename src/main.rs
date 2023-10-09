@@ -4,68 +4,17 @@ use ggegui::{egui, Gui};
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
 use ggez::glam::*;
-use ggez::graphics::{self, Canvas, Color, DrawParam, FilterMode, Mesh, MeshData, Sampler, Vertex};
+use ggez::graphics::{
+    self, Canvas, Color, DrawParam, FilterMode, Mesh, MeshData, Rect, Sampler, Vertex,
+};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
+use crate::nodes::camera::Camera;
 use crate::physics::fallingsand::chunks::radial_mesh::{RadialMesh, RadialMeshBuilder};
 
+mod nodes;
 mod physics;
-
-// ================================
-// Create a camera implementation
-// ================================
-struct Camera {
-    world_coords: Vec2,
-    zoom: f32,
-    zoom_speed: f32,
-    min_zoom: f32,
-    max_zoom: f32,
-    rotation: f32,
-}
-
-impl Default for Camera {
-    fn default() -> Self {
-        Self {
-            world_coords: Vec2::new(0.0, 0.0),
-            zoom: 1.0,
-            zoom_speed: 1.1,
-            min_zoom: 0.0, // Unbounded
-            max_zoom: 6.0, // Tested and this makes the "pixels" just big enough to see and click on
-            rotation: 0.0,
-        }
-    }
-}
-
-impl Camera {
-    pub fn zoom_in(&mut self) {
-        self.zoom *= self.zoom_speed;
-        if self.zoom > self.max_zoom {
-            self.zoom = self.max_zoom;
-        }
-    }
-    pub fn zoom_out(&mut self) {
-        self.zoom /= self.zoom_speed;
-        if self.zoom < self.min_zoom {
-            self.zoom = self.min_zoom;
-        }
-    }
-    pub fn move_up(&mut self) {
-        self.world_coords.y += 2.0;
-    }
-    pub fn move_down(&mut self) {
-        self.world_coords.y -= 2.0;
-        if self.world_coords.y <= 0.0 {
-            self.world_coords.y = 0.0;
-        }
-    }
-    pub fn move_left(&mut self) {
-        self.rotation -= 0.1;
-    }
-    pub fn move_right(&mut self) {
-        self.rotation += 0.1;
-    }
-}
 
 // =================
 // Helper methods
@@ -138,8 +87,7 @@ struct MainState {
     all_vertices: Vec<Vec<Vertex>>,
     all_indices: Vec<Vec<u32>>,
     all_outlines: Vec<Vec<Vec2>>,
-    screen_width: f32,
-    screen_height: f32,
+    bounding_boxes: Vec<Rect>,
     camera: Camera,
     gui: Gui,
 }
@@ -149,9 +97,9 @@ struct MainState {
 // to the screen coordinate system, which has Y
 // pointing downward and the origin at the top-left
 
-fn world_to_screen_coords(screen_width: f32, screen_height: f32, point: Vec2) -> Vec2 {
-    let x = point.x + screen_width / 2.0;
-    let y = screen_height - (point.y + screen_height / 2.0);
+fn world_to_screen_coords(screen_size: Vec2, point: Vec2) -> Vec2 {
+    let x = point.x + screen_size.x / 2.0;
+    let y = screen_size.y - (point.y + screen_size.y / 2.0);
     Vec2::new(x, y)
 }
 
@@ -165,10 +113,10 @@ impl MainState {
             .res(0)
             .build();
 
-        let (width, height) = ctx.gfx.drawable_size();
         let all_vertices = radial_mesh.get_vertexes();
         let all_indices = radial_mesh.get_indices();
         let all_outlines = radial_mesh.get_outlines();
+        let bounding_boxes = radial_mesh.get_chunk_bounding_boxes();
         println!("Nb of Meshes: {}", all_vertices.len());
         println!("Nb of Vertices: {}", all_vertices.iter().flatten().count());
 
@@ -177,8 +125,7 @@ impl MainState {
             all_vertices,
             all_indices,
             all_outlines,
-            screen_width: width,
-            screen_height: height,
+            bounding_boxes,
             camera: Camera::default(),
             gui: Gui::new(ctx),
         })
@@ -192,7 +139,7 @@ impl EventHandler<ggez::GameError> for MainState {
         // Handle res updates
         let mut res = self.radial_mesh.get_res();
         egui::Window::new("Title").show(&gui_ctx, |ui| {
-            ui.label(format!("zoom: {}", self.camera.zoom));
+            ui.label(format!("zoom: {}", self.camera.get_zoom()));
             ui.label(format!("FPS: {}", ctx.time.fps()));
 
             ui.separator();
@@ -217,19 +164,23 @@ impl EventHandler<ggez::GameError> for MainState {
         canvas.set_sampler(Sampler::from(FilterMode::Nearest));
 
         // Draw planets
-        let all_textures = self.radial_mesh.get_textures(ctx);
+        let screen_size = ctx.gfx.drawable_size();
         let pos = world_to_screen_coords(
-            self.screen_width,
-            self.screen_height,
-            self.camera.world_coords,
+            Vec2::new(screen_size.0, screen_size.1),
+            self.camera.get_world_coords(),
         );
+        let zoom = self.camera.get_zoom();
         let draw_params = graphics::DrawParam::new()
             .dest(pos)
-            .scale(Vec2::new(self.camera.zoom, self.camera.zoom))
-            .rotation(self.camera.rotation)
+            .scale(Vec2::new(zoom, zoom))
+            .rotation(self.camera.get_rotation())
             .offset(Vec2::new(0.5, 0.5));
 
-        for (i, texture) in all_textures.into_iter().enumerate() {
+        for i in 0..self.radial_mesh.get_num_chunks() {
+            if !self.bounding_boxes[i].overlaps(&self.camera.get_bounding_box(ctx)) {
+                continue;
+            }
+            let texture = self.radial_mesh.get_texture(ctx, i);
             // Draw the mesh
             let mesh_data = MeshData {
                 vertices: &self.all_vertices[i],
@@ -266,13 +217,13 @@ impl EventHandler<ggez::GameError> for MainState {
     ) -> GameResult {
         match input.keycode {
             Some(KeyCode::W) => {
-                self.camera.move_down();
+                self.camera.move_up();
             }
             Some(KeyCode::A) => {
                 self.camera.move_right();
             }
             Some(KeyCode::S) => {
-                self.camera.move_up();
+                self.camera.move_down();
             }
             Some(KeyCode::D) => {
                 self.camera.move_left();

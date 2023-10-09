@@ -2,7 +2,7 @@ use super::chunk::Chunk;
 use super::core::CoreChunk;
 use super::partial_layer::{PartialLayerChunk, PartialLayerChunkBuilder};
 use ggez::glam::Vec2;
-use ggez::graphics::{Image, Vertex};
+use ggez::graphics::{Image, Rect, Vertex};
 use ggez::Context;
 
 pub struct RadialMesh {
@@ -259,59 +259,83 @@ impl RadialMesh {
         textures
     }
 
+    pub fn get_texture(&self, ctx: &mut Context, chunk_idx: usize) -> Image {
+        if chunk_idx == 0 {
+            self.core_chunk.get_texture(ctx, self.res)
+        } else {
+            self.partial_chunks[chunk_idx - 1].get_texture(ctx, self.res)
+        }
+    }
+
+    pub fn get_chunk_bounding_box(&self, chunk_idx: usize) -> Rect {
+        if chunk_idx == 0 {
+            self.core_chunk.get_bounding_box()
+        } else {
+            self.partial_chunks[chunk_idx - 1].get_bounding_box()
+        }
+    }
+    pub fn get_chunk_bounding_boxes(&self) -> Vec<Rect> {
+        let mut bounding_boxes = Vec::new();
+        bounding_boxes.push(self.core_chunk.get_bounding_box());
+        for partial_chunk in &self.partial_chunks {
+            bounding_boxes.push(partial_chunk.get_bounding_box());
+        }
+        bounding_boxes
+    }
+
     /* Shape Parameter Getters */
-    fn get_cell_radius(&self) -> f32 {
+    pub fn get_cell_radius(&self) -> f32 {
         self.core_chunk.get_cell_radius()
     }
-    fn get_num_layers(&self) -> usize {
+    pub fn get_num_layers(&self) -> usize {
         self.num_layers
     }
-    fn get_num_chunks(&self) -> usize {
+    pub fn get_num_chunks(&self) -> usize {
         self.partial_chunks.len() + 1
     }
-    fn get_chunk_start_radius(&self, chunk_idx: usize) -> f32 {
+    pub fn get_chunk_start_radius(&self, chunk_idx: usize) -> f32 {
         if chunk_idx == 0 {
             self.core_chunk.get_start_radius()
         } else {
             self.partial_chunks[chunk_idx - 1].get_start_radius()
         }
     }
-    fn get_chunk_end_radius(&self, chunk_idx: usize) -> f32 {
+    pub fn get_chunk_end_radius(&self, chunk_idx: usize) -> f32 {
         if chunk_idx == 0 {
             self.core_chunk.get_end_radius()
         } else {
             self.partial_chunks[chunk_idx - 1].get_end_radius()
         }
     }
-    fn get_chunk_start_radial_theta(&self, chunk_idx: usize) -> f32 {
+    pub fn get_chunk_start_radial_theta(&self, chunk_idx: usize) -> f32 {
         if chunk_idx == 0 {
             self.core_chunk.get_start_radial_theta()
         } else {
             self.partial_chunks[chunk_idx - 1].get_start_radial_theta()
         }
     }
-    fn get_chunk_end_radial_theta(&self, chunk_idx: usize) -> f32 {
+    pub fn get_chunk_end_radial_theta(&self, chunk_idx: usize) -> f32 {
         if chunk_idx == 0 {
             self.core_chunk.get_end_radial_theta()
         } else {
             self.partial_chunks[chunk_idx - 1].get_end_radial_theta()
         }
     }
-    fn get_chunk_num_radial_lines(&self, chunk_idx: usize) -> usize {
+    pub fn get_chunk_num_radial_lines(&self, chunk_idx: usize) -> usize {
         if chunk_idx == 0 {
             self.core_chunk.get_num_radial_lines()
         } else {
             self.partial_chunks[chunk_idx - 1].get_num_radial_lines()
         }
     }
-    fn get_chunk_num_concentric_circles(&self, chunk_idx: usize) -> usize {
+    pub fn get_chunk_num_concentric_circles(&self, chunk_idx: usize) -> usize {
         if chunk_idx == 0 {
             self.core_chunk.get_num_concentric_circles()
         } else {
             self.partial_chunks[chunk_idx - 1].get_num_concentric_circles()
         }
     }
-    fn total_size(&self) -> usize {
+    pub fn total_size(&self) -> usize {
         let mut total_size = self.core_chunk.total_size();
         for partial_chunk in &self.partial_chunks {
             total_size += partial_chunk.total_size();

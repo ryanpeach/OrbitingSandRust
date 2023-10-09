@@ -1,44 +1,9 @@
-use crate::physics::fallingsand::chunks::chunk::{interpolate_points, Chunk};
+use super::util::{grid_iter, interpolate_points};
+use crate::physics::fallingsand::chunks::chunk::Chunk;
 use ggez::glam::Vec2;
-use ggez::graphics::{Color, Image, ImageFormat};
+use ggez::graphics::{Color, Image, ImageFormat, Rect};
 use ggez::Context;
 use std::f32::consts::PI;
-
-/// This is like the "skip" method but it always keeps the first and last item
-/// If it is larger than the number of items, it will just return the first and last item
-/// If the step is not a multiple of the number of items, it will round down to the previous multiple
-fn grid_iter(start: usize, end: usize, mut step: usize) -> Vec<usize> {
-    let len = end - start;
-    if len == 1 {
-        // Return [0]
-        return vec![start];
-    }
-    if step >= len {
-        return vec![start, end - 1];
-    }
-    debug_assert_ne!(step, 0, "Step should not be 0.");
-
-    fn valid_step(len: usize, step: usize) -> bool {
-        step == 1 || step == len - 1 || (len - 1) % step == 0
-    }
-
-    while !valid_step(len, step) && step > 1 {
-        step -= 1;
-    }
-
-    let start_item = start;
-    let end_item = end - 1;
-
-    let mut out = Vec::new();
-    out.push(start_item);
-    for i in (start_item + step..end_item).step_by(step) {
-        if i % step == 0 && i != 0 && i != len - 1 {
-            out.push(i);
-        }
-    }
-    out.push(end_item);
-    out
-}
 
 /// This is a chunk that represents a "full" layer.
 /// It doesn't split itself in either the radial or concentric directions.
@@ -231,6 +196,18 @@ impl PartialLayerChunk {
         vertexes
     }
 
+    /// Gets the min and max positions in raw x, y of the chunk
+    fn get_bounding_box(&self) -> Rect {
+        let outline = self.get_outline(1);
+        let all_x = outline.iter().map(|v| v.x);
+        let all_y = outline.iter().map(|v| v.y);
+        let min_x = all_x.clone().fold(f32::INFINITY, f32::min);
+        let max_x = all_x.fold(f32::NEG_INFINITY, f32::max);
+        let min_y = all_y.clone().fold(f32::INFINITY, f32::min);
+        let max_y = all_y.fold(f32::NEG_INFINITY, f32::max);
+        Rect::new(min_x, min_y, max_x - min_x, max_y - min_y)
+    }
+
     /// Gets the UV coordinates of the vertexes of the chunk
     /// This is a more traditional square grid
     /// If you set skip to 1, you will get the full resolution
@@ -371,6 +348,9 @@ impl Chunk for PartialLayerChunk {
     }
     fn get_start_radial_line(&self) -> usize {
         self.start_radial_line
+    }
+    fn get_bounding_box(&self) -> Rect {
+        self.get_bounding_box()
     }
 }
 
@@ -1047,5 +1027,14 @@ mod tests {
             uvs[13],
             Vec2::new(6.0 / num_radial_lines, 1.0 / num_concentric_circles)
         );
+    }
+
+    #[test]
+    fn test_first_layer_bounding_box() {
+        let bb = FIRST_LAYER.get_bounding_box();
+        assert_eq!(bb.x, -3.0);
+        assert_eq!(bb.y, -3.0);
+        assert_eq!(bb.w, 6.0);
+        assert_eq!(bb.h, 6.0);
     }
 }
