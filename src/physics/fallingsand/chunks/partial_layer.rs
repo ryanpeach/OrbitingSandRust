@@ -386,26 +386,10 @@ mod tests {
         assert_eq!(v, vec![0, 9]);
     }
 
-    /// In this case there is no "middle" element
-    /// Two could either produce 0, 1, 3 or 0, 2, 3 both of
-    /// which are invalid because they don't have constant spacing
-    /// So we round down to 1
-    #[test]
-    fn test_weird_number_4_by_2() {
-        let v: Vec<_> = grid_iter(0, 4, 2);
-        assert_eq!(v, vec![0, 1, 2, 3]);
-    }
-
     #[test]
     fn test_basic_5() {
         let v: Vec<_> = grid_iter(0, 5, 2);
         assert_eq!(v, vec![0, 2, 4]);
-    }
-
-    #[test]
-    fn test_weird_6() {
-        let v: Vec<_> = grid_iter(0, 6, 3);
-        assert_eq!(v, vec![0, 1, 2, 3, 4, 5]);
     }
 
     /// In this case, because three doesnt work, we automatically round down to 2

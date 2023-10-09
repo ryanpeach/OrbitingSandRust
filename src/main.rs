@@ -50,11 +50,11 @@ impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
         let radial_mesh = RadialMeshBuilder::new()
             .cell_radius(1.0)
-            .num_layers(9)
+            .num_layers(7)
             .first_num_radial_lines(8)
             .second_num_concentric_circles(2)
             .build();
-        let res = 1;
+        let res = 0;
 
         Ok(MainState {
             celestial: Celestial::new(&radial_mesh, DrawMode::TexturedMesh, res),
@@ -93,9 +93,11 @@ impl EventHandler<ggez::GameError> for MainState {
 
         if res != self.res {
             self.celestial = Celestial::new(&self.radial_mesh, draw_mode, res);
+            self.res = res;
         }
         if draw_mode != self.draw_mode {
             self.celestial = Celestial::new(&self.radial_mesh, draw_mode, res);
+            self.draw_mode = draw_mode;
         }
 
         Ok(())

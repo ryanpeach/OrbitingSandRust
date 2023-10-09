@@ -376,7 +376,7 @@ mod tests {
         let radial_mesh = RadialMeshBuilder::new()
             .cell_radius(1.0)
             .num_layers(7)
-            .first_num_radial_lines(6)
+            .first_num_radial_lines(8)
             .second_num_concentric_circles(2)
             .max_cells(576) // 24x24
             .build();
@@ -407,288 +407,287 @@ mod tests {
         }
     }
 
-    // #[test]
-    // fn test_radial_mesh_chunk_sizes() {
-    //     let radial_mesh = RadialMeshBuilder::new()
-    //         .cell_radius(1.0)
-    //         .num_layers(7)
-    //         .first_num_radial_lines(6)
-    //         .second_num_concentric_circles(2)
-    //         .max_cells(576) // 24x24
-    //         .build();
+    #[test]
+    fn test_radial_mesh_chunk_sizes_manual() {
+        let radial_mesh = RadialMeshBuilder::new()
+            .cell_radius(1.0)
+            .num_layers(7)
+            .first_num_radial_lines(8)
+            .second_num_concentric_circles(2)
+            .max_cells(576) // 24x24
+            .build();
 
-    //     // Layer 0
-    //     // Test that the first chunk is 1x6
-    //     assert_eq!(radial_mesh.get_chunk_num_radial_lines(0), 6);
-    //     assert_eq!(radial_mesh.get_chunk_num_concentric_circles(0), 1);
-    //     // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 0 x 1 x 0 x 2pi
-    //     assert_eq!(radial_mesh.get_chunk_start_radius(0), 0.0);
-    //     assert_eq!(radial_mesh.get_chunk_end_radius(0), 1.0);
-    //     assert_eq!(radial_mesh.get_chunk_start_radial_theta(0), 0.0);
-    //     assert_eq!(
-    //         radial_mesh.get_chunk_end_radial_theta(0),
-    //         2.0 * std::f32::consts::PI
-    //     );
+        // Layer 0
+        // Test that the first chunk is 1x8
+        assert_eq!(radial_mesh.get_chunk_num_radial_lines(0), 8);
+        assert_eq!(radial_mesh.get_chunk_num_concentric_circles(0), 1);
+        // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 0 x 1 x 0 x 2pi
+        assert_eq!(radial_mesh.get_chunk_start_radius(0), 0.0);
+        assert_eq!(radial_mesh.get_chunk_end_radius(0), 1.0);
+        assert_eq!(radial_mesh.get_chunk_start_radial_theta(0), 0.0);
+        assert_eq!(
+            radial_mesh.get_chunk_end_radial_theta(0),
+            2.0 * std::f32::consts::PI
+        );
 
-    //     // Layer 1
-    //     // Test that the next chunk is 2x12
-    //     assert_eq!(radial_mesh.get_chunk_num_radial_lines(1), 12);
-    //     assert_eq!(radial_mesh.get_chunk_num_concentric_circles(1), 2);
-    //     // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 1 x 3 x 0 x 2pi
-    //     // 1 comes from the previous layer's end_radius
-    //     // 3 comes from the previous layer's end_radius + the previous layers (end_radius - start_radius)*2
-    //     assert_eq!(radial_mesh.get_chunk_start_radius(1), 1.0);
-    //     assert_eq!(radial_mesh.get_chunk_end_radius(1), 3.0);
-    //     assert_eq!(radial_mesh.get_chunk_start_radial_theta(1), 0.0);
-    //     assert_eq!(
-    //         radial_mesh.get_chunk_end_radial_theta(1),
-    //         2.0 * std::f32::consts::PI
-    //     );
+        // Layer 1
+        // Test that the next chunk is 2x16
+        assert_eq!(radial_mesh.get_chunk_num_radial_lines(1), 16);
+        assert_eq!(radial_mesh.get_chunk_num_concentric_circles(1), 2);
+        // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 1 x 3 x 0 x 2pi
+        // 1 comes from the previous layer's end_radius
+        // 3 comes from the previous layer's end_radius + the previous layers (end_radius - start_radius)*2
+        assert_eq!(radial_mesh.get_chunk_start_radius(1), 1.0);
+        assert_eq!(radial_mesh.get_chunk_end_radius(1), 3.0);
+        assert_eq!(radial_mesh.get_chunk_start_radial_theta(1), 0.0);
+        assert_eq!(
+            radial_mesh.get_chunk_end_radial_theta(1),
+            2.0 * std::f32::consts::PI
+        );
 
-    //     // Layer 2
-    //     // Test that the next chunk is 4x24
-    //     assert_eq!(radial_mesh.get_chunk_num_radial_lines(2), 24);
-    //     assert_eq!(radial_mesh.get_chunk_num_concentric_circles(2), 4);
-    //     // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 3 x 7 x 0 x 2pi
-    //     assert_eq!(radial_mesh.get_chunk_start_radius(2), 3.0);
-    //     assert_eq!(radial_mesh.get_chunk_end_radius(2), 7.0);
-    //     assert_eq!(radial_mesh.get_chunk_start_radial_theta(2), 0.0);
-    //     assert_eq!(
-    //         radial_mesh.get_chunk_end_radial_theta(2),
-    //         2.0 * std::f32::consts::PI
-    //     );
+        // Layer 2
+        // Test that the next chunk is 4x32
+        assert_eq!(radial_mesh.get_chunk_num_radial_lines(2), 32);
+        assert_eq!(radial_mesh.get_chunk_num_concentric_circles(2), 4);
+        // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 3 x 7 x 0 x 2pi
+        assert_eq!(radial_mesh.get_chunk_start_radius(2), 3.0);
+        assert_eq!(radial_mesh.get_chunk_end_radius(2), 7.0);
+        assert_eq!(radial_mesh.get_chunk_start_radial_theta(2), 0.0);
+        assert_eq!(
+            radial_mesh.get_chunk_end_radial_theta(2),
+            2.0 * std::f32::consts::PI
+        );
 
-    //     // Layer 3
-    //     // Test that the next chunk is 8x48
-    //     assert_eq!(radial_mesh.get_chunk_num_radial_lines(3), 48);
-    //     assert_eq!(radial_mesh.get_chunk_num_concentric_circles(3), 8);
-    //     // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 7 x 15 x 0 x 2pi
-    //     assert_eq!(radial_mesh.get_chunk_start_radius(3), 7.0);
-    //     assert_eq!(radial_mesh.get_chunk_end_radius(3), 15.0);
-    //     assert_eq!(radial_mesh.get_chunk_start_radial_theta(3), 0.0);
-    //     assert_eq!(
-    //         radial_mesh.get_chunk_end_radial_theta(3),
-    //         2.0 * std::f32::consts::PI
-    //     );
+        // Layer 3
+        // Test that the next chunk is 8x64
+        assert_eq!(radial_mesh.get_chunk_num_radial_lines(3), 64);
+        assert_eq!(radial_mesh.get_chunk_num_concentric_circles(3), 8);
+        // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 7 x 15 x 0 x 2pi
+        assert_eq!(radial_mesh.get_chunk_start_radius(3), 7.0);
+        assert_eq!(radial_mesh.get_chunk_end_radius(3), 15.0);
+        assert_eq!(radial_mesh.get_chunk_start_radial_theta(3), 0.0);
+        assert_eq!(
+            radial_mesh.get_chunk_end_radial_theta(3),
+            2.0 * std::f32::consts::PI
+        );
 
-    //     // Layer 4
-    //     // Now we have split in 4 because 16x96 is 1024, which is bigger than 576
-    //     // Test that the next 4 chunks are 16x24
-    //     for i in 0..4 {
-    //         assert_eq!(radial_mesh.get_chunk_num_radial_lines(4 + i), 24);
-    //         assert_eq!(radial_mesh.get_chunk_num_concentric_circles(4 + i), 16);
-    //     }
-    //     // I want to test the start_radius x end_radius x start_radial_theta x end_radial_theta by hand
-    //     // The first one will be 15 x 31 x 0*2pi/4 x 1*2pi/4
-    //     // The second one will be 15 x 31 x 1*2pi/4 x 2*2pi/4
-    //     // The third one will be 15 x 31 x 2*2pi/4 x 3*2pi/4
-    //     // The fourth one will be 15 x 31 x 3*2pi/4 x 4*2pi/4
-    //     // Making a macro for convienience, also this will keep the resulting error on the right line
-    //     macro_rules! assert_quad {
-    //         ($radial_mesh:expr, $chunk_idx:expr, $start_radius:expr, $end_radius:expr, $start_radial_theta:expr, $end_radial_theta:expr) => {
-    //             assert_eq!(
-    //                 $radial_mesh.get_chunk_start_radius($chunk_idx),
-    //                 $start_radius,
-    //                 "start_radius is incorrect."
-    //             );
-    //             assert_eq!(
-    //                 $radial_mesh.get_chunk_end_radius($chunk_idx),
-    //                 $end_radius,
-    //                 "end_radius is incorrect."
-    //             );
-    //             assert_eq!(
-    //                 $radial_mesh.get_chunk_start_radial_theta($chunk_idx),
-    //                 $start_radial_theta,
-    //                 "start_radial_theta is incorrect."
-    //             );
-    //             assert_eq!(
-    //                 $radial_mesh.get_chunk_end_radial_theta($chunk_idx),
-    //                 $end_radial_theta,
-    //                 "end_radial_theta is incorrect."
-    //             );
-    //         };
-    //     }
-    //     assert_quad!(
-    //         radial_mesh,
-    //         4,
-    //         15.0,
-    //         31.0,
-    //         0.0 * 2.0 * std::f32::consts::PI / 4.0,
-    //         1.0 * 2.0 * std::f32::consts::PI / 4.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         5,
-    //         15.0,
-    //         31.0,
-    //         1.0 * 2.0 * std::f32::consts::PI / 4.0,
-    //         2.0 * 2.0 * std::f32::consts::PI / 4.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         6,
-    //         15.0,
-    //         31.0,
-    //         2.0 * 2.0 * std::f32::consts::PI / 4.0,
-    //         3.0 * 2.0 * std::f32::consts::PI / 4.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         7,
-    //         15.0,
-    //         31.0,
-    //         3.0 * 2.0 * std::f32::consts::PI / 4.0,
-    //         4.0 * 2.0 * std::f32::consts::PI / 4.0
-    //     );
+        // Layer 4
+        // Now we have split in 4 because 16x128 is 2048, which is bigger than 576
+        // Test that the next 4 chunks are 16x32
+        // From now on the sizes are stable
+        for i in 0..4 {
+            assert_eq!(radial_mesh.get_chunk_num_radial_lines(4 + i), 32);
+            assert_eq!(radial_mesh.get_chunk_num_concentric_circles(4 + i), 16);
+        }
+        // I want to test the start_radius x end_radius x start_radial_theta x end_radial_theta by hand
+        // The first one will be 15 x 31 x 0*2pi/4 x 1*2pi/4
+        // The second one will be 15 x 31 x 1*2pi/4 x 2*2pi/4
+        // The third one will be 15 x 31 x 2*2pi/4 x 3*2pi/4
+        // The fourth one will be 15 x 31 x 3*2pi/4 x 4*2pi/4
+        // Making a macro for convienience, also this will keep the resulting error on the right line
+        macro_rules! assert_quad {
+            ($radial_mesh:expr, $chunk_idx:expr, $start_radius:expr, $end_radius:expr, $start_radial_theta:expr, $end_radial_theta:expr) => {
+                assert_eq!(
+                    $radial_mesh.get_chunk_start_radius($chunk_idx),
+                    $start_radius,
+                    "start_radius is incorrect."
+                );
+                assert_eq!(
+                    $radial_mesh.get_chunk_end_radius($chunk_idx),
+                    $end_radius,
+                    "end_radius is incorrect."
+                );
+                assert_eq!(
+                    $radial_mesh.get_chunk_start_radial_theta($chunk_idx),
+                    $start_radial_theta,
+                    "start_radial_theta is incorrect."
+                );
+                assert_eq!(
+                    $radial_mesh.get_chunk_end_radial_theta($chunk_idx),
+                    $end_radial_theta,
+                    "end_radial_theta is incorrect."
+                );
+            };
+        }
+        assert_quad!(
+            radial_mesh,
+            4,
+            15.0,
+            31.0,
+            0.0 * 2.0 * std::f32::consts::PI / 4.0,
+            1.0 * 2.0 * std::f32::consts::PI / 4.0
+        );
+        assert_quad!(
+            radial_mesh,
+            5,
+            15.0,
+            31.0,
+            1.0 * 2.0 * std::f32::consts::PI / 4.0,
+            2.0 * 2.0 * std::f32::consts::PI / 4.0
+        );
+        assert_quad!(
+            radial_mesh,
+            6,
+            15.0,
+            31.0,
+            2.0 * 2.0 * std::f32::consts::PI / 4.0,
+            3.0 * 2.0 * std::f32::consts::PI / 4.0
+        );
+        assert_quad!(
+            radial_mesh,
+            7,
+            15.0,
+            31.0,
+            3.0 * 2.0 * std::f32::consts::PI / 4.0,
+            4.0 * 2.0 * std::f32::consts::PI / 4.0
+        );
 
-    //     // Layer 5
-    //     // This layer is 32x192
-    //     // We split by 4 again in the radial direction
-    //     // This means the next 16 chunks would be 32x12
-    //     // However this is not allowed because the concentric dimension is bigger than the radial dimension
-    //     // So instead we split by 2 in the concentric direction and 2 in the radial direction
-    //     // So the next 16 chunks are 32/2 x 192/8 = 16x24
-    //     for i in 0..16 {
-    //         assert_eq!(radial_mesh.get_chunk_num_radial_lines(8 + i), 24);
-    //         assert_eq!(radial_mesh.get_chunk_num_concentric_circles(8 + i), 16);
-    //     }
-    //     // So the first 8 chunks are in a concentric circle
-    //     assert_quad!(
-    //         radial_mesh,
-    //         8,
-    //         31.0,
-    //         47.0,
-    //         0.0 * 2.0 * std::f32::consts::PI / 8.0,
-    //         1.0 * 2.0 * std::f32::consts::PI / 8.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         9,
-    //         31.0,
-    //         47.0,
-    //         1.0 * 2.0 * std::f32::consts::PI / 8.0,
-    //         2.0 * 2.0 * std::f32::consts::PI / 8.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         10,
-    //         31.0,
-    //         47.0,
-    //         2.0 * 2.0 * std::f32::consts::PI / 8.0,
-    //         3.0 * 2.0 * std::f32::consts::PI / 8.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         11,
-    //         31.0,
-    //         47.0,
-    //         3.0 * 2.0 * std::f32::consts::PI / 8.0,
-    //         4.0 * 2.0 * std::f32::consts::PI / 8.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         12,
-    //         31.0,
-    //         47.0,
-    //         4.0 * 2.0 * std::f32::consts::PI / 8.0,
-    //         5.0 * 2.0 * std::f32::consts::PI / 8.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         13,
-    //         31.0,
-    //         47.0,
-    //         5.0 * 2.0 * std::f32::consts::PI / 8.0,
-    //         6.0 * 2.0 * std::f32::consts::PI / 8.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         14,
-    //         31.0,
-    //         47.0,
-    //         6.0 * 2.0 * std::f32::consts::PI / 8.0,
-    //         7.0 * 2.0 * std::f32::consts::PI / 8.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         15,
-    //         31.0,
-    //         47.0,
-    //         7.0 * 2.0 * std::f32::consts::PI / 8.0,
-    //         8.0 * 2.0 * std::f32::consts::PI / 8.0
-    //     );
+        // Layer 5
+        // This layer is 32x256
+        // We split by 2 again in the radial direction, meaning we are split by 8 in the radial direction
+        // And we split by 2 in the concentric direction
+        // This means the next 16 chunks would be 32x16
+        for i in 0..16 {
+            assert_eq!(radial_mesh.get_chunk_num_radial_lines(8 + i), 32);
+            assert_eq!(radial_mesh.get_chunk_num_concentric_circles(8 + i), 16);
+        }
+        // So the first 8 chunks are in a concentric circle
+        assert_quad!(
+            radial_mesh,
+            8,
+            31.0,
+            47.0,
+            0.0 * 2.0 * std::f32::consts::PI / 8.0,
+            1.0 * 2.0 * std::f32::consts::PI / 8.0
+        );
+        assert_quad!(
+            radial_mesh,
+            9,
+            31.0,
+            47.0,
+            1.0 * 2.0 * std::f32::consts::PI / 8.0,
+            2.0 * 2.0 * std::f32::consts::PI / 8.0
+        );
+        assert_quad!(
+            radial_mesh,
+            10,
+            31.0,
+            47.0,
+            2.0 * 2.0 * std::f32::consts::PI / 8.0,
+            3.0 * 2.0 * std::f32::consts::PI / 8.0
+        );
+        assert_quad!(
+            radial_mesh,
+            11,
+            31.0,
+            47.0,
+            3.0 * 2.0 * std::f32::consts::PI / 8.0,
+            4.0 * 2.0 * std::f32::consts::PI / 8.0
+        );
+        assert_quad!(
+            radial_mesh,
+            12,
+            31.0,
+            47.0,
+            4.0 * 2.0 * std::f32::consts::PI / 8.0,
+            5.0 * 2.0 * std::f32::consts::PI / 8.0
+        );
+        assert_quad!(
+            radial_mesh,
+            13,
+            31.0,
+            47.0,
+            5.0 * 2.0 * std::f32::consts::PI / 8.0,
+            6.0 * 2.0 * std::f32::consts::PI / 8.0
+        );
+        assert_quad!(
+            radial_mesh,
+            14,
+            31.0,
+            47.0,
+            6.0 * 2.0 * std::f32::consts::PI / 8.0,
+            7.0 * 2.0 * std::f32::consts::PI / 8.0
+        );
+        assert_quad!(
+            radial_mesh,
+            15,
+            31.0,
+            47.0,
+            7.0 * 2.0 * std::f32::consts::PI / 8.0,
+            8.0 * 2.0 * std::f32::consts::PI / 8.0
+        );
 
-    //     // Then the next 8 chunks are in the next concentric circle
-    //     assert_quad!(
-    //         radial_mesh,
-    //         16,
-    //         47.0,
-    //         63.0,
-    //         0.0 * 2.0 * std::f32::consts::PI / 8.0,
-    //         1.0 * 2.0 * std::f32::consts::PI / 8.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         17,
-    //         47.0,
-    //         63.0,
-    //         1.0 * 2.0 * std::f32::consts::PI / 8.0,
-    //         2.0 * 2.0 * std::f32::consts::PI / 8.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         18,
-    //         47.0,
-    //         63.0,
-    //         2.0 * 2.0 * std::f32::consts::PI / 8.0,
-    //         3.0 * 2.0 * std::f32::consts::PI / 8.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         19,
-    //         47.0,
-    //         63.0,
-    //         3.0 * 2.0 * std::f32::consts::PI / 8.0,
-    //         4.0 * 2.0 * std::f32::consts::PI / 8.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         20,
-    //         47.0,
-    //         63.0,
-    //         4.0 * 2.0 * std::f32::consts::PI / 8.0,
-    //         5.0 * 2.0 * std::f32::consts::PI / 8.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         21,
-    //         47.0,
-    //         63.0,
-    //         5.0 * 2.0 * std::f32::consts::PI / 8.0,
-    //         6.0 * 2.0 * std::f32::consts::PI / 8.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         22,
-    //         47.0,
-    //         63.0,
-    //         6.0 * 2.0 * std::f32::consts::PI / 8.0,
-    //         7.0 * 2.0 * std::f32::consts::PI / 8.0
-    //     );
-    //     assert_quad!(
-    //         radial_mesh,
-    //         23,
-    //         47.0,
-    //         63.0,
-    //         7.0 * 2.0 * std::f32::consts::PI / 8.0,
-    //         8.0 * 2.0 * std::f32::consts::PI / 8.0
-    //     );
+        // Then the next 8 chunks are in the next concentric circle
+        assert_quad!(
+            radial_mesh,
+            16,
+            47.0,
+            63.0,
+            0.0 * 2.0 * std::f32::consts::PI / 8.0,
+            1.0 * 2.0 * std::f32::consts::PI / 8.0
+        );
+        assert_quad!(
+            radial_mesh,
+            17,
+            47.0,
+            63.0,
+            1.0 * 2.0 * std::f32::consts::PI / 8.0,
+            2.0 * 2.0 * std::f32::consts::PI / 8.0
+        );
+        assert_quad!(
+            radial_mesh,
+            18,
+            47.0,
+            63.0,
+            2.0 * 2.0 * std::f32::consts::PI / 8.0,
+            3.0 * 2.0 * std::f32::consts::PI / 8.0
+        );
+        assert_quad!(
+            radial_mesh,
+            19,
+            47.0,
+            63.0,
+            3.0 * 2.0 * std::f32::consts::PI / 8.0,
+            4.0 * 2.0 * std::f32::consts::PI / 8.0
+        );
+        assert_quad!(
+            radial_mesh,
+            20,
+            47.0,
+            63.0,
+            4.0 * 2.0 * std::f32::consts::PI / 8.0,
+            5.0 * 2.0 * std::f32::consts::PI / 8.0
+        );
+        assert_quad!(
+            radial_mesh,
+            21,
+            47.0,
+            63.0,
+            5.0 * 2.0 * std::f32::consts::PI / 8.0,
+            6.0 * 2.0 * std::f32::consts::PI / 8.0
+        );
+        assert_quad!(
+            radial_mesh,
+            22,
+            47.0,
+            63.0,
+            6.0 * 2.0 * std::f32::consts::PI / 8.0,
+            7.0 * 2.0 * std::f32::consts::PI / 8.0
+        );
+        assert_quad!(
+            radial_mesh,
+            23,
+            47.0,
+            63.0,
+            7.0 * 2.0 * std::f32::consts::PI / 8.0,
+            8.0 * 2.0 * std::f32::consts::PI / 8.0
+        );
 
-    //     // Layer 6
-    //     // From now on the layer size should be stable
-    //     for i in 0..64 {
-    //         assert_eq!(radial_mesh.get_chunk_num_radial_lines(24 + i), 24);
-    //         assert_eq!(radial_mesh.get_chunk_num_concentric_circles(24 + i), 16);
-    //     }
-    // }
+        // Layer 6
+        // From now on the layer size should be stable
+        for i in 0..64 {
+            assert_eq!(radial_mesh.get_chunk_num_radial_lines(24 + i), 32);
+            assert_eq!(radial_mesh.get_chunk_num_concentric_circles(24 + i), 16);
+        }
+    }
 }
