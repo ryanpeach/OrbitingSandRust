@@ -260,7 +260,7 @@ impl EventHandler<ggez::GameError> for MainState {
 
     fn key_down_event(
         &mut self,
-        ctx: &mut Context,
+        _ctx: &mut Context,
         input: KeyInput,
         _repeated: bool,
     ) -> GameResult {
