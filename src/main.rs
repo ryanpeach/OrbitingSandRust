@@ -1,10 +1,12 @@
 #![allow(dead_code)]
-#![allow(unused_variables)]
 
+use ggegui::{egui, Gui};
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
 use ggez::glam::*;
-use ggez::graphics::{self, Canvas, Color, FilterMode, Mesh, MeshData, Sampler, Vertex};
+use ggez::graphics::{
+    self, Canvas, Color, DrawParam, FilterMode, Mesh, MeshData, Rect, Sampler, Vertex,
+};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
@@ -81,12 +83,13 @@ fn draw_uv_wireframe(
 // ==================
 
 struct MainState {
-    res: u16,
     radial_mesh: RadialMesh,
     all_vertices: Vec<Vec<Vertex>>,
     all_indices: Vec<Vec<u32>>,
     all_outlines: Vec<Vec<Vec2>>,
+    bounding_boxes: Vec<Rect>,
     camera: Camera,
+    gui: Gui,
 }
 
 // Translates the world coordinate system, which
@@ -107,36 +110,60 @@ impl MainState {
             .num_layers(9)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(2)
+            .res(0)
             .build();
 
-        let draw_resolution = 0;
-        let all_vertices = radial_mesh.get_vertexes(draw_resolution);
-        let all_indices = radial_mesh.get_indices(draw_resolution);
-        let all_outlines = radial_mesh.get_outlines(draw_resolution);
+        let all_vertices = radial_mesh.get_vertexes();
+        let all_indices = radial_mesh.get_indices();
+        let all_outlines = radial_mesh.get_outlines();
+        let bounding_boxes = radial_mesh.get_chunk_bounding_boxes();
         println!("Nb of Meshes: {}", all_vertices.len());
         println!("Nb of Vertices: {}", all_vertices.iter().flatten().count());
 
         Ok(MainState {
-            res: draw_resolution,
             radial_mesh,
             all_vertices,
             all_indices,
             all_outlines,
+            bounding_boxes,
             camera: Camera::default(),
+            gui: Gui::new(ctx),
         })
     }
 }
 
 impl EventHandler<ggez::GameError> for MainState {
-    fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
-        // Any logic updates go here
+    fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
+        let gui_ctx = self.gui.ctx();
+
+        // Handle res updates
+        let mut res = self.radial_mesh.get_res();
+        egui::Window::new("Title").show(&gui_ctx, |ui| {
+            ui.label(format!("zoom: {}", self.camera.get_zoom()));
+            ui.label(format!("FPS: {}", ctx.time.fps()));
+
+            ui.separator();
+            ui.label("Resolution");
+            // Create an integer selector
+            ui.add(egui::Slider::new(&mut res, 0..=6).text("res"));
+        });
+        self.gui.update(ctx);
+
+        if res != self.radial_mesh.get_res() {
+            self.radial_mesh.set_res(res);
+            self.all_vertices = self.radial_mesh.get_vertexes();
+            self.all_indices = self.radial_mesh.get_indices();
+            self.all_outlines = self.radial_mesh.get_outlines();
+        }
+
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         let mut canvas = graphics::Canvas::from_frame(ctx, graphics::Color::BLACK);
         canvas.set_sampler(Sampler::from(FilterMode::Nearest));
-        let all_textures = self.radial_mesh.get_textures(ctx, self.res);
+
+        // Draw planets
         let screen_size = ctx.gfx.drawable_size();
         let pos = world_to_screen_coords(
             Vec2::new(screen_size.0, screen_size.1),
@@ -149,14 +176,11 @@ impl EventHandler<ggez::GameError> for MainState {
             .rotation(self.camera.get_rotation())
             .offset(Vec2::new(0.5, 0.5));
 
-        for (i, texture) in all_textures.into_iter().enumerate() {
-            if !self
-                .radial_mesh
-                .get_chunk_bounding_box(i)
-                .overlaps(&self.camera.get_bounding_box(ctx))
-            {
+        for i in 0..self.radial_mesh.get_num_chunks() {
+            if !self.bounding_boxes[i].overlaps(&self.camera.get_bounding_box(ctx)) {
                 continue;
             }
+            let texture = self.radial_mesh.get_texture(ctx, i);
             // Draw the mesh
             let mesh_data = MeshData {
                 vertices: &self.all_vertices[i],
@@ -164,7 +188,9 @@ impl EventHandler<ggez::GameError> for MainState {
             };
             let mesh = Mesh::from_data(ctx, mesh_data);
             canvas.draw_textured_mesh(mesh, texture, draw_params);
+            // if i == 1 {
             // draw_uv_wireframe(ctx, &mut canvas, mesh_data, draw_params);
+            // }
             // draw_triangle_wireframe(ctx, &mut canvas, mesh_data, draw_params);
 
             // Draw the outlines
@@ -176,11 +202,8 @@ impl EventHandler<ggez::GameError> for MainState {
             // }
         }
 
-        let fps_text = graphics::Text::new(format!("FPS: {}", ctx.time.fps()));
-        canvas.draw(
-            &fps_text,
-            graphics::DrawParam::default().dest(Vec2::new(0.0, 0.0)),
-        );
+        // Draw gui
+        canvas.draw(&self.gui, DrawParam::default().dest(Vec2::ZERO));
 
         let _ = canvas.finish(ctx);
         Ok(())
@@ -188,19 +211,19 @@ impl EventHandler<ggez::GameError> for MainState {
 
     fn key_down_event(
         &mut self,
-        ctx: &mut Context,
+        _ctx: &mut Context,
         input: KeyInput,
         _repeated: bool,
     ) -> GameResult {
         match input.keycode {
             Some(KeyCode::W) => {
-                self.camera.move_down();
+                self.camera.move_up();
             }
             Some(KeyCode::A) => {
                 self.camera.move_right();
             }
             Some(KeyCode::S) => {
-                self.camera.move_up();
+                self.camera.move_down();
             }
             Some(KeyCode::D) => {
                 self.camera.move_left();

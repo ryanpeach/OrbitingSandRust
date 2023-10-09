@@ -198,21 +198,13 @@ impl PartialLayerChunk {
 
     /// Gets the min and max positions in raw x, y of the chunk
     fn get_bounding_box(&self) -> Rect {
-        let min_j = self.get_start_concentric_circle_absolute() as f32 * self.cell_radius;
-        let max_j = self.get_end_concentric_circle_absolute() as f32 * self.cell_radius;
-        let min_k = self.get_start_radial_theta();
-        let max_k = self.get_end_radial_theta();
-
-        let x0 = min_k.cos() * min_j;
-        let y0 = min_k.sin() * min_j;
-        let x1 = max_k.cos() * max_j;
-        let y1 = max_k.sin() * max_j;
-
-        let min_x = x0.min(x1);
-        let max_x = x0.max(x1);
-        let min_y = y0.min(y1);
-        let max_y = y0.max(y1);
-
+        let outline = self.get_outline(1);
+        let all_x = outline.iter().map(|v| v.x);
+        let all_y = outline.iter().map(|v| v.y);
+        let min_x = all_x.clone().fold(f32::INFINITY, f32::min);
+        let max_x = all_x.fold(f32::NEG_INFINITY, f32::max);
+        let min_y = all_y.clone().fold(f32::INFINITY, f32::min);
+        let max_y = all_y.fold(f32::NEG_INFINITY, f32::max);
         Rect::new(min_x, min_y, max_x - min_x, max_y - min_y)
     }
 
@@ -1035,5 +1027,14 @@ mod tests {
             uvs[13],
             Vec2::new(6.0 / num_radial_lines, 1.0 / num_concentric_circles)
         );
+    }
+
+    #[test]
+    fn test_first_layer_bounding_box() {
+        let bb = FIRST_LAYER.get_bounding_box();
+        assert_eq!(bb.x, -3.0);
+        assert_eq!(bb.y, -3.0);
+        assert_eq!(bb.w, 6.0);
+        assert_eq!(bb.h, 6.0);
     }
 }
