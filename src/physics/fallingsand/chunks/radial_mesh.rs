@@ -1,9 +1,9 @@
 use super::chunk::Chunk;
 use super::core::CoreChunk;
 use super::partial_layer::{PartialLayerChunk, PartialLayerChunkBuilder};
-use super::util::{RawImage, DrawMode, OwnedMeshData};
+use super::util::{DrawMode, OwnedMeshData, RawImage};
 use ggez::glam::Vec2;
-use ggez::graphics::{Rect, Vertex, MeshData};
+use ggez::graphics::{Rect, Vertex};
 
 pub struct RadialMesh {
     num_layers: usize,
@@ -188,7 +188,6 @@ impl RadialMeshBuilder {
 }
 
 impl RadialMesh {
-
     pub fn get_outlines(&self, res: u16) -> Vec<Vec<Vec2>> {
         let mut outlines = Vec::new();
         outlines.push(self.core_chunk.get_outline(res));
@@ -266,21 +265,31 @@ impl RadialMesh {
         bounding_boxes
     }
     pub fn get_mesh_data(&self, res: u16, draw_mode: DrawMode) -> Vec<OwnedMeshData> {
-        (0..self.get_num_chunks()).map(|chunk_idx| {
-            if (chunk_idx == 0) {
-                match draw_mode {
-                    DrawMode::TexturedMesh => self.core_chunk.calc_chunk_meshdata(res),
-                    DrawMode::UVWireframe => self.core_chunk.calc_chunk_uv_wireframe(res),
-                    DrawMode::TriangleWireframe => self.core_chunk.calc_chunk_triangle_wireframe(res),
+        (0..self.get_num_chunks())
+            .map(|chunk_idx| {
+                if chunk_idx == 0 {
+                    match draw_mode {
+                        DrawMode::TexturedMesh => self.core_chunk.calc_chunk_meshdata(res),
+                        DrawMode::UVWireframe => self.core_chunk.calc_chunk_uv_wireframe(res),
+                        DrawMode::TriangleWireframe => {
+                            self.core_chunk.calc_chunk_triangle_wireframe(res)
+                        }
+                    }
+                } else {
+                    match draw_mode {
+                        DrawMode::TexturedMesh => {
+                            self.partial_chunks[chunk_idx - 1].calc_chunk_meshdata(res)
+                        }
+                        DrawMode::UVWireframe => {
+                            self.partial_chunks[chunk_idx - 1].calc_chunk_uv_wireframe(res)
+                        }
+                        DrawMode::TriangleWireframe => {
+                            self.partial_chunks[chunk_idx - 1].calc_chunk_triangle_wireframe(res)
+                        }
+                    }
                 }
-            } else {
-                match draw_mode {
-                    DrawMode::TexturedMesh => self.partial_chunks[chunk_idx-1].calc_chunk_meshdata(res),
-                    DrawMode::UVWireframe => self.partial_chunks[chunk_idx-1].calc_chunk_uv_wireframe(res),
-                    DrawMode::TriangleWireframe => self.partial_chunks[chunk_idx-1].calc_chunk_triangle_wireframe(res),
-                }
-            }
-        }).collect()
+            })
+            .collect()
     }
 
     /* Shape Parameter Getters */
@@ -342,7 +351,6 @@ impl RadialMesh {
         }
         total_size
     }
-
 }
 
 #[cfg(test)]

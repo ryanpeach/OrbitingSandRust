@@ -1,9 +1,8 @@
 use ggez::glam::Vec2;
-use ggez::graphics::{Rect, MeshData};
+use ggez::graphics::Rect;
 
 use crate::physics::fallingsand::chunks::radial_mesh::RadialMesh;
-use crate::physics::fallingsand::chunks::util::{DrawMode, RawImage, OwnedMeshData};
-
+use crate::physics::fallingsand::chunks::util::{DrawMode, OwnedMeshData, RawImage};
 
 /// Acts as a cache for a radial mesh's meshes and textures
 pub struct Celestial {

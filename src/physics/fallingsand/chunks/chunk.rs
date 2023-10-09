@@ -52,10 +52,7 @@ pub trait Chunk {
     fn get_start_radial_line(&self) -> usize;
 
     /* Mesh */
-    fn calc_chunk_meshdata(
-        &self,
-        res: u16,
-    ) -> OwnedMeshData {
+    fn calc_chunk_meshdata(&self, res: u16) -> OwnedMeshData {
         let indices = self.get_indices(res);
         let vertices: Vec<Vertex> = self.get_vertices(res);
         let mesh_data = OwnedMeshData {
@@ -65,10 +62,7 @@ pub trait Chunk {
         mesh_data
     }
 
-    fn calc_chunk_triangle_wireframe(
-        &self,
-        res: u16,
-    ) -> OwnedMeshData {
+    fn calc_chunk_triangle_wireframe(&self, res: u16) -> OwnedMeshData {
         let mut mb = MeshBuilder::new();
         let indices = self.get_indices(res);
         let vertices: Vec<Vertex> = self.get_vertices(res);
@@ -84,13 +78,13 @@ pub trait Chunk {
             mb.line(&[p1, p2, p3, p1], 0.1, Color::WHITE);
         }
         let meshdata = mb.build();
-        OwnedMeshData { vertices: meshdata.vertices.to_owned(), indices: meshdata.indices.to_owned() }
+        OwnedMeshData {
+            vertices: meshdata.vertices.to_owned(),
+            indices: meshdata.indices.to_owned(),
+        }
     }
 
-    fn calc_chunk_uv_wireframe(
-        &self,
-        res: u16,
-    ) -> OwnedMeshData {
+    fn calc_chunk_uv_wireframe(&self, res: u16) -> OwnedMeshData {
         let mut mb = MeshBuilder::new();
         let indices = self.get_indices(res);
         let vertices: Vec<Vertex> = self.get_vertices(res);
@@ -106,9 +100,16 @@ pub trait Chunk {
             let p3 = vertices[i3].uv;
             let p3_multiplied = Vec2::new(p3[0] * 10.0, p3[1] * 10.0);
 
-            mb.line(&[p1_multiplied, p2_multiplied, p3_multiplied, p1_multiplied], 0.1, Color::WHITE);
+            mb.line(
+                &[p1_multiplied, p2_multiplied, p3_multiplied, p1_multiplied],
+                0.1,
+                Color::WHITE,
+            );
         }
         let meshdata = mb.build();
-        OwnedMeshData { vertices: meshdata.vertices.to_owned(), indices: meshdata.indices.to_owned() }
+        OwnedMeshData {
+            vertices: meshdata.vertices.to_owned(),
+            indices: meshdata.indices.to_owned(),
+        }
     }
 }

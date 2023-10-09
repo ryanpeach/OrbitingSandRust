@@ -1,4 +1,7 @@
-use ggez::{glam::Vec2, graphics::{ImageFormat, Image, Vertex, MeshData}};
+use ggez::{
+    glam::Vec2,
+    graphics::{Image, ImageFormat, MeshData, Vertex},
+};
 
 /// For some reason ggez::graphics::Image requires a Context to be created
 pub struct RawImage {
@@ -9,7 +12,13 @@ pub struct RawImage {
 
 impl RawImage {
     pub fn to_image(&self, ctx: &mut ggez::Context) -> ggez::graphics::Image {
-        Image::from_pixels(ctx, &self.pixels[..], ImageFormat::Rgba8Unorm, self.width, self.height)
+        Image::from_pixels(
+            ctx,
+            &self.pixels[..],
+            ImageFormat::Rgba8Unorm,
+            self.width,
+            self.height,
+        )
     }
 }
 
@@ -21,7 +30,10 @@ pub struct OwnedMeshData {
 
 impl OwnedMeshData {
     pub fn to_mesh_data(&self) -> MeshData {
-        MeshData { vertices: &self.vertices, indices: &self.indices.as_slice() }
+        MeshData {
+            vertices: &self.vertices,
+            indices: &self.indices.as_slice(),
+        }
     }
 }
 

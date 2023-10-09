@@ -4,7 +4,7 @@ use ggegui::{egui, Gui};
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
 use ggez::glam::*;
-use ggez::graphics::{self, DrawParam, FilterMode, Sampler, Drawable, Mesh, MeshData};
+use ggez::graphics::{self, DrawParam, Drawable, FilterMode, Mesh, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 use physics::fallingsand::chunks::radial_mesh::RadialMesh;
@@ -129,15 +129,9 @@ impl EventHandler<ggez::GameError> for MainState {
                 let mesh = Mesh::from_data(ctx, meshes[i].to_mesh_data());
                 let img = textures[i].to_image(ctx);
                 match self.draw_mode {
-                    DrawMode::TexturedMesh => {
-                        canvas.draw_textured_mesh(mesh, img, draw_params)
-                    }
-                    DrawMode::TriangleWireframe => {
-                        canvas.draw(&mesh, draw_params)
-                    }
-                    DrawMode::UVWireframe => {
-                        canvas.draw(&mesh, draw_params)
-                    }
+                    DrawMode::TexturedMesh => canvas.draw_textured_mesh(mesh, img, draw_params),
+                    DrawMode::TriangleWireframe => canvas.draw(&mesh, draw_params),
+                    DrawMode::UVWireframe => canvas.draw(&mesh, draw_params),
                 }
             }
         }

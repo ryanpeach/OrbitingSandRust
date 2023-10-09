@@ -1,7 +1,7 @@
 use crate::physics::fallingsand::chunks::chunk::Chunk;
 use ggez::glam::Vec2;
-use ggez::graphics::{Color, Image, ImageFormat, Rect};
-use ggez::Context;
+use ggez::graphics::{Color, Rect};
+
 use std::f32::consts::PI;
 
 use super::util::RawImage;
