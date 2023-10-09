@@ -1,6 +1,7 @@
 use super::chunk::Chunk;
 use super::core::CoreChunk;
 use super::partial_layer::{PartialLayerChunk, PartialLayerChunkBuilder};
+use super::util::RawImage;
 use ggez::glam::Vec2;
 use ggez::graphics::{Image, Rect, Vertex};
 use ggez::Context;
@@ -250,20 +251,20 @@ impl RadialMesh {
         indices
     }
 
-    pub fn get_textures(&self, ctx: &mut Context) -> Vec<Image> {
+    pub fn get_textures(&self) -> Vec<RawImage> {
         let mut textures = Vec::new();
-        textures.push(self.core_chunk.get_texture(ctx, self.res));
+        textures.push(self.core_chunk.get_texture(self.res));
         for partial_chunk in &self.partial_chunks {
-            textures.push(partial_chunk.get_texture(ctx, self.res));
+            textures.push(partial_chunk.get_texture(self.res));
         }
         textures
     }
 
-    pub fn get_texture(&self, ctx: &mut Context, chunk_idx: usize) -> Image {
+    pub fn get_texture(&self, chunk_idx: usize) -> RawImage {
         if chunk_idx == 0 {
-            self.core_chunk.get_texture(ctx, self.res)
+            self.core_chunk.get_texture(self.res)
         } else {
-            self.partial_chunks[chunk_idx - 1].get_texture(ctx, self.res)
+            self.partial_chunks[chunk_idx - 1].get_texture(self.res)
         }
     }
     pub fn get_chunk_bounding_box(&self, chunk_idx: usize) -> Rect {

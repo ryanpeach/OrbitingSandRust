@@ -1,4 +1,4 @@
-use super::util::{grid_iter, interpolate_points};
+use super::util::{grid_iter, interpolate_points, RawImage};
 use crate::physics::fallingsand::chunks::chunk::Chunk;
 use ggez::glam::Vec2;
 use ggez::graphics::{Color, Image, ImageFormat, Rect};
@@ -259,7 +259,7 @@ impl PartialLayerChunk {
     }
 
     /// Right now we are just going to return a checkerboard texture
-    fn get_texture(&self, ctx: &mut Context, step: usize) -> Image {
+    fn get_texture(&self, step: usize) -> RawImage {
         let j_iter = grid_iter(0, self.get_num_concentric_circles() + 1, step);
         let j_count = j_iter.len();
         let k_iter = grid_iter(0, self.get_num_radial_lines() + 1, step);
@@ -281,13 +281,11 @@ impl PartialLayerChunk {
                 i += 1;
             }
         }
-        Image::from_pixels(
-            ctx,
-            &pixels[..],
-            ImageFormat::Rgba8Unorm,
-            k_count as u32,
-            j_count as u32,
-        )
+        RawImage {
+            pixels,
+            width: k_count as u32,
+            height: j_count as u32,
+        }
     }
 }
 
@@ -304,8 +302,8 @@ impl Chunk for PartialLayerChunk {
     fn get_uvs(&self, res: u16) -> Vec<Vec2> {
         self.get_uv_vertexes(2usize.pow(res.into()))
     }
-    fn get_texture(&self, ctx: &mut Context, res: u16) -> Image {
-        self.get_texture(ctx, 2usize.pow(res.into()))
+    fn get_texture(&self, res: u16) -> RawImage {
+        self.get_texture(2usize.pow(res.into()))
     }
     fn get_cell_radius(&self) -> f32 {
         self.cell_radius

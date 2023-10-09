@@ -1,8 +1,9 @@
 use ggez::glam::Vec2;
-use ggez::graphics::{Canvas, Color, Mesh, MeshData, Rect, Vertex};
+use ggez::graphics::{Canvas, Color, Mesh, MeshData, Rect, Vertex, Image};
 use ggez::{graphics, Context};
 
 use crate::physics::fallingsand::chunks::radial_mesh::RadialMesh;
+use crate::physics::fallingsand::chunks::util::RawImage;
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum DrawMode {
@@ -16,6 +17,7 @@ pub struct Celestial {
     all_vertices: Vec<Vec<Vertex>>,
     all_indices: Vec<Vec<u32>>,
     all_outlines: Vec<Vec<Vec2>>,
+    all_textures: Vec<RawImage>,
     bounding_boxes: Vec<Rect>,
     draw_mode: DrawMode,
 }
@@ -25,12 +27,14 @@ impl Celestial {
         let all_vertices = radial_mesh.get_vertexes();
         let all_indices = radial_mesh.get_indices();
         let all_outlines = radial_mesh.get_outlines();
+        let all_textures = radial_mesh.get_textures();
         let bounding_boxes = radial_mesh.get_chunk_bounding_boxes();
         Self {
             radial_mesh,
             all_vertices,
             all_indices,
             all_outlines,
+            all_textures,
             bounding_boxes,
             draw_mode: DrawMode::TexturedMesh,
         }
@@ -102,13 +106,13 @@ impl Celestial {
         chunk_idx: usize,
         draw_params: graphics::DrawParam,
     ) {
-        let texture = self.radial_mesh.get_texture(ctx, chunk_idx);
+        let texture = self.radial_mesh.get_texture(chunk_idx);
         let mesh_data = MeshData {
             vertices: &self.all_vertices[chunk_idx],
             indices: &self.all_indices[chunk_idx][..],
         };
         let mesh = Mesh::from_data(ctx, mesh_data);
-        canvas.draw_textured_mesh(mesh, texture, draw_params);
+        canvas.draw_textured_mesh(mesh, texture.to_image(ctx), draw_params);
     }
 
     pub fn draw_chunk_triangle_wireframe(

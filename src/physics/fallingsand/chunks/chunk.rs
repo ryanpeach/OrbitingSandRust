@@ -1,8 +1,8 @@
 use ggez::glam::Vec2;
-use ggez::graphics::Image;
 use ggez::graphics::Rect;
 use ggez::graphics::Vertex;
-use ggez::Context;
+
+use super::util::RawImage;
 
 /// A chunk that can be rendered and simulated
 pub trait Chunk {
@@ -11,7 +11,7 @@ pub trait Chunk {
     fn get_positions(&self, res: u16) -> Vec<Vec2>;
     fn get_indices(&self, res: u16) -> Vec<u32>;
     fn get_uvs(&self, res: u16) -> Vec<Vec2>;
-    fn get_texture(&self, ctx: &mut Context, res: u16) -> Image;
+    fn get_texture(&self, res: u16) -> RawImage;
     fn get_vertices(&self, res: u16) -> Vec<Vertex> {
         let positions = self.get_positions(res);
         let uvs = self.get_uvs(res);

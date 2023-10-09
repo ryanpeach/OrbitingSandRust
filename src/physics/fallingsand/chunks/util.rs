@@ -1,4 +1,17 @@
-use ggez::glam::Vec2;
+use ggez::{glam::Vec2, graphics::{ImageFormat, Image}};
+
+/// For some reason ggez::graphics::Image requires a Context to be created
+pub struct RawImage {
+    pub pixels: Vec<u8>,
+    pub width: u32,
+    pub height: u32,
+}
+
+impl RawImage {
+    pub fn to_image(&self, ctx: &mut ggez::Context) -> ggez::graphics::Image {
+        Image::from_pixels(ctx, &self.pixels[..], ImageFormat::Rgba8Unorm, self.width, self.height)
+    }
+}
 
 /// This is like the "skip" method but it always keeps the first and last item
 /// If it is larger than the number of items, it will just return the first and last item
