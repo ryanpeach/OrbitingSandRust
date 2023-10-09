@@ -266,7 +266,6 @@ impl RadialMesh {
             self.partial_chunks[chunk_idx - 1].get_texture(ctx, self.res)
         }
     }
-
     pub fn get_chunk_bounding_box(&self, chunk_idx: usize) -> Rect {
         if chunk_idx == 0 {
             self.core_chunk.get_bounding_box()
