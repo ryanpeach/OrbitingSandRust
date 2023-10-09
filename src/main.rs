@@ -4,9 +4,7 @@ use ggegui::{egui, Gui};
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
 use ggez::glam::*;
-use ggez::graphics::{
-    self, Canvas, Color, DrawParam, FilterMode, Mesh, MeshData, Rect, Sampler, Vertex,
-};
+use ggez::graphics::{self, DrawParam, FilterMode, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 use nodes::celestial::DrawMode;
@@ -14,7 +12,7 @@ use nodes::celestial::DrawMode;
 use crate::nodes::camera::Camera;
 use crate::nodes::celestial::Celestial;
 
-use crate::physics::fallingsand::chunks::radial_mesh::{RadialMesh, RadialMeshBuilder};
+use crate::physics::fallingsand::chunks::radial_mesh::RadialMeshBuilder;
 
 mod nodes;
 mod physics;
