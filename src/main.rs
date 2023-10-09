@@ -4,10 +4,11 @@ use ggegui::{egui, Gui};
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
 use ggez::glam::*;
-use ggez::graphics::{self, DrawParam, FilterMode, Sampler};
+use ggez::graphics::{self, DrawParam, FilterMode, Mesh, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
-use nodes::celestial::DrawMode;
+use physics::fallingsand::chunks::radial_mesh::RadialMesh;
+use physics::fallingsand::chunks::util::DrawMode;
 
 use crate::nodes::camera::Camera;
 use crate::nodes::celestial::Celestial;
@@ -26,6 +27,9 @@ mod physics;
 // ==================
 
 struct MainState {
+    res: u16,
+    draw_mode: DrawMode,
+    radial_mesh: RadialMesh,
     celestial: Celestial,
     camera: Camera,
     gui: Gui,
@@ -49,11 +53,13 @@ impl MainState {
             .num_layers(9)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(2)
-            .res(0)
             .build();
 
         Ok(MainState {
-            celestial: Celestial::new(radial_mesh),
+            celestial: Celestial::new(&radial_mesh, DrawMode::TexturedMesh, 0),
+            radial_mesh,
+            res: 0,
+            draw_mode: DrawMode::TexturedMesh,
             camera: Camera::default(),
             gui: Gui::new(ctx),
         })
@@ -65,8 +71,8 @@ impl EventHandler<ggez::GameError> for MainState {
         let gui_ctx = self.gui.ctx();
 
         // Handle res updates
-        let mut res = self.celestial.get_res();
-        let mut draw_mode = self.celestial.get_draw_mode();
+        let mut res = self.res;
+        let mut draw_mode = self.draw_mode;
         egui::Window::new("Title").show(&gui_ctx, |ui| {
             ui.label(format!("zoom: {}", self.camera.get_zoom()));
             ui.label(format!("FPS: {}", ctx.time.fps()));
@@ -84,11 +90,11 @@ impl EventHandler<ggez::GameError> for MainState {
         });
         self.gui.update(ctx);
 
-        if res != self.celestial.get_res() {
-            self.celestial.set_res(res);
+        if res != self.res {
+            self.celestial = Celestial::new(&self.radial_mesh, draw_mode, res);
         }
-        if draw_mode != self.celestial.get_draw_mode() {
-            self.celestial.set_draw_mode(draw_mode);
+        if draw_mode != self.draw_mode {
+            self.celestial = Celestial::new(&self.radial_mesh, draw_mode, res);
         }
 
         Ok(())
@@ -112,14 +118,21 @@ impl EventHandler<ggez::GameError> for MainState {
             .offset(Vec2::new(0.5, 0.5));
 
         for i in 0..self.celestial.get_num_chunks() {
-            if !self
-                .celestial
-                .get_chunk_bounding_box(i)
+            if !self.celestial.get_all_bounding_boxes()[i]
                 .overlaps(&self.camera.get_bounding_box(ctx))
             {
                 continue;
             }
-            self.celestial.draw_chunk(ctx, &mut canvas, i, draw_params);
+            let meshes = self.celestial.get_all_meshes();
+            let textures = self.celestial.get_all_textures();
+            let meshdata = meshes[i].to_mesh_data();
+            let mesh = Mesh::from_data(ctx, meshdata);
+            let img = textures[i].to_image(ctx);
+            match self.draw_mode {
+                DrawMode::TexturedMesh => canvas.draw_textured_mesh(mesh, img, draw_params),
+                DrawMode::TriangleWireframe => canvas.draw(&mesh, draw_params),
+                DrawMode::UVWireframe => canvas.draw(&mesh, draw_params),
+            }
         }
 
         // Draw gui

@@ -1,8 +1,11 @@
 use ggez::glam::Vec2;
-use ggez::graphics::Image;
+use ggez::graphics::Color;
+use ggez::graphics::MeshBuilder;
 use ggez::graphics::Rect;
 use ggez::graphics::Vertex;
-use ggez::Context;
+
+use super::util::OwnedMeshData;
+use super::util::RawImage;
 
 /// A chunk that can be rendered and simulated
 pub trait Chunk {
@@ -11,7 +14,7 @@ pub trait Chunk {
     fn get_positions(&self, res: u16) -> Vec<Vec2>;
     fn get_indices(&self, res: u16) -> Vec<u32>;
     fn get_uvs(&self, res: u16) -> Vec<Vec2>;
-    fn get_texture(&self, ctx: &mut Context, res: u16) -> Image;
+    fn get_texture(&self, res: u16) -> RawImage;
     fn get_vertices(&self, res: u16) -> Vec<Vertex> {
         let positions = self.get_positions(res);
         let uvs = self.get_uvs(res);
@@ -47,4 +50,64 @@ pub trait Chunk {
     fn get_end_concentric_circle_relative(&self) -> usize;
     fn get_end_radial_line(&self) -> usize;
     fn get_start_radial_line(&self) -> usize;
+
+    /* Mesh */
+    fn calc_chunk_meshdata(&self, res: u16) -> OwnedMeshData {
+        let indices = self.get_indices(res);
+        let vertices: Vec<Vertex> = self.get_vertices(res);
+        OwnedMeshData { vertices, indices }
+    }
+
+    fn calc_chunk_triangle_wireframe(&self, res: u16) -> OwnedMeshData {
+        let mut mb = MeshBuilder::new();
+        let indices = self.get_indices(res);
+        let vertices: Vec<Vertex> = self.get_vertices(res);
+        for i in (0..indices.len()).step_by(3) {
+            let i1: usize = indices[i] as usize;
+            let i2 = indices[i + 1] as usize;
+            let i3 = indices[i + 2] as usize;
+
+            let p1 = vertices[i1].position;
+            let p2 = vertices[i2].position;
+            let p3 = vertices[i3].position;
+
+            let _ = mb.line(&[p1, p2, p3, p1], 0.1, Color::WHITE).unwrap();
+        }
+        let meshdata = mb.build();
+        OwnedMeshData {
+            vertices: meshdata.vertices.to_owned(),
+            indices: meshdata.indices.to_owned(),
+        }
+    }
+
+    fn calc_chunk_uv_wireframe(&self, res: u16) -> OwnedMeshData {
+        let mut mb = MeshBuilder::new();
+        let indices = self.get_indices(res);
+        let vertices: Vec<Vertex> = self.get_vertices(res);
+        for i in (0..indices.len()).step_by(3) {
+            let i1 = indices[i] as usize;
+            let i2 = indices[i + 1] as usize;
+            let i3 = indices[i + 2] as usize;
+
+            let p1 = vertices[i1].uv;
+            let p1_multiplied = Vec2::new(p1[0] * 10.0, p1[1] * 10.0);
+            let p2 = vertices[i2].uv;
+            let p2_multiplied = Vec2::new(p2[0] * 10.0, p2[1] * 10.0);
+            let p3 = vertices[i3].uv;
+            let p3_multiplied = Vec2::new(p3[0] * 10.0, p3[1] * 10.0);
+
+            let _ = mb
+                .line(
+                    &[p1_multiplied, p2_multiplied, p3_multiplied, p1_multiplied],
+                    0.1,
+                    Color::WHITE,
+                )
+                .unwrap();
+        }
+        let meshdata = mb.build();
+        OwnedMeshData {
+            vertices: meshdata.vertices.to_owned(),
+            indices: meshdata.indices.to_owned(),
+        }
+    }
 }

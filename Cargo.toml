@@ -14,3 +14,4 @@ debug = true
 backtrace = "0.3.69"
 ggegui = "0.3.7"
 ggez = "0.9.3"
+rayon = "1.8.0"

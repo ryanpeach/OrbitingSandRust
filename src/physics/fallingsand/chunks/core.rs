@@ -1,8 +1,10 @@
 use crate::physics::fallingsand::chunks::chunk::Chunk;
 use ggez::glam::Vec2;
-use ggez::graphics::{Color, Image, ImageFormat, Rect};
-use ggez::Context;
+use ggez::graphics::{Color, Rect};
+
 use std::f32::consts::PI;
+
+use super::util::RawImage;
 
 /// The core is always the first layer
 /// It defines the radius of all future layers cell_radius
@@ -92,7 +94,7 @@ impl CoreChunk {
     }
 
     /// Right now we are just going to return a checkerboard texture
-    fn get_texture(&self, ctx: &mut Context) -> Image {
+    fn get_texture(&self) -> RawImage {
         let width = self.num_radial_lines.try_into().unwrap();
         let height = 1;
         let mut pixels: Vec<u8> = Vec::with_capacity(self.num_radial_lines * 4);
@@ -108,33 +110,32 @@ impl CoreChunk {
             pixels.push(rgba.2);
             pixels.push(rgba.3);
         }
-        Image::from_pixels(ctx, &pixels[..], ImageFormat::Rgba8Unorm, width, height)
+        RawImage {
+            pixels,
+            width,
+            height,
+        }
     }
 }
 
 impl Chunk for CoreChunk {
-    #[allow(unused_variables)]
-    fn get_outline(&self, res: u16) -> Vec<Vec2> {
+    fn get_outline(&self, _res: u16) -> Vec<Vec2> {
         self.get_outline()
     }
     /// Res does not matter at all for the core chunk
-    #[allow(unused_variables)]
-    fn get_positions(&self, res: u16) -> Vec<Vec2> {
+    fn get_positions(&self, _res: u16) -> Vec<Vec2> {
         self.get_positions()
     }
     /// Res does not matter at all for the core chunk
-    #[allow(unused_variables)]
-    fn get_indices(&self, res: u16) -> Vec<u32> {
+    fn get_indices(&self, _res: u16) -> Vec<u32> {
         self.get_indices()
     }
     /// Res does not matter at all for the core chunk
-    #[allow(unused_variables)]
-    fn get_uvs(&self, res: u16) -> Vec<Vec2> {
+    fn get_uvs(&self, _res: u16) -> Vec<Vec2> {
         self.get_uvs()
     }
-    #[allow(unused_variables)]
-    fn get_texture(&self, ctx: &mut Context, res: u16) -> Image {
-        self.get_texture(ctx)
+    fn get_texture(&self, _res: u16) -> RawImage {
+        self.get_texture()
     }
     fn get_cell_radius(&self) -> f32 {
         self.radius

@@ -1,15 +1,14 @@
 use super::chunk::Chunk;
 use super::core::CoreChunk;
 use super::partial_layer::{PartialLayerChunk, PartialLayerChunkBuilder};
+use super::util::{DrawMode, OwnedMeshData, RawImage};
 use ggez::glam::Vec2;
-use ggez::graphics::{Image, Rect, Vertex};
-use ggez::Context;
+use ggez::graphics::{Rect, Vertex};
 
 pub struct RadialMesh {
     num_layers: usize,
     core_chunk: CoreChunk,
     partial_chunks: Vec<PartialLayerChunk>,
-    res: u16,
 }
 
 pub struct RadialMeshBuilder {
@@ -18,7 +17,6 @@ pub struct RadialMeshBuilder {
     first_num_radial_lines: usize,
     second_num_concentric_circles: usize,
     max_cells: usize,
-    res: u16,
 }
 
 impl RadialMeshBuilder {
@@ -29,7 +27,6 @@ impl RadialMeshBuilder {
             first_num_radial_lines: 1,
             second_num_concentric_circles: 1,
             max_cells: 64 * 64,
-            res: 0,
         }
     }
 
@@ -55,11 +52,6 @@ impl RadialMeshBuilder {
 
     pub fn max_cells(mut self, max_cells: usize) -> Self {
         self.max_cells = max_cells;
-        self
-    }
-
-    pub fn res(mut self, res: u16) -> Self {
-        self.res = res;
         self
     }
 
@@ -191,79 +183,70 @@ impl RadialMeshBuilder {
             num_layers: self.num_layers,
             core_chunk: _core_chunk,
             partial_chunks: _partial_chunks,
-            res: self.res,
         }
     }
 }
 
 impl RadialMesh {
-    pub fn get_res(&self) -> u16 {
-        self.res
-    }
-
-    pub fn set_res(&mut self, res: u16) {
-        self.res = res;
-    }
-
-    pub fn get_outlines(&self) -> Vec<Vec<Vec2>> {
+    pub fn get_outlines(&self, res: u16) -> Vec<Vec<Vec2>> {
         let mut outlines = Vec::new();
-        outlines.push(self.core_chunk.get_outline(self.res));
+        outlines.push(self.core_chunk.get_outline(res));
         for partial_chunk in &self.partial_chunks {
-            outlines.push(partial_chunk.get_outline(self.res));
+            outlines.push(partial_chunk.get_outline(res));
         }
         outlines
     }
 
-    pub fn get_vertexes(&self) -> Vec<Vec<Vertex>> {
+    pub fn get_vertexes(&self, res: u16) -> Vec<Vec<Vertex>> {
         let mut vertexes = Vec::new();
-        vertexes.push(self.core_chunk.get_vertices(self.res));
+        vertexes.push(self.core_chunk.get_vertices(res));
         for partial_chunk in &self.partial_chunks {
-            vertexes.push(partial_chunk.get_vertices(self.res));
+            vertexes.push(partial_chunk.get_vertices(res));
         }
         vertexes
     }
 
-    pub fn get_positions(&self) -> Vec<Vec<Vec2>> {
+    pub fn get_positions(&self, res: u16) -> Vec<Vec<Vec2>> {
         let mut positions = Vec::new();
-        positions.push(self.core_chunk.get_positions(self.res));
+        positions.push(self.core_chunk.get_positions(res));
         for partial_chunk in &self.partial_chunks {
-            positions.push(partial_chunk.get_positions(self.res));
+            positions.push(partial_chunk.get_positions(res));
         }
         positions
     }
 
-    pub fn get_uvs(&self) -> Vec<Vec<Vec2>> {
+    pub fn get_uvs(&self, res: u16) -> Vec<Vec<Vec2>> {
         let mut uvs = Vec::new();
-        uvs.push(self.core_chunk.get_uvs(self.res));
+        uvs.push(self.core_chunk.get_uvs(res));
         for partial_chunk in &self.partial_chunks {
-            uvs.push(partial_chunk.get_uvs(self.res));
+            uvs.push(partial_chunk.get_uvs(res));
         }
         uvs
     }
 
-    pub fn get_indices(&self) -> Vec<Vec<u32>> {
+    pub fn get_indices(&self, res: u16) -> Vec<Vec<u32>> {
         let mut indices = Vec::new();
-        indices.push(self.core_chunk.get_indices(self.res));
+        indices.push(self.core_chunk.get_indices(res));
         for partial_chunk in &self.partial_chunks {
-            indices.push(partial_chunk.get_indices(self.res));
+            indices.push(partial_chunk.get_indices(res));
         }
         indices
     }
 
-    pub fn get_textures(&self, ctx: &mut Context) -> Vec<Image> {
+    pub fn get_textures(&self, res: u16) -> Vec<RawImage> {
         let mut textures = Vec::new();
-        textures.push(self.core_chunk.get_texture(ctx, self.res));
+        textures.push(self.core_chunk.get_texture(res));
         for partial_chunk in &self.partial_chunks {
-            textures.push(partial_chunk.get_texture(ctx, self.res));
+            textures.push(partial_chunk.get_texture(res));
         }
         textures
     }
 
-    pub fn get_texture(&self, ctx: &mut Context, chunk_idx: usize) -> Image {
+    pub fn get_texture(&self, res: u16, chunk_idx: usize) -> RawImage {
         if chunk_idx == 0 {
-            self.core_chunk.get_texture(ctx, self.res)
+            self.core_chunk.get_texture(res)
         } else {
-            self.partial_chunks[chunk_idx - 1].get_texture(ctx, self.res)
+            self.partial_chunks[chunk_idx - 1].get_texture(res)
         }
     }
     pub fn get_chunk_bounding_box(&self, chunk_idx: usize) -> Rect {
@@ -280,6 +263,33 @@ impl RadialMesh {
             bounding_boxes.push(partial_chunk.get_bounding_box());
         }
         bounding_boxes
+    }
+    pub fn get_mesh_data(&self, res: u16, draw_mode: DrawMode) -> Vec<OwnedMeshData> {
+        (0..self.get_num_chunks())
+            .map(|chunk_idx| {
+                if chunk_idx == 0 {
+                    match draw_mode {
+                        DrawMode::TexturedMesh => self.core_chunk.calc_chunk_meshdata(res),
+                        DrawMode::UVWireframe => self.core_chunk.calc_chunk_uv_wireframe(res),
+                        DrawMode::TriangleWireframe => {
+                            self.core_chunk.calc_chunk_triangle_wireframe(res)
+                        }
+                    }
+                } else {
+                    match draw_mode {
+                        DrawMode::TexturedMesh => {
+                            self.partial_chunks[chunk_idx - 1].calc_chunk_meshdata(res)
+                        }
+                        DrawMode::UVWireframe => {
+                            self.partial_chunks[chunk_idx - 1].calc_chunk_uv_wireframe(res)
+                        }
+                        DrawMode::TriangleWireframe => {
+                            self.partial_chunks[chunk_idx - 1].calc_chunk_triangle_wireframe(res)
+                        }
+                    }
+                }
+            })
+            .collect()
     }
 
     /* Shape Parameter Getters */
