@@ -1,4 +1,4 @@
-use ggez::{glam::Vec2, Context};
+use ggez::{glam::Vec2, graphics::Rect, Context};
 
 pub struct Camera {
     world_coords: Vec2,
@@ -22,13 +22,11 @@ impl Default for Camera {
     }
 }
 
-
 impl Camera {
-
-    pub fn get_bounding_box(&self, ctx: Context) -> Rect {
-        let screen_size = ctx.
-        let screen_width = self.screen_size.x;
-        let screen_height = self.screen_size.y;
+    pub fn get_bounding_box(&self, ctx: &Context) -> Rect {
+        let screen_size = ctx.gfx.drawable_size();
+        let screen_width = screen_size.0;
+        let screen_height = screen_size.1;
         let world_width = screen_width / self.zoom;
         let world_height = screen_height / self.zoom;
         let world_x = self.world_coords.x;
@@ -41,6 +39,22 @@ impl Camera {
         )
     }
 
+    // ===========================
+    // Getters
+    // ===========================
+    pub fn get_zoom(&self) -> f32 {
+        self.zoom
+    }
+    pub fn get_world_coords(&self) -> Vec2 {
+        self.world_coords
+    }
+    pub fn get_rotation(&self) -> f32 {
+        self.rotation
+    }
+
+    // ====================
+    // Movement
+    // ====================
     pub fn zoom_in(&mut self) {
         self.zoom *= self.zoom_speed;
         if self.zoom > self.max_zoom {

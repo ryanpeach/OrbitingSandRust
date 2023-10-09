@@ -8,8 +8,8 @@ use ggez::graphics::{self, Canvas, Color, FilterMode, Mesh, MeshData, Sampler, V
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
-use crate::physics::fallingsand::chunks::radial_mesh::{RadialMesh, RadialMeshBuilder};
 use crate::nodes::camera::Camera;
+use crate::physics::fallingsand::chunks::radial_mesh::{RadialMesh, RadialMeshBuilder};
 
 mod nodes;
 mod physics;
@@ -94,9 +94,9 @@ struct MainState {
 // to the screen coordinate system, which has Y
 // pointing downward and the origin at the top-left
 
-fn world_to_screen_coords(screen_width: f32, screen_height: f32, point: Vec2) -> Vec2 {
-    let x = point.x + screen_width / 2.0;
-    let y = screen_height - (point.y + screen_height / 2.0);
+fn world_to_screen_coords(screen_size: Vec2, point: Vec2) -> Vec2 {
+    let x = point.x + screen_size.x / 2.0;
+    let y = screen_size.y - (point.y + screen_size.y / 2.0);
     Vec2::new(x, y)
 }
 
@@ -109,7 +109,6 @@ impl MainState {
             .second_num_concentric_circles(2)
             .build();
 
-        let (width, height) = ctx.gfx.drawable_size();
         let draw_resolution = 0;
         let all_vertices = radial_mesh.get_vertexes(draw_resolution);
         let all_indices = radial_mesh.get_indices(draw_resolution);
@@ -138,20 +137,23 @@ impl EventHandler<ggez::GameError> for MainState {
         let mut canvas = graphics::Canvas::from_frame(ctx, graphics::Color::BLACK);
         canvas.set_sampler(Sampler::from(FilterMode::Nearest));
         let all_textures = self.radial_mesh.get_textures(ctx, self.res);
-        let screen_size = self.camera.get_screen_size();
+        let screen_size = ctx.gfx.drawable_size();
         let pos = world_to_screen_coords(
-            self.camera.screen_width,
-            self.camera.screen_height,
-            self.camera.world_coords,
+            Vec2::new(screen_size.0, screen_size.1),
+            self.camera.get_world_coords(),
         );
+        let zoom = self.camera.get_zoom();
         let draw_params = graphics::DrawParam::new()
             .dest(pos)
-            .scale(Vec2::new(self.camera.zoom, self.camera.zoom))
-            .rotation(self.camera.rotation)
+            .scale(Vec2::new(zoom, zoom))
+            .rotation(self.camera.get_rotation())
             .offset(Vec2::new(0.5, 0.5));
 
         for (i, texture) in all_textures.into_iter().enumerate() {
-            if !self.radial_mesh.get_chunk_bounding_box(i).overlaps(&self.camera.get_bounding_box())
+            if !self
+                .radial_mesh
+                .get_chunk_bounding_box(i)
+                .overlaps(&self.camera.get_bounding_box(ctx))
             {
                 continue;
             }
