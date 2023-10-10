@@ -25,9 +25,7 @@ mod physics;
 // ===================
 // Main Game
 // ==================
-
 struct MainState {
-    res: u16,
     draw_mode: DrawMode,
     radial_mesh: RadialMesh,
     celestial: Celestial,
@@ -56,9 +54,8 @@ impl MainState {
             .build();
 
         Ok(MainState {
-            celestial: Celestial::new(&radial_mesh, DrawMode::TexturedMesh, 0),
+            celestial: Celestial::new(&radial_mesh, DrawMode::TexturedMesh),
             radial_mesh,
-            res: 0,
             draw_mode: DrawMode::TexturedMesh,
             camera: Camera::default(),
             gui: Gui::new(ctx),
@@ -71,12 +68,10 @@ impl EventHandler<ggez::GameError> for MainState {
         let gui_ctx = self.gui.ctx();
 
         // Handle res updates
-        let mut res = self.res;
         let mut draw_mode = self.draw_mode;
         egui::Window::new("Title").show(&gui_ctx, |ui| {
             ui.label(format!("zoom: {}", self.camera.get_zoom()));
             ui.label(format!("FPS: {}", ctx.time.fps()));
-            ui.add(egui::Slider::new(&mut res, 0..=6).text("res"));
             // Set a radiomode for "DrawMode"
             ui.separator();
             ui.label("DrawMode:");
@@ -87,14 +82,13 @@ impl EventHandler<ggez::GameError> for MainState {
                 DrawMode::TriangleWireframe,
                 "TriangleWireframe",
             );
+            ui.radio_value(&mut draw_mode, DrawMode::Outline, "Outline");
         });
         self.gui.update(ctx);
 
-        if res != self.res {
-            self.celestial = Celestial::new(&self.radial_mesh, draw_mode, res);
-        }
         if draw_mode != self.draw_mode {
-            self.celestial = Celestial::new(&self.radial_mesh, draw_mode, res);
+            self.celestial = Celestial::new(&self.radial_mesh, draw_mode);
+            self.draw_mode = draw_mode;
         }
 
         Ok(())
@@ -132,6 +126,7 @@ impl EventHandler<ggez::GameError> for MainState {
                 DrawMode::TexturedMesh => canvas.draw_textured_mesh(mesh, img, draw_params),
                 DrawMode::TriangleWireframe => canvas.draw(&mesh, draw_params),
                 DrawMode::UVWireframe => canvas.draw(&mesh, draw_params),
+                DrawMode::Outline => canvas.draw(&mesh, draw_params),
             }
         }
 

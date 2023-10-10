@@ -1,3 +1,5 @@
+use crate::physics::fallingsand::chunks::util::is_pow_2;
+
 use super::chunk::Chunk;
 use super::core::CoreChunk;
 use super::partial_layer::{PartialLayerChunk, PartialLayerChunkBuilder};
@@ -24,9 +26,10 @@ impl RadialMeshBuilder {
         Self {
             cell_radius: 1.0,
             num_layers: 1,
-            first_num_radial_lines: 1,
-            second_num_concentric_circles: 1,
-            max_cells: 64 * 64,
+            first_num_radial_lines: 6,
+            second_num_concentric_circles: 2,
+            max_cells: usize::MAX,
+            // max_cells: 2usize.pow(16).pow(2),
         }
     }
 
@@ -46,6 +49,11 @@ impl RadialMeshBuilder {
     }
 
     pub fn second_num_concentric_circles(mut self, second_num_concentric_circles: usize) -> Self {
+        debug_assert!(
+            is_pow_2(second_num_concentric_circles),
+            "second_num_concentric_circles must be a power of 2, got {}",
+            second_num_concentric_circles
+        );
         self.second_num_concentric_circles = second_num_concentric_circles;
         self
     }
@@ -188,11 +196,11 @@ impl RadialMeshBuilder {
 }
 
 impl RadialMesh {
-    pub fn get_outlines(&self, res: u16) -> Vec<Vec<Vec2>> {
+    pub fn get_outlines(&self) -> Vec<Vec<Vec2>> {
         let mut outlines = Vec::new();
-        outlines.push(self.core_chunk.get_outline(res));
+        outlines.push(self.core_chunk.get_outline());
         for partial_chunk in &self.partial_chunks {
-            outlines.push(partial_chunk.get_outline(res));
+            outlines.push(partial_chunk.get_outline());
         }
         outlines
     }
@@ -274,6 +282,7 @@ impl RadialMesh {
                         DrawMode::TriangleWireframe => {
                             self.core_chunk.calc_chunk_triangle_wireframe(res)
                         }
+                        DrawMode::Outline => self.core_chunk.calc_chunk_outline(),
                     }
                 } else {
                     match draw_mode {
@@ -285,6 +294,9 @@ impl RadialMesh {
                         }
                         DrawMode::TriangleWireframe => {
                             self.partial_chunks[chunk_idx - 1].calc_chunk_triangle_wireframe(res)
+                        }
+                        DrawMode::Outline => {
+                            self.partial_chunks[chunk_idx - 1].calc_chunk_outline()
                         }
                     }
                 }
@@ -355,6 +367,8 @@ impl RadialMesh {
 
 #[cfg(test)]
 mod tests {
+    use crate::physics::fallingsand::chunks::util::valid_step;
+
     use super::*;
 
     #[test]
@@ -362,14 +376,50 @@ mod tests {
         let radial_mesh = RadialMeshBuilder::new()
             .cell_radius(1.0)
             .num_layers(7)
-            .first_num_radial_lines(6)
+            .first_num_radial_lines(8)
+            .second_num_concentric_circles(2)
+            .max_cells(576) // 24x24
+            .build();
+
+        // Check that for all resolutions 2^0 to 2^6, the chunk sizes are valid for grid_iter
+        // In most of our methods we iterate over the +1 of the dimension sizes, so we add one to each
+        for chunk_num in 0..radial_mesh.get_num_chunks() {
+            for i in 0..7 {
+                assert!(
+                    valid_step(
+                        radial_mesh.get_chunk_num_concentric_circles(chunk_num) + 1,
+                        2usize.pow(i as u32)
+                    ),
+                    "layer {} concentric circles + 1 is not valid at a step of {}",
+                    chunk_num,
+                    2usize.pow(i as u32)
+                );
+                assert!(
+                    valid_step(
+                        radial_mesh.get_chunk_num_radial_lines(chunk_num) + 1,
+                        2usize.pow(i as u32)
+                    ),
+                    "layer {} radial lines + 1 is not valid at a step of {}",
+                    chunk_num,
+                    2usize.pow(i as u32)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_radial_mesh_chunk_sizes_manual() {
+        let radial_mesh = RadialMeshBuilder::new()
+            .cell_radius(1.0)
+            .num_layers(7)
+            .first_num_radial_lines(8)
             .second_num_concentric_circles(2)
             .max_cells(576) // 24x24
             .build();
 
         // Layer 0
-        // Test that the first chunk is 1x6
-        assert_eq!(radial_mesh.get_chunk_num_radial_lines(0), 6);
+        // Test that the first chunk is 1x8
+        assert_eq!(radial_mesh.get_chunk_num_radial_lines(0), 8);
         assert_eq!(radial_mesh.get_chunk_num_concentric_circles(0), 1);
         // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 0 x 1 x 0 x 2pi
         assert_eq!(radial_mesh.get_chunk_start_radius(0), 0.0);
@@ -381,8 +431,8 @@ mod tests {
         );
 
         // Layer 1
-        // Test that the next chunk is 2x12
-        assert_eq!(radial_mesh.get_chunk_num_radial_lines(1), 12);
+        // Test that the next chunk is 2x16
+        assert_eq!(radial_mesh.get_chunk_num_radial_lines(1), 16);
         assert_eq!(radial_mesh.get_chunk_num_concentric_circles(1), 2);
         // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 1 x 3 x 0 x 2pi
         // 1 comes from the previous layer's end_radius
@@ -396,8 +446,8 @@ mod tests {
         );
 
         // Layer 2
-        // Test that the next chunk is 4x24
-        assert_eq!(radial_mesh.get_chunk_num_radial_lines(2), 24);
+        // Test that the next chunk is 4x32
+        assert_eq!(radial_mesh.get_chunk_num_radial_lines(2), 32);
         assert_eq!(radial_mesh.get_chunk_num_concentric_circles(2), 4);
         // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 3 x 7 x 0 x 2pi
         assert_eq!(radial_mesh.get_chunk_start_radius(2), 3.0);
@@ -409,8 +459,8 @@ mod tests {
         );
 
         // Layer 3
-        // Test that the next chunk is 8x48
-        assert_eq!(radial_mesh.get_chunk_num_radial_lines(3), 48);
+        // Test that the next chunk is 8x64
+        assert_eq!(radial_mesh.get_chunk_num_radial_lines(3), 64);
         assert_eq!(radial_mesh.get_chunk_num_concentric_circles(3), 8);
         // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 7 x 15 x 0 x 2pi
         assert_eq!(radial_mesh.get_chunk_start_radius(3), 7.0);
@@ -422,10 +472,11 @@ mod tests {
         );
 
         // Layer 4
-        // Now we have split in 4 because 16x96 is 1024, which is bigger than 576
-        // Test that the next 4 chunks are 16x24
+        // Now we have split in 4 because 16x128 is 2048, which is bigger than 576
+        // Test that the next 4 chunks are 16x32
+        // From now on the sizes are stable
         for i in 0..4 {
-            assert_eq!(radial_mesh.get_chunk_num_radial_lines(4 + i), 24);
+            assert_eq!(radial_mesh.get_chunk_num_radial_lines(4 + i), 32);
             assert_eq!(radial_mesh.get_chunk_num_concentric_circles(4 + i), 16);
         }
         // I want to test the start_radius x end_radius x start_radial_theta x end_radial_theta by hand
@@ -492,14 +543,12 @@ mod tests {
         );
 
         // Layer 5
-        // This layer is 32x192
-        // We split by 4 again in the radial direction
-        // This means the next 16 chunks would be 32x12
-        // However this is not allowed because the concentric dimension is bigger than the radial dimension
-        // So instead we split by 2 in the concentric direction and 2 in the radial direction
-        // So the next 16 chunks are 32/2 x 192/8 = 16x24
+        // This layer is 32x256
+        // We split by 2 again in the radial direction, meaning we are split by 8 in the radial direction
+        // And we split by 2 in the concentric direction
+        // This means the next 16 chunks would be 32x16
         for i in 0..16 {
-            assert_eq!(radial_mesh.get_chunk_num_radial_lines(8 + i), 24);
+            assert_eq!(radial_mesh.get_chunk_num_radial_lines(8 + i), 32);
             assert_eq!(radial_mesh.get_chunk_num_concentric_circles(8 + i), 16);
         }
         // So the first 8 chunks are in a concentric circle
@@ -637,7 +686,7 @@ mod tests {
         // Layer 6
         // From now on the layer size should be stable
         for i in 0..64 {
-            assert_eq!(radial_mesh.get_chunk_num_radial_lines(24 + i), 24);
+            assert_eq!(radial_mesh.get_chunk_num_radial_lines(24 + i), 32);
             assert_eq!(radial_mesh.get_chunk_num_concentric_circles(24 + i), 16);
         }
     }

@@ -130,17 +130,14 @@ impl PartialLayerChunk {
             step,
         ) {
             let diff = (j - start_concentric) as f32 * circle_separation_distance;
-            let mut v_next = Vec2::new(0.0, 0.0);
 
-            for k in grid_iter(start_radial, self.end_radial_line + 1, step) {
+            for k in start_radial..(self.end_radial_line + 1) {
                 if j == 0 && k % 2 == 1 {
                     let angle_next = (k + 1) as f32 * theta;
                     let radius = starting_r + diff;
                     let v_last = vertexes.last().unwrap();
-                    v_next = Vec2::new(angle_next.cos() * radius, angle_next.sin() * radius);
+                    let v_next = Vec2::new(angle_next.cos() * radius, angle_next.sin() * radius);
                     vertexes.push(interpolate_points(v_last, &v_next));
-                } else if j == 0 && k % 2 == 0 && k != start_radial {
-                    vertexes.push(v_next);
                 } else {
                     let angle_point = k as f32 * theta;
                     let radius = starting_r + diff;
@@ -155,7 +152,7 @@ impl PartialLayerChunk {
     }
 
     /// Similar to get_circle_vertexes, but the j index just iterates on the 0th and last element
-    fn get_outline(&self, step: usize) -> Vec<Vec2> {
+    fn get_outline(&self) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
         let start_concentric = self.start_concentric_circle_layer_relative;
@@ -172,17 +169,22 @@ impl PartialLayerChunk {
             self.get_num_concentric_circles() + start_concentric,
         ] {
             let diff = (j - start_concentric) as f32 * circle_separation_distance;
-            let mut v_next = Vec2::new(0.0, 0.0);
 
-            for k in grid_iter(start_radial, self.end_radial_line + 1, step) {
+            // Reverse if we are on the last element because we are going around the circle
+            // This box method was the only way to make Range == Rev<Range> in type, very annoying.
+            let iter: Box<dyn Iterator<Item = _>> = if j != start_concentric {
+                Box::new((start_radial..self.end_radial_line + 1).rev())
+            } else {
+                Box::new(start_radial..self.end_radial_line + 1)
+            };
+
+            for k in iter {
                 if j == 0 && k % 2 == 1 {
                     let angle_next = (k + 1) as f32 * theta;
                     let radius = starting_r + diff;
                     let v_last = vertexes.last().unwrap();
-                    v_next = Vec2::new(angle_next.cos() * radius, angle_next.sin() * radius);
+                    let v_next = Vec2::new(angle_next.cos() * radius, angle_next.sin() * radius);
                     vertexes.push(interpolate_points(v_last, &v_next));
-                } else if j == 0 && k % 2 == 0 && k != start_radial {
-                    vertexes.push(v_next);
                 } else {
                     let angle_point = k as f32 * theta;
                     let radius = starting_r + diff;
@@ -198,7 +200,7 @@ impl PartialLayerChunk {
 
     /// Gets the min and max positions in raw x, y of the chunk
     fn get_bounding_box(&self) -> Rect {
-        let outline = self.get_outline(1);
+        let outline = self.get_outline();
         let all_x = outline.iter().map(|v| v.x);
         let all_y = outline.iter().map(|v| v.y);
         let min_x = all_x.clone().fold(f32::INFINITY, f32::min);
@@ -217,7 +219,7 @@ impl PartialLayerChunk {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
         for j in grid_iter(0, self.get_num_concentric_circles() + 1, step) {
-            for k in grid_iter(0, self.get_num_radial_lines() + 1, step) {
+            for k in 0..(self.get_num_radial_lines() + 1) {
                 let new_vec = Vec2::new(
                     k as f32 / self.get_num_radial_lines() as f32,
                     j as f32 / self.get_num_concentric_circles() as f32,
@@ -230,13 +232,13 @@ impl PartialLayerChunk {
     }
 
     fn get_indices(&self, step: usize) -> Vec<u32> {
-        let j_iter = grid_iter(0, self.get_num_concentric_circles(), step);
+        let j_iter = grid_iter(0, self.get_num_concentric_circles() + 1, step);
         let j_count = j_iter.len();
-        let k_iter = grid_iter(0, self.get_num_radial_lines(), step);
+        let k_iter = 0..(self.get_num_radial_lines() + 1);
         let k_count = k_iter.len();
         let mut indices = Vec::with_capacity(j_count * k_count * 6);
-        for j in 0..j_count {
-            for k in 0..k_count {
+        for j in 0..j_count - 1 {
+            for k in 0..k_count - 1 {
                 // Compute the four corners of our current grid cell
                 let v0 = j * (self.get_num_radial_lines() + 1) + k; // Top-left
                 let v1 = v0 + 1; // Top-right
@@ -259,11 +261,9 @@ impl PartialLayerChunk {
     }
 
     /// Right now we are just going to return a checkerboard texture
-    fn get_texture(&self, step: usize) -> RawImage {
-        let j_iter = grid_iter(0, self.get_num_concentric_circles() + 1, step);
-        let j_count = j_iter.len();
-        let k_iter = grid_iter(0, self.get_num_radial_lines() + 1, step);
-        let k_count = k_iter.len();
+    fn get_texture(&self, _step: usize) -> RawImage {
+        let j_count = self.get_num_concentric_circles();
+        let k_count = self.get_num_radial_lines();
         let mut pixels: Vec<u8> = Vec::with_capacity(j_count * k_count * 4);
         let mut i = 0;
         for _ in 0..j_count {
@@ -280,6 +280,7 @@ impl PartialLayerChunk {
                 pixels.push(rgba.3);
                 i += 1;
             }
+            i += 1;
         }
         RawImage {
             pixels,
@@ -290,8 +291,8 @@ impl PartialLayerChunk {
 }
 
 impl Chunk for PartialLayerChunk {
-    fn get_outline(&self, res: u16) -> Vec<Vec2> {
-        self.get_outline(2usize.pow(res.into()))
+    fn get_outline(&self) -> Vec<Vec2> {
+        self.get_outline()
     }
     fn get_positions(&self, res: u16) -> Vec<Vec2> {
         self.get_circle_vertexes(2usize.pow(res.into()))
@@ -387,26 +388,10 @@ mod tests {
         assert_eq!(v, vec![0, 9]);
     }
 
-    /// In this case there is no "middle" element
-    /// Two could either produce 0, 1, 3 or 0, 2, 3 both of
-    /// which are invalid because they don't have constant spacing
-    /// So we round down to 1
-    #[test]
-    fn test_weird_number_4_by_2() {
-        let v: Vec<_> = grid_iter(0, 4, 2);
-        assert_eq!(v, vec![0, 1, 2, 3]);
-    }
-
     #[test]
     fn test_basic_5() {
         let v: Vec<_> = grid_iter(0, 5, 2);
         assert_eq!(v, vec![0, 2, 4]);
-    }
-
-    #[test]
-    fn test_weird_6() {
-        let v: Vec<_> = grid_iter(0, 6, 3);
-        assert_eq!(v, vec![0, 1, 2, 3, 4, 5]);
     }
 
     /// In this case, because three doesnt work, we automatically round down to 2

@@ -119,7 +119,7 @@ impl CoreChunk {
 }
 
 impl Chunk for CoreChunk {
-    fn get_outline(&self, _res: u16) -> Vec<Vec2> {
+    fn get_outline(&self) -> Vec<Vec2> {
         self.get_outline()
     }
     /// Res does not matter at all for the core chunk
