@@ -10,6 +10,7 @@ use super::util::RawImage;
 /// It defines the radius of all future layers cell_radius
 /// All future layers have 2x their previous layers num_radial_lines
 /// Making this num_radial_lines the only variable layer to layer
+#[derive(Debug, Clone, Copy)]
 pub struct CoreChunk {
     radius: f32,
     num_radial_lines: usize,

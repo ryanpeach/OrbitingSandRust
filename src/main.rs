@@ -27,10 +27,7 @@ mod physics;
 // ==================
 struct MainState {
     draw_mode: DrawMode,
-    radial_mesh: RadialMesh,
     celestial: Celestial,
-    combined_mesh: OwnedMeshData,
-    combined_texture: RawImage,
     camera: Camera,
     gui: Gui,
 }
@@ -55,40 +52,15 @@ impl MainState {
             .second_num_concentric_circles(2)
             .build();
 
-        let celestial = Celestial::new(&radial_mesh, DrawMode::TexturedMesh);
+        let celestial = Celestial::new(radial_mesh, DrawMode::TexturedMesh);
         let camera = Camera::default();
         let screen_size = ctx.gfx.drawable_size();
-        let (combined_mesh, combined_texture) =
-            Self::generate_mesh(&celestial, &camera, Vec2::new(screen_size.0, screen_size.1));
         Ok(MainState {
-            radial_mesh,
             celestial,
             camera,
             draw_mode: DrawMode::TexturedMesh,
             gui: Gui::new(ctx),
-            combined_mesh,
-            combined_texture,
         })
-    }
-
-    // Generates a mesh combined and frustum culled
-    fn generate_mesh(
-        celestial: &Celestial,
-        camera: &Camera,
-        screen_size: Vec2,
-    ) -> (OwnedMeshData, RawImage) {
-        let mut filter = Vec::new();
-        for i in 0..celestial.get_num_chunks() {
-            if !celestial.get_all_bounding_boxes()[i]
-                .overlaps(&camera.get_bounding_box(screen_size))
-            {
-                continue;
-            }
-            filter.push(i);
-        }
-        let meshdata = OwnedMeshData::combine(celestial.get_all_meshes(), &filter);
-        let img = RawImage::combine(celestial.get_all_textures(), &filter);
-        (meshdata, img)
     }
 }
 
@@ -116,7 +88,7 @@ impl EventHandler<ggez::GameError> for MainState {
         self.gui.update(ctx);
 
         if draw_mode != self.draw_mode {
-            self.celestial = Celestial::new(&self.radial_mesh, draw_mode);
+            self.celestial.set_draw_mode(draw_mode);
             self.draw_mode = draw_mode;
         }
 
@@ -140,8 +112,8 @@ impl EventHandler<ggez::GameError> for MainState {
             .rotation(self.camera.get_rotation())
             .offset(Vec2::new(0.5, 0.5));
 
-        let mesh = Mesh::from_data(ctx, self.combined_mesh.to_mesh_data());
-        let img = self.combined_texture.to_image(ctx);
+        let mesh = Mesh::from_data(ctx, self.celestial.get_combined_mesh().to_mesh_data());
+        let img = self.celestial.get_combined_texture().to_image(ctx);
         match self.draw_mode {
             DrawMode::TexturedMesh => canvas.draw_textured_mesh(mesh, img, draw_params),
             DrawMode::TriangleWireframe => canvas.draw(&mesh, draw_params),

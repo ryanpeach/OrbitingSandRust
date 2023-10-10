@@ -7,6 +7,7 @@ use super::util::{DrawMode, OwnedMeshData, RawImage};
 use ggez::glam::Vec2;
 use ggez::graphics::{Rect, Vertex};
 
+#[derive(Clone)]
 pub struct RadialMesh {
     num_layers: usize,
     core_chunk: CoreChunk,
