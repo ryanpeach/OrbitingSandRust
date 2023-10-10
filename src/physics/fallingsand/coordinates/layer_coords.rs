@@ -308,9 +308,6 @@ impl ChunkCoords for LayerChunkCoords {
     fn get_uvs(&self, res: u16) -> Vec<Vec2> {
         self.get_uv_vertexes(2usize.pow(res.into()))
     }
-    fn get_texture(&self, res: u16) -> RawImage {
-        self.get_texture(2usize.pow(res.into()))
-    }
     fn get_cell_radius(&self) -> f32 {
         self.cell_radius
     }

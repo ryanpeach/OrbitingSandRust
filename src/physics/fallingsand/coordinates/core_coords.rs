@@ -134,9 +134,6 @@ impl ChunkCoords for CoreChunkCoords {
     fn get_uvs(&self, _res: u16) -> Vec<Vec2> {
         self.get_uvs()
     }
-    fn get_texture(&self, _res: u16) -> RawImage {
-        self.get_texture()
-    }
     fn get_cell_radius(&self) -> f32 {
         self.radius
     }

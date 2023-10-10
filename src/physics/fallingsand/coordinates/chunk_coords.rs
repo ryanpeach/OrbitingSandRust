@@ -13,7 +13,6 @@ pub trait ChunkCoords {
     fn get_positions(&self, res: u16) -> Vec<Vec2>;
     fn get_indices(&self, res: u16) -> Vec<u32>;
     fn get_uvs(&self, res: u16) -> Vec<Vec2>;
-    fn get_texture(&self, res: u16) -> RawImage;
     fn get_vertices(&self, res: u16) -> Vec<Vertex> {
         let positions = self.get_positions(res);
         let uvs = self.get_uvs(res);

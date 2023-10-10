@@ -8,6 +8,7 @@ use ggez::graphics::{self, DrawParam, FilterMode, Mesh, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
+use physics::fallingsand::element_directory::{self, ElementGridDir};
 use physics::fallingsand::util::{MeshDrawMode, ZoomDrawMode};
 
 use crate::nodes::camera::Camera;
@@ -52,8 +53,9 @@ impl MainState {
             .first_num_radial_lines(6)
             .second_num_concentric_circles(2)
             .build();
+        let element_grid_dir = ElementGridDir::new_empty(coordinate_dir);
 
-        let celestial = Celestial::new(coordinate_dir, MeshDrawMode::TexturedMesh);
+        let celestial = Celestial::new(element_grid_dir, MeshDrawMode::TexturedMesh);
         let camera = Camera::default();
         let _screen_size = ctx.gfx.drawable_size();
         Ok(MainState {

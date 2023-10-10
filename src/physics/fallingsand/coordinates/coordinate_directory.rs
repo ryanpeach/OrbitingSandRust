@@ -240,21 +240,11 @@ impl CoordinateDir {
         }
         indices
     }
-
-    pub fn get_textures(&self, res: u16) -> Vec<RawImage> {
-        let mut textures = Vec::new();
-        textures.push(self.core_chunk.get_texture(res));
-        for partial_chunk in &self.partial_chunks {
-            textures.push(partial_chunk.get_texture(res));
-        }
-        textures
-    }
-
-    pub fn get_texture(&self, res: u16, chunk_idx: usize) -> RawImage {
+    pub fn get_chunk_at_idx(&self, chunk_idx: usize) -> Box<dyn ChunkCoords> {
         if chunk_idx == 0 {
-            self.core_chunk.get_texture(res)
+            Box::new(self.core_chunk)
         } else {
-            self.partial_chunks[chunk_idx - 1].get_texture(res)
+            Box::new(self.partial_chunks[chunk_idx - 1])
         }
     }
     pub fn get_chunk_bounding_box(&self, chunk_idx: usize) -> Rect {
@@ -273,7 +263,7 @@ impl CoordinateDir {
         bounding_boxes
     }
     pub fn get_mesh_data(&self, res: u16, draw_mode: MeshDrawMode) -> Vec<OwnedMeshData> {
-        (0..self.get_num_chunks())
+        (0..self.len())
             .map(|chunk_idx| {
                 if chunk_idx == 0 {
                     match draw_mode {
@@ -311,7 +301,7 @@ impl CoordinateDir {
     pub fn get_num_layers(&self) -> usize {
         self.num_layers
     }
-    pub fn get_num_chunks(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.partial_chunks.len() + 1
     }
     pub fn get_chunk_start_radius(&self, chunk_idx: usize) -> f32 {
@@ -383,7 +373,7 @@ mod tests {
 
         // Check that for all resolutions 2^0 to 2^6, the chunk sizes are valid for grid_iter
         // In most of our methods we iterate over the +1 of the dimension sizes, so we add one to each
-        for chunk_num in 0..coordinate_dir.get_num_chunks() {
+        for chunk_num in 0..coordinate_dir.len() {
             for i in 0..7 {
                 assert!(
                     valid_step(
