@@ -47,7 +47,7 @@ impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
         let radial_mesh = RadialMeshBuilder::new()
             .cell_radius(1.0)
-            .num_layers(9)
+            .num_layers(11)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(2)
             .build();

@@ -58,12 +58,13 @@ impl RawImage {
         for image in lst {
             for y in 0..image.bounds.h as usize {
                 // Get a slice of the source and destination
-                let src_start_idx = y * (image.bounds.h as usize);
-                let src_end_idx = src_start_idx + (image.bounds.w as usize);
+                let src_start_idx = y * (image.bounds.w as usize * 4);
+                let src_end_idx = src_start_idx + (image.bounds.w as usize * 4);
                 let src_slice = &image.pixels[src_start_idx..src_end_idx];
 
-                let dst_start_idx = image.bounds.x as usize + y * (width as usize);
-                let dst_end_idx = dst_start_idx + (image.bounds.w as usize);
+                let dst_start_idx =
+                    (image.bounds.x as usize + (image.bounds.y as usize + y) * width as usize) * 4;
+                let dst_end_idx = dst_start_idx + (image.bounds.w as usize * 4);
                 let dst_slice = &mut canvas[dst_start_idx..dst_end_idx];
 
                 // Use copy_from_slice for faster copying
@@ -114,45 +115,59 @@ impl OwnedMeshData {
         let mut combined_vertices = Vec::new();
         let mut combined_indices = Vec::new();
 
-        let mut last_idx = 0u32;
-
         // This is to find the max and min bounds for the UVs
-        let mut min_u = f32::MAX;
-        let mut min_v = f32::MAX;
-        let mut max_u = f32::MIN;
-        let mut max_v = f32::MIN;
+        let width: f32 = lst
+            .iter()
+            .map(|mesh| mesh.uv_bounds.w + mesh.uv_bounds.x)
+            .fold(0.0, |a, b| a.max(b));
+        let height: f32 = lst
+            .iter()
+            .map(|mesh| mesh.uv_bounds.h + mesh.uv_bounds.y)
+            .fold(0.0, |a, b| a.max(b));
+        let min_x: f32 = lst
+            .iter()
+            .map(|mesh| mesh.uv_bounds.x)
+            .fold(f32::INFINITY, |a, b| a.min(b));
+        let min_y: f32 = lst
+            .iter()
+            .map(|mesh| mesh.uv_bounds.y)
+            .fold(f32::INFINITY, |a, b| a.min(b));
+        let max_x: f32 = lst
+            .iter()
+            .map(|mesh| mesh.uv_bounds.x + mesh.uv_bounds.w)
+            .fold(0.0, |a, b| a.max(b));
+        let max_y: f32 = lst
+            .iter()
+            .map(|mesh| mesh.uv_bounds.y + mesh.uv_bounds.h)
+            .fold(0.0, |a, b| a.max(b));
 
+        let mut last_idx = 0usize;
         for mesh_data in lst {
+            let mut new_vertices = Vec::with_capacity(mesh_data.vertices.len());
             for vertex in &mesh_data.vertices {
-                let un_normalized_u = vertex.uv[0] * mesh_data.uv_bounds.w + mesh_data.uv_bounds.x;
-                let un_normalized_v = vertex.uv[1] * mesh_data.uv_bounds.h + mesh_data.uv_bounds.y;
-
-                min_u = min_u.min(un_normalized_u);
-                min_v = min_v.min(un_normalized_v);
-                max_u = max_u.max(un_normalized_u);
-                max_v = max_v.max(un_normalized_v);
+                let un_normalized_u =
+                    (vertex.uv[0] * mesh_data.uv_bounds.w + mesh_data.uv_bounds.x) / max_x;
+                let un_normalized_v =
+                    (vertex.uv[1] * mesh_data.uv_bounds.h + mesh_data.uv_bounds.y) / max_y;
+                new_vertices.push(Vertex {
+                    position: vertex.position,
+                    uv: [un_normalized_u, un_normalized_v],
+                    color: vertex.color,
+                })
             }
 
-            combined_vertices.extend(mesh_data.vertices.clone());
-
-            for index in mesh_data.indices.clone() {
-                combined_indices.push(index + last_idx);
+            let mut new_indices = Vec::with_capacity(mesh_data.indices.len());
+            for index in &mesh_data.indices {
+                new_indices.push(index + last_idx as u32);
             }
 
-            last_idx += mesh_data.vertices.len() as u32;
-        }
-
-        let uv_width = max_u - min_u;
-        let uv_height = max_v - min_v;
-
-        // Re-normalizing the UVs
-        for vertex in &mut combined_vertices {
-            vertex.uv[0] = (vertex.uv[0] * uv_width + min_u - min_u) / uv_width;
-            vertex.uv[1] = (vertex.uv[1] * uv_height + min_v - min_v) / uv_height;
+            last_idx += new_vertices.len();
+            combined_vertices.extend(new_vertices);
+            combined_indices.extend(new_indices);
         }
 
         OwnedMeshData {
-            uv_bounds: Rect::new(min_u, min_v, uv_width, uv_height),
+            uv_bounds: Rect::new(min_x, min_y, width, height),
             vertices: combined_vertices,
             indices: combined_indices,
         }

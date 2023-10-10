@@ -29,8 +29,7 @@ impl RadialMeshBuilder {
             num_layers: 1,
             first_num_radial_lines: 6,
             second_num_concentric_circles: 2,
-            max_cells: usize::MAX,
-            // max_cells: 2usize.pow(16).pow(2),
+            max_cells: 64 * 64,
         }
     }
 
