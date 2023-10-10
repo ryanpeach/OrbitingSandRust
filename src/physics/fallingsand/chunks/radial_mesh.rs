@@ -28,7 +28,7 @@ impl RadialMeshBuilder {
             num_layers: 1,
             first_num_radial_lines: 6,
             second_num_concentric_circles: 2,
-            max_cells: 2usize.pow(10).pow(2),
+            max_cells: usize::MAX,
         }
     }
 
@@ -195,11 +195,11 @@ impl RadialMeshBuilder {
 }
 
 impl RadialMesh {
-    pub fn get_outlines(&self, res: u16) -> Vec<Vec<Vec2>> {
+    pub fn get_outlines(&self) -> Vec<Vec<Vec2>> {
         let mut outlines = Vec::new();
-        outlines.push(self.core_chunk.get_outline(res));
+        outlines.push(self.core_chunk.get_outline());
         for partial_chunk in &self.partial_chunks {
-            outlines.push(partial_chunk.get_outline(res));
+            outlines.push(partial_chunk.get_outline());
         }
         outlines
     }
@@ -281,7 +281,7 @@ impl RadialMesh {
                         DrawMode::TriangleWireframe => {
                             self.core_chunk.calc_chunk_triangle_wireframe(res)
                         }
-                        DrawMode::Outline => self.core_chunk.calc_chunk_outline(res),
+                        DrawMode::Outline => self.core_chunk.calc_chunk_outline(),
                     }
                 } else {
                     match draw_mode {
@@ -295,7 +295,7 @@ impl RadialMesh {
                             self.partial_chunks[chunk_idx - 1].calc_chunk_triangle_wireframe(res)
                         }
                         DrawMode::Outline => {
-                            self.partial_chunks[chunk_idx - 1].calc_chunk_outline(res)
+                            self.partial_chunks[chunk_idx - 1].calc_chunk_outline()
                         }
                     }
                 }

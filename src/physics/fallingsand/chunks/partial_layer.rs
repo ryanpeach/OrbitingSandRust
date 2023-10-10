@@ -152,7 +152,7 @@ impl PartialLayerChunk {
     }
 
     /// Similar to get_circle_vertexes, but the j index just iterates on the 0th and last element
-    fn get_outline(&self, step: usize) -> Vec<Vec2> {
+    fn get_outline(&self) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
         let start_concentric = self.start_concentric_circle_layer_relative;
@@ -200,7 +200,7 @@ impl PartialLayerChunk {
 
     /// Gets the min and max positions in raw x, y of the chunk
     fn get_bounding_box(&self) -> Rect {
-        let outline = self.get_outline(1);
+        let outline = self.get_outline();
         let all_x = outline.iter().map(|v| v.x);
         let all_y = outline.iter().map(|v| v.y);
         let min_x = all_x.clone().fold(f32::INFINITY, f32::min);
@@ -291,8 +291,8 @@ impl PartialLayerChunk {
 }
 
 impl Chunk for PartialLayerChunk {
-    fn get_outline(&self, res: u16) -> Vec<Vec2> {
-        self.get_outline(2usize.pow(res.into()))
+    fn get_outline(&self) -> Vec<Vec2> {
+        self.get_outline()
     }
     fn get_positions(&self, res: u16) -> Vec<Vec2> {
         self.get_circle_vertexes(2usize.pow(res.into()))
