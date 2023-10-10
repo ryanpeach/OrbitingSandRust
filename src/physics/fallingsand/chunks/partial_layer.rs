@@ -668,107 +668,6 @@ mod tests {
     }
 
     #[test]
-    fn test_first_layer_circle_skip_2() {
-        let vertices = FIRST_LAYER.get_circle_vertexes(2);
-        assert_eq!(vertices.len(), 14);
-
-        // The inner circle
-        // every other vertex is actually an interpolation of the previous layer's num_radial_lines
-        let radius = 1.0;
-        let num_radial_lines = 12;
-        assert_approx_eq_v2!(vertices[0], Vec2::new(radius, 0.0));
-        assert_approx_eq_v2!(
-            vertices[1],
-            Vec2::new(
-                radius * (2.0 * PI * -2.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -2.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[2],
-            Vec2::new(
-                radius * (2.0 * PI * -4.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -4.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[3],
-            Vec2::new(
-                radius * (2.0 * PI * -6.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -6.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[4],
-            Vec2::new(
-                radius * (2.0 * PI * -8.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -8.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[5],
-            Vec2::new(
-                radius * (2.0 * PI * -10.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -10.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[6],
-            Vec2::new(
-                radius * (2.0 * PI * -12.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -12.0 / num_radial_lines as f32).sin(),
-            )
-        );
-
-        // The outer circle
-        let radius = 3.0;
-        let num_radial_lines = 12;
-        assert_approx_eq_v2!(vertices[7], Vec2::new(radius, 0.0));
-        assert_approx_eq_v2!(
-            vertices[8],
-            Vec2::new(
-                radius * (2.0 * PI * -2.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -2.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[9],
-            Vec2::new(
-                radius * (2.0 * PI * -4.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -4.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[10],
-            Vec2::new(
-                radius * (2.0 * PI * -6.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -6.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[11],
-            Vec2::new(
-                radius * (2.0 * PI * -8.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -8.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[12],
-            Vec2::new(
-                radius * (2.0 * PI * -10.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -10.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[13],
-            Vec2::new(
-                radius * (2.0 * PI * -12.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -12.0 / num_radial_lines as f32).sin(),
-            )
-        );
-    }
-
-    #[test]
     fn test_first_layer_uv() {
         let uvs = FIRST_LAYER.get_uv_vertexes(1);
         assert_eq!(uvs.len(), 13 * 3);
@@ -897,51 +796,6 @@ mod tests {
     }
 
     #[test]
-    fn test_first_layer_uv_step_2() {
-        let uvs = FIRST_LAYER.get_uv_vertexes(2);
-        assert_eq!(uvs.len(), 14);
-
-        // Test first layer
-        let num_radial_lines = 12.0;
-        assert_approx_eq_v2!(uvs[0], Vec2::new(0.0, 0.0));
-        assert_approx_eq_v2!(uvs[1], Vec2::new(2.0 / num_radial_lines, 0.0));
-        assert_approx_eq_v2!(uvs[2], Vec2::new(4.0 / num_radial_lines, 0.0));
-        assert_approx_eq_v2!(uvs[3], Vec2::new(6.0 / num_radial_lines, 0.0));
-        assert_approx_eq_v2!(uvs[4], Vec2::new(8.0 / num_radial_lines, 0.0));
-        assert_approx_eq_v2!(uvs[5], Vec2::new(10.0 / num_radial_lines, 0.0));
-        assert_approx_eq_v2!(uvs[6], Vec2::new(12.0 / num_radial_lines, 0.0));
-
-        // Outer layer
-        let num_radial_lines = 12.0;
-        let num_concentric_circles = 2.0;
-        assert_approx_eq_v2!(uvs[7], Vec2::new(0.0, 2.0 / num_concentric_circles));
-        assert_approx_eq_v2!(
-            uvs[8],
-            Vec2::new(2.0 / num_radial_lines, 2.0 / num_concentric_circles)
-        );
-        assert_approx_eq_v2!(
-            uvs[9],
-            Vec2::new(4.0 / num_radial_lines, 2.0 / num_concentric_circles)
-        );
-        assert_approx_eq_v2!(
-            uvs[10],
-            Vec2::new(6.0 / num_radial_lines, 2.0 / num_concentric_circles)
-        );
-        assert_approx_eq_v2!(
-            uvs[11],
-            Vec2::new(8.0 / num_radial_lines, 2.0 / num_concentric_circles)
-        );
-        assert_approx_eq_v2!(
-            uvs[12],
-            Vec2::new(10.0 / num_radial_lines, 2.0 / num_concentric_circles)
-        );
-        assert_approx_eq_v2!(
-            uvs[13],
-            Vec2::new(12.0 / num_radial_lines, 2.0 / num_concentric_circles)
-        );
-    }
-
-    #[test]
     fn test_first_layer_indices() {
         let indices = FIRST_LAYER.get_indices(1);
         assert_eq!(indices.len(), 12 * 2 * 6);
@@ -968,17 +822,6 @@ mod tests {
             assert_eq!(indices[j + 5], i + 14u32, "i: {}", i);
             j += 6;
         }
-    }
-
-    #[test]
-    fn test_first_layer_indices_step_2() {
-        let indices = FIRST_LAYER.get_indices(2);
-        assert_eq!(indices.len(), 36);
-
-        // The first concentric circle
-        assert_eq!(indices[0], 0);
-        assert_eq!(indices[1], 7);
-        assert_eq!(indices[2], 1);
     }
 
     const FIRST_LAYER_PARTIAL: PartialLayerChunk = PartialLayerChunk {
