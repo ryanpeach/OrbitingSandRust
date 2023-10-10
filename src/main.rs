@@ -8,7 +8,7 @@ use ggez::graphics::{self, DrawParam, FilterMode, Mesh, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
-use physics::fallingsand::element_directory::{self, ElementGridDir};
+use physics::fallingsand::element_directory::ElementGridDir;
 use physics::fallingsand::util::{MeshDrawMode, ZoomDrawMode};
 
 use crate::nodes::camera::Camera;

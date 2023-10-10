@@ -3,7 +3,7 @@ use crate::physics::fallingsand::util::is_pow_2;
 use super::chunk_coords::ChunkCoords;
 use super::core_coords::CoreChunkCoords;
 use super::layer_coords::{LayerChunkCoords, LayerChunkCoordsBuilder};
-use crate::physics::fallingsand::util::{MeshDrawMode, OwnedMeshData, RawImage};
+use crate::physics::fallingsand::util::{MeshDrawMode, OwnedMeshData};
 use ggez::glam::Vec2;
 use ggez::graphics::{Rect, Vertex};
 

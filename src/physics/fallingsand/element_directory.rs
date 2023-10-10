@@ -8,19 +8,16 @@ use super::util::RawImage;
 /// copy of the chunk coordinates associated with it for convenience
 pub struct ElementGridDir {
     coords: CoordinateDir,
-    chunks: Vec<Box<ElementGrid>>,
+    chunks: Vec<ElementGrid>,
 }
 
 impl ElementGridDir {
     pub fn new_empty(coords: CoordinateDir) -> Self {
         let mut chunks = Vec::with_capacity(coords.len());
         for i in 0..coords.len() {
-            chunks.push(Box::new(ElementGrid::new_empty(coords.get_chunk_at_idx(i))));
+            chunks.push(ElementGrid::new_empty(coords.get_chunk_at_idx(i)));
         }
-        Self {
-            coords,
-            chunks: chunks,
-        }
+        Self { coords, chunks }
     }
     pub fn get_coordinate_dir(&self) -> &CoordinateDir {
         &self.coords

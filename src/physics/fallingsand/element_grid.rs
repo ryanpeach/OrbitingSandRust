@@ -19,7 +19,7 @@ impl ElementGrid {
         );
         for _ in 0..chunk_coords.get_num_radial_lines() * chunk_coords.get_num_concentric_circles()
         {
-            grid.push(Box::new(Vacuum::default()));
+            grid.push(Box::<Vacuum>::default());
         }
         Self { grid, chunk_coords }
     }
