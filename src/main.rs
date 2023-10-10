@@ -4,11 +4,11 @@ use ggegui::{egui, Gui};
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
 use ggez::glam::*;
-use ggez::graphics::{self, DrawParam, FilterMode, Image, Mesh, Sampler};
+use ggez::graphics::{self, DrawParam, FilterMode, Mesh, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
-use physics::fallingsand::chunks::radial_mesh::RadialMesh;
-use physics::fallingsand::chunks::util::{DrawMode, OwnedMeshData, RawImage};
+
+use physics::fallingsand::chunks::util::DrawMode;
 
 use crate::nodes::camera::Camera;
 use crate::nodes::celestial::Celestial;
@@ -54,7 +54,7 @@ impl MainState {
 
         let celestial = Celestial::new(radial_mesh, DrawMode::TexturedMesh);
         let camera = Camera::default();
-        let screen_size = ctx.gfx.drawable_size();
+        let _screen_size = ctx.gfx.drawable_size();
         Ok(MainState {
             celestial,
             camera,

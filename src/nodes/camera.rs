@@ -1,4 +1,4 @@
-use ggez::{glam::Vec2, graphics::Rect, Context};
+use ggez::{glam::Vec2, graphics::Rect};
 
 pub struct Camera {
     world_coords: Vec2,
