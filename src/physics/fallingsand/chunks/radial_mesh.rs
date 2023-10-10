@@ -286,6 +286,7 @@ impl RadialMesh {
                         DrawMode::TriangleWireframe => {
                             self.core_chunk.calc_chunk_triangle_wireframe(res)
                         }
+                        DrawMode::Outline => self.core_chunk.calc_chunk_outline(res),
                     }
                 } else {
                     match draw_mode {
@@ -297,6 +298,9 @@ impl RadialMesh {
                         }
                         DrawMode::TriangleWireframe => {
                             self.partial_chunks[chunk_idx - 1].calc_chunk_triangle_wireframe(res)
+                        }
+                        DrawMode::Outline => {
+                            self.partial_chunks[chunk_idx - 1].calc_chunk_outline(res)
                         }
                     }
                 }

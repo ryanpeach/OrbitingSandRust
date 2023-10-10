@@ -52,6 +52,17 @@ pub trait Chunk {
     fn get_start_radial_line(&self) -> usize;
 
     /* Mesh */
+    fn calc_chunk_outline(&self, res: u16) -> OwnedMeshData {
+        let mut mb = MeshBuilder::new();
+        let outline = self.get_outline(res);
+        let _ = mb.line(&outline, 0.1, Color::WHITE);
+        let meshdata = mb.build();
+        OwnedMeshData {
+            vertices: meshdata.vertices.to_owned(),
+            indices: meshdata.indices.to_owned(),
+        }
+    }
+
     fn calc_chunk_meshdata(&self, res: u16) -> OwnedMeshData {
         let indices = self.get_indices(res);
         let vertices: Vec<Vertex> = self.get_vertices(res);

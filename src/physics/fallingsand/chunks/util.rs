@@ -41,6 +41,7 @@ impl OwnedMeshData {
 #[derive(Copy, Clone, PartialEq)]
 pub enum DrawMode {
     TexturedMesh,
+    Outline,
     TriangleWireframe,
     UVWireframe,
 }

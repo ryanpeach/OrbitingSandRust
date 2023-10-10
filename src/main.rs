@@ -25,7 +25,6 @@ mod physics;
 // ===================
 // Main Game
 // ==================
-
 struct MainState {
     res: u16,
     draw_mode: DrawMode,
@@ -50,7 +49,7 @@ impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
         let radial_mesh = RadialMeshBuilder::new()
             .cell_radius(1.0)
-            .num_layers(7)
+            .num_layers(9)
             .first_num_radial_lines(8)
             .second_num_concentric_circles(2)
             .build();
@@ -77,7 +76,7 @@ impl EventHandler<ggez::GameError> for MainState {
         egui::Window::new("Title").show(&gui_ctx, |ui| {
             ui.label(format!("zoom: {}", self.camera.get_zoom()));
             ui.label(format!("FPS: {}", ctx.time.fps()));
-            ui.add(egui::Slider::new(&mut res, 0..=6).text("res"));
+            ui.add(egui::Slider::new(&mut res, 0..=9).text("res"));
             // Set a radiomode for "DrawMode"
             ui.separator();
             ui.label("DrawMode:");
@@ -88,6 +87,7 @@ impl EventHandler<ggez::GameError> for MainState {
                 DrawMode::TriangleWireframe,
                 "TriangleWireframe",
             );
+            ui.radio_value(&mut draw_mode, DrawMode::Outline, "Outline");
         });
         self.gui.update(ctx);
 
@@ -135,6 +135,7 @@ impl EventHandler<ggez::GameError> for MainState {
                 DrawMode::TexturedMesh => canvas.draw_textured_mesh(mesh, img, draw_params),
                 DrawMode::TriangleWireframe => canvas.draw(&mesh, draw_params),
                 DrawMode::UVWireframe => canvas.draw(&mesh, draw_params),
+                DrawMode::Outline => canvas.draw(&mesh, draw_params),
             }
         }
 
