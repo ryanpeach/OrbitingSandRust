@@ -24,10 +24,9 @@ impl Default for Camera {
 }
 
 impl Camera {
-    pub fn get_bounding_box(&self, ctx: &Context) -> Rect {
-        let screen_size = ctx.gfx.drawable_size();
-        let screen_width = screen_size.0;
-        let screen_height = screen_size.1;
+    pub fn get_bounding_box(&self, screen_size: Vec2) -> Rect {
+        let screen_width = screen_size.x;
+        let screen_height = screen_size.y;
         let world_width = screen_width / self.zoom;
         let world_height = screen_height / self.zoom;
         let world_x = self.world_coords.x;

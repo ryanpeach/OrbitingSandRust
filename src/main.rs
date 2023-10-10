@@ -4,11 +4,11 @@ use ggegui::{egui, Gui};
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
 use ggez::glam::*;
-use ggez::graphics::{self, DrawParam, FilterMode, Mesh, Sampler};
+use ggez::graphics::{self, DrawParam, FilterMode, Image, Mesh, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 use physics::fallingsand::chunks::radial_mesh::RadialMesh;
-use physics::fallingsand::chunks::util::DrawMode;
+use physics::fallingsand::chunks::util::{DrawMode, OwnedMeshData, RawImage};
 
 use crate::nodes::camera::Camera;
 use crate::nodes::celestial::Celestial;
@@ -29,6 +29,8 @@ struct MainState {
     draw_mode: DrawMode,
     radial_mesh: RadialMesh,
     celestial: Celestial,
+    combined_mesh: OwnedMeshData,
+    combined_texture: RawImage,
     camera: Camera,
     gui: Gui,
 }
@@ -53,13 +55,40 @@ impl MainState {
             .second_num_concentric_circles(2)
             .build();
 
+        let celestial = Celestial::new(&radial_mesh, DrawMode::TexturedMesh);
+        let camera = Camera::default();
+        let screen_size = ctx.gfx.drawable_size();
+        let (combined_mesh, combined_texture) =
+            Self::generate_mesh(&celestial, &camera, Vec2::new(screen_size.0, screen_size.1));
         Ok(MainState {
-            celestial: Celestial::new(&radial_mesh, DrawMode::TexturedMesh),
             radial_mesh,
+            celestial,
+            camera,
             draw_mode: DrawMode::TexturedMesh,
-            camera: Camera::default(),
             gui: Gui::new(ctx),
+            combined_mesh,
+            combined_texture,
         })
+    }
+
+    // Generates a mesh combined and frustum culled
+    fn generate_mesh(
+        celestial: &Celestial,
+        camera: &Camera,
+        screen_size: Vec2,
+    ) -> (OwnedMeshData, RawImage) {
+        let mut filter = Vec::new();
+        for i in 0..celestial.get_num_chunks() {
+            if !celestial.get_all_bounding_boxes()[i]
+                .overlaps(&camera.get_bounding_box(screen_size))
+            {
+                continue;
+            }
+            filter.push(i);
+        }
+        let meshdata = OwnedMeshData::combine(celestial.get_all_meshes(), &filter);
+        let img = RawImage::combine(celestial.get_all_textures(), &filter);
+        (meshdata, img)
     }
 }
 
@@ -111,23 +140,13 @@ impl EventHandler<ggez::GameError> for MainState {
             .rotation(self.camera.get_rotation())
             .offset(Vec2::new(0.5, 0.5));
 
-        for i in 0..self.celestial.get_num_chunks() {
-            if !self.celestial.get_all_bounding_boxes()[i]
-                .overlaps(&self.camera.get_bounding_box(ctx))
-            {
-                continue;
-            }
-            let meshes = self.celestial.get_all_meshes();
-            let textures = self.celestial.get_all_textures();
-            let meshdata = meshes[i].to_mesh_data();
-            let mesh = Mesh::from_data(ctx, meshdata);
-            let img = textures[i].to_image(ctx);
-            match self.draw_mode {
-                DrawMode::TexturedMesh => canvas.draw_textured_mesh(mesh, img, draw_params),
-                DrawMode::TriangleWireframe => canvas.draw(&mesh, draw_params),
-                DrawMode::UVWireframe => canvas.draw(&mesh, draw_params),
-                DrawMode::Outline => canvas.draw(&mesh, draw_params),
-            }
+        let mesh = Mesh::from_data(ctx, self.combined_mesh.to_mesh_data());
+        let img = self.combined_texture.to_image(ctx);
+        match self.draw_mode {
+            DrawMode::TexturedMesh => canvas.draw_textured_mesh(mesh, img, draw_params),
+            DrawMode::TriangleWireframe => canvas.draw(&mesh, draw_params),
+            DrawMode::UVWireframe => canvas.draw(&mesh, draw_params),
+            DrawMode::Outline => canvas.draw(&mesh, draw_params),
         }
 
         // Draw gui

@@ -284,8 +284,12 @@ impl PartialLayerChunk {
         }
         RawImage {
             pixels,
-            width: k_count as u32,
-            height: j_count as u32,
+            bounds: Rect::new(
+                self.get_start_radial_line() as f32,
+                self.get_start_concentric_circle_absolute() as f32,
+                k_count as f32,
+                j_count as f32,
+            ),
         }
     }
 }

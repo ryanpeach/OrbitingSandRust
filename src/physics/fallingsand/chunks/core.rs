@@ -95,7 +95,7 @@ impl CoreChunk {
 
     /// Right now we are just going to return a checkerboard texture
     fn get_texture(&self) -> RawImage {
-        let width = self.num_radial_lines.try_into().unwrap();
+        let width = self.num_radial_lines;
         let height = 1;
         let mut pixels: Vec<u8> = Vec::with_capacity(self.num_radial_lines * 4);
         for i in 0..self.num_radial_lines {
@@ -112,8 +112,7 @@ impl CoreChunk {
         }
         RawImage {
             pixels,
-            width,
-            height,
+            bounds: Rect::new(0.0, 0.0, width as f32, height as f32),
         }
     }
 }
