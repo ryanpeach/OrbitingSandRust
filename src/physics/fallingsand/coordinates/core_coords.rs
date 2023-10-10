@@ -1,17 +1,17 @@
-use crate::physics::fallingsand::chunks::chunk::Chunk;
+use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use ggez::glam::Vec2;
 use ggez::graphics::{Color, Rect};
 
 use std::f32::consts::PI;
 
-use super::util::RawImage;
+use crate::physics::fallingsand::util::RawImage;
 
 /// The core is always the first layer
 /// It defines the radius of all future layers cell_radius
 /// All future layers have 2x their previous layers num_radial_lines
 /// Making this num_radial_lines the only variable layer to layer
 #[derive(Debug, Clone, Copy)]
-pub struct CoreChunk {
+pub struct CoreChunkCoords {
     radius: f32,
     num_radial_lines: usize,
 }
@@ -20,7 +20,7 @@ pub struct CoreChunk {
 /// 6 is a good number for num_radial_lines as it is divisible by 2 and 3
 /// 1 is a normal default for radius, but if you wanted a "bigger" planet without
 /// changing the "resolution" of its simulation, you could increase this
-impl Default for CoreChunk {
+impl Default for CoreChunkCoords {
     fn default() -> Self {
         Self {
             radius: 1.0,
@@ -29,7 +29,7 @@ impl Default for CoreChunk {
     }
 }
 
-impl CoreChunk {
+impl CoreChunkCoords {
     pub fn new(radius: f32, num_radial_lines: usize) -> Self {
         Self {
             radius,
@@ -118,7 +118,7 @@ impl CoreChunk {
     }
 }
 
-impl Chunk for CoreChunk {
+impl ChunkCoords for CoreChunkCoords {
     fn get_outline(&self) -> Vec<Vec2> {
         self.get_outline()
     }
@@ -192,7 +192,7 @@ mod tests {
 
     #[test]
     fn test_get_vertices() {
-        let chunk = CoreChunk::default();
+        let chunk = CoreChunkCoords::default();
         let positions = chunk.get_positions();
         let uvs = chunk.get_uvs();
         let indices = chunk.get_indices();

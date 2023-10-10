@@ -4,11 +4,10 @@ use ggez::graphics::MeshBuilder;
 use ggez::graphics::Rect;
 use ggez::graphics::Vertex;
 
-use super::util::OwnedMeshData;
-use super::util::RawImage;
+use crate::physics::fallingsand::util::{OwnedMeshData, RawImage};
 
 /// A chunk that can be rendered and simulated
-pub trait Chunk {
+pub trait ChunkCoords {
     /* Drawing */
     fn get_outline(&self) -> Vec<Vec2>;
     fn get_positions(&self, res: u16) -> Vec<Vec2>;
