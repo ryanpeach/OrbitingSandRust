@@ -1,4 +1,4 @@
-mod chunk_coord_params;
+mod chunk_coords;
 pub mod coordinate_directory;
-mod core_coord_params;
-mod layer_coord_params;
+mod core_coords;
+mod layer_coords;

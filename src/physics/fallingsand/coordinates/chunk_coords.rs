@@ -7,7 +7,7 @@ use ggez::graphics::Vertex;
 use crate::physics::fallingsand::util::{OwnedMeshData, RawImage};
 
 /// A chunk that can be rendered and simulated
-pub trait Chunk {
+pub trait ChunkCoords {
     /* Drawing */
     fn get_outline(&self) -> Vec<Vec2>;
     fn get_positions(&self, res: u16) -> Vec<Vec2>;

@@ -13,7 +13,7 @@ use physics::fallingsand::util::{MeshDrawMode, ZoomDrawMode};
 use crate::nodes::camera::Camera;
 use crate::nodes::celestial::Celestial;
 
-use crate::physics::fallingsand::coordinates::coordinate_directory::RadialMeshBuilder;
+use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
 
 mod nodes;
 mod physics;
@@ -46,14 +46,14 @@ fn world_to_screen_coords(screen_size: Vec2, point: Vec2) -> Vec2 {
 
 impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
-        let radial_mesh = RadialMeshBuilder::new()
+        let coordinate_dir = CoordinateDirBuilder::new()
             .cell_radius(1.0)
             .num_layers(11)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(2)
             .build();
 
-        let celestial = Celestial::new(radial_mesh, MeshDrawMode::TexturedMesh);
+        let celestial = Celestial::new(coordinate_dir, MeshDrawMode::TexturedMesh);
         let camera = Camera::default();
         let _screen_size = ctx.gfx.drawable_size();
         Ok(MainState {
