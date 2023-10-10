@@ -131,7 +131,7 @@ impl PartialLayerChunk {
         ) {
             let diff = (j - start_concentric) as f32 * circle_separation_distance;
 
-            for k in grid_iter(start_radial, self.end_radial_line + 1, step) {
+            for k in start_radial..(self.end_radial_line + 1) {
                 if j == 0 && k % 2 == 1 {
                     let angle_next = (k + 1) as f32 * theta;
                     let radius = starting_r + diff;
@@ -170,10 +170,14 @@ impl PartialLayerChunk {
         ] {
             let diff = (j - start_concentric) as f32 * circle_separation_distance;
 
-            let mut iter = grid_iter(start_radial, self.end_radial_line + 1, step);
-            if j != start_concentric {
-                iter = iter.into_iter().rev().collect();
-            }
+            // Reverse if we are on the last element because we are going around the circle
+            // This box method was the only way to make Range == Rev<Range> in type, very annoying.
+            let iter: Box<dyn Iterator<Item = _>> = if j != start_concentric {
+                Box::new((start_radial..self.end_radial_line + 1).rev())
+            } else {
+                Box::new(start_radial..self.end_radial_line + 1)
+            };
+
             for k in iter {
                 if j == 0 && k % 2 == 1 {
                     let angle_next = (k + 1) as f32 * theta;
@@ -215,7 +219,7 @@ impl PartialLayerChunk {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
         for j in grid_iter(0, self.get_num_concentric_circles() + 1, step) {
-            for k in grid_iter(0, self.get_num_radial_lines() + 1, step) {
+            for k in 0..(self.get_num_radial_lines() + 1) {
                 let new_vec = Vec2::new(
                     k as f32 / self.get_num_radial_lines() as f32,
                     j as f32 / self.get_num_concentric_circles() as f32,
@@ -230,16 +234,16 @@ impl PartialLayerChunk {
     fn get_indices(&self, step: usize) -> Vec<u32> {
         let j_iter = grid_iter(0, self.get_num_concentric_circles() + 1, step);
         let j_count = j_iter.len();
-        let k_iter = grid_iter(0, self.get_num_radial_lines() + 1, step);
+        let k_iter = 0..(self.get_num_radial_lines() + 1);
         let k_count = k_iter.len();
         let mut indices = Vec::with_capacity(j_count * k_count * 6);
         for j in 0..j_count - 1 {
             for k in 0..k_count - 1 {
                 // Compute the four corners of our current grid cell
-                let v0 = j * (self.get_num_radial_lines() / step + 1) + k; // Top-left
+                let v0 = j * (self.get_num_radial_lines() + 1) + k; // Top-left
                 let v1 = v0 + 1; // Top-right
-                let v2 = v0 + (self.get_num_radial_lines() / step + 1) + 1; // Bottom-right
-                let v3 = v0 + (self.get_num_radial_lines() / step + 1); // Bottom-left
+                let v2 = v0 + (self.get_num_radial_lines() + 1) + 1; // Bottom-right
+                let v3 = v0 + (self.get_num_radial_lines() + 1); // Bottom-left
 
                 // First triangle (top-left, bottom-left, top-right)
                 indices.push(v0 as u32);

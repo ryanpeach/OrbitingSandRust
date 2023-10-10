@@ -26,7 +26,6 @@ mod physics;
 // Main Game
 // ==================
 struct MainState {
-    res: u16,
     draw_mode: DrawMode,
     radial_mesh: RadialMesh,
     celestial: Celestial,
@@ -49,16 +48,14 @@ impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
         let radial_mesh = RadialMeshBuilder::new()
             .cell_radius(1.0)
-            .num_layers(9)
-            .first_num_radial_lines(8)
+            .num_layers(11)
+            .first_num_radial_lines(6)
             .second_num_concentric_circles(2)
             .build();
-        let res = 0;
 
         Ok(MainState {
-            celestial: Celestial::new(&radial_mesh, DrawMode::TexturedMesh, res),
+            celestial: Celestial::new(&radial_mesh, DrawMode::TexturedMesh),
             radial_mesh,
-            res,
             draw_mode: DrawMode::TexturedMesh,
             camera: Camera::default(),
             gui: Gui::new(ctx),
@@ -71,12 +68,10 @@ impl EventHandler<ggez::GameError> for MainState {
         let gui_ctx = self.gui.ctx();
 
         // Handle res updates
-        let mut res = self.res;
         let mut draw_mode = self.draw_mode;
         egui::Window::new("Title").show(&gui_ctx, |ui| {
             ui.label(format!("zoom: {}", self.camera.get_zoom()));
             ui.label(format!("FPS: {}", ctx.time.fps()));
-            ui.add(egui::Slider::new(&mut res, 0..=9).text("res"));
             // Set a radiomode for "DrawMode"
             ui.separator();
             ui.label("DrawMode:");
@@ -91,12 +86,8 @@ impl EventHandler<ggez::GameError> for MainState {
         });
         self.gui.update(ctx);
 
-        if res != self.res {
-            self.celestial = Celestial::new(&self.radial_mesh, draw_mode, res);
-            self.res = res;
-        }
         if draw_mode != self.draw_mode {
-            self.celestial = Celestial::new(&self.radial_mesh, draw_mode, res);
+            self.celestial = Celestial::new(&self.radial_mesh, draw_mode);
             self.draw_mode = draw_mode;
         }
 

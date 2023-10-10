@@ -11,7 +11,10 @@ pub struct Celestial {
 }
 
 impl Celestial {
-    pub fn new(radial_mesh: &RadialMesh, draw_mode: DrawMode, res: u16) -> Self {
+    pub fn new(radial_mesh: &RadialMesh, draw_mode: DrawMode) -> Self {
+        // In testing we found that the resolution doesn't matter, so make it infinite
+        // a misnomer is the fact that in this case, big "res" is fewer mesh cells
+        let res = 31; // 2^32 is approaching the limit of a usize
         let all_meshes = radial_mesh.get_mesh_data(res, draw_mode);
         let all_textures = radial_mesh.get_textures(res);
         let bounding_boxes = radial_mesh.get_chunk_bounding_boxes();

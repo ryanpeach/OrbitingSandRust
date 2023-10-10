@@ -26,9 +26,9 @@ impl RadialMeshBuilder {
         Self {
             cell_radius: 1.0,
             num_layers: 1,
-            first_num_radial_lines: 1,
-            second_num_concentric_circles: 1,
-            max_cells: 64 * 64,
+            first_num_radial_lines: 6,
+            second_num_concentric_circles: 2,
+            max_cells: 2usize.pow(10).pow(2),
         }
     }
 
@@ -43,11 +43,6 @@ impl RadialMeshBuilder {
     }
 
     pub fn first_num_radial_lines(mut self, first_num_radial_lines: usize) -> Self {
-        debug_assert!(
-            is_pow_2(first_num_radial_lines),
-            "first_num_radial_lines must be a power of 2, got {}",
-            first_num_radial_lines
-        );
         self.first_num_radial_lines = first_num_radial_lines;
         self
     }
