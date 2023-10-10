@@ -37,8 +37,14 @@ impl RawImage {
     // TODO: Test
     pub fn combine(lst: &Vec<RawImage>) -> RawImage {
         // Calculate total width and height for the canvas
-        let width: f32 = lst.iter().map(|img| img.bounds.w).sum();
-        let height: f32 = lst.iter().map(|img| img.bounds.h).sum();
+        let width: f32 = lst
+            .iter()
+            .map(|img| img.bounds.w + img.bounds.x)
+            .fold(0.0, |a, b| a.max(b));
+        let height: f32 = lst
+            .iter()
+            .map(|img| img.bounds.h + img.bounds.y)
+            .fold(0.0, |a, b| a.max(b));
         let min_x: f32 = lst
             .iter()
             .map(|img| img.bounds.x)
@@ -47,22 +53,22 @@ impl RawImage {
             .iter()
             .map(|img| img.bounds.y)
             .fold(f32::INFINITY, |a, b| a.min(b));
-        let mut canvas = vec![0; (width * height) as usize]; // Assuming pixels are u8 or some type and initialized to 0
-
-        let mut current_x = 0;
+        let mut canvas = vec![0; width as usize * height as usize * 4usize]; // Assuming pixels are u8 or some type and initialized to 0
 
         for image in lst {
-            for y in 0..image.bounds.h as u32 {
+            for y in 0..image.bounds.h as usize {
                 // Get a slice of the source and destination
-                let src_slice = &image.pixels[(y * (image.bounds.h as u32)) as usize
-                    ..((y + 1) * (image.bounds.w as u32)) as usize];
-                let dst_slice = &mut canvas[(current_x + y * (width as u32)) as usize
-                    ..(current_x + y * (width as u32) + (image.bounds.w as u32)) as usize];
+                let src_start_idx = y * (image.bounds.h as usize);
+                let src_end_idx = src_start_idx + (image.bounds.w as usize);
+                let src_slice = &image.pixels[src_start_idx..src_end_idx];
+
+                let dst_start_idx = image.bounds.x as usize + y * (width as usize);
+                let dst_end_idx = dst_start_idx + (image.bounds.w as usize);
+                let dst_slice = &mut canvas[dst_start_idx..dst_end_idx];
 
                 // Use copy_from_slice for faster copying
                 dst_slice.copy_from_slice(src_slice);
             }
-            current_x += image.bounds.w as u32; // Move the position for the next image
         }
 
         RawImage {
