@@ -3,7 +3,7 @@ use crate::physics::fallingsand::chunks::util::is_pow_2;
 use super::chunk::Chunk;
 use super::core::CoreChunk;
 use super::partial_layer::{PartialLayerChunk, PartialLayerChunkBuilder};
-use super::util::{DrawMode, OwnedMeshData, RawImage};
+use super::util::{MeshDrawMode, OwnedMeshData, RawImage};
 use ggez::glam::Vec2;
 use ggez::graphics::{Rect, Vertex};
 
@@ -272,30 +272,30 @@ impl RadialMesh {
         }
         bounding_boxes
     }
-    pub fn get_mesh_data(&self, res: u16, draw_mode: DrawMode) -> Vec<OwnedMeshData> {
+    pub fn get_mesh_data(&self, res: u16, draw_mode: MeshDrawMode) -> Vec<OwnedMeshData> {
         (0..self.get_num_chunks())
             .map(|chunk_idx| {
                 if chunk_idx == 0 {
                     match draw_mode {
-                        DrawMode::TexturedMesh => self.core_chunk.calc_chunk_meshdata(res),
-                        DrawMode::UVWireframe => self.core_chunk.calc_chunk_uv_wireframe(res),
-                        DrawMode::TriangleWireframe => {
+                        MeshDrawMode::TexturedMesh => self.core_chunk.calc_chunk_meshdata(res),
+                        MeshDrawMode::UVWireframe => self.core_chunk.calc_chunk_uv_wireframe(res),
+                        MeshDrawMode::TriangleWireframe => {
                             self.core_chunk.calc_chunk_triangle_wireframe(res)
                         }
-                        DrawMode::Outline => self.core_chunk.calc_chunk_outline(),
+                        MeshDrawMode::Outline => self.core_chunk.calc_chunk_outline(),
                     }
                 } else {
                     match draw_mode {
-                        DrawMode::TexturedMesh => {
+                        MeshDrawMode::TexturedMesh => {
                             self.partial_chunks[chunk_idx - 1].calc_chunk_meshdata(res)
                         }
-                        DrawMode::UVWireframe => {
+                        MeshDrawMode::UVWireframe => {
                             self.partial_chunks[chunk_idx - 1].calc_chunk_uv_wireframe(res)
                         }
-                        DrawMode::TriangleWireframe => {
+                        MeshDrawMode::TriangleWireframe => {
                             self.partial_chunks[chunk_idx - 1].calc_chunk_triangle_wireframe(res)
                         }
-                        DrawMode::Outline => {
+                        MeshDrawMode::Outline => {
                             self.partial_chunks[chunk_idx - 1].calc_chunk_outline()
                         }
                     }

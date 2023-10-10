@@ -174,13 +174,20 @@ impl OwnedMeshData {
     }
 }
 
-/// The different ways to draw a chunk
+/// The different ways to draw a mesh
 #[derive(Copy, Clone, PartialEq)]
-pub enum DrawMode {
+pub enum MeshDrawMode {
     TexturedMesh,
     Outline,
     TriangleWireframe,
     UVWireframe,
+}
+
+/// How to draw the mesh to, in the future, be handled by zoom levels
+#[derive(Copy, Clone, PartialEq)]
+pub enum ZoomDrawMode {
+    FrustumCull,
+    Combine,
 }
 
 /// Tests if a number is a power of 2

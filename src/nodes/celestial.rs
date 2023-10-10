@@ -1,12 +1,15 @@
+use ggez::glam::Vec2;
 use ggez::graphics::Rect;
 
 use crate::physics::fallingsand::chunks::radial_mesh::RadialMesh;
-use crate::physics::fallingsand::chunks::util::{DrawMode, OwnedMeshData, RawImage};
+use crate::physics::fallingsand::chunks::util::{MeshDrawMode, OwnedMeshData, RawImage};
+
+use super::camera::Camera;
 
 /// Acts as a cache for a radial mesh's meshes and textures
 pub struct Celestial {
     radial_mesh: RadialMesh,
-    draw_mode: DrawMode,
+    draw_mode: MeshDrawMode,
     all_meshes: Vec<OwnedMeshData>,
     all_textures: Vec<RawImage>,
     bounding_boxes: Vec<Rect>,
@@ -15,7 +18,7 @@ pub struct Celestial {
 }
 
 impl Celestial {
-    pub fn new(radial_mesh: RadialMesh, draw_mode: DrawMode) -> Self {
+    pub fn new(radial_mesh: RadialMesh, draw_mode: MeshDrawMode) -> Self {
         // In testing we found that the resolution doesn't matter, so make it infinite
         // a misnomer is the fact that in this case, big "res" is fewer mesh cells
         let mut out = Self {
@@ -38,7 +41,7 @@ impl Celestial {
         self.combined_mesh = OwnedMeshData::combine(self.get_all_meshes());
         self.combined_texture = RawImage::combine(self.get_all_textures());
     }
-    pub fn set_draw_mode(&mut self, draw_mode: DrawMode) {
+    pub fn set_draw_mode(&mut self, draw_mode: MeshDrawMode) {
         self.draw_mode = draw_mode;
         self.update();
     }
@@ -59,6 +62,16 @@ impl Celestial {
     }
     pub fn get_all_textures(&self) -> &Vec<RawImage> {
         &self.all_textures
+    }
+    pub fn frustum_cull(&self, camera: &Camera, screen_size: Vec2) -> Vec<usize> {
+        let cam_bb = &camera.get_bounding_box(screen_size);
+        let mut out = Vec::with_capacity(self.get_num_chunks());
+        for (i, bb) in self.get_all_bounding_boxes().iter().enumerate() {
+            if bb.overlaps(cam_bb) {
+                out.push(i);
+            }
+        }
+        out
     }
     pub fn update_chunk_texture(&mut self, chunk_idx: usize, image: RawImage) {
         self.all_textures[chunk_idx] = image
