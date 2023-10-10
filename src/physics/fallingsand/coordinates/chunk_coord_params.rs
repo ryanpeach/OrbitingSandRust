@@ -4,8 +4,7 @@ use ggez::graphics::MeshBuilder;
 use ggez::graphics::Rect;
 use ggez::graphics::Vertex;
 
-use super::util::OwnedMeshData;
-use super::util::RawImage;
+use crate::physics::fallingsand::util::{OwnedMeshData, RawImage};
 
 /// A chunk that can be rendered and simulated
 pub trait Chunk {

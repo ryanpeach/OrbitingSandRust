@@ -8,12 +8,12 @@ use ggez::graphics::{self, DrawParam, FilterMode, Mesh, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
-use physics::fallingsand::chunks::util::{MeshDrawMode, ZoomDrawMode};
+use physics::fallingsand::util::{MeshDrawMode, ZoomDrawMode};
 
 use crate::nodes::camera::Camera;
 use crate::nodes::celestial::Celestial;
 
-use crate::physics::fallingsand::chunks::radial_mesh::RadialMeshBuilder;
+use crate::physics::fallingsand::coordinates::coordinate_directory::RadialMeshBuilder;
 
 mod nodes;
 mod physics;

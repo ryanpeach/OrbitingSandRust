@@ -1,10 +1,10 @@
-use crate::physics::fallingsand::chunks::chunk::Chunk;
+use crate::physics::fallingsand::coordinates::chunk_coord_params::Chunk;
 use ggez::glam::Vec2;
 use ggez::graphics::{Color, Rect};
 
 use std::f32::consts::PI;
 
-use super::util::RawImage;
+use crate::physics::fallingsand::util::RawImage;
 
 /// The core is always the first layer
 /// It defines the radius of all future layers cell_radius

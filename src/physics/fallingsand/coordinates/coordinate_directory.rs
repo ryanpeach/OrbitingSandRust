@@ -1,9 +1,9 @@
-use crate::physics::fallingsand::chunks::util::is_pow_2;
+use crate::physics::fallingsand::util::is_pow_2;
 
-use super::chunk::Chunk;
-use super::core::CoreChunk;
-use super::partial_layer::{PartialLayerChunk, PartialLayerChunkBuilder};
-use super::util::{MeshDrawMode, OwnedMeshData, RawImage};
+use super::chunk_coord_params::Chunk;
+use super::core_coord_params::CoreChunk;
+use super::layer_coord_params::{PartialLayerChunk, PartialLayerChunkBuilder};
+use crate::physics::fallingsand::util::{MeshDrawMode, OwnedMeshData, RawImage};
 use ggez::glam::Vec2;
 use ggez::graphics::{Rect, Vertex};
 
@@ -367,7 +367,7 @@ impl RadialMesh {
 
 #[cfg(test)]
 mod tests {
-    use crate::physics::fallingsand::chunks::util::valid_step;
+    use crate::physics::fallingsand::util::valid_step;
 
     use super::*;
 

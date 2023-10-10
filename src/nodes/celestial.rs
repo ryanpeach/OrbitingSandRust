@@ -1,8 +1,8 @@
 use ggez::glam::Vec2;
 use ggez::graphics::Rect;
 
-use crate::physics::fallingsand::chunks::radial_mesh::RadialMesh;
-use crate::physics::fallingsand::chunks::util::{MeshDrawMode, OwnedMeshData, RawImage};
+use crate::physics::fallingsand::coordinates::coordinate_directory::RadialMesh;
+use crate::physics::fallingsand::util::{MeshDrawMode, OwnedMeshData, RawImage};
 
 use super::camera::Camera;
 

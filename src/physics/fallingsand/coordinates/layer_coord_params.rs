@@ -1,5 +1,5 @@
-use super::util::{grid_iter, interpolate_points, RawImage};
-use crate::physics::fallingsand::chunks::chunk::Chunk;
+use crate::physics::fallingsand::coordinates::chunk_coord_params::Chunk;
+use crate::physics::fallingsand::util::{grid_iter, interpolate_points, RawImage};
 use ggez::glam::Vec2;
 use ggez::graphics::{Color, Rect};
 
