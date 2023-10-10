@@ -60,13 +60,30 @@ pub trait Chunk {
         OwnedMeshData {
             vertices: meshdata.vertices.to_owned(),
             indices: meshdata.indices.to_owned(),
+            uv_bounds: Rect::new(
+                self.get_start_radial_line() as f32,
+                self.get_start_concentric_circle_absolute() as f32,
+                self.get_end_radial_line() as f32 - self.get_start_radial_line() as f32,
+                self.get_end_concentric_circle_absolute() as f32
+                    - self.get_start_concentric_circle_absolute() as f32,
+            ),
         }
     }
 
     fn calc_chunk_meshdata(&self, res: u16) -> OwnedMeshData {
         let indices = self.get_indices(res);
         let vertices: Vec<Vertex> = self.get_vertices(res);
-        OwnedMeshData { vertices, indices }
+        OwnedMeshData {
+            vertices,
+            indices,
+            uv_bounds: Rect::new(
+                self.get_start_radial_line() as f32,
+                self.get_start_concentric_circle_absolute() as f32,
+                self.get_end_radial_line() as f32 - self.get_start_radial_line() as f32,
+                self.get_end_concentric_circle_absolute() as f32
+                    - self.get_start_concentric_circle_absolute() as f32,
+            ),
+        }
     }
 
     fn calc_chunk_triangle_wireframe(&self, res: u16) -> OwnedMeshData {
@@ -88,6 +105,13 @@ pub trait Chunk {
         OwnedMeshData {
             vertices: meshdata.vertices.to_owned(),
             indices: meshdata.indices.to_owned(),
+            uv_bounds: Rect::new(
+                self.get_start_radial_line() as f32,
+                self.get_start_concentric_circle_absolute() as f32,
+                self.get_end_radial_line() as f32 - self.get_start_radial_line() as f32,
+                self.get_end_concentric_circle_absolute() as f32
+                    - self.get_start_concentric_circle_absolute() as f32,
+            ),
         }
     }
 
@@ -119,6 +143,13 @@ pub trait Chunk {
         OwnedMeshData {
             vertices: meshdata.vertices.to_owned(),
             indices: meshdata.indices.to_owned(),
+            uv_bounds: Rect::new(
+                self.get_start_radial_line() as f32,
+                self.get_start_concentric_circle_absolute() as f32,
+                self.get_end_radial_line() as f32 - self.get_start_radial_line() as f32,
+                self.get_end_concentric_circle_absolute() as f32
+                    - self.get_start_concentric_circle_absolute() as f32,
+            ),
         }
     }
 }

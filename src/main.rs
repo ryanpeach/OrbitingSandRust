@@ -7,8 +7,8 @@ use ggez::glam::*;
 use ggez::graphics::{self, DrawParam, FilterMode, Mesh, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
-use physics::fallingsand::chunks::radial_mesh::RadialMesh;
-use physics::fallingsand::chunks::util::DrawMode;
+
+use physics::fallingsand::chunks::util::{MeshDrawMode, ZoomDrawMode};
 
 use crate::nodes::camera::Camera;
 use crate::nodes::celestial::Celestial;
@@ -26,8 +26,8 @@ mod physics;
 // Main Game
 // ==================
 struct MainState {
-    draw_mode: DrawMode,
-    radial_mesh: RadialMesh,
+    mesh_draw_mode: MeshDrawMode,
+    zoom_draw_mode: ZoomDrawMode,
     celestial: Celestial,
     camera: Camera,
     gui: Gui,
@@ -48,16 +48,19 @@ impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
         let radial_mesh = RadialMeshBuilder::new()
             .cell_radius(1.0)
-            .num_layers(9)
+            .num_layers(11)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(2)
             .build();
 
+        let celestial = Celestial::new(radial_mesh, MeshDrawMode::TexturedMesh);
+        let camera = Camera::default();
+        let _screen_size = ctx.gfx.drawable_size();
         Ok(MainState {
-            celestial: Celestial::new(&radial_mesh, DrawMode::TexturedMesh),
-            radial_mesh,
-            draw_mode: DrawMode::TexturedMesh,
-            camera: Camera::default(),
+            celestial,
+            camera,
+            mesh_draw_mode: MeshDrawMode::TexturedMesh,
+            zoom_draw_mode: ZoomDrawMode::Combine,
             gui: Gui::new(ctx),
         })
     }
@@ -68,27 +71,44 @@ impl EventHandler<ggez::GameError> for MainState {
         let gui_ctx = self.gui.ctx();
 
         // Handle res updates
-        let mut draw_mode = self.draw_mode;
+        let mut mesh_draw_mode = self.mesh_draw_mode;
         egui::Window::new("Title").show(&gui_ctx, |ui| {
             ui.label(format!("zoom: {}", self.camera.get_zoom()));
             ui.label(format!("FPS: {}", ctx.time.fps()));
             // Set a radiomode for "DrawMode"
             ui.separator();
-            ui.label("DrawMode:");
-            ui.radio_value(&mut draw_mode, DrawMode::TexturedMesh, "TexturedMesh");
-            ui.radio_value(&mut draw_mode, DrawMode::UVWireframe, "UVWireframe");
+            ui.label("MeshDrawMode:");
             ui.radio_value(
-                &mut draw_mode,
-                DrawMode::TriangleWireframe,
+                &mut mesh_draw_mode,
+                MeshDrawMode::TexturedMesh,
+                "TexturedMesh",
+            );
+            ui.radio_value(
+                &mut mesh_draw_mode,
+                MeshDrawMode::UVWireframe,
+                "UVWireframe",
+            );
+            ui.radio_value(
+                &mut mesh_draw_mode,
+                MeshDrawMode::TriangleWireframe,
                 "TriangleWireframe",
             );
-            ui.radio_value(&mut draw_mode, DrawMode::Outline, "Outline");
+            ui.radio_value(&mut mesh_draw_mode, MeshDrawMode::Outline, "Outline");
+
+            ui.separator();
+            ui.label("ZoomDrawMode:");
+            ui.radio_value(&mut self.zoom_draw_mode, ZoomDrawMode::Combine, "Combine");
+            ui.radio_value(
+                &mut self.zoom_draw_mode,
+                ZoomDrawMode::FrustumCull,
+                "FrustumCull",
+            );
         });
         self.gui.update(ctx);
 
-        if draw_mode != self.draw_mode {
-            self.celestial = Celestial::new(&self.radial_mesh, draw_mode);
-            self.draw_mode = draw_mode;
+        if mesh_draw_mode != self.mesh_draw_mode {
+            self.celestial.set_draw_mode(mesh_draw_mode);
+            self.mesh_draw_mode = mesh_draw_mode;
         }
 
         Ok(())
@@ -111,22 +131,28 @@ impl EventHandler<ggez::GameError> for MainState {
             .rotation(self.camera.get_rotation())
             .offset(Vec2::new(0.5, 0.5));
 
-        for i in 0..self.celestial.get_num_chunks() {
-            if !self.celestial.get_all_bounding_boxes()[i]
-                .overlaps(&self.camera.get_bounding_box(ctx))
-            {
-                continue;
+        match self.zoom_draw_mode {
+            ZoomDrawMode::Combine => {
+                let mesh = Mesh::from_data(ctx, self.celestial.get_combined_mesh().to_mesh_data());
+                let img = self.celestial.get_combined_texture().to_image(ctx);
+                match self.mesh_draw_mode {
+                    MeshDrawMode::TexturedMesh => canvas.draw_textured_mesh(mesh, img, draw_params),
+                    MeshDrawMode::TriangleWireframe => canvas.draw(&mesh, draw_params),
+                    MeshDrawMode::UVWireframe => canvas.draw(&mesh, draw_params),
+                    MeshDrawMode::Outline => canvas.draw(&mesh, draw_params),
+                }
             }
-            let meshes = self.celestial.get_all_meshes();
-            let textures = self.celestial.get_all_textures();
-            let meshdata = meshes[i].to_mesh_data();
-            let mesh = Mesh::from_data(ctx, meshdata);
-            let img = textures[i].to_image(ctx);
-            match self.draw_mode {
-                DrawMode::TexturedMesh => canvas.draw_textured_mesh(mesh, img, draw_params),
-                DrawMode::TriangleWireframe => canvas.draw(&mesh, draw_params),
-                DrawMode::UVWireframe => canvas.draw(&mesh, draw_params),
-                DrawMode::Outline => canvas.draw(&mesh, draw_params),
+            ZoomDrawMode::FrustumCull => {
+                let filter = self
+                    .celestial
+                    .frustum_cull(&self.camera, Vec2::new(screen_size.0, screen_size.1));
+                let meshes = self.celestial.get_all_meshes();
+                let textures = self.celestial.get_all_textures();
+                for i in filter {
+                    let mesh = Mesh::from_data(ctx, meshes[i].to_mesh_data());
+                    let texture = textures[i].to_image(ctx);
+                    canvas.draw_textured_mesh(mesh, texture, draw_params);
+                }
             }
         }
 

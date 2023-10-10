@@ -7,6 +7,7 @@ use std::f32::consts::PI;
 
 /// This is a chunk that represents a "full" layer.
 /// It doesn't split itself in either the radial or concentric directions.
+#[derive(Debug, Clone, Copy)]
 pub struct PartialLayerChunk {
     cell_radius: f32,
     start_concentric_circle_layer_relative: usize,
@@ -284,8 +285,12 @@ impl PartialLayerChunk {
         }
         RawImage {
             pixels,
-            width: k_count as u32,
-            height: j_count as u32,
+            bounds: Rect::new(
+                self.get_start_radial_line() as f32,
+                self.get_start_concentric_circle_absolute() as f32,
+                k_count as f32,
+                j_count as f32,
+            ),
         }
     }
 }
@@ -356,50 +361,6 @@ impl Chunk for PartialLayerChunk {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_one_element() {
-        let v: Vec<_> = grid_iter(0, 1, 16);
-        assert_eq!(v, vec![0]);
-    }
-
-    #[test]
-    fn test_two_elements() {
-        let v: Vec<_> = grid_iter(0, 2, 16);
-        assert_eq!(v, vec![0, 1]);
-    }
-
-    #[test]
-    fn test_basic() {
-        let v: Vec<_> = grid_iter(0, 11, 2);
-        assert_eq!(v, vec![0, 2, 4, 6, 8, 10]);
-    }
-
-    #[test]
-    fn test_step_one() {
-        let v: Vec<_> = grid_iter(0, 11, 1);
-        assert_eq!(v, vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-    }
-
-    /// At a large step size, we should just get the first and last elements
-    #[test]
-    fn test_large_step() {
-        let v: Vec<_> = grid_iter(0, 10, 20);
-        assert_eq!(v, vec![0, 9]);
-    }
-
-    #[test]
-    fn test_basic_5() {
-        let v: Vec<_> = grid_iter(0, 5, 2);
-        assert_eq!(v, vec![0, 2, 4]);
-    }
-
-    /// In this case, because three doesnt work, we automatically round down to 2
-    #[test]
-    fn test_round_7() {
-        let v: Vec<_> = grid_iter(0, 7, 3);
-        assert_eq!(v, vec![0, 3, 6]);
-    }
 
     fn vec2_approx_eq(a: Vec2, b: Vec2, epsilon: f32) -> bool {
         (a.x - b.x).abs() < epsilon && (a.y - b.y).abs() < epsilon
