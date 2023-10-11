@@ -54,8 +54,8 @@ impl MainState {
             .build();
 
         let celestial = Celestial::new(coordinate_dir, MeshDrawMode::TexturedMesh);
-        let camera = Camera::default();
         let _screen_size = ctx.gfx.drawable_size();
+        let camera = Camera::new(Vec2::new(_screen_size.0, _screen_size.1));
         Ok(MainState {
             celestial,
             camera,
@@ -143,9 +143,7 @@ impl EventHandler<ggez::GameError> for MainState {
                 }
             }
             ZoomDrawMode::FrustumCull => {
-                let filter = self
-                    .celestial
-                    .frustum_cull(&self.camera, Vec2::new(screen_size.0, screen_size.1));
+                let filter = self.celestial.frustum_cull(&self.camera);
                 let meshes = self.celestial.get_all_meshes();
                 let textures = self.celestial.get_all_textures();
                 for i in filter {
