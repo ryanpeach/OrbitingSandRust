@@ -3,6 +3,62 @@ use ggez::{
     graphics::{Image, ImageFormat, MeshData, Rect, Vertex},
 };
 
+/// The ijk coordinates of a chunk within an element grid directory
+/// In this case Ijk relate to the index of the chunk itself, not
+/// perportional to the cells within the chunk
+/// Eg: The chunk on the 3rd layer, two chunks up and one chunk around would be
+/// > ChunkIjkVector { i: 3, j: 2, k: 1 }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ChunkIjkVector {
+    pub i: usize,
+    pub j: usize,
+    pub k: usize,
+}
+
+/// A custom grid type just so we don't have to download a new crate
+#[derive(Clone)]
+pub struct Grid<T> {
+    width: usize,
+    height: usize,
+    data: Vec<T>,
+}
+
+impl<T> Grid<T> {
+    pub fn new(width: usize, height: usize, data: Vec<T>) -> Self {
+        Self {
+            width,
+            height,
+            data,
+        }
+    }
+    pub fn get(&self, x: usize, y: usize) -> &T {
+        &self.data[x + y * self.width]
+    }
+    /// Like get, but gives you ownership of the value and replaces it with the replacement
+    pub fn replace(&mut self, x: usize, y: usize, replacement: T) -> T {
+        let idx = x + y * self.width;
+        std::mem::replace(&mut self.data[idx], replacement)
+    }
+    pub fn get_mut(&mut self, x: usize, y: usize) -> &mut T {
+        &mut self.data[x + y * self.width]
+    }
+    pub fn get_data(&self) -> &Vec<T> {
+        &self.data
+    }
+    pub fn get_data_mut(&mut self) -> &mut Vec<T> {
+        &mut self.data
+    }
+    pub fn get_width(&self) -> usize {
+        self.width
+    }
+    pub fn get_height(&self) -> usize {
+        self.height
+    }
+    pub fn total_size(&self) -> usize {
+        self.data.len()
+    }
+}
+
 /// For some reason ggez::graphics::Image requires a Context to be created
 pub struct RawImage {
     pub bounds: Rect,

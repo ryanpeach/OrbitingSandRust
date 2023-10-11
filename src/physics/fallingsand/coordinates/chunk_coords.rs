@@ -7,7 +7,7 @@ use ggez::graphics::Vertex;
 use crate::physics::fallingsand::util::OwnedMeshData;
 
 /// A chunk that can be rendered and simulated
-pub trait ChunkCoords {
+pub trait ChunkCoords: Send + Sync {
     /* Drawing */
     fn get_outline(&self) -> Vec<Vec2>;
     fn get_positions(&self, res: u16) -> Vec<Vec2>;
@@ -48,6 +48,7 @@ pub trait ChunkCoords {
     fn get_end_concentric_circle_relative(&self) -> usize;
     fn get_end_radial_line(&self) -> usize;
     fn get_start_radial_line(&self) -> usize;
+    fn get_layer_num(&self) -> usize;
 
     /* Mesh */
     fn calc_chunk_outline(&self) -> OwnedMeshData {

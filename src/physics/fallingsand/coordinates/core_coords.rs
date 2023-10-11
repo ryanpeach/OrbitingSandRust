@@ -140,6 +140,9 @@ impl ChunkCoords for CoreChunkCoords {
     fn get_start_radius(&self) -> f32 {
         0.0
     }
+    fn get_layer_num(&self) -> usize {
+        0
+    }
     fn get_end_radius(&self) -> f32 {
         self.radius
     }

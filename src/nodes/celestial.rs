@@ -6,6 +6,9 @@ use crate::physics::fallingsand::util::{MeshDrawMode, OwnedMeshData, RawImage};
 
 use super::camera::Camera;
 
+use uom::si::f64::*;
+use uom::si::time::second;
+
 /// Acts as a cache for a radial mesh's meshes and textures
 pub struct Celestial {
     element_grid_dir: ElementGridDir,
@@ -46,6 +49,10 @@ impl Celestial {
             .get_chunk_bounding_boxes();
         self.combined_mesh = OwnedMeshData::combine(self.get_all_meshes());
         self.combined_texture = RawImage::combine(self.get_all_textures());
+    }
+    pub fn process(&mut self, delta: second) {
+        self.element_grid_dir.process(delta);
+        // self.update_textures();
     }
     pub fn set_draw_mode(&mut self, draw_mode: MeshDrawMode) {
         self.draw_mode = draw_mode;

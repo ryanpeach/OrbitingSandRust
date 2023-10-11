@@ -3,13 +3,16 @@
 use ggegui::{egui, Gui};
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
-use ggez::glam::*;
 use ggez::graphics::{self, DrawParam, FilterMode, Mesh, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
+use ggez::{glam::*, timer};
 use ggez::{Context, GameResult};
 
 use physics::fallingsand::element_directory::ElementGridDir;
 use physics::fallingsand::util::{MeshDrawMode, ZoomDrawMode};
+
+use uom::si::f64::*;
+use uom::si::time::second;
 
 use crate::nodes::camera::Camera;
 use crate::nodes::celestial::Celestial;
@@ -112,7 +115,8 @@ impl EventHandler<ggez::GameError> for MainState {
             self.celestial.set_draw_mode(mesh_draw_mode);
             self.mesh_draw_mode = mesh_draw_mode;
         }
-
+        self.celestial
+            .process(Time::new::<second>(ctx.time.delta().as_secs_f64()));
         Ok(())
     }
 

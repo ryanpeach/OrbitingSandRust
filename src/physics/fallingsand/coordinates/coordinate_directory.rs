@@ -1,8 +1,8 @@
-use crate::physics::fallingsand::util::is_pow_2;
+use crate::physics::fallingsand::util::{is_pow_2, Grid};
 
 use super::chunk_coords::ChunkCoords;
 use super::core_coords::CoreChunkCoords;
-use super::layer_coords::{LayerChunkCoords, LayerChunkCoordsBuilder};
+use super::layer_coords::{PartialLayerChunkCoords, PartialLayerChunkCoordsBuilder};
 use crate::physics::fallingsand::util::{MeshDrawMode, OwnedMeshData};
 use ggez::glam::Vec2;
 use ggez::graphics::{Rect, Vertex};
@@ -11,7 +11,7 @@ use ggez::graphics::{Rect, Vertex};
 pub struct CoordinateDir {
     num_layers: usize,
     core_chunk: CoreChunkCoords,
-    partial_chunks: Vec<LayerChunkCoords>,
+    partial_chunks: Vec<Grid<PartialLayerChunkCoords>>,
 }
 
 pub struct CoordinateDirBuilder {
@@ -66,7 +66,7 @@ impl CoordinateDirBuilder {
     pub fn build(self) -> CoordinateDir {
         debug_assert_ne!(self.num_layers, 0);
         let _core_chunk = CoreChunkCoords::new(self.cell_radius, self.first_num_radial_lines);
-        let mut _partial_chunks: Vec<LayerChunkCoords> = Vec::new();
+        let mut _partial_chunks: Vec<PartialLayerChunkCoords> = Vec::new();
 
         // These variables will help us keep track of the current layer
         let mut layer_num_radial_lines = self.first_num_radial_lines * 2;
@@ -79,8 +79,9 @@ impl CoordinateDirBuilder {
             if layer_num >= self.num_layers {
                 break;
             }
-            let next_layer = LayerChunkCoordsBuilder::new()
+            let next_layer = PartialLayerChunkCoordsBuilder::new()
                 .cell_radius(self.cell_radius)
+                .layer_num(layer_num)
                 .layer_num_radial_lines(layer_num_radial_lines)
                 .num_concentric_circles(num_concentric_circles)
                 .start_concentric_circle_absolute(start_concentric_circle_absolute)
@@ -112,9 +113,10 @@ impl CoordinateDirBuilder {
 
             // TODO: Check this
             for i in 0..num_radial_chunks {
-                let next_layer = LayerChunkCoordsBuilder::new()
+                let next_layer = PartialLayerChunkCoordsBuilder::new()
                     .cell_radius(self.cell_radius)
                     .layer_num_radial_lines(layer_num_radial_lines)
+                    .layer_num(layer_num)
                     .num_concentric_circles(num_concentric_circles)
                     .start_concentric_circle_absolute(start_concentric_circle_absolute)
                     .start_concentric_circle_layer_relative(0)
@@ -155,9 +157,10 @@ impl CoordinateDirBuilder {
             // TODO: Check this
             for j in 0..num_concentric_chunks {
                 for k in 0..num_radial_chunks {
-                    let next_layer = LayerChunkCoordsBuilder::new()
+                    let next_layer = PartialLayerChunkCoordsBuilder::new()
                         .cell_radius(self.cell_radius)
                         .layer_num_radial_lines(layer_num_radial_lines)
+                        .layer_num(layer_num)
                         .num_concentric_circles(num_concentric_circles / num_concentric_chunks)
                         .start_concentric_circle_absolute(start_concentric_circle_absolute)
                         .start_concentric_circle_layer_relative(
@@ -300,6 +303,20 @@ impl CoordinateDir {
     }
     pub fn get_num_layers(&self) -> usize {
         self.num_layers
+    }
+    pub fn get_layer_num_concentric_circles(&self, layer_num: usize) -> usize {
+        if layer_num == 0 {
+            self.core_chunk.get_num_concentric_circles()
+        } else {
+            self.partial_chunks[layer_num - 1].get_num_concentric_circles()
+        }
+    }
+    pub fn get_layer_num_radial_lines(&self, layer_num: usize) -> usize {
+        if layer_num == 0 {
+            self.core_chunk.get_num_radial_lines()
+        } else {
+            self.partial_chunks[layer_num - 1].get_num_radial_lines()
+        }
     }
     pub fn len(&self) -> usize {
         self.partial_chunks.len() + 1
