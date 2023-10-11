@@ -29,3 +29,18 @@ pub struct ChunkIjkVector {
     pub j: usize,
     pub k: usize,
 }
+
+/// Convienient constants
+impl ChunkIjkVector {
+    pub const ZERO: Self = Self { i: 0, j: 0, k: 0 };
+}
+
+/// Convienient conversions between coordinate types
+impl ChunkIjkVector {
+    pub fn to_jk_vector(&self) -> JkVector {
+        JkVector {
+            j: self.j,
+            k: self.k,
+        }
+    }
+}

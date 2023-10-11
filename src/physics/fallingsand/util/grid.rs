@@ -20,6 +20,20 @@ impl<T> Grid<T> {
             data,
         }
     }
+    pub fn new_empty(width: usize, height: usize) -> Self
+    where
+        T: Default,
+    {
+        let mut data = Vec::with_capacity(width * height);
+        for _ in 0..width * height {
+            data.push(Default::default());
+        }
+        Self {
+            width,
+            height,
+            data,
+        }
+    }
 }
 
 /* ======================================

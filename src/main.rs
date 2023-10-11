@@ -3,13 +3,13 @@
 use ggegui::{egui, Gui};
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
+use ggez::glam::Vec2;
 use ggez::graphics::{self, DrawParam, FilterMode, Mesh, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
-use ggez::{glam::*, timer};
 use ggez::{Context, GameResult};
 
 use physics::fallingsand::element_directory::ElementGridDir;
-use physics::fallingsand::functions::{MeshDrawMode, ZoomDrawMode};
+use physics::fallingsand::util::enums::{MeshDrawMode, ZoomDrawMode};
 
 use uom::si::f64::*;
 use uom::si::time::second;
@@ -52,9 +52,9 @@ impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
         let coordinate_dir = CoordinateDirBuilder::new()
             .cell_radius(1.0)
-            .num_layers(11)
+            .num_layers(10)
             .first_num_radial_lines(6)
-            .second_num_concentric_circles(2)
+            .second_num_concentric_circles(3)
             .build();
         let element_grid_dir = ElementGridDir::new_empty(coordinate_dir);
 
@@ -115,8 +115,9 @@ impl EventHandler<ggez::GameError> for MainState {
             self.celestial.set_draw_mode(mesh_draw_mode);
             self.mesh_draw_mode = mesh_draw_mode;
         }
-        self.celestial
-            .process(Time::new::<second>(ctx.time.delta().as_secs_f64()));
+        let delta_time = ctx.time.delta().as_secs_f64();
+        let delta_time_sec = Time::new::<second>(delta_time);
+        self.celestial.process(delta_time_sec);
         Ok(())
     }
 

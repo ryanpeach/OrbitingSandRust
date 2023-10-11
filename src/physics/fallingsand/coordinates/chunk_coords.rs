@@ -11,9 +11,9 @@ use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 pub trait ChunkCoords: Send + Sync {
     /* Raw Data */
     fn get_outline(&self) -> Vec<Vec2>;
-    fn get_positions(&self, res: u16) -> Vec<Vec2>;
-    fn get_indices(&self, res: u16) -> Vec<u32>;
-    fn get_uvs(&self, res: u16) -> Vec<Vec2>;
+    fn get_positions(&self) -> Vec<Vec2>;
+    fn get_indices(&self) -> Vec<u32>;
+    fn get_uvs(&self) -> Vec<Vec2>;
 
     /* Shape Parameter Getters */
     fn get_num_radial_lines(&self) -> usize;
@@ -38,9 +38,9 @@ pub trait ChunkCoords: Send + Sync {
     fn get_start_radial_line(&self) -> usize;
 
     /* Convienience Functions */
-    fn get_vertices(&self, res: u16) -> Vec<Vertex> {
-        let positions = self.get_positions(res);
-        let uvs = self.get_uvs(res);
+    fn get_vertices(&self) -> Vec<Vertex> {
+        let positions = self.get_positions();
+        let uvs = self.get_uvs();
         let vertexes: Vec<Vertex> = positions
             .iter()
             .zip(uvs.iter())
@@ -69,9 +69,9 @@ pub trait ChunkCoords: Send + Sync {
             ),
         }
     }
-    fn calc_chunk_meshdata(&self, res: u16) -> OwnedMeshData {
-        let indices = self.get_indices(res);
-        let vertices: Vec<Vertex> = self.get_vertices(res);
+    fn calc_chunk_meshdata(&self) -> OwnedMeshData {
+        let indices = self.get_indices();
+        let vertices: Vec<Vertex> = self.get_vertices();
         OwnedMeshData {
             vertices,
             indices,
@@ -84,10 +84,10 @@ pub trait ChunkCoords: Send + Sync {
             ),
         }
     }
-    fn calc_chunk_triangle_wireframe(&self, res: u16) -> OwnedMeshData {
+    fn calc_chunk_triangle_wireframe(&self) -> OwnedMeshData {
         let mut mb = MeshBuilder::new();
-        let indices = self.get_indices(res);
-        let vertices: Vec<Vertex> = self.get_vertices(res);
+        let indices = self.get_indices();
+        let vertices: Vec<Vertex> = self.get_vertices();
         for i in (0..indices.len()).step_by(3) {
             let i1: usize = indices[i] as usize;
             let i2 = indices[i + 1] as usize;
@@ -112,10 +112,10 @@ pub trait ChunkCoords: Send + Sync {
             ),
         }
     }
-    fn calc_chunk_uv_wireframe(&self, res: u16) -> OwnedMeshData {
+    fn calc_chunk_uv_wireframe(&self) -> OwnedMeshData {
         let mut mb = MeshBuilder::new();
-        let indices = self.get_indices(res);
-        let vertices: Vec<Vertex> = self.get_vertices(res);
+        let indices = self.get_indices();
+        let vertices: Vec<Vertex> = self.get_vertices();
         for i in (0..indices.len()).step_by(3) {
             let i1 = indices[i] as usize;
             let i2 = indices[i + 1] as usize;

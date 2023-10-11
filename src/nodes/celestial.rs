@@ -1,7 +1,9 @@
 use ggez::graphics::Rect;
 
 use crate::physics::fallingsand::element_directory::ElementGridDir;
-use crate::physics::fallingsand::functions::{MeshDrawMode, OwnedMeshData, RawImage};
+use crate::physics::fallingsand::util::enums::MeshDrawMode;
+use crate::physics::fallingsand::util::image::RawImage;
+use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 
 use super::camera::Camera;
 
@@ -40,7 +42,7 @@ impl Celestial {
         self.all_meshes = self
             .element_grid_dir
             .get_coordinate_dir()
-            .get_mesh_data(res, self.draw_mode);
+            .get_mesh_data(self.draw_mode);
         self.all_textures = self.element_grid_dir.get_textures();
         self.bounding_boxes = self
             .element_grid_dir
@@ -49,7 +51,7 @@ impl Celestial {
         self.combined_mesh = OwnedMeshData::combine(self.get_all_meshes());
         self.combined_texture = RawImage::combine(self.get_all_textures());
     }
-    pub fn process(&mut self, delta: second) {
+    pub fn process(&mut self, delta: Time) {
         self.element_grid_dir.process(delta);
         // self.update_textures();
     }
@@ -77,7 +79,7 @@ impl Celestial {
     }
     pub fn frustum_cull(&self, camera: &Camera) -> Vec<usize> {
         let cam_bb = &camera.get_bounding_box();
-        let mut out = Vec::with_capacity(self.get_num_chunks());
+        let mut out = Vec::with_capacity(self.element_grid_dir.get_num_chunks());
         for (i, bb) in self.get_all_bounding_boxes().iter().enumerate() {
             if bb.overlaps(cam_bb) {
                 out.push(i);

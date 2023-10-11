@@ -1,4 +1,18 @@
-use super::element_grid::ElementGrid;
+use super::{element_grid::ElementGrid, util::vectors::ChunkIjkVector};
+
+/// Just the indices of the element grid convolution
+#[derive(Clone, Copy)]
+pub struct ElementGridConvolutionChunkIdx {
+    pub t1: Option<ChunkIjkVector>,
+    pub t2: Option<ChunkIjkVector>,
+    pub tl: Option<ChunkIjkVector>,
+    pub tr: Option<ChunkIjkVector>,
+    pub l: ChunkIjkVector,
+    pub r: ChunkIjkVector,
+    pub bl: Option<ChunkIjkVector>,
+    pub b: Option<ChunkIjkVector>,
+    pub br: Option<ChunkIjkVector>,
+}
 
 /// A 3x3 grid of element grids
 /// However, it's a bit complicated because at the top boundary
@@ -8,15 +22,15 @@ use super::element_grid::ElementGrid;
 /// And going down a layer you might not have a bottom layer, because you might be at the bottom
 /// Also going down a layer you may not have a b, because you would only have a bl or br
 pub struct ElementGridConvolution {
-    t1: Option<ElementGrid>,
-    t2: Option<ElementGrid>,
-    tl: Option<ElementGrid>,
-    tr: Option<ElementGrid>,
-    l: ElementGrid,
-    r: ElementGrid,
-    bl: Option<ElementGrid>,
-    b: Option<ElementGrid>,
-    br: Option<ElementGrid>,
+    pub t1: Option<ElementGrid>,
+    pub t2: Option<ElementGrid>,
+    pub tl: Option<ElementGrid>,
+    pub tr: Option<ElementGrid>,
+    pub l: ElementGrid,
+    pub r: ElementGrid,
+    pub bl: Option<ElementGrid>,
+    pub b: Option<ElementGrid>,
+    pub br: Option<ElementGrid>,
 }
 
 /// We implement IntoIterator for ElementGridConvolution so that we can unpackage it

@@ -1,13 +1,14 @@
 use ggez::graphics::Rect;
+use uom::si::f64::Time;
 use uom::si::time::second;
 
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
-use crate::physics::fallingsand::coordinates::core_coords::CoreChunkCoords;
 use crate::physics::fallingsand::elements::element::Element;
 
 use super::element_convolution::ElementGridConvolution;
 use super::elements::vacuum::Vacuum;
-use super::functions::{Grid, RawImage};
+use super::util::grid::Grid;
+use super::util::image::RawImage;
 
 /// An element grid is a 2D grid of elements tied to a chunk
 pub struct ElementGrid {
@@ -37,8 +38,8 @@ impl ElementGrid {
     }
 
     /// Do one iteration of processing on the grid
-    pub fn process(&mut self, element_grid_conv: &mut ElementGridConvolution, delta: second) {
-        for element in self.grid.get_data_mut() {
+    pub fn process(&mut self, element_grid_conv: &mut ElementGridConvolution, delta: Time) {
+        for element in self.grid.iter_mut() {
             element.process(element_grid_conv, delta);
         }
     }
