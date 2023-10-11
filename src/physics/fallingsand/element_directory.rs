@@ -46,7 +46,30 @@ impl ElementGridDir {
     }
 
     // TODO: This needs testing
-    fn get_next_targets(&self) -> Vec<ChunkIjkVector> {}
+    fn get_next_targets(&self) -> Vec<ChunkIjkVector> {
+        let mut out = Vec::new();
+        for j in (0..self
+            .coords
+            .get_total_number_chunks_in_concentric_circle_dimension())
+            .skip(self.process_count % 3)
+            .step_by(3)
+        {
+            let (layer_num, chunk_layer_concentric_circle) = self
+                .coords
+                .get_layer_num_from_absolute_chunk_concentric_circle(j);
+            for k in (0..self.coords.get_chunk_layer_num_radial_lines(layer_num))
+                .skip(self.process_count % 3)
+                .step_by(3)
+            {
+                out.push(ChunkIjkVector {
+                    i: layer_num,
+                    j: chunk_layer_concentric_circle,
+                    k,
+                });
+            }
+        }
+        out
+    }
 
     // TODO: This needs testing
     fn get_neighbors(&self, coord: ChunkIjkVector) -> ElementGridConvolutionChunkIdx {}
@@ -126,7 +149,8 @@ impl ElementGridDir {
         convolutions: Vec<ElementGridConvolution>,
         target_chunks: Vec<ElementGrid>,
     ) {
-        for (target_chunk, this_conv) in target_chunks.into_iter().zip(convolutions.into_iter()) {
+        for (mut target_chunk, this_conv) in target_chunks.into_iter().zip(convolutions.into_iter())
+        {
             let coord = target_chunk.get_chunk_coords();
             let prev = self.chunks[coord.get_layer_num()].replace(
                 JkVector {
@@ -147,6 +171,38 @@ impl ElementGridDir {
                 );
                 debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
             }
+            target_chunk.set_already_processed(true);
+        }
+    }
+
+    fn get_unprocessed_chunk_idxs(&self) -> Vec<ChunkIjkVector> {
+        let mut out = Vec::new();
+        for i in 0..self.coords.get_num_chunks() {
+            let j_size = self.coords.get_layer_num_concentric_circles(i);
+            let k_size = self.coords.get_layer_num_radial_lines(i);
+            for j in 0..j_size {
+                for k in 0..k_size {
+                    let coord = ChunkIjkVector { i, j, k };
+                    if !self.get_chunk_by_chunk_ijk(coord).get_already_processed() {
+                        out.push(coord);
+                    }
+                }
+            }
+        }
+        out
+    }
+
+    fn unlock_all_chunks(&mut self) {
+        for i in 0..self.coords.get_num_chunks() {
+            let j_size = self.coords.get_layer_num_concentric_circles(i);
+            let k_size = self.coords.get_layer_num_radial_lines(i);
+            for j in 0..j_size {
+                for k in 0..k_size {
+                    let coord = ChunkIjkVector { i, j, k };
+                    self.get_chunk_by_chunk_ijk_mut(coord)
+                        .set_already_processed(false);
+                }
+            }
         }
     }
 
@@ -165,8 +221,19 @@ impl ElementGridDir {
             });
         self.unpackage_convolutions(convolutions, target_chunks);
         self.process_count += 1;
+        if self.process_count % 9 == 0 {
+            let unprocessed = self.get_unprocessed_chunk_idxs();
+            debug_assert_ne!(
+                unprocessed.len(),
+                0,
+                "After 9 iterations not all chunks are processed. Missing {:?}",
+                unprocessed
+            );
+            self.unlock_all_chunks();
+        }
     }
 
+    /// Get the number of chunks from the coordinate directory
     pub fn get_num_chunks(&self) -> usize {
         self.coords.get_num_chunks()
     }

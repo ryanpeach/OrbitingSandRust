@@ -9,6 +9,11 @@ pub struct JkVector {
     pub k: usize,
 }
 
+/// Convienient constants
+impl JkVector {
+    pub const ZERO: Self = Self { j: 0, k: 0 };
+}
+
 /// Same as JkVector, but with i indicating the "layer number"
 /// The core is layer 0
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -16,6 +21,11 @@ pub struct IjkVector {
     pub i: usize,
     pub j: usize,
     pub k: usize,
+}
+
+/// Convienient constants
+impl IjkVector {
+    pub const ZERO: Self = Self { i: 0, j: 0, k: 0 };
 }
 
 /// The ijk coordinates of a chunk within an element grid directory

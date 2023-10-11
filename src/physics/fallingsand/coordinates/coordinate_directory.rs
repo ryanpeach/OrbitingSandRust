@@ -63,11 +63,6 @@ impl CoordinateDirBuilder {
     /// The number of radial lines in the core.
     /// Each future layer has 2x the number of radial lines as the previous layer.
     pub fn first_num_radial_lines(mut self, first_num_radial_lines: usize) -> Self {
-        // debug_assert!(
-        //     first_num_radial_lines % 6 == 0,
-        //     "first_num_radial_lines must be a multiple of 6, got {}",
-        //     first_num_radial_lines
-        // );
         self.first_num_radial_lines = first_num_radial_lines;
         self
     }
@@ -134,7 +129,7 @@ impl CoordinateDirBuilder {
         }
 
         // Handle the second set of layers, which just subdivide around the grid
-        let mut num_radial_chunks = 4;
+        let mut num_radial_chunks = 3;
         loop {
             if layer_num >= self.num_layers {
                 break;
@@ -165,7 +160,7 @@ impl CoordinateDirBuilder {
             layer_num += 1;
 
             // If our width would become smaller than our height, break
-            if layer_num_radial_lines / (num_radial_chunks * 4) < num_concentric_circles {
+            if layer_num_radial_lines / (num_radial_chunks * 3) < num_concentric_circles {
                 break;
             }
 
@@ -173,13 +168,13 @@ impl CoordinateDirBuilder {
             if (layer_num_radial_lines / num_radial_chunks * num_concentric_circles)
                 > self.max_cells
             {
-                num_radial_chunks *= 4;
+                num_radial_chunks *= 3;
             }
         }
 
         // Handle the third set of layers, which just subdivide both around the grid and up/down the grid
-        let mut num_concentric_chunks = 2;
-        num_radial_chunks *= 2;
+        let mut num_concentric_chunks = 3;
+        num_radial_chunks *= 3;
         loop {
             if layer_num >= self.num_layers {
                 break;
@@ -219,8 +214,8 @@ impl CoordinateDirBuilder {
                 / num_concentric_chunks)
                 > self.max_cells
             {
-                num_radial_chunks *= 2;
-                num_concentric_chunks *= 2;
+                num_radial_chunks *= 3;
+                num_concentric_chunks *= 3;
             }
         }
 
@@ -378,6 +373,96 @@ impl CoordinateDir {
     }
 }
 
+/* ============================
+ * Shape Conversion Functions
+ * ============================ */
+impl CoordinateDir {
+    /// Returns: (layer_num, relative_concentric_circle)
+    pub fn convert_absolute_concentric_circle_to_relative(
+        &self,
+        concentric_circle: usize,
+    ) -> (usize, usize) {
+        if concentric_circle == 0 {
+            (0, 0)
+        } else {
+            let mut layer_num = 1;
+            loop {
+                let start_concentric_circle_abs =
+                    self.get_layer_start_concentric_circle_absolute(layer_num);
+                if concentric_circle
+                    < self.get_layer_num_concentric_circles(layer_num) + start_concentric_circle_abs
+                {
+                    return (layer_num, concentric_circle - start_concentric_circle_abs);
+                }
+            }
+        }
+    }
+}
+
+/* =================
+ * Layer Getters
+ * Get calculated attributes about a layer
+ * ================= */
+impl CoordinateDir {
+    /// The first concentric circle (absolute) index of a given layer
+    pub fn get_layer_start_concentric_circle_absolute(&self, layer_num: usize) -> usize {
+        if layer_num == 0 {
+            self.core_chunk.get_start_concentric_circle_absolute()
+        } else {
+            self.partial_chunks[layer_num]
+                .get(JkVector::ZERO)
+                .get_start_concentric_circle_absolute()
+        }
+    }
+}
+
+/* =================
+ * Chunk Layer Getters
+ * These differ from layer getters in that they are attributes of a "chunk layer"
+ * Which is a Grid of chunks in the partial_chunks vector
+ * ================== */
+impl CoordinateDir {
+    /// Get the number of chunks around the circle in a given layer
+    pub fn get_chunk_layer_num_radial_lines(&self, layer_num: usize) -> usize {
+        if layer_num == 0 {
+            1
+        } else {
+            self.partial_chunks[layer_num - 1].get_width()
+        }
+    }
+    /// Get the number of chunks in the concentric circle dimension in a given layer
+    pub fn get_chunk_layer_num_concentric_circles(&self, layer_num: usize) -> usize {
+        if layer_num == 0 {
+            1
+        } else {
+            self.partial_chunks[layer_num - 1].get_height()
+        }
+    }
+    /// Gets the total number of chunks you would encounter if you counted
+    /// from the core up to the top layer in one dimension
+    pub fn get_total_number_chunks_in_concentric_circle_dimension(&self) -> usize {
+        let mut total = 1;
+        for layer in &self.partial_chunks {
+            total += layer.get_height();
+        }
+        total
+    }
+    /// Useful if you want to count in chunk concentric circles and get a layer number
+    /// Returns (layer_num, chunk_layer_concentric_circle)
+    pub fn get_layer_num_from_absolute_chunk_concentric_circle(&self, j: usize) -> (usize, usize) {
+        let mut layer_num = 0;
+        let mut total = 1;
+        let mut last_total = 0;
+        loop {
+            if j < total {
+                return (layer_num, j - last_total);
+            }
+            layer_num += 1;
+            last_total = total;
+            total += self.get_layer_num_concentric_circles(layer_num);
+        }
+    }
+}
 /* ========================================
  * Simple Getters
  * Misc attributes of the directory itself.

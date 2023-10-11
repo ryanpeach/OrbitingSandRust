@@ -14,9 +14,10 @@ use super::util::image::RawImage;
 pub struct ElementGrid {
     grid: Grid<Box<dyn Element>>,
     coords: Box<dyn ChunkCoords>,
-    process_count: usize,
+    already_processed: bool,
 }
 
+/* Initialization */
 impl ElementGrid {
     pub fn new_empty(chunk_coords: Box<dyn ChunkCoords>) -> Self {
         let mut grid: Vec<Box<dyn Element>> = Vec::with_capacity(
@@ -33,17 +34,40 @@ impl ElementGrid {
                 grid,
             ),
             coords: chunk_coords,
-            process_count: 0,
+            already_processed: false,
         }
     }
+}
 
+/* Getters & Setters */
+impl ElementGrid {
+    pub fn get_already_processed(&self) -> bool {
+        self.already_processed
+    }
+    pub fn set_already_processed(&mut self, already_processed: bool) {
+        self.already_processed = already_processed;
+    }
+    pub fn get_chunk_coords(&self) -> &Box<dyn ChunkCoords> {
+        &self.coords
+    }
+    pub fn get_grid(&self) -> &Grid<Box<dyn Element>> {
+        &self.grid
+    }
+}
+
+/* Handle processing */
+impl ElementGrid {
     /// Do one iteration of processing on the grid
     pub fn process(&mut self, element_grid_conv: &mut ElementGridConvolution, delta: Time) {
         for element in self.grid.iter_mut() {
+            debug_assert!(!self.get_already_processed(), "Already processed");
             element.process(element_grid_conv, delta);
         }
     }
+}
 
+/* Drawing */
+impl ElementGrid {
     /// Draw the texture as the color of each element
     pub fn get_texture(&self) -> RawImage {
         let mut out = Vec::with_capacity(
@@ -65,9 +89,5 @@ impl ElementGrid {
                 self.coords.get_num_concentric_circles() as f32,
             ),
         }
-    }
-
-    pub fn get_chunk_coords(&self) -> &Box<dyn ChunkCoords> {
-        &self.coords
     }
 }
