@@ -1,4 +1,3 @@
-use ggez::glam::Vec2;
 use ggez::graphics::Rect;
 
 use crate::physics::fallingsand::element_directory::ElementGridDir;
@@ -76,9 +75,9 @@ impl Celestial {
     pub fn get_all_textures(&self) -> &Vec<RawImage> {
         &self.all_textures
     }
-    pub fn frustum_cull(&self, camera: &Camera, screen_size: Vec2) -> Vec<usize> {
-        let cam_bb = &camera.get_bounding_box(screen_size);
-        let mut out = Vec::with_capacity(self.len());
+    pub fn frustum_cull(&self, camera: &Camera) -> Vec<usize> {
+        let cam_bb = &camera.get_bounding_box();
+        let mut out = Vec::with_capacity(self.get_num_chunks());
         for (i, bb) in self.get_all_bounding_boxes().iter().enumerate() {
             if bb.overlaps(cam_bb) {
                 out.push(i);

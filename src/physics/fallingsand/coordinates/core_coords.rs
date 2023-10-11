@@ -167,7 +167,7 @@ impl ChunkCoords for CoreChunkCoords {
     fn get_end_concentric_circle_absolute(&self) -> usize {
         1
     }
-    fn get_end_concentric_circle_relative(&self) -> usize {
+    fn get_end_concentric_circle_layer_relative(&self) -> usize {
         1
     }
     fn get_end_radial_line(&self) -> usize {

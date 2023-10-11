@@ -355,7 +355,7 @@ impl ChunkCoords for PartialLayerChunkCoords {
     fn get_end_concentric_circle_absolute(&self) -> usize {
         self.start_concentric_circle_absolute + self.num_concentric_circles
     }
-    fn get_end_concentric_circle_relative(&self) -> usize {
+    fn get_end_concentric_circle_layer_relative(&self) -> usize {
         self.start_concentric_circle_layer_relative + self.num_concentric_circles
     }
     fn get_end_radial_line(&self) -> usize {

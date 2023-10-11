@@ -7,10 +7,11 @@ pub struct Camera {
     min_zoom: f32,
     max_zoom: f32,
     rotation: f32,
+    screen_size: Vec2,
 }
 
-impl Default for Camera {
-    fn default() -> Self {
+impl Camera {
+    pub fn new(screen_size: Vec2) -> Self {
         Self {
             world_coords: Vec2::new(0.0, 0.0),
             zoom: 1.0,
@@ -19,14 +20,13 @@ impl Default for Camera {
             max_zoom: 100.0,
             // max_zoom: 7.0,
             rotation: 0.0,
+            screen_size,
         }
     }
-}
 
-impl Camera {
-    pub fn get_bounding_box(&self, screen_size: Vec2) -> Rect {
-        let screen_width = screen_size.x;
-        let screen_height = screen_size.y;
+    pub fn get_bounding_box(&self) -> Rect {
+        let screen_width = self.screen_size.x;
+        let screen_height = self.screen_size.y;
         let world_width = screen_width / self.zoom;
         let world_height = screen_height / self.zoom;
         let world_x = self.world_coords.x;
@@ -50,6 +50,9 @@ impl Camera {
     }
     pub fn get_rotation(&self) -> f32 {
         self.rotation
+    }
+    pub fn get_screen_size(&self) -> Vec2 {
+        self.screen_size
     }
 
     // ====================
