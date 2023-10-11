@@ -7,7 +7,7 @@ use crate::physics::fallingsand::elements::element::Element;
 
 use super::element_convolution::ElementGridConvolution;
 use super::elements::vacuum::Vacuum;
-use super::util::{Grid, RawImage};
+use super::functions::{Grid, RawImage};
 
 /// An element grid is a 2D grid of elements tied to a chunk
 pub struct ElementGrid {

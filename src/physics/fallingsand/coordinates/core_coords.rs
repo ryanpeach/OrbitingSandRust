@@ -4,7 +4,7 @@ use ggez::graphics::{Color, Rect};
 
 use std::f32::consts::PI;
 
-use crate::physics::fallingsand::util::RawImage;
+use crate::physics::fallingsand::functions::RawImage;
 
 /// The core is always the first layer
 /// It defines the radius of all future layers cell_radius

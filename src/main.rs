@@ -9,7 +9,7 @@ use ggez::{glam::*, timer};
 use ggez::{Context, GameResult};
 
 use physics::fallingsand::element_directory::ElementGridDir;
-use physics::fallingsand::util::{MeshDrawMode, ZoomDrawMode};
+use physics::fallingsand::functions::{MeshDrawMode, ZoomDrawMode};
 
 use uom::si::f64::*;
 use uom::si::time::second;

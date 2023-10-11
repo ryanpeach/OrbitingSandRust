@@ -1,7 +1,7 @@
 use ggez::graphics::Rect;
 
 use crate::physics::fallingsand::element_directory::ElementGridDir;
-use crate::physics::fallingsand::util::{MeshDrawMode, OwnedMeshData, RawImage};
+use crate::physics::fallingsand::functions::{MeshDrawMode, OwnedMeshData, RawImage};
 
 use super::camera::Camera;
 

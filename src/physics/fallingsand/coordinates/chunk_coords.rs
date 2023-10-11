@@ -4,15 +4,40 @@ use ggez::graphics::MeshBuilder;
 use ggez::graphics::Rect;
 use ggez::graphics::Vertex;
 
-use crate::physics::fallingsand::util::OwnedMeshData;
+use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 
-/// A chunk that can be rendered and simulated
+/// A set of coordinates that tell you where on the circle a chunk is located
+/// and how big it is. Also provides methods for drawing the mesh.
 pub trait ChunkCoords: Send + Sync {
     /* Raw Data */
     fn get_outline(&self) -> Vec<Vec2>;
     fn get_positions(&self, res: u16) -> Vec<Vec2>;
     fn get_indices(&self, res: u16) -> Vec<u32>;
     fn get_uvs(&self, res: u16) -> Vec<Vec2>;
+
+    /* Shape Parameter Getters */
+    fn get_num_radial_lines(&self) -> usize;
+    fn get_num_concentric_circles(&self) -> usize;
+    fn total_size(&self) -> usize {
+        self.get_num_radial_lines() * self.get_num_concentric_circles()
+    }
+
+    /* Position on the Circle */
+    fn get_bounding_box(&self) -> Rect;
+    fn get_layer_num(&self) -> usize;
+    fn get_cell_radius(&self) -> f32;
+    fn get_start_radius(&self) -> f32;
+    fn get_end_radius(&self) -> f32;
+    fn get_start_radial_theta(&self) -> f32;
+    fn get_end_radial_theta(&self) -> f32;
+    fn get_start_concentric_circle_layer_relative(&self) -> usize;
+    fn get_end_concentric_circle_layer_relative(&self) -> usize;
+    fn get_start_concentric_circle_absolute(&self) -> usize;
+    fn get_end_concentric_circle_absolute(&self) -> usize;
+    fn get_end_radial_line(&self) -> usize;
+    fn get_start_radial_line(&self) -> usize;
+
+    /* Convienience Functions */
     fn get_vertices(&self, res: u16) -> Vec<Vertex> {
         let positions = self.get_positions(res);
         let uvs = self.get_uvs(res);
@@ -27,30 +52,6 @@ pub trait ChunkCoords: Send + Sync {
             .collect();
         vertexes
     }
-
-    /* Shape Parameter Getters */
-    fn get_num_radial_lines(&self) -> usize;
-    fn get_num_concentric_circles(&self) -> usize;
-    fn total_size(&self) -> usize {
-        self.get_num_radial_lines() * self.get_num_concentric_circles()
-    }
-
-    /* Position on the Circle */
-    fn get_bounding_box(&self) -> Rect;
-    fn get_cell_radius(&self) -> f32;
-    fn get_start_radius(&self) -> f32;
-    fn get_end_radius(&self) -> f32;
-    fn get_start_radial_theta(&self) -> f32;
-    fn get_end_radial_theta(&self) -> f32;
-    fn get_start_concentric_circle_layer_relative(&self) -> usize;
-    fn get_end_concentric_circle_layer_relative(&self) -> usize;
-    fn get_start_concentric_circle_absolute(&self) -> usize;
-    fn get_end_concentric_circle_absolute(&self) -> usize;
-    fn get_end_radial_line(&self) -> usize;
-    fn get_start_radial_line(&self) -> usize;
-    fn get_layer_num(&self) -> usize;
-
-    /* Mesh */
     fn calc_chunk_outline(&self) -> OwnedMeshData {
         let mut mb = MeshBuilder::new();
         let outline = self.get_outline();

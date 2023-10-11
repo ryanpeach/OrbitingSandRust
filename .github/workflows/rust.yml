@@ -9,9 +9,7 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
 
@@ -41,3 +39,24 @@ jobs:
 
     - name: Run tests
       run: cargo test --verbose
+
+    - name: Install tarpaulin
+      run: cargo install cargo-tarpaulin
+
+    - name: Calculate test coverage
+      run: cargo tarpaulin --out Xml
+
+    - name: Comment PR with coverage
+      uses: actions/github-script@v5
+      with:
+        script: |
+          const fs = require('fs');
+          const coverageXml = fs.readFileSync('./target/tarpaulin/report.xml', 'utf-8');
+          const coverageMatch = coverageXml.match(/line-rate="([\d.]+)"/);
+          const coveragePercentage = parseFloat(coverageMatch[1]) * 100;
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `Test coverage: ${coveragePercentage.toFixed(2)}%`
+          });

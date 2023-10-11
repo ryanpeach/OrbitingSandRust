@@ -1,19 +1,30 @@
-use crate::physics::fallingsand::util::{is_pow_2, Grid};
+use crate::physics::fallingsand::functions::{is_pow_2, ChunkIjkVector, Grid};
 
 use super::chunk_coords::ChunkCoords;
 use super::core_coords::CoreChunkCoords;
 use super::layer_coords::{PartialLayerChunkCoords, PartialLayerChunkCoordsBuilder};
-use crate::physics::fallingsand::util::{MeshDrawMode, OwnedMeshData};
+use crate::physics::fallingsand::functions::{MeshDrawMode, OwnedMeshData};
 use ggez::glam::Vec2;
 use ggez::graphics::{Rect, Vertex};
 
+/// A structure that contains all the chunk coordinates for a celestial body
+/// Useful for drawing the total mesh
 #[derive(Clone)]
 pub struct CoordinateDir {
-    num_layers: usize,
+    /// Every celestial body has a core
+    /// The core is always the first layer and has 1 concentric circle
     core_chunk: CoreChunkCoords,
+
+    /// Layers on top of the core
+    /// Every index in the vec represents a layer
+    /// The Grid then represents the chunks in that layer
     partial_chunks: Vec<Grid<PartialLayerChunkCoords>>,
 }
 
+/// A builder for CoordinateDir
+/// Needs more parameters than CoordinateDir because
+/// it assembles the chunks whereas CoordinateDir can re-derive
+/// these parameters from the chunks themselves
 pub struct CoordinateDirBuilder {
     cell_radius: f32,
     num_layers: usize,
@@ -22,7 +33,10 @@ pub struct CoordinateDirBuilder {
     max_cells: usize,
 }
 
+/// Builds a CoordinateDir
+/// This is where most of the logic is stored for assembling the directory
 impl CoordinateDirBuilder {
+    /// Start here
     pub fn new() -> Self {
         Self {
             cell_radius: 1.0,
@@ -32,22 +46,25 @@ impl CoordinateDirBuilder {
             max_cells: 64 * 64,
         }
     }
-
+    /// The radius of each cell in the circle
     pub fn cell_radius(mut self, cell_radius: f32) -> Self {
         self.cell_radius = cell_radius;
         self
     }
-
+    /// The number of layers in the circle
     pub fn num_layers(mut self, num_layers: usize) -> Self {
         self.num_layers = num_layers;
         self
     }
-
+    /// The number of radial lines in the core.
+    /// Each future layer has 2x the number of radial lines as the previous layer.
     pub fn first_num_radial_lines(mut self, first_num_radial_lines: usize) -> Self {
         self.first_num_radial_lines = first_num_radial_lines;
         self
     }
-
+    /// The number of concentric circles in the second layer.
+    /// Each future layer has 2x the number of concentric circles as the previous layer.
+    /// The reason we define the second layer separately is because the core always has 1
     pub fn second_num_concentric_circles(mut self, second_num_concentric_circles: usize) -> Self {
         debug_assert!(
             is_pow_2(second_num_concentric_circles),
@@ -57,12 +74,15 @@ impl CoordinateDirBuilder {
         self.second_num_concentric_circles = second_num_concentric_circles;
         self
     }
-
+    /// The max number of cells a chunk is allowed to have
+    /// If this number is reached, chunks split in half vertically and horizontally
     pub fn max_cells(mut self, max_cells: usize) -> Self {
         self.max_cells = max_cells;
         self
     }
-
+    /// builds a CoordinateDir by iterating over the number of layers
+    /// and dynamically allocating chunks to each layer based on max_cells
+    /// and the other parameters of the builder.
     pub fn build(self) -> CoordinateDir {
         debug_assert_ne!(self.num_layers, 0);
         let _core_chunk = CoreChunkCoords::new(self.cell_radius, self.first_num_radial_lines);
@@ -191,23 +211,28 @@ impl CoordinateDirBuilder {
         }
 
         CoordinateDir {
-            num_layers: self.num_layers,
             core_chunk: _core_chunk,
             partial_chunks: _partial_chunks,
         }
     }
 }
 
+/* =========================================
+ *           Aggregate Getters
+ * These functions run a getter over each
+ * chunk and return a vector of the results
+ * ========================================= */
 impl CoordinateDir {
     pub fn get_outlines(&self) -> Vec<Vec<Vec2>> {
         let mut outlines = Vec::new();
         outlines.push(self.core_chunk.get_outline());
-        for partial_chunk in &self.partial_chunks {
-            outlines.push(partial_chunk.get_outline());
+        for layer in &self.partial_chunks {
+            for partial_chunk in layer.get_data() {
+                outlines.push(partial_chunk.get_outline());
+            }
         }
         outlines
     }
-
     pub fn get_vertexes(&self, res: u16) -> Vec<Vec<Vertex>> {
         let mut vertexes = Vec::new();
         vertexes.push(self.core_chunk.get_vertices(res));
@@ -216,7 +241,6 @@ impl CoordinateDir {
         }
         vertexes
     }
-
     pub fn get_positions(&self, res: u16) -> Vec<Vec<Vec2>> {
         let mut positions = Vec::new();
         positions.push(self.core_chunk.get_positions(res));
@@ -225,7 +249,6 @@ impl CoordinateDir {
         }
         positions
     }
-
     pub fn get_uvs(&self, res: u16) -> Vec<Vec<Vec2>> {
         let mut uvs = Vec::new();
         uvs.push(self.core_chunk.get_uvs(res));
@@ -234,7 +257,6 @@ impl CoordinateDir {
         }
         uvs
     }
-
     pub fn get_indices(&self, res: u16) -> Vec<Vec<u32>> {
         let mut indices = Vec::new();
         indices.push(self.core_chunk.get_indices(res));
@@ -242,20 +264,6 @@ impl CoordinateDir {
             indices.push(partial_chunk.get_indices(res));
         }
         indices
-    }
-    pub fn get_chunk_at_idx(&self, chunk_idx: usize) -> Box<dyn ChunkCoords> {
-        if chunk_idx == 0 {
-            Box::new(self.core_chunk)
-        } else {
-            Box::new(self.partial_chunks[chunk_idx - 1])
-        }
-    }
-    pub fn get_chunk_bounding_box(&self, chunk_idx: usize) -> Rect {
-        if chunk_idx == 0 {
-            self.core_chunk.get_bounding_box()
-        } else {
-            self.partial_chunks[chunk_idx - 1].get_bounding_box()
-        }
     }
     pub fn get_chunk_bounding_boxes(&self) -> Vec<Rect> {
         let mut bounding_boxes = Vec::new();
@@ -265,8 +273,124 @@ impl CoordinateDir {
         }
         bounding_boxes
     }
+}
+
+/* =========================================
+ *         Individual Chunk Getters
+ * These functions run a getter on a specific
+ * chunk index
+ * ========================================= */
+impl CoordinateDir {
+    pub fn get_chunk_at_idx(&self, chunk_idx: ChunkIjkVector) -> Box<dyn ChunkCoords> {
+        if chunk_idx == 0 {
+            Box::new(self.core_chunk)
+        } else {
+            Box::new(self.partial_chunks[chunk_idx - 1])
+        }
+    }
+    pub fn get_chunk_bounding_box(&self, chunk_idx: ChunkIjkVector) -> Rect {
+        if chunk_idx == 0 {
+            self.core_chunk.get_bounding_box()
+        } else {
+            self.partial_chunks[chunk_idx - 1].get_bounding_box()
+        }
+    }
+    pub fn get_chunk_start_radius(&self, chunk_idx: ChunkIjkVector) -> f32 {
+        if chunk_idx == 0 {
+            self.core_chunk.get_start_radius()
+        } else {
+            self.partial_chunks[chunk_idx - 1].get_start_radius()
+        }
+    }
+    pub fn get_chunk_end_radius(&self, chunk_idx: ChunkIjkVector) -> f32 {
+        if chunk_idx == 0 {
+            self.core_chunk.get_end_radius()
+        } else {
+            self.partial_chunks[chunk_idx - 1].get_end_radius()
+        }
+    }
+    pub fn get_chunk_start_radial_theta(&self, chunk_idx: ChunkIjkVector) -> f32 {
+        if chunk_idx == 0 {
+            self.core_chunk.get_start_radial_theta()
+        } else {
+            self.partial_chunks[chunk_idx - 1].get_start_radial_theta()
+        }
+    }
+    pub fn get_chunk_end_radial_theta(&self, chunk_idx: ChunkIjkVector) -> f32 {
+        if chunk_idx == 0 {
+            self.core_chunk.get_end_radial_theta()
+        } else {
+            self.partial_chunks[chunk_idx - 1].get_end_radial_theta()
+        }
+    }
+    pub fn get_chunk_num_radial_lines(&self, chunk_idx: ChunkIjkVector) -> usize {
+        if chunk_idx == 0 {
+            self.core_chunk.get_num_radial_lines()
+        } else {
+            self.partial_chunks[chunk_idx - 1].get_num_radial_lines()
+        }
+    }
+    pub fn get_chunk_num_concentric_circles(&self, chunk_idx: ChunkIjkVector) -> usize {
+        if chunk_idx == 0 {
+            self.core_chunk.get_num_concentric_circles()
+        } else {
+            self.partial_chunks[chunk_idx - 1].get_num_concentric_circles()
+        }
+    }
+}
+
+/* ========================================
+ * Simple Getters
+ * Misc attributes of the directory itself.
+ * ======================================== */
+impl CoordinateDir {
+    /// The total number of cells in the whole directory
+    pub fn total_size(&self) -> usize {
+        let mut total_size = self.core_chunk.total_size();
+        for partial_chunk in &self.partial_chunks {
+            total_size += partial_chunk.total_size();
+        }
+        total_size
+    }
+    /// Cell radius is constant for all chunks
+    pub fn get_cell_radius(&self) -> f32 {
+        self.core_chunk.get_cell_radius()
+    }
+    /// The number of layers in the circle
+    pub fn get_num_layers(&self) -> usize {
+        self.partial_chunks.len() + 1
+    }
+    /// The number of concentric circles in a given layer
+    /// Always 2x the previous layer except for the first and second layers
+    pub fn get_layer_num_concentric_circles(&self, layer_num: usize) -> usize {
+        if layer_num == 0 {
+            self.core_chunk.get_num_concentric_circles()
+        } else {
+            self.partial_chunks[layer_num - 1].get_num_concentric_circles()
+        }
+    }
+    /// The number of radial lines in a given layer
+    /// Always 2x the previous layer except for the first layer
+    pub fn get_layer_num_radial_lines(&self, layer_num: usize) -> usize {
+        if layer_num == 0 {
+            self.core_chunk.get_num_radial_lines()
+        } else {
+            self.partial_chunks[layer_num - 1].get_num_radial_lines()
+        }
+    }
+    /// The total number of chunks in the directory
+    pub fn get_num_chunks(&self) -> usize {
+        self.partial_chunks.len() + 1
+    }
+}
+
+/* ===================
+ * Drawing
+ * =================== */
+impl CoordinateDir {
+    /// Gets mesh data for every chunk in the directory
     pub fn get_mesh_data(&self, res: u16, draw_mode: MeshDrawMode) -> Vec<OwnedMeshData> {
-        (0..self.len())
+        (0..self.get_num_chunks())
             .map(|chunk_idx| {
                 if chunk_idx == 0 {
                     match draw_mode {
@@ -296,85 +420,11 @@ impl CoordinateDir {
             })
             .collect()
     }
-
-    /* Shape Parameter Getters */
-    pub fn get_cell_radius(&self) -> f32 {
-        self.core_chunk.get_cell_radius()
-    }
-    pub fn get_num_layers(&self) -> usize {
-        self.num_layers
-    }
-    pub fn get_layer_num_concentric_circles(&self, layer_num: usize) -> usize {
-        if layer_num == 0 {
-            self.core_chunk.get_num_concentric_circles()
-        } else {
-            self.partial_chunks[layer_num - 1].get_num_concentric_circles()
-        }
-    }
-    pub fn get_layer_num_radial_lines(&self, layer_num: usize) -> usize {
-        if layer_num == 0 {
-            self.core_chunk.get_num_radial_lines()
-        } else {
-            self.partial_chunks[layer_num - 1].get_num_radial_lines()
-        }
-    }
-    pub fn len(&self) -> usize {
-        self.partial_chunks.len() + 1
-    }
-    pub fn get_chunk_start_radius(&self, chunk_idx: usize) -> f32 {
-        if chunk_idx == 0 {
-            self.core_chunk.get_start_radius()
-        } else {
-            self.partial_chunks[chunk_idx - 1].get_start_radius()
-        }
-    }
-    pub fn get_chunk_end_radius(&self, chunk_idx: usize) -> f32 {
-        if chunk_idx == 0 {
-            self.core_chunk.get_end_radius()
-        } else {
-            self.partial_chunks[chunk_idx - 1].get_end_radius()
-        }
-    }
-    pub fn get_chunk_start_radial_theta(&self, chunk_idx: usize) -> f32 {
-        if chunk_idx == 0 {
-            self.core_chunk.get_start_radial_theta()
-        } else {
-            self.partial_chunks[chunk_idx - 1].get_start_radial_theta()
-        }
-    }
-    pub fn get_chunk_end_radial_theta(&self, chunk_idx: usize) -> f32 {
-        if chunk_idx == 0 {
-            self.core_chunk.get_end_radial_theta()
-        } else {
-            self.partial_chunks[chunk_idx - 1].get_end_radial_theta()
-        }
-    }
-    pub fn get_chunk_num_radial_lines(&self, chunk_idx: usize) -> usize {
-        if chunk_idx == 0 {
-            self.core_chunk.get_num_radial_lines()
-        } else {
-            self.partial_chunks[chunk_idx - 1].get_num_radial_lines()
-        }
-    }
-    pub fn get_chunk_num_concentric_circles(&self, chunk_idx: usize) -> usize {
-        if chunk_idx == 0 {
-            self.core_chunk.get_num_concentric_circles()
-        } else {
-            self.partial_chunks[chunk_idx - 1].get_num_concentric_circles()
-        }
-    }
-    pub fn total_size(&self) -> usize {
-        let mut total_size = self.core_chunk.total_size();
-        for partial_chunk in &self.partial_chunks {
-            total_size += partial_chunk.total_size();
-        }
-        total_size
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::physics::fallingsand::util::valid_step;
+    use crate::physics::fallingsand::functions::valid_step;
 
     use super::*;
 
@@ -390,7 +440,7 @@ mod tests {
 
         // Check that for all resolutions 2^0 to 2^6, the chunk sizes are valid for grid_iter
         // In most of our methods we iterate over the +1 of the dimension sizes, so we add one to each
-        for chunk_num in 0..coordinate_dir.len() {
+        for chunk_num in 0..coordinate_dir.get_num_chunks() {
             for i in 0..7 {
                 assert!(
                     valid_step(

@@ -3,7 +3,7 @@ use uom::si::time::second;
 use super::coordinates::coordinate_directory::CoordinateDir;
 use super::element_convolution::ElementGridConvolution;
 use super::element_grid::ElementGrid;
-use super::util::{ChunkIjkVector, Grid, RawImage};
+use super::functions::{ChunkIjkVector, Grid, RawImage};
 
 use itertools::Itertools;
 use rayon::prelude::*;
@@ -22,7 +22,7 @@ impl ElementGridDir {
     pub fn new_empty(coords: CoordinateDir) -> Self {
         let mut layers: Vec<Grid<Option<ElementGrid>>> =
             Vec::with_capacity(coords.get_num_layers());
-        for i in 0..coords.len() {
+        for i in 0..coords.get_num_chunks() {
             let j_size = coords.get_layer_num_concentric_circles(i);
             let k_size = coords.get_layer_num_radial_lines(i);
             let chunks = Vec::with_capacity(j_size * k_size);
