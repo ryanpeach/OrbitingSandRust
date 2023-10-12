@@ -219,7 +219,7 @@ impl ElementGridDir {
 
         // Increment the process count and check for errors
         self.process_count += 1;
-        if cfg!(debug_assertions) && self.process_count % 9 == 0 {
+        if self.process_count % 9 == 0 {
             let unprocessed = self.get_unprocessed_chunk_idxs();
             debug_assert_ne!(
                 unprocessed.len(),
