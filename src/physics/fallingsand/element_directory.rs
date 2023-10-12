@@ -50,7 +50,7 @@ impl ElementGridDir {
         for j in (0..self
             .coords
             .get_total_number_chunks_in_concentric_circle_dimension())
-            .skip(self.process_count % 3)
+            .skip((self.process_count / 3) % 3)
             .step_by(3)
         {
             let (layer_num, chunk_layer_concentric_circle) = self
