@@ -72,39 +72,41 @@ impl ElementGridDir {
     }
 
     // TODO: This needs testing
-    fn get_neighbors(&self, coord: ChunkIjkVector) -> ElementGridConvolutionChunkIdx {}
+    fn get_neighbors(&self, coord: ChunkIjkVector) -> ElementGridConvolutionChunkIdx {
+        unimplemented!()
+    }
 
     /// Packages the neighbors of a chunk into a convolution object
     fn package_this_convolution(&mut self, coord: ChunkIjkVector) -> ElementGridConvolution {
         let neighbors = self.get_neighbors(coord);
         let t1: Option<ElementGrid> = match neighbors.t1 {
-            Some(x) => Some(*self.get_chunk_by_chunk_ijk(x)),
+            Some(x) => Some(std::mem::take(self.get_chunk_by_chunk_ijk_mut(x))),
             None => None,
         };
         let t2: Option<ElementGrid> = match neighbors.t2 {
-            Some(x) => Some(*self.get_chunk_by_chunk_ijk(x)),
+            Some(x) => Some(std::mem::take(self.get_chunk_by_chunk_ijk_mut(x))),
             None => None,
         };
         let tl: Option<ElementGrid> = match neighbors.tl {
-            Some(x) => Some(*self.get_chunk_by_chunk_ijk(x)),
+            Some(x) => Some(std::mem::take(self.get_chunk_by_chunk_ijk_mut(x))),
             None => None,
         };
         let tr: Option<ElementGrid> = match neighbors.tr {
-            Some(x) => Some(*self.get_chunk_by_chunk_ijk(x)),
+            Some(x) => Some(std::mem::take(self.get_chunk_by_chunk_ijk_mut(x))),
             None => None,
         };
-        let l: ElementGrid = *self.get_chunk_by_chunk_ijk(neighbors.l);
-        let r: ElementGrid = *self.get_chunk_by_chunk_ijk(neighbors.r);
+        let l: ElementGrid = std::mem::take(self.get_chunk_by_chunk_ijk_mut(neighbors.l));
+        let r: ElementGrid = std::mem::take(self.get_chunk_by_chunk_ijk_mut(neighbors.r));
         let bl: Option<ElementGrid> = match neighbors.bl {
-            Some(x) => Some(*self.get_chunk_by_chunk_ijk(x)),
+            Some(x) => Some(std::mem::take(self.get_chunk_by_chunk_ijk_mut(x))),
             None => None,
         };
         let b: Option<ElementGrid> = match neighbors.b {
-            Some(x) => Some(*self.get_chunk_by_chunk_ijk(x)),
+            Some(x) => Some(std::mem::take(self.get_chunk_by_chunk_ijk_mut(x))),
             None => None,
         };
         let br: Option<ElementGrid> = match neighbors.br {
-            Some(x) => Some(*self.get_chunk_by_chunk_ijk(x)),
+            Some(x) => Some(std::mem::take(self.get_chunk_by_chunk_ijk_mut(x))),
             None => None,
         };
         ElementGridConvolution {
@@ -125,21 +127,21 @@ impl ElementGridDir {
     // The taget vector and convolution vectors will then be iterated on in parallel
     fn package_convolutions(&mut self) -> (Vec<ElementGridConvolution>, Vec<ElementGrid>) {
         let target_chunk_coords = self.get_next_targets();
-        let convolutions = target_chunk_coords
-            .into_par_iter()
-            .map(|coord| self.package_this_convolution(coord))
-            .collect();
-        let target_chunks = target_chunk_coords
-            .into_par_iter()
-            .map(|coord| {
-                self.chunks[coord.i]
-                    .replace(coord.to_jk_vector(), None)
-                    .unwrap()
-            })
-            .collect();
+
+        let mut convolutions = Vec::new();
+        let mut target_chunks = Vec::new();
+
+        for coord in &target_chunk_coords {
+            convolutions.push(self.package_this_convolution(*coord));
+
+            let chunk = self.chunks[coord.i]
+                .replace(coord.to_jk_vector(), None)
+                .unwrap();
+            target_chunks.push(chunk);
+        }
+
         (convolutions, target_chunks)
     }
-
     /// TODO: This needs testing
     /// The reverse of the package_convolutions function
     /// Puts the chunks back into the directory exactly where they were taken from
@@ -151,6 +153,7 @@ impl ElementGridDir {
     ) {
         for (mut target_chunk, this_conv) in target_chunks.into_iter().zip(convolutions.into_iter())
         {
+            target_chunk.set_already_processed(true);
             let coord = target_chunk.get_chunk_coords();
             let prev = self.chunks[coord.get_layer_num()].replace(
                 JkVector {
@@ -171,7 +174,6 @@ impl ElementGridDir {
                 );
                 debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
             }
-            target_chunk.set_already_processed(true);
         }
     }
 
@@ -212,16 +214,19 @@ impl ElementGridDir {
     /// This is important because elementgrids can effect one another at a maximum range of
     /// the size of one elementgrid.
     pub fn process(&mut self, delta: Time) {
+        // The main parallel logic
         let (mut convolutions, mut target_chunks) = self.package_convolutions();
         convolutions
-            .into_par_iter()
-            .zip(target_chunks.into_par_iter())
-            .for_each(|(mut convolution, mut target_chunk)| {
-                target_chunk.process(&mut convolution, delta);
+            .par_iter_mut()
+            .zip(target_chunks.par_iter_mut())
+            .for_each(|(convolution, target_chunk)| {
+                target_chunk.process(convolution, delta);
             });
         self.unpackage_convolutions(convolutions, target_chunks);
+
+        // Increment the process count and check for errors
         self.process_count += 1;
-        if self.process_count % 9 == 0 {
+        if cfg!(debug_assertions) && self.process_count % 9 == 0 {
             let unprocessed = self.get_unprocessed_chunk_idxs();
             debug_assert_ne!(
                 unprocessed.len(),
@@ -241,13 +246,20 @@ impl ElementGridDir {
     /// Gets the chunk at the given index
     /// Errors if it is currently borrowed
     pub fn get_chunk_by_chunk_ijk(&self, coord: ChunkIjkVector) -> &ElementGrid {
-        &self.chunks[coord.i].get(coord.to_jk_vector()).unwrap()
+        self.chunks[coord.i]
+            .get(coord.to_jk_vector())
+            .as_ref()
+            .unwrap()
     }
     /// Gets the chunk at the given index mutably
     /// Errors if it is currently borrowed
     pub fn get_chunk_by_chunk_ijk_mut(&mut self, coord: ChunkIjkVector) -> &mut ElementGrid {
-        &mut self.chunks[coord.i].get_mut(coord.to_jk_vector()).unwrap()
+        self.chunks[coord.i]
+            .get_mut(coord.to_jk_vector())
+            .as_mut()
+            .unwrap()
     }
+
     pub fn get_coordinate_dir(&self) -> &CoordinateDir {
         &self.coords
     }

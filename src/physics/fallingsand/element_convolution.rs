@@ -50,13 +50,13 @@ impl Iterator for IntoIter {
             let next_item = match self.position {
                 1 => self.convolution.t1.take(),
                 2 => self.convolution.t2.take(),
-                2 => self.convolution.tl.take(),
-                3 => self.convolution.tr.take(),
-                4 => Some(self.convolution.l),
-                5 => Some(self.convolution.r),
-                6 => self.convolution.bl.take(),
-                7 => self.convolution.b.take(),
-                8 => self.convolution.br.take(),
+                3 => self.convolution.tl.take(),
+                4 => self.convolution.tr.take(),
+                5 => Some(std::mem::take(&mut self.convolution.l)),
+                6 => Some(std::mem::take(&mut self.convolution.r)),
+                7 => self.convolution.bl.take(),
+                8 => self.convolution.b.take(),
+                9 => self.convolution.br.take(),
                 _ => return None,
             };
             if next_item.is_some() {

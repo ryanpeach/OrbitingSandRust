@@ -4,7 +4,9 @@ use uom::si::time::second;
 
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::elements::element::Element;
+use crate::physics::fallingsand::util::vectors::JkVector;
 
+use super::coordinates::core_coords::CoreChunkCoords;
 use super::element_convolution::ElementGridConvolution;
 use super::elements::vacuum::Vacuum;
 use super::util::grid::Grid;
@@ -15,6 +17,13 @@ pub struct ElementGrid {
     grid: Grid<Box<dyn Element>>,
     coords: Box<dyn ChunkCoords>,
     already_processed: bool,
+}
+
+/// Useful for borrowing the grid to have a default value of one
+impl Default for ElementGrid {
+    fn default() -> Self {
+        Self::new_empty(Box::new(CoreChunkCoords::default()))
+    }
 }
 
 /* Initialization */
@@ -59,9 +68,17 @@ impl ElementGrid {
 impl ElementGrid {
     /// Do one iteration of processing on the grid
     pub fn process(&mut self, element_grid_conv: &mut ElementGridConvolution, delta: Time) {
-        for element in self.grid.iter_mut() {
-            debug_assert!(!self.get_already_processed(), "Already processed");
-            element.process(element_grid_conv, delta);
+        let already_processed = self.get_already_processed();
+        debug_assert!(!already_processed, "Already processed");
+        for j in 0..self.coords.get_num_concentric_circles() {
+            for k in 0..self.coords.get_num_radial_lines() {
+                let mut element = std::mem::replace(
+                    self.grid.get_mut(JkVector { j, k }),
+                    Box::<Vacuum>::default(),
+                );
+                element.process(self, element_grid_conv, delta);
+                std::mem::replace(self.grid.get_mut(JkVector { j, k }), element);
+            }
         }
     }
 }
