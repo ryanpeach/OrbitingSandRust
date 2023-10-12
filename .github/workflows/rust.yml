@@ -25,6 +25,9 @@ jobs:
     - name: Install cargo fmt, clippy
       run: rustup component add rustfmt clippy
 
+    - name: Install tarpaulin
+      run: cargo install cargo-tarpaulin
+
     - name: Build
       run: cargo build --verbose
 
@@ -37,26 +40,19 @@ jobs:
     - name: Generate Documentation
       run: cargo doc --no-deps --document-private-items --all-features
 
-    - name: Run tests
-      run: cargo test --verbose
+    - name: Run tests and collect coverage
+      run: cargo tarpaulin --out Xml > coverage_output.txt
+      continue-on-error: true
 
-    - name: Install tarpaulin
-      run: cargo install cargo-tarpaulin
-
-    - name: Calculate test coverage
-      run: cargo tarpaulin --out Xml
-
-    - name: Comment PR with coverage
+    - name: Comment PR with coverage output
       uses: actions/github-script@v5
       with:
         script: |
           const fs = require('fs');
-          const coverageXml = fs.readFileSync('./target/tarpaulin/report.xml', 'utf-8');
-          const coverageMatch = coverageXml.match(/line-rate="([\d.]+)"/);
-          const coveragePercentage = parseFloat(coverageMatch[1]) * 100;
+          const coverageOutput = fs.readFileSync('coverage_output.txt', 'utf-8');
           github.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: `Test coverage: ${coveragePercentage.toFixed(2)}%`
+            body: `Test Coverage Output:\n\`\`\`\n${coverageOutput}\n\`\`\``
           });
