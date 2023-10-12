@@ -129,7 +129,7 @@ impl CoordinateDirBuilder {
         }
 
         // Handle the second set of layers, which just subdivide around the grid
-        let mut num_radial_chunks = 3;
+        let mut num_radial_chunks = 4;
         loop {
             if layer_num >= self.num_layers {
                 break;
@@ -168,13 +168,13 @@ impl CoordinateDirBuilder {
             if (layer_num_radial_lines / num_radial_chunks * num_concentric_circles)
                 > self.max_cells
             {
-                num_radial_chunks *= 3;
+                num_radial_chunks *= 2;
             }
         }
 
         // Handle the third set of layers, which just subdivide both around the grid and up/down the grid
-        let mut num_concentric_chunks = 3;
-        num_radial_chunks *= 3;
+        let mut num_concentric_chunks = 2;
+        num_radial_chunks *= 2;
         loop {
             if layer_num >= self.num_layers {
                 break;
@@ -214,8 +214,8 @@ impl CoordinateDirBuilder {
                 / num_concentric_chunks)
                 > self.max_cells
             {
-                num_radial_chunks *= 3;
-                num_concentric_chunks *= 3;
+                num_radial_chunks *= 2;
+                num_concentric_chunks *= 2;
             }
         }
 
@@ -302,14 +302,14 @@ impl CoordinateDir {
  * ========================================= */
 impl CoordinateDir {
     pub fn get_chunk_at_idx(&self, chunk_idx: ChunkIjkVector) -> Box<dyn ChunkCoords> {
-        if chunk_idx == ChunkIjkVector::ZERO {
+        if chunk_idx.i == 0 {
             Box::new(self.core_chunk)
         } else {
             Box::new(*self.partial_chunks[chunk_idx.i - 1].get(chunk_idx.to_jk_vector()))
         }
     }
     pub fn get_chunk_bounding_box(&self, chunk_idx: ChunkIjkVector) -> Rect {
-        if chunk_idx == ChunkIjkVector::ZERO {
+        if chunk_idx.i == 0 {
             self.core_chunk.get_bounding_box()
         } else {
             self.partial_chunks[chunk_idx.i - 1]
@@ -318,7 +318,7 @@ impl CoordinateDir {
         }
     }
     pub fn get_chunk_start_radius(&self, chunk_idx: ChunkIjkVector) -> f32 {
-        if chunk_idx == ChunkIjkVector::ZERO {
+        if chunk_idx.i == 0 {
             self.core_chunk.get_start_radius()
         } else {
             self.partial_chunks[chunk_idx.i - 1]
@@ -327,7 +327,7 @@ impl CoordinateDir {
         }
     }
     pub fn get_chunk_end_radius(&self, chunk_idx: ChunkIjkVector) -> f32 {
-        if chunk_idx == ChunkIjkVector::ZERO {
+        if chunk_idx.i == 0 {
             self.core_chunk.get_end_radius()
         } else {
             self.partial_chunks[chunk_idx.i - 1]
@@ -336,7 +336,7 @@ impl CoordinateDir {
         }
     }
     pub fn get_chunk_start_radial_theta(&self, chunk_idx: ChunkIjkVector) -> f32 {
-        if chunk_idx == ChunkIjkVector::ZERO {
+        if chunk_idx.i == 0 {
             self.core_chunk.get_start_radial_theta()
         } else {
             self.partial_chunks[chunk_idx.i - 1]
@@ -345,7 +345,7 @@ impl CoordinateDir {
         }
     }
     pub fn get_chunk_end_radial_theta(&self, chunk_idx: ChunkIjkVector) -> f32 {
-        if chunk_idx == ChunkIjkVector::ZERO {
+        if chunk_idx.i == 0 {
             self.core_chunk.get_end_radial_theta()
         } else {
             self.partial_chunks[chunk_idx.i - 1]
@@ -354,7 +354,7 @@ impl CoordinateDir {
         }
     }
     pub fn get_chunk_num_radial_lines(&self, chunk_idx: ChunkIjkVector) -> usize {
-        if chunk_idx == ChunkIjkVector::ZERO {
+        if chunk_idx.i == 0 {
             self.core_chunk.get_num_radial_lines()
         } else {
             self.partial_chunks[chunk_idx.i - 1]
@@ -363,7 +363,7 @@ impl CoordinateDir {
         }
     }
     pub fn get_chunk_num_concentric_circles(&self, chunk_idx: ChunkIjkVector) -> usize {
-        if chunk_idx == ChunkIjkVector::ZERO {
+        if chunk_idx.i == 0 {
             self.core_chunk.get_num_concentric_circles()
         } else {
             self.partial_chunks[chunk_idx.i - 1]

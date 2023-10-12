@@ -405,7 +405,7 @@ mod tests {
     #[test]
     fn test_first_layer_circle() {
         let vertices = FIRST_LAYER.get_circle_vertexes();
-        assert_eq!(vertices.len(), 13 * 3);
+        assert_eq!(vertices.len(), 13 * 2);
 
         // The inner circle
         // every other vertex is actually an interpolation of the previous layer's num_radial_lines
@@ -464,8 +464,8 @@ mod tests {
             )
         );
 
-        // The middle circle
-        let radius = 2.0;
+        // The outer circle
+        let radius = 3.0;
         let num_radial_lines = 12;
         assert_approx_eq_v2!(vertices[13], Vec2::new(radius, 0.0));
         assert_approx_eq_v2!(
@@ -552,101 +552,12 @@ mod tests {
                 radius * (2.0 * PI * -12.0 / num_radial_lines as f32).sin(),
             )
         );
-
-        // The outer circle
-        let radius = 3.0;
-        let num_radial_lines = 12;
-        assert_approx_eq_v2!(vertices[26], Vec2::new(radius, 0.0));
-        assert_approx_eq_v2!(
-            vertices[27],
-            Vec2::new(
-                radius * (2.0 * PI * -1.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -1.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[28],
-            Vec2::new(
-                radius * (2.0 * PI * -2.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -2.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[29],
-            Vec2::new(
-                radius * (2.0 * PI * -3.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -3.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[30],
-            Vec2::new(
-                radius * (2.0 * PI * -4.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -4.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[31],
-            Vec2::new(
-                radius * (2.0 * PI * -5.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -5.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[32],
-            Vec2::new(
-                radius * (2.0 * PI * -6.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -6.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[33],
-            Vec2::new(
-                radius * (2.0 * PI * -7.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -7.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[34],
-            Vec2::new(
-                radius * (2.0 * PI * -8.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -8.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[35],
-            Vec2::new(
-                radius * (2.0 * PI * -9.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -9.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[36],
-            Vec2::new(
-                radius * (2.0 * PI * -10.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -10.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[37],
-            Vec2::new(
-                radius * (2.0 * PI * -11.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -11.0 / num_radial_lines as f32).sin(),
-            )
-        );
-        assert_approx_eq_v2!(
-            vertices[38],
-            Vec2::new(
-                radius * (2.0 * PI * -12.0 / num_radial_lines as f32).cos(),
-                radius * (2.0 * PI * -12.0 / num_radial_lines as f32).sin(),
-            )
-        );
     }
 
     #[test]
     fn test_first_layer_uv() {
         let uvs = FIRST_LAYER.get_uv_vertexes();
-        assert_eq!(uvs.len(), 13 * 3);
+        assert_eq!(uvs.len(), 13 * 2);
 
         // Test first layer
         let num_radial_lines = 12.0;
@@ -664,109 +575,56 @@ mod tests {
         assert_approx_eq_v2!(uvs[11], Vec2::new(11.0 / num_radial_lines, 0.0));
         assert_approx_eq_v2!(uvs[12], Vec2::new(12.0 / num_radial_lines, 0.0));
 
-        // Middle layer
-        let num_radial_lines = 12.0;
-        let num_concentric_circles = 2.0;
-        assert_approx_eq_v2!(uvs[13], Vec2::new(0.0, 1.0 / num_concentric_circles));
-        assert_approx_eq_v2!(
-            uvs[14],
-            Vec2::new(1.0 / num_radial_lines, 1.0 / num_concentric_circles)
-        );
-        assert_approx_eq_v2!(
-            uvs[15],
-            Vec2::new(2.0 / num_radial_lines, 1.0 / num_concentric_circles)
-        );
-        assert_approx_eq_v2!(
-            uvs[16],
-            Vec2::new(3.0 / num_radial_lines, 1.0 / num_concentric_circles)
-        );
-        assert_approx_eq_v2!(
-            uvs[17],
-            Vec2::new(4.0 / num_radial_lines, 1.0 / num_concentric_circles)
-        );
-        assert_approx_eq_v2!(
-            uvs[18],
-            Vec2::new(5.0 / num_radial_lines, 1.0 / num_concentric_circles)
-        );
-        assert_approx_eq_v2!(
-            uvs[19],
-            Vec2::new(6.0 / num_radial_lines, 1.0 / num_concentric_circles)
-        );
-        assert_approx_eq_v2!(
-            uvs[20],
-            Vec2::new(7.0 / num_radial_lines, 1.0 / num_concentric_circles)
-        );
-        assert_approx_eq_v2!(
-            uvs[21],
-            Vec2::new(8.0 / num_radial_lines, 1.0 / num_concentric_circles)
-        );
-        assert_approx_eq_v2!(
-            uvs[22],
-            Vec2::new(9.0 / num_radial_lines, 1.0 / num_concentric_circles)
-        );
-        assert_approx_eq_v2!(
-            uvs[23],
-            Vec2::new(10.0 / num_radial_lines, 1.0 / num_concentric_circles)
-        );
-        assert_approx_eq_v2!(
-            uvs[24],
-            Vec2::new(11.0 / num_radial_lines, 1.0 / num_concentric_circles)
-        );
-        assert_approx_eq_v2!(
-            uvs[25],
-            Vec2::new(12.0 / num_radial_lines, 1.0 / num_concentric_circles)
-        );
-
         // Outer layer
         let num_radial_lines = 12.0;
         let num_concentric_circles = 2.0;
-        assert_approx_eq_v2!(uvs[26], Vec2::new(0.0, 2.0 / num_concentric_circles));
+        assert_approx_eq_v2!(uvs[13], Vec2::new(0.0, 2.0 / num_concentric_circles));
         assert_approx_eq_v2!(
-            uvs[27],
+            uvs[14],
             Vec2::new(1.0 / num_radial_lines, 2.0 / num_concentric_circles)
         );
         assert_approx_eq_v2!(
-            uvs[28],
+            uvs[15],
             Vec2::new(2.0 / num_radial_lines, 2.0 / num_concentric_circles)
         );
         assert_approx_eq_v2!(
-            uvs[29],
+            uvs[16],
             Vec2::new(3.0 / num_radial_lines, 2.0 / num_concentric_circles)
         );
         assert_approx_eq_v2!(
-            uvs[30],
+            uvs[17],
             Vec2::new(4.0 / num_radial_lines, 2.0 / num_concentric_circles)
         );
         assert_approx_eq_v2!(
-            uvs[31],
+            uvs[18],
             Vec2::new(5.0 / num_radial_lines, 2.0 / num_concentric_circles)
         );
         assert_approx_eq_v2!(
-            uvs[32],
+            uvs[19],
             Vec2::new(6.0 / num_radial_lines, 2.0 / num_concentric_circles)
         );
         assert_approx_eq_v2!(
-            uvs[33],
+            uvs[20],
             Vec2::new(7.0 / num_radial_lines, 2.0 / num_concentric_circles)
         );
         assert_approx_eq_v2!(
-            uvs[34],
+            uvs[21],
             Vec2::new(8.0 / num_radial_lines, 2.0 / num_concentric_circles)
         );
         assert_approx_eq_v2!(
-            uvs[35],
+            uvs[22],
             Vec2::new(9.0 / num_radial_lines, 2.0 / num_concentric_circles)
         );
         assert_approx_eq_v2!(
-            uvs[36],
+            uvs[23],
             Vec2::new(10.0 / num_radial_lines, 2.0 / num_concentric_circles)
         );
         assert_approx_eq_v2!(
-            uvs[37],
+            uvs[24],
             Vec2::new(11.0 / num_radial_lines, 2.0 / num_concentric_circles)
         );
         assert_approx_eq_v2!(
-            uvs[38],
+            uvs[25],
             Vec2::new(12.0 / num_radial_lines, 2.0 / num_concentric_circles)
         );
     }
@@ -774,22 +632,11 @@ mod tests {
     #[test]
     fn test_first_layer_indices() {
         let indices = FIRST_LAYER.get_indices();
-        assert_eq!(indices.len(), 12 * 2 * 6);
+        assert_eq!(indices.len(), 12 * 6);
 
         // The first concentric circle
         let mut j = 0;
         for i in 0..12u32 {
-            assert_eq!(indices[j], i, "i: {}", i);
-            assert_eq!(indices[j + 1], i + 13u32, "i: {}", i);
-            assert_eq!(indices[j + 2], i + 1u32, "i: {}", i);
-            assert_eq!(indices[j + 3], i + 1u32, "i: {}", i);
-            assert_eq!(indices[j + 4], i + 13u32, "i: {}", i);
-            assert_eq!(indices[j + 5], i + 14u32, "i: {}", i);
-            j += 6;
-        }
-
-        // The second concentric circle
-        for i in 13..25u32 {
             assert_eq!(indices[j], i, "i: {}", i);
             assert_eq!(indices[j + 1], i + 13u32, "i: {}", i);
             assert_eq!(indices[j + 2], i + 1u32, "i: {}", i);

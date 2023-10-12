@@ -25,8 +25,8 @@ impl ElementGridDir {
         let mut chunks: Vec<Grid<Option<ElementGrid>>> =
             Vec::with_capacity(coords.get_num_layers());
         for i in 0..coords.get_num_chunks() {
-            let j_size = coords.get_layer_num_concentric_circles(i);
-            let k_size = coords.get_layer_num_radial_lines(i);
+            let j_size = coords.get_chunk_layer_num_concentric_circles(i);
+            let k_size = coords.get_chunk_layer_num_radial_lines(i);
             let mut layer = Grid::new_empty(k_size, j_size);
             for j in 0..j_size {
                 for k in 0..k_size {
@@ -262,8 +262,8 @@ impl ElementGridDir {
     pub fn get_textures(&self) -> Vec<RawImage> {
         (0..self.coords.get_num_layers())
             .flat_map(|i| {
-                let j_range = 0..self.coords.get_layer_num_concentric_circles(i);
-                let k_range = 0..self.coords.get_layer_num_radial_lines(i);
+                let j_range = 0..self.coords.get_chunk_layer_num_concentric_circles(i);
+                let k_range = 0..self.coords.get_chunk_layer_num_radial_lines(i);
                 j_range
                     .cartesian_product(k_range)
                     .map(move |(j, k)| (i, j, k))
