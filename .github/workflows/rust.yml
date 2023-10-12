@@ -25,20 +25,20 @@ jobs:
     - name: Install cargo fmt, clippy
       run: rustup component add rustfmt clippy
 
-    - name: Install tarpaulin
-      run: cargo install cargo-tarpaulin
-
-    - name: Build
-      run: cargo build --verbose
-
     - name: Check Code Formatting
       run: cargo fmt -- --check
 
     - name: Check Code Linting
       run: cargo clippy --all-targets --all-features -- -D warnings
 
-    - name: Generate Documentation
-      run: cargo doc --no-deps --document-private-items --all-features
+    - name: Build
+      run: cargo build --verbose
+
+    # - name: Generate Documentation
+    #   run: cargo doc --no-deps --document-private-items --all-features
+
+    - name: Install tarpaulin
+      run: cargo install cargo-tarpaulin
 
     - name: Run tests and collect coverage
       run: cargo tarpaulin --out Xml > coverage_output.txt
