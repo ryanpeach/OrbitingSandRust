@@ -47,7 +47,7 @@ impl ChunkIjkVector {
 
 /// Convienient conversions between coordinate types
 impl ChunkIjkVector {
-    pub fn to_jk_vector(&self) -> JkVector {
+    pub fn to_jk_vector(self) -> JkVector {
         JkVector {
             j: self.j,
             k: self.k,

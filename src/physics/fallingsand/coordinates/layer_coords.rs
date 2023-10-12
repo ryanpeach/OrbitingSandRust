@@ -247,7 +247,7 @@ impl PartialLayerChunkCoords {
     }
 
     fn get_indices(&self) -> Vec<u32> {
-        let j_iter = [0, self.get_num_concentric_circles() + 1];
+        let _j_iter = [0, self.get_num_concentric_circles() + 1];
         let j_count = 2;
         let k_iter = 0..(self.get_num_radial_lines() + 1);
         let k_count = k_iter.len();

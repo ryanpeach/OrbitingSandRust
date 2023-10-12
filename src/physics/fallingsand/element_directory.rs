@@ -1,5 +1,4 @@
 use uom::si::f64::Time;
-use uom::si::time::second;
 
 use super::coordinates::coordinate_directory::CoordinateDir;
 use super::element_convolution::{ElementGridConvolution, ElementGridConvolutionChunkIdx};
@@ -72,43 +71,37 @@ impl ElementGridDir {
     }
 
     // TODO: This needs testing
-    fn get_neighbors(&self, coord: ChunkIjkVector) -> ElementGridConvolutionChunkIdx {
+    fn get_neighbors(&self, _coord: ChunkIjkVector) -> ElementGridConvolutionChunkIdx {
         unimplemented!()
     }
 
-    /// Packages the neighbors of a chunk into a convolution object
     fn package_this_convolution(&mut self, coord: ChunkIjkVector) -> ElementGridConvolution {
         let neighbors = self.get_neighbors(coord);
-        let t1: Option<ElementGrid> = match neighbors.t1 {
-            Some(x) => Some(std::mem::take(self.get_chunk_by_chunk_ijk_mut(x))),
-            None => None,
-        };
-        let t2: Option<ElementGrid> = match neighbors.t2 {
-            Some(x) => Some(std::mem::take(self.get_chunk_by_chunk_ijk_mut(x))),
-            None => None,
-        };
-        let tl: Option<ElementGrid> = match neighbors.tl {
-            Some(x) => Some(std::mem::take(self.get_chunk_by_chunk_ijk_mut(x))),
-            None => None,
-        };
-        let tr: Option<ElementGrid> = match neighbors.tr {
-            Some(x) => Some(std::mem::take(self.get_chunk_by_chunk_ijk_mut(x))),
-            None => None,
-        };
-        let l: ElementGrid = std::mem::take(self.get_chunk_by_chunk_ijk_mut(neighbors.l));
-        let r: ElementGrid = std::mem::take(self.get_chunk_by_chunk_ijk_mut(neighbors.r));
-        let bl: Option<ElementGrid> = match neighbors.bl {
-            Some(x) => Some(std::mem::take(self.get_chunk_by_chunk_ijk_mut(x))),
-            None => None,
-        };
-        let b: Option<ElementGrid> = match neighbors.b {
-            Some(x) => Some(std::mem::take(self.get_chunk_by_chunk_ijk_mut(x))),
-            None => None,
-        };
-        let br: Option<ElementGrid> = match neighbors.br {
-            Some(x) => Some(std::mem::take(self.get_chunk_by_chunk_ijk_mut(x))),
-            None => None,
-        };
+
+        let t1 = neighbors
+            .t1
+            .map(|x| std::mem::take(self.get_chunk_by_chunk_ijk_mut(x)));
+        let t2 = neighbors
+            .t2
+            .map(|x| std::mem::take(self.get_chunk_by_chunk_ijk_mut(x)));
+        let tl = neighbors
+            .tl
+            .map(|x| std::mem::take(self.get_chunk_by_chunk_ijk_mut(x)));
+        let tr = neighbors
+            .tr
+            .map(|x| std::mem::take(self.get_chunk_by_chunk_ijk_mut(x)));
+        let l = std::mem::take(self.get_chunk_by_chunk_ijk_mut(neighbors.l));
+        let r = std::mem::take(self.get_chunk_by_chunk_ijk_mut(neighbors.r));
+        let bl = neighbors
+            .bl
+            .map(|x| std::mem::take(self.get_chunk_by_chunk_ijk_mut(x)));
+        let b = neighbors
+            .b
+            .map(|x| std::mem::take(self.get_chunk_by_chunk_ijk_mut(x)));
+        let br = neighbors
+            .br
+            .map(|x| std::mem::take(self.get_chunk_by_chunk_ijk_mut(x)));
+
         ElementGridConvolution {
             t1,
             t2,

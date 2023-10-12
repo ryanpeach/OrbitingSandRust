@@ -8,7 +8,6 @@ use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use super::camera::Camera;
 
 use uom::si::f64::*;
-use uom::si::time::second;
 
 /// Acts as a cache for a radial mesh's meshes and textures
 pub struct Celestial {
@@ -38,7 +37,7 @@ impl Celestial {
         out
     }
     pub fn update(&mut self) {
-        let res = 31;
+        let _res = 31;
         self.all_meshes = self
             .element_grid_dir
             .get_coordinate_dir()

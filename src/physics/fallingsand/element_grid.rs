@@ -1,6 +1,5 @@
 use ggez::graphics::Rect;
 use uom::si::f64::Time;
-use uom::si::time::second;
 
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::elements::element::Element;
@@ -22,7 +21,7 @@ pub struct ElementGrid {
 /// Useful for borrowing the grid to have a default value of one
 impl Default for ElementGrid {
     fn default() -> Self {
-        Self::new_empty(Box::new(CoreChunkCoords::default()))
+        Self::new_empty(Box::<CoreChunkCoords>::default())
     }
 }
 
@@ -56,6 +55,7 @@ impl ElementGrid {
     pub fn set_already_processed(&mut self, already_processed: bool) {
         self.already_processed = already_processed;
     }
+    #[allow(clippy::borrowed_box)]
     pub fn get_chunk_coords(&self) -> &Box<dyn ChunkCoords> {
         &self.coords
     }
@@ -67,6 +67,7 @@ impl ElementGrid {
 /* Handle processing */
 impl ElementGrid {
     /// Do one iteration of processing on the grid
+    #[allow(clippy::mem_replace_with_default)]
     pub fn process(&mut self, element_grid_conv: &mut ElementGridConvolution, delta: Time) {
         let already_processed = self.get_already_processed();
         debug_assert!(!already_processed, "Already processed");
@@ -77,7 +78,7 @@ impl ElementGrid {
                     Box::<Vacuum>::default(),
                 );
                 element.process(self, element_grid_conv, delta);
-                std::mem::replace(self.grid.get_mut(JkVector { j, k }), element);
+                self.grid.replace(JkVector { j, k }, element);
             }
         }
     }

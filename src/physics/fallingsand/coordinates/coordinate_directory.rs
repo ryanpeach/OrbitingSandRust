@@ -385,7 +385,7 @@ impl CoordinateDir {
         if concentric_circle == 0 {
             (0, 0)
         } else {
-            let mut layer_num = 1;
+            let layer_num = 1;
             loop {
                 let start_concentric_circle_abs =
                     self.get_layer_start_concentric_circle_absolute(layer_num);
@@ -489,7 +489,7 @@ impl CoordinateDir {
         &self.core_chunk
     }
     /// Useful for getting all the partial chunks, useful for getting their shapes
-    pub fn get_partial_chunks(&self, layer_num: usize) -> &Vec<Grid<PartialLayerChunkCoords>> {
+    pub fn get_partial_chunks(&self, _layer_num: usize) -> &Vec<Grid<PartialLayerChunkCoords>> {
         &self.partial_chunks
     }
     /// The number of concentric circles in a given layer

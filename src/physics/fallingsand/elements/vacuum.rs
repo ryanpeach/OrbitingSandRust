@@ -1,5 +1,5 @@
 use ggez::graphics::Color;
-use uom::si::{f64::Time, time::second};
+use uom::si::f64::Time;
 
 use super::element::Element;
 use crate::physics::fallingsand::element_convolution::ElementGridConvolution;
