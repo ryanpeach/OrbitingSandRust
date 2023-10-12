@@ -5,6 +5,7 @@ use ggez::graphics::Rect;
 use ggez::graphics::Vertex;
 
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
+use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 
 /// A set of coordinates that tell you where on the circle a chunk is located
 /// and how big it is. Also provides methods for drawing the mesh.
@@ -25,6 +26,7 @@ pub trait ChunkCoords: Send + Sync {
     /* Position on the Circle */
     fn get_bounding_box(&self) -> Rect;
     fn get_layer_num(&self) -> usize;
+    fn get_chunk_idx(&self) -> ChunkIjkVector;
     fn get_cell_radius(&self) -> f32;
     fn get_start_radius(&self) -> f32;
     fn get_end_radius(&self) -> f32;

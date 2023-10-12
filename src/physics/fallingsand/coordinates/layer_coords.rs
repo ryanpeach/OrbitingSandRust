@@ -1,6 +1,7 @@
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::functions::interpolate_points;
 use crate::physics::fallingsand::util::image::RawImage;
+use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use ggez::glam::Vec2;
 use ggez::graphics::{Color, Rect};
 
@@ -11,7 +12,7 @@ use std::f32::consts::PI;
 #[derive(Debug, Clone, Copy, Default)]
 pub struct PartialLayerChunkCoords {
     cell_radius: f32,
-    layer_num: usize,
+    chunk_idx: ChunkIjkVector,
     start_concentric_circle_layer_relative: usize,
     start_concentric_circle_absolute: usize,
     start_radial_line: usize,
@@ -22,7 +23,7 @@ pub struct PartialLayerChunkCoords {
 
 pub struct PartialLayerChunkCoordsBuilder {
     cell_radius: f32,
-    layer_num: usize,
+    chunk_idx: ChunkIjkVector,
     start_concentric_circle_layer_relative: usize,
     start_concentric_circle_absolute: usize,
     start_radial_line: usize,
@@ -36,7 +37,7 @@ impl PartialLayerChunkCoordsBuilder {
     pub fn new() -> PartialLayerChunkCoordsBuilder {
         PartialLayerChunkCoordsBuilder {
             cell_radius: 1.0,
-            layer_num: 0,
+            chunk_idx: ChunkIjkVector::ZERO,
             start_concentric_circle_layer_relative: 0,
             start_concentric_circle_absolute: 0,
             start_radial_line: 0,
@@ -78,8 +79,8 @@ impl PartialLayerChunkCoordsBuilder {
         self
     }
 
-    pub fn layer_num(mut self, layer_num: usize) -> PartialLayerChunkCoordsBuilder {
-        self.layer_num = layer_num;
+    pub fn chunk_idx(mut self, chunk_idx: ChunkIjkVector) -> PartialLayerChunkCoordsBuilder {
+        self.chunk_idx = chunk_idx;
         self
     }
 
@@ -107,7 +108,6 @@ impl PartialLayerChunkCoordsBuilder {
         debug_assert_ne!(self.num_concentric_circles, 0);
         debug_assert_ne!(self.start_concentric_circle_absolute, 0);
         debug_assert_ne!(self.layer_num_radial_lines, 0);
-        debug_assert_ne!(self.layer_num, 0);
         debug_assert_ne!(self.end_radial_line, 0);
         PartialLayerChunkCoords {
             cell_radius: self.cell_radius,
@@ -115,7 +115,7 @@ impl PartialLayerChunkCoordsBuilder {
             start_concentric_circle_absolute: self.start_concentric_circle_absolute,
             start_radial_line: self.start_radial_line,
             end_radial_line: self.end_radial_line,
-            layer_num: self.layer_num,
+            chunk_idx: self.chunk_idx,
             layer_num_radial_lines: self.layer_num_radial_lines,
             num_concentric_circles: self.num_concentric_circles,
         }
@@ -365,7 +365,10 @@ impl ChunkCoords for PartialLayerChunkCoords {
         self.start_radial_line
     }
     fn get_layer_num(&self) -> usize {
-        self.layer_num
+        self.chunk_idx.i
+    }
+    fn get_chunk_idx(&self) -> ChunkIjkVector {
+        self.chunk_idx
     }
     fn get_bounding_box(&self) -> Rect {
         self.get_bounding_box()
@@ -394,7 +397,7 @@ mod tests {
     const FIRST_LAYER: PartialLayerChunkCoords = PartialLayerChunkCoords {
         cell_radius: 1.0,
         num_concentric_circles: 2,
-        layer_num: 1,
+        chunk_idx: ChunkIjkVector { i: 1, j: 0, k: 0 },
         start_concentric_circle_layer_relative: 0,
         start_radial_line: 0,
         end_radial_line: 12,
@@ -650,7 +653,7 @@ mod tests {
     const FIRST_LAYER_PARTIAL: PartialLayerChunkCoords = PartialLayerChunkCoords {
         cell_radius: 1.0,
         num_concentric_circles: 1,
-        layer_num: 1,
+        chunk_idx: ChunkIjkVector { i: 1, j: 0, k: 0 },
         start_concentric_circle_layer_relative: 1,
         start_concentric_circle_absolute: 2,
         start_radial_line: 6,

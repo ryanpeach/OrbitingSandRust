@@ -33,11 +33,18 @@ impl IjkVector {
 /// perportional to the cells within the chunk
 /// Eg: The chunk on the 3rd layer, two chunks up and one chunk around would be
 /// > ChunkIjkVector { i: 3, j: 2, k: 1 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct ChunkIjkVector {
     pub i: usize,
     pub j: usize,
     pub k: usize,
+}
+
+/// Instantiation
+impl ChunkIjkVector {
+    pub fn new(i: usize, j: usize, k: usize) -> Self {
+        Self { i, j, k }
+    }
 }
 
 /// Convienient constants

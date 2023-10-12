@@ -1,5 +1,10 @@
 use ggez::glam::Vec2;
 
+/// A modulo that works for negative numbers
+pub fn modulo(x: isize, y: isize) -> isize {
+    ((x % y) + y) % y
+}
+
 /// Tests if a number is a power of 2
 /// I found it's important that some values are powers of two in order to enable grid_iter to work
 pub fn is_pow_2(n: usize) -> bool {

@@ -1,4 +1,5 @@
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
+use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use ggez::glam::Vec2;
 use ggez::graphics::{Color, Rect};
 
@@ -142,6 +143,9 @@ impl ChunkCoords for CoreChunkCoords {
     }
     fn get_layer_num(&self) -> usize {
         0
+    }
+    fn get_chunk_idx(&self) -> ChunkIjkVector {
+        ChunkIjkVector::ZERO
     }
     fn get_end_radius(&self) -> f32 {
         self.radius

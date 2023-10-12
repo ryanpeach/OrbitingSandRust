@@ -105,13 +105,17 @@ impl CoordinateDirBuilder {
             }
             let next_layer = PartialLayerChunkCoordsBuilder::new()
                 .cell_radius(self.cell_radius)
-                .layer_num(layer_num)
                 .layer_num_radial_lines(layer_num_radial_lines)
                 .num_concentric_circles(num_concentric_circles)
                 .start_concentric_circle_absolute(start_concentric_circle_absolute)
                 .start_concentric_circle_layer_relative(0)
                 .start_radial_line(0)
                 .end_radial_line(layer_num_radial_lines)
+                .chunk_idx(ChunkIjkVector {
+                    i: layer_num,
+                    j: 0,
+                    k: 0,
+                })
                 .build();
             debug_assert!(next_layer.total_size() <= self.max_cells);
             partial_chunks.push(Grid::new(1, 1, vec![next_layer]));
@@ -137,16 +141,20 @@ impl CoordinateDirBuilder {
 
             // TODO: Check this
             let mut layer_partial_chunks = Vec::with_capacity(num_radial_chunks);
-            for i in 0..num_radial_chunks {
+            for k in 0..num_radial_chunks {
                 let next_layer = PartialLayerChunkCoordsBuilder::new()
                     .cell_radius(self.cell_radius)
                     .layer_num_radial_lines(layer_num_radial_lines)
-                    .layer_num(layer_num)
+                    .chunk_idx(ChunkIjkVector {
+                        i: layer_num,
+                        j: 0,
+                        k,
+                    })
                     .num_concentric_circles(num_concentric_circles)
                     .start_concentric_circle_absolute(start_concentric_circle_absolute)
                     .start_concentric_circle_layer_relative(0)
-                    .start_radial_line(i * (layer_num_radial_lines / num_radial_chunks))
-                    .end_radial_line((i + 1) * (layer_num_radial_lines / num_radial_chunks))
+                    .start_radial_line(k * (layer_num_radial_lines / num_radial_chunks))
+                    .end_radial_line((k + 1) * (layer_num_radial_lines / num_radial_chunks))
                     .build();
                 debug_assert!(next_layer.total_size() <= self.max_cells);
                 layer_partial_chunks.push(next_layer);
@@ -188,7 +196,7 @@ impl CoordinateDirBuilder {
                     let next_layer = PartialLayerChunkCoordsBuilder::new()
                         .cell_radius(self.cell_radius)
                         .layer_num_radial_lines(layer_num_radial_lines)
-                        .layer_num(layer_num)
+                        .chunk_idx(ChunkIjkVector { i: layer_num, j, k })
                         .num_concentric_circles(num_concentric_circles / num_concentric_chunks)
                         .start_concentric_circle_absolute(start_concentric_circle_absolute)
                         .start_concentric_circle_layer_relative(
