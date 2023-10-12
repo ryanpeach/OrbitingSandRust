@@ -3,12 +3,16 @@
 use ggegui::{egui, Gui};
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
-use ggez::glam::*;
+use ggez::glam::Vec2;
 use ggez::graphics::{self, DrawParam, FilterMode, Mesh, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
-use physics::fallingsand::util::{MeshDrawMode, ZoomDrawMode};
+use physics::fallingsand::element_directory::ElementGridDir;
+use physics::fallingsand::util::enums::{MeshDrawMode, ZoomDrawMode};
+
+use uom::si::f64::*;
+use uom::si::time::second;
 
 use crate::nodes::camera::Camera;
 use crate::nodes::celestial::Celestial;
@@ -50,10 +54,11 @@ impl MainState {
             .cell_radius(1.0)
             .num_layers(11)
             .first_num_radial_lines(6)
-            .second_num_concentric_circles(2)
+            .second_num_concentric_circles(3)
             .build();
+        let element_grid_dir = ElementGridDir::new_empty(coordinate_dir);
 
-        let celestial = Celestial::new(coordinate_dir, MeshDrawMode::TexturedMesh);
+        let celestial = Celestial::new(element_grid_dir, MeshDrawMode::TexturedMesh);
         let _screen_size = ctx.gfx.drawable_size();
         let camera = Camera::new(Vec2::new(_screen_size.0, _screen_size.1));
         Ok(MainState {
@@ -110,7 +115,9 @@ impl EventHandler<ggez::GameError> for MainState {
             self.celestial.set_draw_mode(mesh_draw_mode);
             self.mesh_draw_mode = mesh_draw_mode;
         }
-
+        let delta_time = ctx.time.delta().as_secs_f64();
+        let _delta_time_sec = Time::new::<second>(delta_time);
+        // self.celestial.process(delta_time_sec);
         Ok(())
     }
 

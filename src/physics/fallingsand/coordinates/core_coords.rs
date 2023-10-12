@@ -4,7 +4,7 @@ use ggez::graphics::{Color, Rect};
 
 use std::f32::consts::PI;
 
-use crate::physics::fallingsand::util::RawImage;
+use crate::physics::fallingsand::util::image::RawImage;
 
 /// The core is always the first layer
 /// It defines the radius of all future layers cell_radius
@@ -123,25 +123,25 @@ impl ChunkCoords for CoreChunkCoords {
         self.get_outline()
     }
     /// Res does not matter at all for the core chunk
-    fn get_positions(&self, _res: u16) -> Vec<Vec2> {
+    fn get_positions(&self) -> Vec<Vec2> {
         self.get_positions()
     }
     /// Res does not matter at all for the core chunk
-    fn get_indices(&self, _res: u16) -> Vec<u32> {
+    fn get_indices(&self) -> Vec<u32> {
         self.get_indices()
     }
     /// Res does not matter at all for the core chunk
-    fn get_uvs(&self, _res: u16) -> Vec<Vec2> {
+    fn get_uvs(&self) -> Vec<Vec2> {
         self.get_uvs()
-    }
-    fn get_texture(&self, _res: u16) -> RawImage {
-        self.get_texture()
     }
     fn get_cell_radius(&self) -> f32 {
         self.radius
     }
     fn get_start_radius(&self) -> f32 {
         0.0
+    }
+    fn get_layer_num(&self) -> usize {
+        0
     }
     fn get_end_radius(&self) -> f32 {
         self.radius
@@ -167,7 +167,7 @@ impl ChunkCoords for CoreChunkCoords {
     fn get_end_concentric_circle_absolute(&self) -> usize {
         1
     }
-    fn get_end_concentric_circle_relative(&self) -> usize {
+    fn get_end_concentric_circle_layer_relative(&self) -> usize {
         1
     }
     fn get_end_radial_line(&self) -> usize {
