@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use uom::si::f64::Time;
 
 use super::coordinates::coordinate_directory::CoordinateDir;
@@ -94,12 +92,12 @@ impl ElementGridDir {
     }
 
     // TODO: This needs testing
-    fn get_chunk_top_neighbors(&self, coord: ChunkIjkVector) -> HashSet<ChunkIjkVector> {
+    fn get_chunk_top_neighbors(&self, coord: ChunkIjkVector) -> ElementGridConvolutionChunkIdx {
         let top_chunk_in_layer = self.coords.get_chunk_layer_num_concentric_circles(coord.i);
         let top_layer = self.coords.get_num_layers() - 1;
         let radial_lines = |i: usize| self.coords.get_chunk_layer_num_radial_lines(i);
         let k_isize = coord.k as isize;
-        let mut out: HashSet<ChunkIjkVector> = HashSet::new();
+        let mut out: ElementGridConvolutionChunkIdx = ElementGridConvolutionChunkIdx::new();
 
         let mut make_vector = |i: usize, j: usize, k: isize| {
             let this = ChunkIjkVector {
@@ -139,8 +137,11 @@ impl ElementGridDir {
     }
 
     // TODO: This needs testing
-    fn get_chunk_left_right_neighbors(&self, coord: ChunkIjkVector) -> HashSet<ChunkIjkVector> {
-        let mut out: HashSet<ChunkIjkVector> = HashSet::new();
+    fn get_chunk_left_right_neighbors(
+        &self,
+        coord: ChunkIjkVector,
+    ) -> ElementGridConvolutionChunkIdx {
+        let mut out: ElementGridConvolutionChunkIdx = ElementGridConvolutionChunkIdx::new();
         let left = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
@@ -163,14 +164,14 @@ impl ElementGridDir {
     }
 
     // TODO: This needs testing
-    fn get_chunk_bottom_neighbors(&self, coord: ChunkIjkVector) -> HashSet<ChunkIjkVector> {
+    fn get_chunk_bottom_neighbors(&self, coord: ChunkIjkVector) -> ElementGridConvolutionChunkIdx {
         let bottom_chunk_in_layer = 0usize;
         let bottom_layer = 0usize;
         let radial_lines = |i: usize| self.coords.get_chunk_layer_num_radial_lines(i);
         let top_chunk_in_prev_layer =
             |i: usize| self.coords.get_chunk_layer_num_concentric_circles(i - 1) - 1;
         let k_isize = coord.k as isize;
-        let mut out: HashSet<ChunkIjkVector> = HashSet::new();
+        let mut out: ElementGridConvolutionChunkIdx = ElementGridConvolutionChunkIdx::new();
 
         let mut make_vector = |i: usize, j: usize, k: isize| {
             let this = ChunkIjkVector {
@@ -206,9 +207,9 @@ impl ElementGridDir {
         let lr = self.get_chunk_left_right_neighbors(coord);
         let bottom = self.get_chunk_bottom_neighbors(coord);
         let mut out = ElementGridConvolutionChunkIdx::new();
-        out.neighbors.extend(top);
-        out.neighbors.extend(lr);
-        out.neighbors.extend(bottom);
+        out.extend(top);
+        out.extend(lr);
+        out.extend(bottom);
         out
     }
 
@@ -216,11 +217,11 @@ impl ElementGridDir {
         println!("Packaging convolution for chunk {:?}", coord);
         let neighbors = self.get_chunk_neighbors(coord);
         let mut out = ElementGridConvolution::new();
-        for neighbor in neighbors.neighbors {
+        for neighbor in neighbors {
             let chunk = self.chunks[neighbor.i]
                 .replace(neighbor.to_jk_vector(), None)
                 .unwrap();
-            out.get_neighbors_mut().insert(neighbor, chunk);
+            out.insert(neighbor, chunk);
         }
         out
     }
@@ -270,7 +271,7 @@ impl ElementGridDir {
                 Some(target_chunk),
             );
             debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
-            for (neighbor_idx, neighbor) in this_conv.take_neighbors() {
+            for (neighbor_idx, neighbor) in this_conv.into_iter() {
                 let prev = self.chunks[neighbor_idx.i]
                     .replace(neighbor_idx.to_jk_vector(), Some(neighbor));
                 debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
