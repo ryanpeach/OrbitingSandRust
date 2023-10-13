@@ -90,6 +90,8 @@ impl ElementGrid {
                     Box::<Vacuum>::default(),
                 );
 
+                // You have to send self and element_grid_conv_neigh my reference instead of packaging them together in an object
+                // because you are borrowing both. Without using a lifetime you can't package a borrow.
                 let res = element.process(pos, self, element_grid_conv_neigh, delta);
 
                 // The reason we return options instead of passing the element to process by value (letting it put itself back) is twofold
@@ -99,7 +101,7 @@ impl ElementGrid {
                 // It was really complicated to get this to work, so I'm not going to change it.
                 // If you try to change it, increment this counter by how may hours you spent trying to change it
                 //
-                // 1h wasted
+                // +1h wasted
                 //
                 match res {
                     ElementTakeOptions::PutBack => {
