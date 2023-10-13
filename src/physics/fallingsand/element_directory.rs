@@ -1,7 +1,9 @@
 use uom::si::f64::Time;
 
 use super::coordinates::coordinate_directory::CoordinateDir;
-use super::element_convolution::{ElementGridConvolution, ElementGridConvolutionChunkIdx};
+use super::element_convolution::{
+    ElementGridConvolutionNeighbors, ElementGridConvolutionNeighborsChunkIdx,
+};
 use super::element_grid::ElementGrid;
 use super::util::functions::modulo;
 use super::util::grid::Grid;
@@ -92,12 +94,16 @@ impl ElementGridDir {
     }
 
     // TODO: This needs testing
-    fn get_chunk_top_neighbors(&self, coord: ChunkIjkVector) -> ElementGridConvolutionChunkIdx {
+    fn get_chunk_top_neighbors(
+        &self,
+        coord: ChunkIjkVector,
+    ) -> ElementGridConvolutionNeighborsChunkIdx {
         let top_chunk_in_layer = self.coords.get_chunk_layer_num_concentric_circles(coord.i);
         let top_layer = self.coords.get_num_layers() - 1;
         let radial_lines = |i: usize| self.coords.get_chunk_layer_num_radial_lines(i);
         let k_isize = coord.k as isize;
-        let mut out: ElementGridConvolutionChunkIdx = ElementGridConvolutionChunkIdx::new();
+        let mut out: ElementGridConvolutionNeighborsChunkIdx =
+            ElementGridConvolutionNeighborsChunkIdx::new();
 
         let mut make_vector = |i: usize, j: usize, k: isize| {
             let this = ChunkIjkVector {
@@ -140,8 +146,9 @@ impl ElementGridDir {
     fn get_chunk_left_right_neighbors(
         &self,
         coord: ChunkIjkVector,
-    ) -> ElementGridConvolutionChunkIdx {
-        let mut out: ElementGridConvolutionChunkIdx = ElementGridConvolutionChunkIdx::new();
+    ) -> ElementGridConvolutionNeighborsChunkIdx {
+        let mut out: ElementGridConvolutionNeighborsChunkIdx =
+            ElementGridConvolutionNeighborsChunkIdx::new();
         let left = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
@@ -164,14 +171,18 @@ impl ElementGridDir {
     }
 
     // TODO: This needs testing
-    fn get_chunk_bottom_neighbors(&self, coord: ChunkIjkVector) -> ElementGridConvolutionChunkIdx {
+    fn get_chunk_bottom_neighbors(
+        &self,
+        coord: ChunkIjkVector,
+    ) -> ElementGridConvolutionNeighborsChunkIdx {
         let bottom_chunk_in_layer = 0usize;
         let bottom_layer = 0usize;
         let radial_lines = |i: usize| self.coords.get_chunk_layer_num_radial_lines(i);
         let top_chunk_in_prev_layer =
             |i: usize| self.coords.get_chunk_layer_num_concentric_circles(i - 1) - 1;
         let k_isize = coord.k as isize;
-        let mut out: ElementGridConvolutionChunkIdx = ElementGridConvolutionChunkIdx::new();
+        let mut out: ElementGridConvolutionNeighborsChunkIdx =
+            ElementGridConvolutionNeighborsChunkIdx::new();
 
         let mut make_vector = |i: usize, j: usize, k: isize| {
             let this = ChunkIjkVector {
@@ -202,21 +213,27 @@ impl ElementGridDir {
         out
     }
 
-    fn get_chunk_neighbors(&self, coord: ChunkIjkVector) -> ElementGridConvolutionChunkIdx {
+    fn get_chunk_neighbors(
+        &self,
+        coord: ChunkIjkVector,
+    ) -> ElementGridConvolutionNeighborsChunkIdx {
         let top = self.get_chunk_top_neighbors(coord);
         let lr = self.get_chunk_left_right_neighbors(coord);
         let bottom = self.get_chunk_bottom_neighbors(coord);
-        let mut out = ElementGridConvolutionChunkIdx::new();
+        let mut out = ElementGridConvolutionNeighborsChunkIdx::new();
         out.extend(top);
         out.extend(lr);
         out.extend(bottom);
         out
     }
 
-    fn package_this_convolution(&mut self, coord: ChunkIjkVector) -> ElementGridConvolution {
+    fn package_this_convolution(
+        &mut self,
+        coord: ChunkIjkVector,
+    ) -> ElementGridConvolutionNeighbors {
         println!("Packaging convolution for chunk {:?}", coord);
         let neighbors = self.get_chunk_neighbors(coord);
-        let mut out = ElementGridConvolution::new();
+        let mut out = ElementGridConvolutionNeighbors::new();
         for neighbor in neighbors {
             let chunk = self.chunks[neighbor.i]
                 .replace(neighbor.to_jk_vector(), None)
@@ -229,7 +246,7 @@ impl ElementGridDir {
     // This takes ownership of the chunk and all its neighbors from the directory
     // and puts them into a target vector and a vector of convolutions
     // The taget vector and convolution vectors will then be iterated on in parallel
-    fn package_convolutions(&mut self) -> (Vec<ElementGridConvolution>, Vec<ElementGrid>) {
+    fn package_convolutions(&mut self) -> (Vec<ElementGridConvolutionNeighbors>, Vec<ElementGrid>) {
         let target_chunk_coords = self.get_next_targets();
 
         let mut convolutions = Vec::new();
@@ -252,7 +269,7 @@ impl ElementGridDir {
     /// This is easy because all elementgrids contain a coordinate
     fn unpackage_convolutions(
         &mut self,
-        convolutions: Vec<ElementGridConvolution>,
+        convolutions: Vec<ElementGridConvolutionNeighbors>,
         target_chunks: Vec<ElementGrid>,
     ) {
         for (mut target_chunk, this_conv) in target_chunks.into_iter().zip(convolutions.into_iter())

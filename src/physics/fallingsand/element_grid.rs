@@ -6,7 +6,7 @@ use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions
 use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
 
 use super::coordinates::core_coords::CoreChunkCoords;
-use super::element_convolution::ElementGridConvolution;
+use super::element_convolution::ElementGridConvolutionNeighbors;
 use super::elements::vacuum::Vacuum;
 use super::util::grid::Grid;
 use super::util::image::RawImage;
@@ -68,7 +68,11 @@ impl ElementGrid {
 impl ElementGrid {
     /// Do one iteration of processing on the grid
     #[allow(clippy::mem_replace_with_default)]
-    pub fn process(&mut self, element_grid_conv: &mut ElementGridConvolution, delta: Time) {
+    pub fn process(
+        &mut self,
+        element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
+        delta: Time,
+    ) {
         let already_processed = self.get_already_processed();
         debug_assert!(!already_processed, "Already processed");
         for j in 0..self.coords.get_num_concentric_circles() {
@@ -86,7 +90,7 @@ impl ElementGrid {
                     Box::<Vacuum>::default(),
                 );
 
-                let res = element.process(pos, self, element_grid_conv, delta);
+                let res = element.process(pos, self, element_grid_conv_neigh, delta);
 
                 // The reason we return options instead of passing the element to process by value (letting it put itself back) is twofold
                 // The first is this prevents the common programming error where the author forgets that the element

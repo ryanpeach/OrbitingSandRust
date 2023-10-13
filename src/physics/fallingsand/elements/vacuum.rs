@@ -2,7 +2,7 @@ use ggez::graphics::Color;
 use uom::si::f64::Time;
 
 use super::element::{Element, ElementTakeOptions};
-use crate::physics::fallingsand::element_convolution::ElementGridConvolution;
+use crate::physics::fallingsand::element_convolution::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::element_grid::ElementGrid;
 use crate::physics::fallingsand::util::vectors::IjkVector;
 
@@ -18,7 +18,7 @@ impl Element for Vacuum {
         &mut self,
         _pos: IjkVector,
         _target_chunk: &mut ElementGrid,
-        _element_grid_conv: &mut ElementGridConvolution,
+        _element_grid_conv: &mut ElementGridConvolutionNeighbors,
         _delta: Time,
     ) -> ElementTakeOptions {
         ElementTakeOptions::PutBack

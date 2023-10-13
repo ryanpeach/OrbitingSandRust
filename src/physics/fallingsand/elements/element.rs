@@ -1,4 +1,4 @@
-use crate::physics::fallingsand::element_convolution::ElementGridConvolution;
+use crate::physics::fallingsand::element_convolution::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::element_grid::ElementGrid;
 use crate::physics::fallingsand::util::vectors::IjkVector;
 use ggez::graphics::Color;
@@ -21,7 +21,7 @@ pub trait Element: Send + Sync {
         &mut self,
         pos: IjkVector,
         target_chunk: &mut ElementGrid,
-        element_grid_conv: &mut ElementGridConvolution,
+        element_grid_conv: &mut ElementGridConvolutionNeighbors,
         delta: Time,
     ) -> ElementTakeOptions;
 }
