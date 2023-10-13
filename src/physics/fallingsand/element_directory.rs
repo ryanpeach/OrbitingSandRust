@@ -205,7 +205,7 @@ impl ElementGridDir {
         let top = self.get_chunk_top_neighbors(coord);
         let lr = self.get_chunk_left_right_neighbors(coord);
         let bottom = self.get_chunk_bottom_neighbors(coord);
-        let mut out = ElementGridConvolutionChunkIdx::new(coord);
+        let mut out = ElementGridConvolutionChunkIdx::new();
         out.neighbors.extend(top);
         out.neighbors.extend(lr);
         out.neighbors.extend(bottom);
@@ -214,8 +214,15 @@ impl ElementGridDir {
 
     fn package_this_convolution(&mut self, coord: ChunkIjkVector) -> ElementGridConvolution {
         println!("Packaging convolution for chunk {:?}", coord);
-        let _neighbors = self.get_chunk_neighbors(coord);
-        unimplemented!();
+        let neighbors = self.get_chunk_neighbors(coord);
+        let mut out = ElementGridConvolution::new();
+        for neighbor in neighbors.neighbors {
+            let chunk = self.chunks[neighbor.i]
+                .replace(neighbor.to_jk_vector(), None)
+                .unwrap();
+            out.get_neighbors_mut().insert(neighbor, chunk);
+        }
+        out
     }
 
     // This takes ownership of the chunk and all its neighbors from the directory
@@ -247,8 +254,7 @@ impl ElementGridDir {
         convolutions: Vec<ElementGridConvolution>,
         target_chunks: Vec<ElementGrid>,
     ) {
-        for (mut target_chunk, mut this_conv) in
-            target_chunks.into_iter().zip(convolutions.into_iter())
+        for (mut target_chunk, this_conv) in target_chunks.into_iter().zip(convolutions.into_iter())
         {
             target_chunk.set_already_processed(true);
             let coord = target_chunk.get_chunk_coords();

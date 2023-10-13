@@ -1,23 +1,17 @@
 use std::collections::{HashMap, HashSet};
 
-use super::{
-    element_grid::ElementGrid,
-    elements::element::Element,
-    util::vectors::{ChunkIjkVector, IjkVector, RelJkVector},
-};
+use super::{element_grid::ElementGrid, util::vectors::ChunkIjkVector};
 
 /// Just the indices of the element grid convolution
 #[derive(Clone)]
 pub struct ElementGridConvolutionChunkIdx {
-    pub center: ChunkIjkVector,
     pub neighbors: HashSet<ChunkIjkVector>,
 }
 
 /// Instantiation
 impl ElementGridConvolutionChunkIdx {
-    pub fn new(center: ChunkIjkVector) -> Self {
+    pub fn new() -> Self {
         Self {
-            center,
             neighbors: HashSet::new(),
         }
     }
@@ -32,8 +26,7 @@ impl ElementGridConvolutionChunkIdx {
 /// Also going down a layer you may not have a b, because you would only have a bl or br
 /// This has options because you can take stuff from it and give it back
 pub struct ElementGridConvolution {
-    center: Option<ElementGrid>,
-    neighbors: Option<HashMap<ChunkIjkVector, ElementGrid>>,
+    neighbors: HashMap<ChunkIjkVector, ElementGrid>,
 }
 
 /// We implement IntoIterator for ElementGridConvolution so that we can unpackage it
@@ -45,70 +38,25 @@ pub struct IntoIter {
 
 /// Instantiation
 impl ElementGridConvolution {
-    pub fn new(center: ElementGrid) -> Self {
+    pub fn new() -> Self {
         Self {
-            center: Some(center),
-            neighbors: Some(HashMap::new()),
+            neighbors: HashMap::new(),
         }
     }
 }
 
 /// Getters
 impl ElementGridConvolution {
-    pub fn get_center(&self) -> &ElementGrid {
-        &self.center.as_ref().unwrap()
-    }
-    pub fn get_center_mut(&mut self) -> &mut ElementGrid {
-        self.center.as_mut().unwrap()
-    }
-    pub fn take_center(&mut self) -> ElementGrid {
-        self.center.take().unwrap()
-    }
-    pub fn set_center(&mut self, center: ElementGrid) {
-        self.center = Some(center);
-    }
     pub fn get_neighbors(&self) -> &HashMap<ChunkIjkVector, ElementGrid> {
-        &self.neighbors.as_ref().unwrap()
+        &self.neighbors
     }
     pub fn get_neighbors_mut(&mut self) -> &mut HashMap<ChunkIjkVector, ElementGrid> {
-        self.neighbors.as_mut().unwrap()
+        &mut self.neighbors
     }
-    pub fn take_neighbors(&mut self) -> HashMap<ChunkIjkVector, ElementGrid> {
-        self.neighbors.take().unwrap()
+    pub fn take_neighbors(self) -> HashMap<ChunkIjkVector, ElementGrid> {
+        self.neighbors
     }
     pub fn set_neighbors(&mut self, neighbors: HashMap<ChunkIjkVector, ElementGrid>) {
-        self.neighbors = Some(neighbors);
-    }
-}
-
-/// Complex Indexed Getters & Setters
-impl ElementGridConvolution {
-    pub fn get_idx(&self, idx: IjkVector) -> Option<&ElementGrid> {
-        unimplemented!();
-    }
-    pub fn get_idx_mut(&mut self, idx: IjkVector) -> Option<&mut ElementGrid> {
-        unimplemented!();
-    }
-    pub fn replace_idx(
-        &mut self,
-        idx: IjkVector,
-        element: Box<dyn Element>,
-    ) -> Option<Box<dyn Element>> {
-        unimplemented!();
-    }
-    /// Set the index, but don't return the old value
-    pub fn set_idx(&mut self, idx: IjkVector, element: Box<dyn Element>) {
-        let _ = self.replace_idx(idx, element);
-    }
-}
-
-/// Index Transforms
-impl ElementGridConvolution {
-    pub fn transform_rel_ijkvector_to_ijkvector(
-        &self,
-        movement: RelJkVector,
-        pos: IjkVector,
-    ) -> (Option<IjkVector>, Option<IjkVector>) {
-        unimplemented!();
+        self.neighbors = neighbors;
     }
 }

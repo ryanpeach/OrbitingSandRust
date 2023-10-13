@@ -1,6 +1,6 @@
 use crate::physics::fallingsand::element_convolution::ElementGridConvolution;
 use crate::physics::fallingsand::element_grid::ElementGrid;
-use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
+use crate::physics::fallingsand::util::vectors::IjkVector;
 use ggez::graphics::Color;
 use uom::si::f64::Time;
 
