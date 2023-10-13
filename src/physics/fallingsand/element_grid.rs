@@ -2,8 +2,8 @@ use ggez::graphics::Rect;
 use uom::si::f64::Time;
 
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
-use crate::physics::fallingsand::elements::element::Element;
-use crate::physics::fallingsand::util::vectors::JkVector;
+use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions};
+use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
 
 use super::coordinates::core_coords::CoreChunkCoords;
 use super::element_convolution::ElementGridConvolution;
@@ -73,12 +73,39 @@ impl ElementGrid {
         debug_assert!(!already_processed, "Already processed");
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {
+                let pos = IjkVector {
+                    i: self.coords.get_layer_num(),
+                    j,
+                    k,
+                };
+
+                // We have to take the element out of our grid to call it with a reference to self
+                // Otherwise we would have a reference to it, and process would have a reference to it through target_chunk
                 let mut element = std::mem::replace(
                     self.grid.get_mut(JkVector { j, k }),
                     Box::<Vacuum>::default(),
                 );
-                element.process(self, element_grid_conv, delta);
-                self.grid.replace(JkVector { j, k }, element);
+
+                let res = element.process(pos, self, element_grid_conv, delta);
+
+                // The reason we return options instead of passing the element to process by value (letting it put itself back) is twofold
+                // The first is this prevents the common programming error where the author forgets that the element
+                // has been moved out of the grid, and it disappears.
+                // The second is that you get a "cant borrow twice" error if you pass the element to process by value
+                // It was really complicated to get this to work, so I'm not going to change it.
+                // If you try to change it, increment this counter by how may hours you spent trying to change it
+                //
+                // 1h wasted
+                //
+                match res {
+                    ElementTakeOptions::PutBack => {
+                        self.grid.replace(JkVector { j, k }, element);
+                    }
+                    ElementTakeOptions::ReplaceWith(new_element) => {
+                        self.grid.replace(JkVector { j, k }, new_element);
+                    }
+                    ElementTakeOptions::DoNothing => {}
+                }
             }
         }
     }

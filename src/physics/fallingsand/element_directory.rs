@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use uom::si::f64::Time;
 
 use super::coordinates::coordinate_directory::CoordinateDir;
@@ -92,52 +94,53 @@ impl ElementGridDir {
     }
 
     // TODO: This needs testing
-    fn get_chunk_top_neighbors(&self, coord: ChunkIjkVector) -> TopNeighbors {
+    fn get_chunk_top_neighbors(&self, coord: ChunkIjkVector) -> HashSet<ChunkIjkVector> {
         let top_chunk_in_layer = self.coords.get_chunk_layer_num_concentric_circles(coord.i);
         let top_layer = self.coords.get_num_layers() - 1;
         let radial_lines = |i: usize| self.coords.get_chunk_layer_num_radial_lines(i);
         let k_isize = coord.k as isize;
+        let mut out: HashSet<ChunkIjkVector> = HashSet::new();
 
-        let make_vector = |i: usize, j: usize, k: isize| -> ChunkIjkVector {
-            ChunkIjkVector {
+        let mut make_vector = |i: usize, j: usize, k: isize| {
+            let this = ChunkIjkVector {
                 i,
                 j,
                 k: modulo(k, radial_lines(i) as isize) as usize,
-            }
+            };
+            out.insert(this)
         };
 
         // Default neighbors (middle of stuff)
-        let default_neighbors = || -> TopNeighbors {
-            TopNeighbors {
-                top_left: Some(make_vector(coord.i, coord.j + 1, k_isize - 1)),
-                top_center_1: Some(make_vector(coord.i, coord.j + 1, k_isize)),
-                top_center_2: Some(make_vector(coord.i, coord.j + 1, k_isize + 1)),
-                top_right: Some(make_vector(coord.i, coord.j + 1, k_isize + 2)),
-            }
+        let mut default_neighbors = || {
+            make_vector(coord.i, coord.j + 1, k_isize - 1);
+            make_vector(coord.i, coord.j + 1, k_isize);
+            make_vector(coord.i, coord.j + 1, k_isize + 1);
+            make_vector(coord.i, coord.j + 1, k_isize + 2);
         };
 
         match (coord.i, coord.j) {
             (i, _) if i == top_layer => match coord.j {
-                j if j == top_chunk_in_layer => TopNeighbors {
-                    top_left: None,
-                    top_center_1: None,
-                    top_right: None,
-                    top_center_2: None,
-                },
-                _ => default_neighbors(),
+                j if j == top_chunk_in_layer => {}
+                _ => {
+                    default_neighbors();
+                }
             },
-            (_, j) if j == top_chunk_in_layer => TopNeighbors {
-                top_left: Some(make_vector(coord.i + 1, 0, k_isize * 2 - 1)),
-                top_center_1: Some(make_vector(coord.i + 1, 0, k_isize * 2)),
-                top_center_2: Some(make_vector(coord.i + 1, 0, k_isize * 2 + 1)),
-                top_right: Some(make_vector(coord.i + 1, 0, k_isize * 2 + 2)),
-            },
-            _ => default_neighbors(),
+            (_, j) if j == top_chunk_in_layer => {
+                make_vector(coord.i + 1, 0, k_isize * 2 - 1);
+                make_vector(coord.i + 1, 0, k_isize * 2);
+                make_vector(coord.i + 1, 0, k_isize * 2 + 1);
+                make_vector(coord.i + 1, 0, k_isize * 2 + 2);
+            }
+            _ => {
+                default_neighbors();
+            }
         }
+        out
     }
 
     // TODO: This needs testing
-    fn get_chunk_left_right_neighbors(&self, coord: ChunkIjkVector) -> LeftRightNeighbors {
+    fn get_chunk_left_right_neighbors(&self, coord: ChunkIjkVector) -> HashSet<ChunkIjkVector> {
+        let mut out: HashSet<ChunkIjkVector> = HashSet::new();
         let left = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
@@ -146,6 +149,7 @@ impl ElementGridDir {
                 self.coords.get_chunk_layer_num_radial_lines(coord.i) as isize,
             ) as usize,
         };
+        out.insert(left);
         let right = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
@@ -154,115 +158,64 @@ impl ElementGridDir {
                 self.coords.get_chunk_layer_num_radial_lines(coord.i) as isize,
             ) as usize,
         };
-        LeftRightNeighbors { left, right }
+        out.insert(right);
+        out
     }
 
     // TODO: This needs testing
-    fn get_chunk_bottom_neighbors(&self, coord: ChunkIjkVector) -> BottomNeighbors {
+    fn get_chunk_bottom_neighbors(&self, coord: ChunkIjkVector) -> HashSet<ChunkIjkVector> {
         let bottom_chunk_in_layer = 0usize;
         let bottom_layer = 0usize;
         let radial_lines = |i: usize| self.coords.get_chunk_layer_num_radial_lines(i);
         let top_chunk_in_prev_layer =
             |i: usize| self.coords.get_chunk_layer_num_concentric_circles(i - 1) - 1;
         let k_isize = coord.k as isize;
+        let mut out: HashSet<ChunkIjkVector> = HashSet::new();
 
-        let make_vector = |i: usize, j: usize, k: isize| -> ChunkIjkVector {
-            ChunkIjkVector {
+        let mut make_vector = |i: usize, j: usize, k: isize| {
+            let this = ChunkIjkVector {
                 i,
                 j,
                 k: modulo(k, radial_lines(i) as isize) as usize,
-            }
+            };
+            out.insert(this)
         };
 
         // Default neighbors
-        let default_neighbors = || -> BottomNeighbors {
-            BottomNeighbors {
-                bottom_left: Some(make_vector(coord.i, coord.j - 1, k_isize + 1)),
-                bottom_center: Some(make_vector(coord.i, coord.j - 1, k_isize)),
-                bottom_right: Some(make_vector(coord.i, coord.j - 1, k_isize - 1)),
-            }
+        let mut default_neighbors = || {
+            make_vector(coord.i, coord.j - 1, k_isize + 1);
+            make_vector(coord.i, coord.j - 1, k_isize);
+            make_vector(coord.i, coord.j - 1, k_isize - 1);
         };
 
         match (coord.i, coord.j) {
-            (i, j) if i == bottom_layer && j == bottom_chunk_in_layer => BottomNeighbors {
-                bottom_left: None,
-                bottom_center: None,
-                bottom_right: None,
-            },
+            (i, j) if i == bottom_layer && j == bottom_chunk_in_layer => {}
             // If going down a layer but you are not at the bottom
-            (i, j) if j == bottom_chunk_in_layer => BottomNeighbors {
-                bottom_left: Some(make_vector(
-                    coord.i - 1,
-                    top_chunk_in_prev_layer(i),
-                    k_isize / 2 + 1,
-                )),
-                bottom_center: None,
-                bottom_right: Some(make_vector(
-                    coord.i - 1,
-                    top_chunk_in_prev_layer(i),
-                    k_isize / 2,
-                )), // This is not -1 because integer division naturally rounds down
-            },
+            (i, j) if j == bottom_chunk_in_layer => {
+                make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2 + 1);
+                make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2);
+                // This is not -1 because integer division naturally rounds down
+            }
             _ => default_neighbors(),
         }
+        out
     }
 
     fn get_chunk_neighbors(&self, coord: ChunkIjkVector) -> ElementGridConvolutionChunkIdx {
         let top = self.get_chunk_top_neighbors(coord);
         let lr = self.get_chunk_left_right_neighbors(coord);
         let bottom = self.get_chunk_bottom_neighbors(coord);
-        ElementGridConvolutionChunkIdx {
-            tl: top.top_left,
-            t1: top.top_center_1,
-            t2: top.top_center_2,
-            tr: top.top_right,
-            l: lr.left,
-            r: lr.right,
-            bl: bottom.bottom_left,
-            b: bottom.bottom_center,
-            br: bottom.bottom_right,
-        }
+        let mut out = ElementGridConvolutionChunkIdx::new(coord);
+        out.neighbors.extend(top);
+        out.neighbors.extend(lr);
+        out.neighbors.extend(bottom);
+        out
     }
 
     fn package_this_convolution(&mut self, coord: ChunkIjkVector) -> ElementGridConvolution {
         println!("Packaging convolution for chunk {:?}", coord);
-        let neighbors = self.get_chunk_neighbors(coord);
-
-        let t1 = neighbors
-            .t1
-            .map(|x| std::mem::take(self.get_chunk_by_chunk_ijk_mut(x)));
-        let t2 = neighbors
-            .t2
-            .map(|x| std::mem::take(self.get_chunk_by_chunk_ijk_mut(x)));
-        let tl = neighbors
-            .tl
-            .map(|x| std::mem::take(self.get_chunk_by_chunk_ijk_mut(x)));
-        let tr = neighbors
-            .tr
-            .map(|x| std::mem::take(self.get_chunk_by_chunk_ijk_mut(x)));
-        let l = std::mem::take(self.get_chunk_by_chunk_ijk_mut(neighbors.l));
-        let r = std::mem::take(self.get_chunk_by_chunk_ijk_mut(neighbors.r));
-        let bl = neighbors
-            .bl
-            .map(|x| std::mem::take(self.get_chunk_by_chunk_ijk_mut(x)));
-        let b = neighbors
-            .b
-            .map(|x| std::mem::take(self.get_chunk_by_chunk_ijk_mut(x)));
-        let br = neighbors
-            .br
-            .map(|x| std::mem::take(self.get_chunk_by_chunk_ijk_mut(x)));
-
-        ElementGridConvolution {
-            t1,
-            t2,
-            tl,
-            tr,
-            l,
-            r,
-            bl,
-            b,
-            br,
-        }
+        let _neighbors = self.get_chunk_neighbors(coord);
+        unimplemented!();
     }
 
     // This takes ownership of the chunk and all its neighbors from the directory
@@ -294,7 +247,8 @@ impl ElementGridDir {
         convolutions: Vec<ElementGridConvolution>,
         target_chunks: Vec<ElementGrid>,
     ) {
-        for (mut target_chunk, this_conv) in target_chunks.into_iter().zip(convolutions.into_iter())
+        for (mut target_chunk, mut this_conv) in
+            target_chunks.into_iter().zip(convolutions.into_iter())
         {
             target_chunk.set_already_processed(true);
             let coord = target_chunk.get_chunk_coords();
@@ -310,15 +264,9 @@ impl ElementGridDir {
                 Some(target_chunk),
             );
             debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
-            for neighbor in this_conv.into_iter() {
-                let neighbor_coord = neighbor.get_chunk_coords();
-                let prev = self.chunks[neighbor_coord.get_layer_num()].replace(
-                    JkVector {
-                        j: neighbor_coord.get_start_concentric_circle_layer_relative(),
-                        k: neighbor_coord.get_start_radial_line(),
-                    },
-                    Some(neighbor),
-                );
+            for (neighbor_idx, neighbor) in this_conv.take_neighbors() {
+                let prev = self.chunks[neighbor_idx.i]
+                    .replace(neighbor_idx.to_jk_vector(), Some(neighbor));
                 debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
             }
         }

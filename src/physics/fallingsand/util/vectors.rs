@@ -14,6 +14,27 @@ impl JkVector {
     pub const ZERO: Self = Self { j: 0, k: 0 };
 }
 
+/// Instantiation
+impl JkVector {
+    pub fn new(j: usize, k: usize) -> Self {
+        Self { j, k }
+    }
+}
+
+/// This defines a movement or a vector relative to some position
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct RelJkVector {
+    pub rj: isize,
+    pub rk: isize,
+}
+
+/// Instantiation
+impl RelJkVector {
+    pub fn new(rj: isize, rk: isize) -> Self {
+        Self { rj, rk }
+    }
+}
+
 /// Same as JkVector, but with i indicating the "layer number"
 /// The core is layer 0
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
