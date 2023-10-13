@@ -133,7 +133,7 @@ impl CoordinateDirBuilder {
         }
 
         // Handle the second set of layers, which just subdivide around the grid
-        let mut num_radial_chunks = 4;
+        let mut num_radial_chunks = 6;
         loop {
             if layer_num >= self.num_layers {
                 break;
@@ -181,7 +181,7 @@ impl CoordinateDirBuilder {
         }
 
         // Handle the third set of layers, which just subdivide both around the grid and up/down the grid
-        let mut num_concentric_chunks = 2;
+        let mut num_concentric_chunks = 3;
         num_radial_chunks *= 2;
         loop {
             if layer_num >= self.num_layers {

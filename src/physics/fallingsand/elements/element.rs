@@ -1,3 +1,4 @@
+use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::element_convolution::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::element_grid::ElementGrid;
 use crate::physics::fallingsand::util::vectors::IjkVector;
@@ -16,7 +17,7 @@ pub enum ElementTakeOptions {
 }
 
 pub trait Element: Send + Sync {
-    fn get_color(&self) -> Color;
+    fn get_color(&self, pos: IjkVector, chunk_coords: &Box<dyn ChunkCoords>) -> Color;
     fn process(
         &mut self,
         pos: IjkVector,

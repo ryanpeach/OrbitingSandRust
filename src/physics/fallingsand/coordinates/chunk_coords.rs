@@ -6,6 +6,8 @@ use ggez::graphics::Vertex;
 
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
+use crate::physics::fallingsand::util::vectors::IjkVector;
+use crate::physics::fallingsand::util::vectors::JkVector;
 
 /// A set of coordinates that tell you where on the circle a chunk is located
 /// and how big it is. Also provides methods for drawing the mesh.
@@ -30,14 +32,71 @@ pub trait ChunkCoords: Send + Sync {
     fn get_cell_radius(&self) -> f32;
     fn get_start_radius(&self) -> f32;
     fn get_end_radius(&self) -> f32;
+    /// This gets the theta (degrees around) of the first drawn radial line
+    /// On a full layer, this would be 0
+    /// Inclusive
     fn get_start_radial_theta(&self) -> f32;
+    /// This gets the theta (degrees around) of the last drawn radial line
+    /// On a full layer, this would be 2 * PI
+    /// Inclusive
     fn get_end_radial_theta(&self) -> f32;
+    /// This gets the index of the first drawn concentric circle
+    /// layer relative means that its relative to the layer, not the greater circle
+    /// On a full layer, this would be 0
+    /// Inclusive
     fn get_start_concentric_circle_layer_relative(&self) -> usize;
+    /// This gets the index of the last drawn concentric circle
+    /// layer relative means that its relative to the layer, not the greater circle
+    /// NOT the last drawn concentric cell. This would usually be that + 1
+    /// Inclusive
     fn get_end_concentric_circle_layer_relative(&self) -> usize;
+    /// This gets the index of the first drawn concentric circle
+    /// absolute means that its relative to the greater circle, not the layer
+    /// On a full layer, this would be 0
+    /// Inclusive
     fn get_start_concentric_circle_absolute(&self) -> usize;
+    /// This gets the index of the last drawn concentric circle
+    /// absolute means that its relative to the greater circle, not the layer
+    /// NOT the last drawn concentric cell. This would usually be that + 1
+    /// Inclusive
     fn get_end_concentric_circle_absolute(&self) -> usize;
+    /// This gets the index of the last drawn radial line
+    /// NOT the last drawn radial cell. This would usually be that + 1
+    /// Inclusive
     fn get_end_radial_line(&self) -> usize;
+    /// This gets the index of the first drawn radial line
+    /// On a full layer, this would be 0
+    /// Inclusive
     fn get_start_radial_line(&self) -> usize;
+
+    /* Positions in the chunk */
+    /// Checks to see if an absolute position around the circle is in the chunk
+    fn contains(&self, idx: IjkVector) -> bool {
+        idx.i == self.get_layer_num()
+            && idx.j >= self.get_start_radial_line()
+            && idx.j < self.get_end_radial_line()
+            && idx.k >= self.get_start_concentric_circle_absolute()
+            && idx.k < self.get_end_concentric_circle_absolute()
+    }
+    /// Converts a coordinate from anywhere on the circle, assuming it is in the chunk
+    /// to a coordinate inside the grid of this chunk
+    fn get_internal_coord_from_external_coord(&self, external_coord: IjkVector) -> JkVector {
+        debug_assert!(self.contains(external_coord));
+        JkVector {
+            j: external_coord.j - self.get_start_radial_line(),
+            k: external_coord.k - self.get_start_concentric_circle_absolute(),
+        }
+    }
+    /// Converts a coordinate from inside this chunk to a coordinate on the circle
+    fn get_external_coord_from_internal_coord(&self, internal_coord: JkVector) -> IjkVector {
+        debug_assert!(internal_coord.j < self.get_num_radial_lines());
+        debug_assert!(internal_coord.k < self.get_num_concentric_circles());
+        IjkVector {
+            i: self.get_layer_num(),
+            j: internal_coord.j + self.get_start_radial_line(),
+            k: internal_coord.k + self.get_start_concentric_circle_absolute(),
+        }
+    }
 
     /* Convienience Functions */
     fn get_vertices(&self) -> Vec<Vertex> {
