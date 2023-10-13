@@ -241,63 +241,109 @@ impl CoordinateDirBuilder {
  * chunk and return a vector of the results
  * ========================================= */
 impl CoordinateDir {
-    pub fn get_outlines(&self) -> Vec<Vec<Vec2>> {
+    pub fn get_outlines(&self) -> Vec<Grid<Vec<Vec2>>> {
         let mut outlines = Vec::new();
-        outlines.push(self.core_chunk.get_outline());
+        outlines.push(Grid::new(1, 1, vec![self.core_chunk.get_outline()]));
         for layer in &self.partial_chunks {
-            for partial_chunk in layer.get_data() {
-                outlines.push(partial_chunk.get_outline());
-            }
+            let new_grid = Grid::new(
+                layer.get_width(),
+                layer.get_height(),
+                layer
+                    .get_data()
+                    .iter()
+                    .map(|partial_chunk| partial_chunk.get_outline())
+                    .collect(),
+            );
+            outlines.push(new_grid);
         }
         outlines
     }
-    pub fn get_vertexes(&self) -> Vec<Vec<Vertex>> {
+    pub fn get_vertexes(&self) -> Vec<Grid<Vec<Vertex>>> {
         let mut vertexes = Vec::new();
-        vertexes.push(self.core_chunk.get_vertices());
-        for partial_chunk_layer in &self.partial_chunks {
-            for partial_chunk in partial_chunk_layer.iter() {
-                vertexes.push(partial_chunk.get_vertices());
-            }
+        vertexes.push(Grid::new(1, 1, vec![self.core_chunk.get_vertices()]));
+        for layer in &self.partial_chunks {
+            let new_grid = Grid::new(
+                layer.get_width(),
+                layer.get_height(),
+                layer
+                    .get_data()
+                    .iter()
+                    .map(|partial_chunk| partial_chunk.get_vertices())
+                    .collect(),
+            );
+            vertexes.push(new_grid);
         }
         vertexes
     }
-    pub fn get_positions(&self) -> Vec<Vec<Vec2>> {
+
+    pub fn get_positions(&self) -> Vec<Grid<Vec<Vec2>>> {
         let mut positions = Vec::new();
-        positions.push(self.core_chunk.get_positions());
-        for partial_chunk_layer in &self.partial_chunks {
-            for partial_chunk in partial_chunk_layer.iter() {
-                positions.push(partial_chunk.get_positions());
-            }
+        positions.push(Grid::new(1, 1, vec![self.core_chunk.get_positions()]));
+        for layer in &self.partial_chunks {
+            let new_grid = Grid::new(
+                layer.get_width(),
+                layer.get_height(),
+                layer
+                    .get_data()
+                    .iter()
+                    .map(|partial_chunk| partial_chunk.get_positions())
+                    .collect(),
+            );
+            positions.push(new_grid);
         }
         positions
     }
-    pub fn get_uvs(&self) -> Vec<Vec<Vec2>> {
+
+    pub fn get_uvs(&self) -> Vec<Grid<Vec<Vec2>>> {
         let mut uvs = Vec::new();
-        uvs.push(self.core_chunk.get_uvs());
-        for partial_chunk_layer in &self.partial_chunks {
-            for partial_chunk in partial_chunk_layer.iter() {
-                uvs.push(partial_chunk.get_uvs());
-            }
+        uvs.push(Grid::new(1, 1, vec![self.core_chunk.get_uvs()]));
+        for layer in &self.partial_chunks {
+            let new_grid = Grid::new(
+                layer.get_width(),
+                layer.get_height(),
+                layer
+                    .get_data()
+                    .iter()
+                    .map(|partial_chunk| partial_chunk.get_uvs())
+                    .collect(),
+            );
+            uvs.push(new_grid);
         }
         uvs
     }
-    pub fn get_indices(&self) -> Vec<Vec<u32>> {
+
+    pub fn get_indices(&self) -> Vec<Grid<Vec<u32>>> {
         let mut indices = Vec::new();
-        indices.push(self.core_chunk.get_indices());
-        for partial_chunk_layer in &self.partial_chunks {
-            for partial_chunk in partial_chunk_layer.iter() {
-                indices.push(partial_chunk.get_indices());
-            }
+        indices.push(Grid::new(1, 1, vec![self.core_chunk.get_indices()]));
+        for layer in &self.partial_chunks {
+            let new_grid = Grid::new(
+                layer.get_width(),
+                layer.get_height(),
+                layer
+                    .get_data()
+                    .iter()
+                    .map(|partial_chunk| partial_chunk.get_indices())
+                    .collect(),
+            );
+            indices.push(new_grid);
         }
         indices
     }
-    pub fn get_chunk_bounding_boxes(&self) -> Vec<Rect> {
+
+    pub fn get_chunk_bounding_boxes(&self) -> Vec<Grid<Rect>> {
         let mut bounding_boxes = Vec::new();
-        bounding_boxes.push(self.core_chunk.get_bounding_box());
-        for partial_chunk_layer in &self.partial_chunks {
-            for partial_chunk in partial_chunk_layer.iter() {
-                bounding_boxes.push(partial_chunk.get_bounding_box());
-            }
+        bounding_boxes.push(Grid::new(1, 1, vec![self.core_chunk.get_bounding_box()]));
+        for layer in &self.partial_chunks {
+            let new_grid = Grid::new(
+                layer.get_width(),
+                layer.get_height(),
+                layer
+                    .get_data()
+                    .iter()
+                    .map(|partial_chunk| partial_chunk.get_bounding_box())
+                    .collect(),
+            );
+            bounding_boxes.push(new_grid);
         }
         bounding_boxes
     }
@@ -531,24 +577,37 @@ impl CoordinateDir {
  * =================== */
 impl CoordinateDir {
     /// Gets mesh data for every chunk in the directory
-    pub fn get_mesh_data(&self, draw_mode: MeshDrawMode) -> Vec<OwnedMeshData> {
+    pub fn get_mesh_data(&self, draw_mode: MeshDrawMode) -> Vec<Grid<OwnedMeshData>> {
         let mut out = Vec::with_capacity(self.get_num_chunks());
-        out.push(match draw_mode {
+
+        // Get the data for core_chunk
+        let core_data = match draw_mode {
             MeshDrawMode::TexturedMesh => self.core_chunk.calc_chunk_meshdata(),
             MeshDrawMode::UVWireframe => self.core_chunk.calc_chunk_uv_wireframe(),
             MeshDrawMode::TriangleWireframe => self.core_chunk.calc_chunk_triangle_wireframe(),
             MeshDrawMode::Outline => self.core_chunk.calc_chunk_outline(),
-        });
-        for i in 1..self.get_num_layers() {
-            for chunk in self.partial_chunks[i - 1].iter() {
-                out.push(match draw_mode {
-                    MeshDrawMode::TexturedMesh => chunk.calc_chunk_meshdata(),
-                    MeshDrawMode::UVWireframe => chunk.calc_chunk_uv_wireframe(),
-                    MeshDrawMode::TriangleWireframe => chunk.calc_chunk_triangle_wireframe(),
-                    MeshDrawMode::Outline => chunk.calc_chunk_outline(),
-                });
-            }
+        };
+        out.push(Grid::new(1, 1, vec![core_data]));
+
+        // Get the data for partial_chunks
+        for layer in &self.partial_chunks {
+            let new_grid = Grid::new(
+                layer.get_width(),
+                layer.get_height(),
+                layer
+                    .get_data()
+                    .iter()
+                    .map(|chunk| match draw_mode {
+                        MeshDrawMode::TexturedMesh => chunk.calc_chunk_meshdata(),
+                        MeshDrawMode::UVWireframe => chunk.calc_chunk_uv_wireframe(),
+                        MeshDrawMode::TriangleWireframe => chunk.calc_chunk_triangle_wireframe(),
+                        MeshDrawMode::Outline => chunk.calc_chunk_outline(),
+                    })
+                    .collect(),
+            );
+            out.push(new_grid);
         }
+
         out
     }
 }

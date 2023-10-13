@@ -124,12 +124,17 @@ impl ElementGrid {
         let mut out = Vec::with_capacity(
             self.coords.get_num_radial_lines() * self.coords.get_num_concentric_circles() * 4,
         );
-        for element in self.grid.get_data() {
-            let color = element.get_color().to_rgba();
-            out.push(color.0);
-            out.push(color.1);
-            out.push(color.2);
-            out.push(color.3);
+        for j in 0..self.coords.get_num_concentric_circles() {
+            for k in 0..self.coords.get_num_radial_lines() {
+                let element = self.grid.get(JkVector { j, k });
+                let color = element
+                    .get_color(JkVector { j, k }, self.get_chunk_coords())
+                    .to_rgba();
+                out.push(color.0);
+                out.push(color.1);
+                out.push(color.2);
+                out.push(color.3);
+            }
         }
         RawImage {
             pixels: out,

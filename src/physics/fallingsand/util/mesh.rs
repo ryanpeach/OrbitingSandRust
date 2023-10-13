@@ -1,5 +1,7 @@
 use ggez::graphics::{MeshData, Rect, Vertex};
 
+use super::grid::Grid;
+
 /// Represents a mesh that is owned by this object
 /// For some reason a MeshData object has a lifetime and is a set of borrows.
 /// This is a workaround for that.
@@ -40,9 +42,10 @@ impl OwnedMeshData {
     /// Remarks on Implementation:
     /// * You need to add the previous last_idx to all the elements of the next indices
     /// * You also need to un_normalize the uvs and then re_normalize them at the end
-    pub fn combine(lst: &Vec<OwnedMeshData>) -> OwnedMeshData {
+    pub fn combine(vec_grid: &[Grid<OwnedMeshData>]) -> OwnedMeshData {
         let mut combined_vertices = Vec::new();
         let mut combined_indices = Vec::new();
+        let lst = vec_grid.iter().flatten().collect::<Vec<&OwnedMeshData>>();
 
         // This is to find the max and min bounds for the UVs
         let width: f32 = lst

@@ -3,6 +3,8 @@ use ggez::{
     Context,
 };
 
+use super::grid::Grid;
+
 /// Representing a raw RGBA image
 /// For some reason ggez::graphics::Image requires a
 /// Context for an image to be created, so we use this instead
@@ -42,7 +44,8 @@ impl RawImage {
     /// The images are placed on the canvas according to their bounds
     /// This dramatically increases draw speed in testing.
     /// TODO: Test
-    pub fn combine(lst: &Vec<RawImage>) -> RawImage {
+    pub fn combine(vec_grid: &[Grid<RawImage>]) -> RawImage {
+        let lst = vec_grid.iter().flatten().collect::<Vec<&RawImage>>();
         // Calculate total width and height for the canvas
         let width: f32 = lst
             .iter()

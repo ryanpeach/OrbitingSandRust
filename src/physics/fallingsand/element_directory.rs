@@ -10,7 +10,6 @@ use super::util::grid::Grid;
 use super::util::image::RawImage;
 use super::util::vectors::{ChunkIjkVector, JkVector};
 
-use itertools::Itertools;
 use rayon::prelude::*;
 
 /* Return Types */
@@ -385,20 +384,23 @@ impl ElementGridDir {
     pub fn len(&self) -> usize {
         self.chunks.len()
     }
-    pub fn get_textures(&self) -> Vec<RawImage> {
-        (0..self.coords.get_num_layers())
-            .flat_map(|i| {
-                let j_range = 0..self.coords.get_chunk_layer_num_concentric_circles(i);
-                let k_range = 0..self.coords.get_chunk_layer_num_radial_lines(i);
-                j_range
-                    .cartesian_product(k_range)
-                    .map(move |(j, k)| (i, j, k))
-            })
-            .par_bridge() // Convert to parallel iterator
-            .map(|(i, j, k)| {
-                let coord = ChunkIjkVector { i, j, k };
-                self.get_chunk_by_chunk_ijk(coord).get_texture()
-            })
-            .collect()
+    pub fn get_textures(&self) -> Vec<Grid<RawImage>> {
+        let mut out = Vec::new();
+        for i in 0..self.coords.get_num_layers() {
+            let j_size = self.coords.get_chunk_layer_num_concentric_circles(i);
+            let k_size = self.coords.get_chunk_layer_num_radial_lines(i);
+            let mut layer = Grid::new_empty(k_size, j_size);
+            for j in 0..j_size {
+                for k in 0..k_size {
+                    let coord = ChunkIjkVector { i, j, k };
+                    layer.replace(
+                        JkVector { j, k },
+                        self.get_chunk_by_chunk_ijk(coord).get_texture(),
+                    );
+                }
+            }
+            out.push(layer);
+        }
+        out
     }
 }
