@@ -74,17 +74,9 @@ impl<T> Grid<T> {
 }
 
 /* ==================================
- * Iteration & Coordinate Transforms
+ * Coordinate Transforms
  * ================================== */
 impl<T> Grid<T> {
-    pub fn iter(&self) -> std::slice::Iter<T> {
-        self.data.iter()
-    }
-
-    pub fn iter_mut(&mut self) -> std::slice::IterMut<T> {
-        self.data.iter_mut()
-    }
-
     /// Convert the flat vector coordinate to the grid specific coordinate
     /// Opposite of jk_coord_to_flat_idx
     pub fn flat_idx_to_jk_coord(&self, flat_idx: usize) -> JkVector {
@@ -97,6 +89,33 @@ impl<T> Grid<T> {
     /// Opposite of flat_idx_to_jk_coord
     pub fn jk_coord_to_flat_idx(&self, coord: JkVector) -> usize {
         coord.j * self.width + coord.k
+    }
+}
+
+/* Iteration */
+impl<T> Grid<T> {
+    pub fn iter(&self) -> std::slice::Iter<T> {
+        self.data.iter()
+    }
+
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<T> {
+        self.data.iter_mut()
+    }
+}
+impl<'a, T> IntoIterator for &'a Grid<T> {
+    type Item = &'a T;
+    type IntoIter = std::slice::Iter<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.iter()
+    }
+}
+impl<'a, T> IntoIterator for &'a mut Grid<T> {
+    type Item = &'a mut T;
+    type IntoIter = std::slice::IterMut<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.iter_mut()
     }
 }
 

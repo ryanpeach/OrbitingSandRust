@@ -11,6 +11,7 @@ use ggez::{Context, GameResult};
 use physics::fallingsand::element_directory::ElementGridDir;
 use physics::fallingsand::util::enums::{MeshDrawMode, ZoomDrawMode};
 
+use physics::fallingsand::util::vectors::JkVector;
 use uom::si::f64::*;
 use uom::si::time::second;
 
@@ -153,10 +154,20 @@ impl EventHandler<ggez::GameError> for MainState {
                 let filter = self.celestial.frustum_cull(&self.camera);
                 let meshes = self.celestial.get_all_meshes();
                 let textures = self.celestial.get_all_textures();
-                for i in filter {
-                    let mesh = Mesh::from_data(ctx, meshes[i].to_mesh_data());
-                    let texture = textures[i].to_image(ctx);
-                    canvas.draw_textured_mesh(mesh, texture, draw_params);
+                for i in 0..meshes.len() {
+                    for j in 0..meshes[i].get_height() {
+                        for k in 0..meshes[i].get_width() {
+                            if !*filter[i].get(JkVector { j, k }) {
+                                continue;
+                            }
+                            let mesh = Mesh::from_data(
+                                ctx,
+                                meshes[i].get(JkVector { j, k }).to_mesh_data(),
+                            );
+                            let texture = textures[i].get(JkVector { j, k }).to_image(ctx);
+                            canvas.draw_textured_mesh(mesh, texture, draw_params);
+                        }
+                    }
                 }
             }
         }
