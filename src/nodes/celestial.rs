@@ -2,6 +2,7 @@ use ggez::graphics::Rect;
 
 use crate::physics::fallingsand::element_directory::ElementGridDir;
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
+use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::image::RawImage;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 
@@ -13,9 +14,9 @@ use uom::si::f64::*;
 pub struct Celestial {
     element_grid_dir: ElementGridDir,
     draw_mode: MeshDrawMode,
-    all_meshes: Vec<OwnedMeshData>,
-    all_textures: Vec<RawImage>,
-    bounding_boxes: Vec<Rect>,
+    all_meshes: Vec<Grid<OwnedMeshData>>,
+    all_textures: Vec<Grid<RawImage>>,
+    bounding_boxes: Vec<Grid<Rect>>,
     combined_mesh: OwnedMeshData,
     combined_texture: RawImage,
 }
@@ -67,26 +68,26 @@ impl Celestial {
     pub fn len(&self) -> usize {
         self.all_meshes.len()
     }
-    pub fn get_all_bounding_boxes(&self) -> &Vec<Rect> {
+    pub fn get_all_bounding_boxes(&self) -> &Vec<Grid<Rect>> {
         &self.bounding_boxes
     }
-    pub fn get_all_meshes(&self) -> &Vec<OwnedMeshData> {
+    pub fn get_all_meshes(&self) -> &Vec<Grid<OwnedMeshData>> {
         &self.all_meshes
     }
-    pub fn get_all_textures(&self) -> &Vec<RawImage> {
+    pub fn get_all_textures(&self) -> &Vec<Grid<RawImage>> {
         &self.all_textures
     }
-    pub fn frustum_cull(&self, camera: &Camera) -> Vec<usize> {
+    /// Produces a mask of which chunks are visible, true if visible, false if not
+    pub fn frustum_cull(&self, camera: &Camera) -> Vec<Grid<bool>> {
         let cam_bb = &camera.get_bounding_box();
-        let mut out = Vec::with_capacity(self.element_grid_dir.get_num_chunks());
-        for (i, bb) in self.get_all_bounding_boxes().iter().enumerate() {
-            if bb.overlaps(cam_bb) {
-                out.push(i);
-            }
+        let mut out = Vec::new();
+        for layer in self.get_all_bounding_boxes() {
+            let vec_out = layer
+                .iter()
+                .map(|x| x.overlaps(cam_bb))
+                .collect::<Vec<bool>>();
+            out.push(Grid::new(layer.get_width(), layer.get_height(), vec_out));
         }
         out
-    }
-    pub fn update_chunk_texture(&mut self, chunk_idx: usize, image: RawImage) {
-        self.all_textures[chunk_idx] = image
     }
 }

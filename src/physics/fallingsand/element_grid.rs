@@ -128,14 +128,7 @@ impl ElementGrid {
             for k in 0..self.coords.get_num_radial_lines() {
                 let element = self.grid.get(JkVector { j, k });
                 let color = element
-                    .get_color(
-                        IjkVector {
-                            i: self.coords.get_layer_num(),
-                            j,
-                            k,
-                        },
-                        &self.coords,
-                    )
+                    .get_color(JkVector { j, k }, self.get_chunk_coords())
                     .to_rgba();
                 out.push(color.0);
                 out.push(color.1);
