@@ -2,7 +2,45 @@
 
 A resource management and mining game simulating a realistic solar system economy.
 
+# Sand
+
+Planets are circular falling sand simulations taking place on a radial grid that geometrically gets larger as it gets further from the center (like an onion).
+
+The grid is drawn onto a texture which is projected onto a mesh which is generated proceedurally.
+
+Every frame a random sample of pixels are updated.
+
+# Orbits
+
+Orbits should be offloadable into memory so that we can support thousands of simultanous orbiting bodies that may crash into each other at any moment
+
+However, they also are still simple kepler orbits. Not N body.
+
+# Inspirations
+
+* [Noita](https://www.youtube.com/watch?v=prXuyMCgbTc) - A falling sand on steriods game that proves the concept is possible.
+* [Issac Arthur](https://www.youtube.com/watch?v=4CLplpekAug) - Tons of far future ideas to inspire the game.
+* [Bobiverse](https://www.amazon.com/Are-Legion-Bob-Bobiverse-Book-ebook/dp/B01LWAESYQ) - Be a space probe, explore the galaxy, harvest resources, replicate.
+* [Mindustry](https://github.com/Anuken/Mindustry) - A perfect example of open source in game development.
+* [Factorio](https://www.factorio.com/) - Obviously the father of all modern resource management games.
+* [Dwarf Fortress](https://www.bay12games.com/dwarves/) - A game that simulates everything and is the long term passion of good designer.
+
+## Lots of Links
+
+* [Kurzgesagt](https://www.youtube.com/@kurzgesagt)
+    * [How To Terraform Mars - WITH LASERS](https://youtu.be/HpcTJW4ur54)
+    * [How To Terraform Venus (Quickly)](https://www.youtube.com/watch?v=G-WO-z-QuWI&t=523s)
+    * [How We Could Build a Moon Base TODAY – Space Colonization 1](https://www.youtube.com/watch?v=NtQkz0aRDe8)
+    * [Building a Marsbase is a Horrible Idea: Let’s do it!](https://www.youtube.com/watch?v=uqKGREZs6-w)
+    * [Unlimited Resources From Space – Asteroid Mining](https://www.youtube.com/watch?v=y8XvQNt26KI&t=402s)
+    * [How to Move the Sun: Stellar Engines](https://www.youtube.com/watch?v=v3y8AIEX_dU)
+* [Issac Arthur](https://www.youtube.com/@isaacarthurSFIA)
+
 # Platform Choices
+
+## Why not use an engine
+
+There is no way that most engines could handle the custom physics of this game. Also, most of the games that inpsired this game have custom raw code engines.
 
 ## Reasons for Moving to Rust from C++
 
