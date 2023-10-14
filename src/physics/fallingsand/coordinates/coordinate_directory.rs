@@ -97,6 +97,7 @@ impl CoordinateDirBuilder {
         let mut num_concentric_circles = self.second_num_concentric_circles;
         let mut start_concentric_circle_absolute = 1;
         let mut layer_num = 1;
+        let mut total_concentric_circle_chunks = 1;
 
         // Handle the first few layers
         loop {
@@ -125,6 +126,7 @@ impl CoordinateDirBuilder {
             layer_num_radial_lines *= 2;
             num_concentric_circles *= 2;
             layer_num += 1;
+            total_concentric_circle_chunks += 1;
 
             // At self.max_cells, break
             if (layer_num_radial_lines * num_concentric_circles) > self.max_cells {
@@ -166,6 +168,7 @@ impl CoordinateDirBuilder {
             layer_num_radial_lines *= 2;
             num_concentric_circles *= 2;
             layer_num += 1;
+            total_concentric_circle_chunks += 1;
 
             // If our width would become smaller than our height, break
             if layer_num_radial_lines / (num_radial_chunks * 3) < num_concentric_circles {
@@ -216,6 +219,7 @@ impl CoordinateDirBuilder {
             layer_num_radial_lines *= 2;
             num_concentric_circles *= 2;
             layer_num += 1;
+            total_concentric_circle_chunks += num_concentric_chunks;
 
             // At self.max_cells, multiply the number of concentric chunks and radial chunks by 2
             if (layer_num_radial_lines / num_radial_chunks * num_concentric_circles
@@ -226,6 +230,8 @@ impl CoordinateDirBuilder {
                 num_concentric_chunks *= 2;
             }
         }
+
+        debug_assert!(total_concentric_circle_chunks % 3 == 0, "For multithreading purposes, the total number of concentric circle chunks must be a multiple of 3, got {}", total_concentric_circle_chunks);
 
         CoordinateDir {
             second_num_concentric_circles: self.second_num_concentric_circles,
