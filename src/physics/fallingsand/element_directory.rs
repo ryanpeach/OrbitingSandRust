@@ -81,13 +81,14 @@ impl ElementGridDir {
         &self,
         coord: ChunkIjkVector,
     ) -> ElementGridConvolutionNeighborsChunkIdx {
-        let top_chunk_in_layer = self.coords.get_chunk_layer_num_concentric_circles(coord.i);
+        let top_chunk_in_layer = self.coords.get_chunk_layer_num_concentric_circles(coord.i) - 1;
         let top_layer = self.coords.get_num_layers() - 1;
         let radial_lines = |i: usize| self.coords.get_chunk_layer_num_radial_lines(i);
         let k_isize = coord.k as isize;
         let mut out: ElementGridConvolutionNeighborsChunkIdx =
             ElementGridConvolutionNeighborsChunkIdx::new();
 
+        // A convenience function for making a vector and adding it to the out set
         let mut make_vector = |i: usize, j: usize, k: isize| {
             let this = ChunkIjkVector {
                 i,
@@ -97,12 +98,27 @@ impl ElementGridDir {
             out.insert(this)
         };
 
-        // Default neighbors (middle of stuff)
+        // There is a special case where you go from a single chunk layer to a multi chunk layer, where
+        // all of the next chunks layers are above you
+        if coord.i != top_layer && radial_lines(coord.i) == 1 && radial_lines(coord.i + 1) != 1 {
+            let next_layer = coord.i + 1;
+            let next_layer_radial_lines = radial_lines(next_layer);
+            for k in 0..next_layer_radial_lines {
+                let next_layer_chunk = ChunkIjkVector {
+                    i: next_layer,
+                    j: 0,
+                    k,
+                };
+                out.insert(next_layer_chunk);
+            }
+            return out;
+        }
+
+        // Default neighbors (assuming you are in the middle of stuff, not on a layer boundary)
         let mut default_neighbors = || {
             make_vector(coord.i, coord.j + 1, k_isize - 1);
             make_vector(coord.i, coord.j + 1, k_isize);
             make_vector(coord.i, coord.j + 1, k_isize + 1);
-            make_vector(coord.i, coord.j + 1, k_isize + 2);
         };
 
         match (coord.i, coord.j) {
@@ -112,11 +128,16 @@ impl ElementGridDir {
                     default_neighbors();
                 }
             },
-            (_, j) if j == top_chunk_in_layer => {
-                make_vector(coord.i + 1, 0, k_isize * 2 - 1);
-                make_vector(coord.i + 1, 0, k_isize * 2);
-                make_vector(coord.i + 1, 0, k_isize * 2 + 1);
-                make_vector(coord.i + 1, 0, k_isize * 2 + 2);
+            (i, j) if j == top_chunk_in_layer && radial_lines(i) != radial_lines(i + 1) => {
+                make_vector(i + 1, 0, k_isize * 2 - 1);
+                make_vector(i + 1, 0, k_isize * 2);
+                make_vector(i + 1, 0, k_isize * 2 + 1);
+                make_vector(i + 1, 0, k_isize * 2 + 2);
+            }
+            (i, j) if j == top_chunk_in_layer && radial_lines(i) == radial_lines(i + 1) => {
+                make_vector(i + 1, 0, k_isize - 1);
+                make_vector(i + 1, 0, k_isize);
+                make_vector(i + 1, 0, k_isize + 1);
             }
             _ => {
                 default_neighbors();
@@ -140,7 +161,9 @@ impl ElementGridDir {
                 self.coords.get_chunk_layer_num_radial_lines(coord.i) as isize,
             ) as usize,
         };
-        out.insert(left);
+        if left != coord {
+            out.insert(left);
+        }
         let right = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
@@ -149,7 +172,9 @@ impl ElementGridDir {
                 self.coords.get_chunk_layer_num_radial_lines(coord.i) as isize,
             ) as usize,
         };
-        out.insert(right);
+        if right != coord && left != right {
+            out.insert(right);
+        }
         out
     }
 
@@ -183,13 +208,34 @@ impl ElementGridDir {
             make_vector(coord.i, coord.j - 1, k_isize - 1);
         };
 
-        match (coord.i, coord.j) {
-            (i, j) if i == bottom_layer && j == bottom_chunk_in_layer => {}
+        match (coord.i, coord.j, coord.k) {
+            (i, j, _) if i == bottom_layer && j == bottom_chunk_in_layer => {}
+            (i, j, _) if j == bottom_chunk_in_layer && radial_lines(i - 1) == 1 => {
+                make_vector(coord.i - 1, top_chunk_in_prev_layer(i), 0);
+            }
             // If going down a layer but you are not at the bottom
-            (i, j) if j == bottom_chunk_in_layer => {
+            (i, j, k)
+                if j == bottom_chunk_in_layer
+                    && radial_lines(i) != radial_lines(i - 1)
+                    && k % 2 == 0 =>
+            {
+                make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2 - 1);
+                make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2);
+                // This is not -1 because integer division naturally rounds down
+            }
+            (i, j, k)
+                if j == bottom_chunk_in_layer
+                    && radial_lines(i) != radial_lines(i - 1)
+                    && k % 2 == 1 =>
+            {
                 make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2 + 1);
                 make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2);
                 // This is not -1 because integer division naturally rounds down
+            }
+            (i, j, _) if j == bottom_chunk_in_layer && radial_lines(i) == radial_lines(i - 1) => {
+                make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize - 1);
+                make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize);
+                make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize + 1);
             }
             _ => default_neighbors(),
         }
@@ -399,7 +445,7 @@ mod tests {
     fn get_element_grid_dir() -> ElementGridDir {
         let coordinate_dir = CoordinateDirBuilder::new()
             .cell_radius(1.0)
-            .num_layers(7)
+            .num_layers(9)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
             .max_cells(64 * 64)
@@ -415,7 +461,7 @@ mod tests {
         #[test]
         fn test_grid_sizes() {
             let element_grid_dir = get_element_grid_dir();
-            assert_eq!(element_grid_dir.len(), 7);
+            assert_eq!(element_grid_dir.len(), 9);
 
             // Core
             assert_eq!(element_grid_dir.chunks[0].get_height(), 1);
@@ -443,11 +489,15 @@ mod tests {
 
             // Layer 6
             assert_eq!(element_grid_dir.chunks[6].get_height(), 3);
-            assert_eq!(element_grid_dir.chunks[6].get_width(), 12);
+            assert_eq!(element_grid_dir.chunks[6].get_width(), 6);
 
             // Layer 7
             assert_eq!(element_grid_dir.chunks[7].get_height(), 6);
-            assert_eq!(element_grid_dir.chunks[7].get_width(), 24);
+            assert_eq!(element_grid_dir.chunks[7].get_width(), 12);
+
+            // Layer 8
+            assert_eq!(element_grid_dir.chunks[8].get_height(), 12);
+            assert_eq!(element_grid_dir.chunks[8].get_width(), 24);
         }
 
         #[test]
@@ -458,7 +508,7 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 0, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 1);
+                assert_eq!(neighbors.len(), 1, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 1, j: 0, k: 0 }));
             }
 
@@ -466,7 +516,7 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 1, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 2);
+                assert_eq!(neighbors.len(), 2, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 2, j: 0, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 0, j: 0, k: 0 }));
             }
@@ -475,7 +525,7 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 2, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 2);
+                assert_eq!(neighbors.len(), 2, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 0, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 1, j: 0, k: 0 }));
             }
@@ -484,7 +534,7 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 3, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 2);
+                assert_eq!(neighbors.len(), 2, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 0, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 2, j: 0, k: 0 }));
             }
@@ -495,7 +545,7 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 4, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 7);
+                assert_eq!(neighbors.len(), 7, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 0, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 1 }));
@@ -512,26 +562,125 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 5, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 7);
+                assert_eq!(neighbors.len(), 6, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 0, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 1 }));
-                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 3 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 5 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 1 }));
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 2 }));
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 11 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 5 }));
             }
 
             // Layer 6
-            // Now we have both up and down neighbors with multiple chunks
-            // But we only have down when j == 0
-            // And we only have up when j == 2
-            // Deal with all 3 layers because we havent seen a middle case yet
-            unimplemented!();
+            // This is the first layer that splits concentrically
+            // It skips splitting radially just one time, so the layer below has the same
+            {
+                let coord = ChunkIjkVector { i: 6, j: 0, k: 0 };
+                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                assert_eq!(neighbors.len(), 8, "{:?}", neighbors);
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 0 })); // t
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 1 })); // tl
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 5 })); // tr
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 1 })); // l
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 5 })); // r
+                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 1 })); // bl
+                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 0 })); // b
+                assert!(
+                    neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 5 }),
+                    "{:?}",
+                    neighbors
+                ); // br
+            }
+
+            // Now go to a normal square
+            {
+                let coord = ChunkIjkVector { i: 6, j: 1, k: 0 };
+                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                assert_eq!(neighbors.len(), 8, "{:?}", neighbors);
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 0 })); // t
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 1 })); // tl
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 5 })); // tr
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 1 })); // l
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 5 })); // r
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 1 })); // bl
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 0 })); // b
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 5 }));
+                // br
+            }
+
+            // Now go to the top of the layer
+            // Because there is a doubling above this layer, then this has 2 top layers
+            {
+                let coord = ChunkIjkVector { i: 6, j: 2, k: 0 };
+                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                assert_eq!(neighbors.len(), 9, "{:?}", neighbors);
+                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 2 })); // tl
+                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 1 })); // t0
+                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 0 })); // t1
+                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 11 })); // tr
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 1 })); // l
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 5 })); // r
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 1 })); // bl
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 0 })); // b
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 5 }));
+                // br
+            }
 
             // Layer 7
-            // Now we just need to implement the top case, where there is nothing left above us
-            unimplemented!();
+            // This is the first layer that splits concentrically and radially
+            {
+                let coord = ChunkIjkVector { i: 7, j: 0, k: 0 };
+                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                assert_eq!(neighbors.len(), 7, "{:?}", neighbors);
+                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 0 })); // t
+                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 1 })); // tl
+                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 11 })); // tr
+                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 1 })); // l
+                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 11 })); // r
+                assert!(
+                    neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 0 }),
+                    "{:?}",
+                    neighbors
+                ); // bl
+                assert!(
+                    neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 5 }),
+                    "{:?}",
+                    neighbors
+                ); // br
+            }
+
+            // Go k+1 to test how going down left and right changes every other step
+            // Because the one below you will "extend" more rightward or more leftward, so there
+            // isnt really a bottom and whether its more leftward or rightward depends on which
+            // side of it you are on
+            {
+                let coord = ChunkIjkVector { i: 7, j: 0, k: 1 };
+                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                assert_eq!(neighbors.len(), 7, "{:?}", neighbors);
+                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 1 })); // t
+                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 2 })); // tl
+                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 0 })); // tr
+                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 2 })); // l
+                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 0 })); // r
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 1 })); // bl
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 0 }));
+                // br
+            }
+
+            // Test the very last layer that it doesn't have anything above it
+            {
+                let coord = ChunkIjkVector {
+                    i: element_grid_dir.get_coordinate_dir().get_num_layers() - 1,
+                    j: 0,
+                    k: 0,
+                };
+                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                assert!(!neighbors.contains(&ChunkIjkVector {
+                    i: element_grid_dir.get_coordinate_dir().get_num_layers() - 1,
+                    j: 0,
+                    k: 0
+                }));
+            }
         }
     }
 

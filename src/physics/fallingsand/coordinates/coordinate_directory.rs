@@ -171,7 +171,7 @@ impl CoordinateDirBuilder {
             total_concentric_circle_chunks += 1;
 
             // If our width would become smaller than our height, break
-            if layer_num_radial_lines / (num_radial_chunks * 3) < num_concentric_circles {
+            if layer_num_radial_lines / (num_radial_chunks * 2) < num_concentric_circles {
                 break;
             }
 
@@ -185,7 +185,7 @@ impl CoordinateDirBuilder {
 
         // Handle the third set of layers, which just subdivide both around the grid and up/down the grid
         let mut num_concentric_chunks = 3;
-        num_radial_chunks *= 2;
+        // num_radial_chunks *= 2;
         loop {
             if layer_num >= self.num_layers {
                 break;
@@ -665,7 +665,7 @@ mod tests {
     fn test_radial_mesh_chunk_sizes_manual() {
         let coordinate_dir = CoordinateDirBuilder::new()
             .cell_radius(1.0)
-            .num_layers(7)
+            .num_layers(8)
             .first_num_radial_lines(8)
             .second_num_concentric_circles(2)
             .max_cells(64 * 64) // 24x24
@@ -775,10 +775,10 @@ mod tests {
         // Layer 6
         let layer6 = ChunkIjkVector { i: 6, j: 0, k: 0 };
         // Test that the next chunk is 64x512
-        // This is divided radially in 12
+        // This is divided radially in 6
         assert_eq!(
             coordinate_dir.get_chunk_num_radial_lines(ChunkIjkVector { i: 6, j: 0, k: 0 }),
-            512 / 12
+            512 / 6
         );
         // And concentrically by 3
         assert_eq!(
@@ -793,6 +793,33 @@ mod tests {
         assert_eq!(coordinate_dir.get_chunk_start_radial_theta(layer6), 0.0);
         assert_approx_eq!(
             coordinate_dir.get_chunk_end_radial_theta(layer6),
+            2.0 * std::f32::consts::PI / 6.0
+        );
+
+        // Layer 7
+        let layer7 = ChunkIjkVector { i: 7, j: 0, k: 0 };
+        // Test that the next chunk is 128x1024
+        // This is divided radially in 12
+        assert_eq!(
+            coordinate_dir.get_chunk_num_radial_lines(ChunkIjkVector { i: 7, j: 0, k: 0 }),
+            1024 / 12
+        );
+        // And concentrically by 6
+        assert_eq!(
+            coordinate_dir.get_chunk_num_concentric_circles(ChunkIjkVector { i: 7, j: 0, k: 0 }),
+            128 / 6
+        );
+        assert_eq!(
+            coordinate_dir.get_chunk_start_radius(layer7),
+            63.0 + 64 as f32
+        );
+        assert_eq!(
+            coordinate_dir.get_chunk_end_radius(layer7),
+            63.0 + 64 as f32 + (128 / 6) as f32
+        );
+        assert_eq!(coordinate_dir.get_chunk_start_radial_theta(layer7), 0.0);
+        assert_approx_eq!(
+            coordinate_dir.get_chunk_end_radial_theta(layer7),
             2.0 * std::f32::consts::PI / 12.0
         );
     }
