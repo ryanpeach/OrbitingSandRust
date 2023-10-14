@@ -622,31 +622,6 @@ impl CoordinateDir {
 mod tests {
     use super::*;
 
-    macro_rules! assert_quad {
-        ($coordinate_dir:expr, $chunk_idx:expr, $start_radius:expr, $end_radius:expr, $start_radial_theta:expr, $end_radial_theta:expr) => {
-            assert_eq!(
-                $coordinate_dir.get_chunk_start_radius($chunk_idx),
-                $start_radius,
-                "start_radius is incorrect."
-            );
-            assert_eq!(
-                $coordinate_dir.get_chunk_end_radius($chunk_idx),
-                $end_radius,
-                "end_radius is incorrect."
-            );
-            assert_eq!(
-                $coordinate_dir.get_chunk_start_radial_theta($chunk_idx),
-                $start_radial_theta,
-                "start_radial_theta is incorrect."
-            );
-            assert_eq!(
-                $coordinate_dir.get_chunk_end_radial_theta($chunk_idx),
-                $end_radial_theta,
-                "end_radial_theta is incorrect."
-            );
-        };
-    }
-
     macro_rules! assert_approx_eq {
         ($a:expr, $b:expr) => {
             assert_approx_eq!($a, $b, 0.1);
@@ -809,13 +784,10 @@ mod tests {
             coordinate_dir.get_chunk_num_concentric_circles(ChunkIjkVector { i: 7, j: 0, k: 0 }),
             128 / 6
         );
-        assert_eq!(
-            coordinate_dir.get_chunk_start_radius(layer7),
-            63.0 + 64 as f32
-        );
+        assert_eq!(coordinate_dir.get_chunk_start_radius(layer7), 63.0 + 64_f32);
         assert_eq!(
             coordinate_dir.get_chunk_end_radius(layer7),
-            63.0 + 64 as f32 + (128 / 6) as f32
+            63.0 + 64_f32 + (128 / 6) as f32
         );
         assert_eq!(coordinate_dir.get_chunk_start_radial_theta(layer7), 0.0);
         assert_approx_eq!(
