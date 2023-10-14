@@ -1,10 +1,11 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use uom::si::f64::Time;
 
 use super::coordinates::coordinate_directory::CoordinateDir;
 use super::element_convolution::{
-    ElementGridConvolutionNeighbors, ElementGridConvolutionNeighborsChunkIdx,
+    BottomNeighbors, ElementGridConvolutionNeighbors, ElementGridConvolutionNeighborsChunkIdx,
+    LeftRightNeighbors, TopNeighbors,
 };
 use super::element_grid::ElementGrid;
 use super::util::functions::modulo;
@@ -101,25 +102,19 @@ impl ElementGridDir {
     }
 
     // TODO: This needs testing
-    fn get_chunk_top_neighbors(
-        &self,
-        coord: ChunkIjkVector,
-    ) -> ElementGridConvolutionNeighborsChunkIdx {
+    fn get_chunk_top_neighbors(&self, coord: ChunkIjkVector) -> TopNeighbors {
         let top_chunk_in_layer = self.coords.get_chunk_layer_num_concentric_circles(coord.i) - 1;
         let top_layer = self.coords.get_num_layers() - 1;
         let radial_lines = |i: usize| self.coords.get_chunk_layer_num_radial_lines(i);
         let k_isize = coord.k as isize;
-        let mut out: ElementGridConvolutionNeighborsChunkIdx =
-            ElementGridConvolutionNeighborsChunkIdx::new();
 
         // A convenience function for making a vector and adding it to the out set
-        let mut make_vector = |i: usize, j: usize, k: isize| {
-            let this = ChunkIjkVector {
+        let make_vector = |i: usize, j: usize, k: isize| -> ChunkIjkVector {
+            ChunkIjkVector {
                 i,
                 j,
                 k: modulo(k, radial_lines(i) as isize) as usize,
-            };
-            out.insert(this)
+            }
         };
 
         // There is a special case where you go from a single chunk layer to a multi chunk layer, where
@@ -127,115 +122,101 @@ impl ElementGridDir {
         if coord.i != top_layer && radial_lines(coord.i) == 1 && radial_lines(coord.i + 1) != 1 {
             let next_layer = coord.i + 1;
             let next_layer_radial_lines = radial_lines(next_layer);
+            let mut out = Vec::new();
             for k in 0..next_layer_radial_lines {
                 let next_layer_chunk = ChunkIjkVector {
                     i: next_layer,
                     j: 0,
                     k,
                 };
-                out.insert(next_layer_chunk);
+                out.push(next_layer_chunk);
             }
-            return out;
+            return TopNeighbors::MultiChunkLayerAbove { chunks: out };
         }
 
         // Default neighbors (assuming you are in the middle of stuff, not on a layer boundary)
-        let mut default_neighbors = || {
-            make_vector(coord.i, coord.j + 1, k_isize - 1);
-            make_vector(coord.i, coord.j + 1, k_isize);
-            make_vector(coord.i, coord.j + 1, k_isize + 1);
+        let default_neighbors = TopNeighbors::Normal {
+            tl: make_vector(coord.i, coord.j + 1, k_isize + 1),
+            t: make_vector(coord.i, coord.j + 1, k_isize),
+            tr: make_vector(coord.i, coord.j + 1, k_isize - 1),
         };
 
         match (coord.i, coord.j) {
             (i, _) if i == top_layer => match coord.j {
-                j if j == top_chunk_in_layer => {}
-                _ => {
-                    default_neighbors();
-                }
+                j if j == top_chunk_in_layer => TopNeighbors::TopOfGrid,
+                _ => default_neighbors,
             },
             (i, j) if j == top_chunk_in_layer && radial_lines(i) != radial_lines(i + 1) => {
-                make_vector(i + 1, 0, k_isize * 2 - 1);
-                make_vector(i + 1, 0, k_isize * 2);
-                make_vector(i + 1, 0, k_isize * 2 + 1);
-                make_vector(i + 1, 0, k_isize * 2 + 2);
+                TopNeighbors::LayerTransition {
+                    tl: make_vector(i + 1, 0, k_isize * 2 + 2),
+                    t1: make_vector(i + 1, 0, k_isize * 2 + 1),
+                    t0: make_vector(i + 1, 0, k_isize * 2),
+                    tr: make_vector(i + 1, 0, k_isize * 2 - 1),
+                }
+            }
+            (i, j) if j == top_chunk_in_layer && radial_lines(i + 1) == 1 => {
+                TopNeighbors::SingleChunkLayerAbove {
+                    t: make_vector(i + 1, 0, 0),
+                }
             }
             (i, j) if j == top_chunk_in_layer && radial_lines(i) == radial_lines(i + 1) => {
-                make_vector(i + 1, 0, k_isize - 1);
-                make_vector(i + 1, 0, k_isize);
-                make_vector(i + 1, 0, k_isize + 1);
+                TopNeighbors::Normal {
+                    tl: make_vector(i + 1, 0, k_isize + 1),
+                    t: make_vector(i + 1, 0, k_isize),
+                    tr: make_vector(i + 1, 0, k_isize - 1),
+                }
             }
-            _ => {
-                default_neighbors();
-            }
+            _ => default_neighbors,
         }
-        out
     }
 
     // TODO: This needs testing
-    fn get_chunk_left_right_neighbors(
-        &self,
-        coord: ChunkIjkVector,
-    ) -> ElementGridConvolutionNeighborsChunkIdx {
-        let mut out: ElementGridConvolutionNeighborsChunkIdx =
-            ElementGridConvolutionNeighborsChunkIdx::new();
+    fn get_chunk_left_right_neighbors(&self, coord: ChunkIjkVector) -> LeftRightNeighbors {
+        let num_radial_chunks = self.coords.get_chunk_layer_num_radial_lines(coord.i);
+        if num_radial_chunks == 1 {
+            return LeftRightNeighbors::SingleChunkLayer;
+        }
         let left = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
-            k: modulo(
-                coord.k as isize - 1,
-                self.coords.get_chunk_layer_num_radial_lines(coord.i) as isize,
-            ) as usize,
+            k: modulo(coord.k as isize - 1, num_radial_chunks as isize) as usize,
         };
-        if left != coord {
-            out.insert(left);
-        }
+        debug_assert_ne!(left, coord);
         let right = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
-            k: modulo(
-                coord.k as isize + 1,
-                self.coords.get_chunk_layer_num_radial_lines(coord.i) as isize,
-            ) as usize,
+            k: modulo(coord.k as isize + 1, num_radial_chunks as isize) as usize,
         };
-        if right != coord && left != right {
-            out.insert(right);
-        }
-        out
+        debug_assert_ne!(right, coord);
+        debug_assert_ne!(left, right);
+        LeftRightNeighbors::LR { l: left, r: right }
     }
 
     // TODO: This needs testing
-    fn get_chunk_bottom_neighbors(
-        &self,
-        coord: ChunkIjkVector,
-    ) -> ElementGridConvolutionNeighborsChunkIdx {
+    fn get_chunk_bottom_neighbors(&self, coord: ChunkIjkVector) -> BottomNeighbors {
         let bottom_chunk_in_layer = 0usize;
         let bottom_layer = 0usize;
         let radial_lines = |i: usize| self.coords.get_chunk_layer_num_radial_lines(i);
         let top_chunk_in_prev_layer =
             |i: usize| self.coords.get_chunk_layer_num_concentric_circles(i - 1) - 1;
         let k_isize = coord.k as isize;
-        let mut out: ElementGridConvolutionNeighborsChunkIdx =
-            ElementGridConvolutionNeighborsChunkIdx::new();
 
-        let mut make_vector = |i: usize, j: usize, k: isize| {
-            let this = ChunkIjkVector {
+        let make_vector = |i: usize, j: usize, k: isize| -> ChunkIjkVector {
+            ChunkIjkVector {
                 i,
                 j,
                 k: modulo(k, radial_lines(i) as isize) as usize,
-            };
-            out.insert(this)
-        };
-
-        // Default neighbors
-        let mut default_neighbors = || {
-            make_vector(coord.i, coord.j - 1, k_isize + 1);
-            make_vector(coord.i, coord.j - 1, k_isize);
-            make_vector(coord.i, coord.j - 1, k_isize - 1);
+            }
         };
 
         match (coord.i, coord.j, coord.k) {
-            (i, j, _) if i == bottom_layer && j == bottom_chunk_in_layer => {}
+            (i, j, _) if i == bottom_layer && j == bottom_chunk_in_layer => {
+                BottomNeighbors::BottomOfGrid
+            }
             (i, j, _) if j == bottom_chunk_in_layer && radial_lines(i - 1) == 1 => {
-                make_vector(coord.i - 1, top_chunk_in_prev_layer(i), 0);
+                BottomNeighbors::FullLayerBelow {
+                    b: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), 0),
+                }
             }
             // If going down a layer but you are not at the bottom
             (i, j, k)
@@ -243,27 +224,34 @@ impl ElementGridDir {
                     && radial_lines(i) != radial_lines(i - 1)
                     && k % 2 == 0 =>
             {
-                make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2 - 1);
-                make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2);
-                // This is not -1 because integer division naturally rounds down
+                BottomNeighbors::LayerTransition {
+                    bl: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2),
+                    br: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2 - 1),
+                }
             }
             (i, j, k)
                 if j == bottom_chunk_in_layer
                     && radial_lines(i) != radial_lines(i - 1)
                     && k % 2 == 1 =>
             {
-                make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2 + 1);
-                make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2);
-                // This is not -1 because integer division naturally rounds down
+                BottomNeighbors::LayerTransition {
+                    bl: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2 + 1),
+                    br: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2),
+                }
             }
             (i, j, _) if j == bottom_chunk_in_layer && radial_lines(i) == radial_lines(i - 1) => {
-                make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize - 1);
-                make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize);
-                make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize + 1);
+                BottomNeighbors::Normal {
+                    bl: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize + 1),
+                    b: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize),
+                    br: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize - 1),
+                }
             }
-            _ => default_neighbors(),
+            _ => BottomNeighbors::Normal {
+                bl: make_vector(coord.i, coord.j - 1, k_isize + 1),
+                b: make_vector(coord.i, coord.j - 1, k_isize),
+                br: make_vector(coord.i, coord.j - 1, k_isize - 1),
+            },
         }
-        out
     }
 
     fn get_chunk_neighbors(
@@ -271,13 +259,13 @@ impl ElementGridDir {
         coord: ChunkIjkVector,
     ) -> ElementGridConvolutionNeighborsChunkIdx {
         let top = self.get_chunk_top_neighbors(coord);
-        let lr = self.get_chunk_left_right_neighbors(coord);
+        let left_right = self.get_chunk_left_right_neighbors(coord);
         let bottom = self.get_chunk_bottom_neighbors(coord);
-        let mut out = ElementGridConvolutionNeighborsChunkIdx::new();
-        out.extend(top);
-        out.extend(lr);
-        out.extend(bottom);
-        out
+        ElementGridConvolutionNeighborsChunkIdx {
+            top,
+            left_right,
+            bottom,
+        }
     }
 
     fn package_this_convolution(
@@ -286,14 +274,14 @@ impl ElementGridDir {
     ) -> ElementGridConvolutionNeighbors {
         println!("Packaging convolution for chunk {:?}", coord);
         let neighbors = self.get_chunk_neighbors(coord);
-        let mut out = ElementGridConvolutionNeighbors::new();
-        for neighbor in neighbors {
+        let mut out = HashMap::new();
+        for neighbor in neighbors.iter() {
             let chunk = self.chunks[neighbor.i]
                 .replace(neighbor.to_jk_vector(), None)
                 .unwrap();
             out.insert(neighbor, chunk);
         }
-        out
+        ElementGridConvolutionNeighbors::new(neighbors, out)
     }
 
     // This takes ownership of the chunk and all its neighbors from the directory
@@ -531,7 +519,7 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 0, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 1, "{:?}", neighbors);
+                assert_eq!(neighbors.iter().count(), 1, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 1, j: 0, k: 0 }));
             }
 
@@ -539,7 +527,7 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 1, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 2, "{:?}", neighbors);
+                assert_eq!(neighbors.iter().count(), 2, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 2, j: 0, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 0, j: 0, k: 0 }));
             }
@@ -548,7 +536,7 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 2, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 2, "{:?}", neighbors);
+                assert_eq!(neighbors.iter().count(), 2, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 0, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 1, j: 0, k: 0 }));
             }
@@ -557,7 +545,7 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 3, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 2, "{:?}", neighbors);
+                assert_eq!(neighbors.iter().count(), 2, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 0, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 2, j: 0, k: 0 }));
             }
@@ -568,7 +556,7 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 4, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 7, "{:?}", neighbors);
+                assert_eq!(neighbors.iter().count(), 7, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 0, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 1 }));
@@ -585,7 +573,7 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 5, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 6, "{:?}", neighbors);
+                assert_eq!(neighbors.iter().count(), 6, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 0, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 1 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 5 }));
@@ -600,7 +588,7 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 6, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 8, "{:?}", neighbors);
+                assert_eq!(neighbors.iter().count(), 8, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 0 })); // t
                 assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 1 })); // tl
                 assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 5 })); // tr
@@ -619,7 +607,7 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 6, j: 1, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 8, "{:?}", neighbors);
+                assert_eq!(neighbors.iter().count(), 8, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 0 })); // t
                 assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 1 })); // tl
                 assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 5 })); // tr
@@ -636,7 +624,7 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 6, j: 2, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 9, "{:?}", neighbors);
+                assert_eq!(neighbors.iter().count(), 9, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 2 })); // tl
                 assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 1 })); // t0
                 assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 0 })); // t1
@@ -654,7 +642,7 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 7, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 7, "{:?}", neighbors);
+                assert_eq!(neighbors.iter().count(), 7, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 0 })); // t
                 assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 1 })); // tl
                 assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 11 })); // tr
@@ -679,7 +667,7 @@ mod tests {
             {
                 let coord = ChunkIjkVector { i: 7, j: 0, k: 1 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.len(), 7, "{:?}", neighbors);
+                assert_eq!(neighbors.iter().count(), 7, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 1 })); // t
                 assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 2 })); // tl
                 assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 0 })); // tr
