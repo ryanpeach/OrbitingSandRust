@@ -667,7 +667,7 @@ mod tests {
                 .first_num_radial_lines(6)
                 .second_num_concentric_circles(3)
                 .max_cells(64 * 64)
-                .build();
+                .build()
         }
 
         /// Going to verify the chunk grid sizes before we start testing, and so we can know if they change
