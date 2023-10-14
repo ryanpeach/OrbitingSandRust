@@ -1,5 +1,7 @@
 # OrbitingSandRust
 
+*Open Source in game development only works when the community supports the developers. Please support this project! If you make a derivative work, please support the original developers as well!*
+
 A resource management and mining game simulating a realistic solar system economy.
 
 # Sand
@@ -103,3 +105,34 @@ cd WSL2-Linux-Kernel/tools/perf
 make -j8 # parallel build
 sudo cp perf /usr/local/bin
 ``` -->
+
+# Statement on Open Source
+
+The code provided is both free as in beer and free as in speech. You may use it for any purpose, including commercial. There are many games that can be created from these core physics components, and many games have had to recreate them. I want this to be a good starting point for any developer wanting these elements in their games.
+
+Open Source is a trend I would love to see take off in game development. One of my favorite games, [Mindustry](https://github.com/Anuken/Mindustry) proves the open-source model works
+for game development. That is why we are provided under the GPL rather than a more permissive license. We hope whatever you make with this code will also be open source.
+
+Open Source allows a game to live past its prime, allows developers to do whatever they want with it (far beyond simple mods), improves the quality of the code, improves consumer engagement, and honestly is a lot more fun for the developers as it brings them closer to their community and shuns the corporate model of game development.
+
+More than modding, open source allows forking. Please do this. Please make great things.
+
+# Statement on Governance
+
+I intend to start an OpenCollective so that I can pay contributors as well. I intend to profit share with any substantial contributors.
+
+All donations to this game and all proceeds from stores, sponsors, and donations, will be cataloged and made public. I will also provide a breakdown of how the money is spent.
+
+Feedback from the community is highly valued, but governance rests in the code owners. Forking is encouraged.
+
+# Statement on Commercialization
+
+I intend to commercialize this version of the game in the future. I intend to take sponsors, and donations, and sell it on GoG, Steam, and wherever else I can.
+
+A trademark will be filed. Do not violate the trademark in downstream forks.
+
+The code for this game will always be free. However, we will be making money off of binary distribution. This means if you are tech-savvy enough to compile the game, and that is worth your time, you can play the game for free. Hopefully, this also means you are tech-savvy enough to contribute!
+
+Due to this commercialization strategy, I humbly ask other developers that you do not distribute verbatim (or near verbatim) binaries, and that consumers not consume verbatim binaries. The above is not a statment of license. It is merely a request.
+
+Open Source in game development only works when the community supports the developers. Please support this project! If you make a derivative work, please support the original developers as well!
