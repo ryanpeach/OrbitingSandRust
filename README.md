@@ -1,17 +1,27 @@
 # OrbitingSandRust
 
-# Rust
+A resource management and mining game simulating a realistic solar system economy.
 
-## Reasons for Moving to Rust
+# Platform Choices
+
+## Reasons for Moving to Rust from C++
 
 1. Multiprocessing - We need a A LOT of parallelism to make this work. Rust is a great language for this.
 2. ECS - Without an engine, we need an ecs to impose some structure on our code. Rust has great ECS libraries.
 3. No Cmake - Need I say more?
 
-## Challenges
+## Reaons for choosing GGEZ
+
+* I tried godot C#, it didn't have good testing support and I felt it would be too slow or need too many modifications
+* I tried raylib C++, and it didn't have support for a lot of mesh indices
+* I tried rust macroquad, and it didn't have good mesh support
+* Ggez has a lot of support for meshes, uses wgpu and other existing libraries, is 2D native and is based on LOVE. Really a match made in heaven.
+
+## Challenges with Rust
 
 1. We are not going to use Bevy because it is so alpha. Many of our libraries are alpha.
 2. Bindings - We need to bind to liquidfun, which will be a pain.
+3. Major refactors are a lot of work due to the borrow checker, but at least its always safe
 
 # Installation
 

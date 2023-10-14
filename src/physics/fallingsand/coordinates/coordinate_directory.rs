@@ -508,19 +508,16 @@ impl CoordinateDir {
         total
     }
     /// Useful if you want to count in chunk concentric circles and get a layer number
+    /// In this case the j is the concentric circle index
     /// Returns (layer_num, chunk_layer_concentric_circle)
     pub fn get_layer_num_from_absolute_chunk_concentric_circle(&self, j: usize) -> (usize, usize) {
+        let mut this_j = j;
         let mut layer_num = 0;
-        let mut total = 1;
-        let mut last_total = 0;
-        loop {
-            if j < total {
-                return (layer_num, j - last_total);
-            }
+        while j >= self.get_layer_num_concentric_circles(layer_num) {
+            this_j -= self.get_layer_num_concentric_circles(layer_num);
             layer_num += 1;
-            last_total = total;
-            total += self.get_layer_num_concentric_circles(layer_num);
         }
+        (layer_num, this_j)
     }
 }
 /* ========================================
@@ -557,10 +554,14 @@ impl CoordinateDir {
     pub fn get_layer_num_concentric_circles(&self, layer_num: usize) -> usize {
         if layer_num == 0 {
             self.core_chunk.get_num_concentric_circles()
-        } else if layer_num == 1 {
-            self.second_num_concentric_circles
         } else {
-            2 * self.get_layer_num_concentric_circles(layer_num - 1)
+            let mut total_height = 0;
+            for j in 0..self.partial_chunks[layer_num - 1].get_height() {
+                total_height += self.partial_chunks[layer_num - 1]
+                    .get(JkVector { j, k: 0 })
+                    .get_num_concentric_circles();
+            }
+            total_height
         }
     }
     /// The number of radial lines in a given layer
@@ -569,12 +570,22 @@ impl CoordinateDir {
         if layer_num == 0 {
             self.core_chunk.get_num_radial_lines()
         } else {
-            2 * self.get_layer_num_radial_lines(layer_num - 1)
+            let mut total_width = 0;
+            for k in 0..self.partial_chunks[layer_num - 1].get_width() {
+                total_width += self.partial_chunks[layer_num - 1]
+                    .get(JkVector { j: 0, k })
+                    .get_num_radial_lines();
+            }
+            total_width
         }
     }
     /// The total number of chunks in the directory
     pub fn get_num_chunks(&self) -> usize {
-        self.partial_chunks.len() + 1
+        let mut out = 1;
+        for layer in &self.partial_chunks {
+            out += layer.get_width() * layer.get_height();
+        }
+        out
     }
 }
 
@@ -634,6 +645,186 @@ mod tests {
                 $b
             );
         };
+    }
+
+    /// Needed these when I noticed get_layer_num_from_absolute_chunk_concentric_circle was wrong
+    mod test_concentric_circles_conversions {
+        use super::*;
+
+        fn default_coordinate_dir() -> CoordinateDir {
+            let coordinate_dir = CoordinateDirBuilder::new()
+                .cell_radius(1.0)
+                .num_layers(9)
+                .first_num_radial_lines(6)
+                .second_num_concentric_circles(3)
+                .max_cells(64 * 64)
+                .build();
+
+            coordinate_dir
+        }
+
+        /// Going to verify the chunk grid sizes before we start testing, and so we can know if they change
+        #[test]
+        fn test_grid_sizes() {
+            let coord_dir = default_coordinate_dir();
+            // Core
+            assert_eq!(coord_dir.get_chunk_layer_num_concentric_circles(0), 1);
+            assert_eq!(coord_dir.get_chunk_layer_num_radial_lines(0), 1);
+
+            // Layer 1
+            assert_eq!(coord_dir.get_chunk_layer_num_concentric_circles(1), 1);
+            assert_eq!(coord_dir.get_chunk_layer_num_radial_lines(1), 1);
+
+            // Layer 2
+            assert_eq!(coord_dir.get_chunk_layer_num_concentric_circles(2), 1);
+            assert_eq!(coord_dir.get_chunk_layer_num_radial_lines(2), 1);
+
+            // Layer 3
+            assert_eq!(coord_dir.get_chunk_layer_num_concentric_circles(3), 1);
+            assert_eq!(coord_dir.get_chunk_layer_num_radial_lines(3), 1);
+
+            // Layer 4
+            assert_eq!(coord_dir.get_chunk_layer_num_concentric_circles(4), 1);
+            assert_eq!(coord_dir.get_chunk_layer_num_radial_lines(4), 1);
+
+            // Layer 5
+            assert_eq!(coord_dir.get_chunk_layer_num_concentric_circles(5), 1);
+            assert_eq!(coord_dir.get_chunk_layer_num_radial_lines(5), 6);
+
+            // Layer 6
+            assert_eq!(coord_dir.get_chunk_layer_num_concentric_circles(6), 3);
+            assert_eq!(coord_dir.get_chunk_layer_num_radial_lines(6), 6);
+
+            // Layer 7
+            assert_eq!(coord_dir.get_chunk_layer_num_concentric_circles(7), 6);
+            assert_eq!(coord_dir.get_chunk_layer_num_radial_lines(7), 12);
+
+            // Layer 8
+            assert_eq!(coord_dir.get_chunk_layer_num_concentric_circles(8), 12);
+            assert_eq!(coord_dir.get_chunk_layer_num_radial_lines(8), 24);
+        }
+
+        #[test]
+        fn test_get_total_number_chunks_in_concentric_circle_dimension() {
+            let coord_dir = default_coordinate_dir();
+            assert_eq!(
+                coord_dir.get_total_number_chunks_in_concentric_circle_dimension(),
+                27
+            );
+        }
+
+        #[test]
+        fn test_get_layer_num_from_absolute_chunk_concentric_circle() {
+            let coord_dir = default_coordinate_dir();
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(0),
+                (0, 0)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(1),
+                (1, 0)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(2),
+                (2, 0)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(3),
+                (3, 0)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(4),
+                (4, 0)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(5),
+                (5, 0)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(6),
+                (6, 0)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(7),
+                (6, 1)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(8),
+                (6, 2)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(9),
+                (7, 0)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(10),
+                (7, 1)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(11),
+                (7, 2)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(12),
+                (7, 3)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(13),
+                (7, 4)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(14),
+                (7, 5)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(15),
+                (8, 0)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(16),
+                (8, 1)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(17),
+                (8, 2)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(18),
+                (8, 3)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(19),
+                (8, 4)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(20),
+                (8, 5)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(21),
+                (8, 6)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(22),
+                (8, 7)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(23),
+                (8, 8)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(24),
+                (8, 9)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(25),
+                (8, 10)
+            );
+            assert_eq!(
+                coord_dir.get_layer_num_from_absolute_chunk_concentric_circle(26),
+                (8, 11)
+            );
+        }
     }
 
     #[test]
