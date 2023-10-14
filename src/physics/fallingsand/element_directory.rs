@@ -270,39 +270,63 @@ impl ElementGridDir {
     fn package_this_convolution(
         &mut self,
         coord: ChunkIjkVector,
-    ) -> ElementGridConvolutionNeighbors {
+    ) -> Result<ElementGridConvolutionNeighbors, String> {
         println!("Packaging convolution for chunk {:?}", coord);
         let neighbors = self.get_chunk_neighbors(coord);
         let mut out = HashMap::new();
         for neighbor in neighbors.iter() {
-            let chunk = self.chunks[neighbor.i]
-                .replace(neighbor.to_jk_vector(), None)
-                .expect("The chunk should not already be borrowed.");
-            out.insert(neighbor, chunk);
+            if let Some(chunk) = self.chunks[neighbor.i].replace(neighbor.to_jk_vector(), None) {
+                out.insert(neighbor, chunk);
+            } else {
+                // In this case we need to unpackage the convolutions we have already packaged
+                // and put the chunks back where they came from
+                for (neighbor_idx, neighbor) in out.into_iter() {
+                    let prev = self.chunks[neighbor_idx.i]
+                        .replace(neighbor_idx.to_jk_vector(), Some(neighbor));
+                    debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
+                }
+                return Err(format!(
+                    "Chunk {:?} is already borrowed by another convolution.",
+                    neighbor
+                ));
+            }
         }
-        ElementGridConvolutionNeighbors::new(neighbors, out)
+        Ok(ElementGridConvolutionNeighbors::new(neighbors, out))
     }
 
     // This takes ownership of the chunk and all its neighbors from the directory
     // and puts them into a target vector and a vector of convolutions
     // The taget vector and convolution vectors will then be iterated on in parallel
-    fn package_convolutions(&mut self) -> (Vec<ElementGridConvolutionNeighbors>, Vec<ElementGrid>) {
+    fn package_convolutions(
+        &mut self,
+    ) -> Result<(Vec<ElementGridConvolutionNeighbors>, Vec<ElementGrid>), Vec<ChunkIjkVector>> {
         let target_chunk_coords = self.get_next_targets();
 
         let mut convolutions = Vec::new();
         let mut target_chunks = Vec::new();
+        let mut failed_coords = Vec::new();
 
         for coord in &target_chunk_coords {
-            convolutions.push(self.package_this_convolution(*coord));
-
-            let chunk = self.chunks[coord.i]
-                .replace(coord.to_jk_vector(), None)
-                .expect("The chunk should not already be borrowed.");
-            target_chunks.push(chunk);
+            let conv = self.package_this_convolution(*coord);
+            let chunk = self.chunks[coord.i].replace(coord.to_jk_vector(), None);
+            match (conv, chunk) {
+                (Ok(conv), Some(chunk)) => {
+                    convolutions.push(conv);
+                    target_chunks.push(chunk);
+                }
+                _ => {
+                    failed_coords.push(*coord);
+                }
+            }
         }
-
-        (convolutions, target_chunks)
+        if !failed_coords.is_empty() {
+            self.unpackage_convolutions(convolutions, target_chunks);
+            Err(failed_coords)
+        } else {
+            Ok((convolutions, target_chunks))
+        }
     }
+
     /// TODO: This needs testing
     /// The reverse of the package_convolutions function
     /// Puts the chunks back into the directory exactly where they were taken from
@@ -374,7 +398,9 @@ impl ElementGridDir {
     /// the size of one elementgrid.
     pub fn process(&mut self, delta: Time) {
         // The main parallel logic
-        let (mut convolutions, mut target_chunks) = self.package_convolutions();
+        let (mut convolutions, mut target_chunks) = self
+            .package_convolutions()
+            .expect("In runtime, this should never fail.");
         convolutions
             .par_iter_mut()
             .zip(target_chunks.par_iter_mut())

@@ -117,8 +117,8 @@ impl EventHandler<ggez::GameError> for MainState {
             self.mesh_draw_mode = mesh_draw_mode;
         }
         let delta_time = ctx.time.delta().as_secs_f64();
-        let _delta_time_sec = Time::new::<second>(delta_time);
-        // self.celestial.process(delta_time_sec);
+        let delta_time_sec = Time::new::<second>(delta_time);
+        self.celestial.process(delta_time_sec);
         Ok(())
     }
 
