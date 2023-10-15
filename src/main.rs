@@ -53,11 +53,12 @@ impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
         let coordinate_dir = CoordinateDirBuilder::new()
             .cell_radius(1.0)
-            .num_layers(11)
+            .num_layers(10)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
             .build();
         let element_grid_dir = ElementGridDir::new_empty(coordinate_dir);
+        println!("Num elements: {}", element_grid_dir.get_total_num_cells());
 
         let celestial = Celestial::new(element_grid_dir, MeshDrawMode::TexturedMesh);
         let _screen_size = ctx.gfx.drawable_size();
@@ -117,8 +118,8 @@ impl EventHandler<ggez::GameError> for MainState {
             self.mesh_draw_mode = mesh_draw_mode;
         }
         let delta_time = ctx.time.delta().as_secs_f64();
-        let _delta_time_sec = Time::new::<second>(delta_time);
-        // self.celestial.process(delta_time_sec);
+        let delta_time_sec = Time::new::<second>(delta_time);
+        self.celestial.process(delta_time_sec);
         Ok(())
     }
 

@@ -55,6 +55,16 @@ impl ElementGrid {
     pub fn set_already_processed(&mut self, already_processed: bool) {
         self.already_processed = already_processed;
     }
+    pub fn set_already_processed_deduplicated(
+        &mut self,
+        already_processed: bool,
+    ) -> Result<(), String> {
+        if self.already_processed == already_processed {
+            return Err("Tried to set the same value twice".to_string());
+        }
+        self.already_processed = already_processed;
+        Ok(())
+    }
     #[allow(clippy::borrowed_box)]
     pub fn get_chunk_coords(&self) -> &Box<dyn ChunkCoords> {
         &self.coords
