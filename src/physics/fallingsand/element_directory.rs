@@ -980,11 +980,7 @@ mod tests {
             let out3 =
                 this.process_targets.has_multi_bottom_neighbor[this.process_count % 9].clone();
             this.process_count += 1;
-            out1.0
-                .into_iter()
-                .chain(out2.0.into_iter())
-                .chain(out3.0.into_iter())
-                .collect()
+            out1.0.into_iter().chain(out2.0).chain(out3.0).collect()
         }
 
         /// Test that every chunk is targetted exactly once in 9 iterations
