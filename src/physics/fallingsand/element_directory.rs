@@ -13,7 +13,7 @@ use super::util::grid::Grid;
 use super::util::image::RawImage;
 use super::util::vectors::{ChunkIjkVector, JkVector};
 
-// use rayon::prelude::*;
+use rayon::prelude::*;
 
 /// Useful for indicating at compile time that an iterable should be ran in parallel
 #[derive(Clone, Default)]
@@ -486,33 +486,37 @@ impl ElementGridDir {
         }
     }
 
-    /// TODO: This needs testing
     /// The reverse of the package_convolutions function
     /// Puts the chunks back into the directory exactly where they were taken from
     /// This is easy because all elementgrids contain a coordinate
+    fn unpackage_convolution(
+        &mut self,
+        mut target: ElementGrid,
+        conv: ElementGridConvolutionNeighbors,
+    ) {
+        target
+            .set_already_processed_deduplicated(true)
+            .expect("should not have already been set");
+        {
+            let target_idx = target.get_chunk_coords().get_chunk_idx();
+            let prev = self.chunks[target_idx.i].replace(target_idx.to_jk_vector(), Some(target));
+            debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
+        }
+        for (neighbor_idx, neighbor) in conv.into_iter() {
+            let prev =
+                self.chunks[neighbor_idx.i].replace(neighbor_idx.to_jk_vector(), Some(neighbor));
+            debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
+        }
+    }
+
+    /// Unpackages more than one convolution at a time
     fn unpackage_convolutions(
         &mut self,
         convolutions: Vec<ElementGridConvolutionNeighbors>,
         target_chunks: Vec<ElementGrid>,
     ) {
-        for (mut target_chunk, this_conv) in target_chunks.into_iter().zip(convolutions.into_iter())
-        {
-            target_chunk.set_already_processed(true);
-            let coord = target_chunk.get_chunk_coords();
-            println!(
-                "Unpackaging convolution for chunk {:?}",
-                coord.get_chunk_idx()
-            );
-            {
-                let prev = self.chunks[coord.get_layer_num()]
-                    .replace(coord.get_chunk_idx().to_jk_vector(), Some(target_chunk));
-                debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
-            }
-            for (neighbor_idx, neighbor) in this_conv.into_iter() {
-                let prev = self.chunks[neighbor_idx.i]
-                    .replace(neighbor_idx.to_jk_vector(), Some(neighbor));
-                debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
-            }
+        for (target_chunk, this_conv) in target_chunks.into_iter().zip(convolutions.into_iter()) {
+            self.unpackage_convolution(target_chunk, this_conv);
         }
     }
 
@@ -520,8 +524,8 @@ impl ElementGridDir {
     fn get_unprocessed_chunk_idxs(&self) -> Vec<ChunkIjkVector> {
         let mut out = Vec::new();
         for i in 0..self.coords.get_num_layers() {
-            let j_size = self.coords.get_layer_num_concentric_circles(i);
-            let k_size = self.coords.get_layer_num_radial_lines(i);
+            let j_size = self.coords.get_layer_num_concentric_chunks(i);
+            let k_size = self.coords.get_layer_num_radial_chunks(i);
             for j in 0..j_size {
                 for k in 0..k_size {
                     let coord = ChunkIjkVector { i, j, k };
@@ -537,11 +541,12 @@ impl ElementGridDir {
     /// Sets the already_processed flag to false for all chunks
     fn unlock_all_chunks(&mut self) {
         for i in 0..self.coords.get_num_layers() {
-            let j_size = self.coords.get_layer_num_concentric_circles(i);
-            let k_size = self.coords.get_layer_num_radial_lines(i);
+            let j_size = self.coords.get_layer_num_concentric_chunks(i);
+            let k_size = self.coords.get_layer_num_radial_chunks(i);
             for j in 0..j_size {
                 for k in 0..k_size {
                     let coord = ChunkIjkVector { i, j, k };
+                    // Doesn't even matter if this fails
                     self.get_chunk_by_chunk_ijk_mut(coord)
                         .set_already_processed(false);
                 }
@@ -554,36 +559,79 @@ impl ElementGridDir {
     /// The passes ensure that no two adjacent elementgrids are processed at the same time
     /// This is important because elementgrids can effect one another at a maximum range of
     /// the size of one elementgrid.
-    pub fn process(&mut self, _delta: Time) {
-        // The main parallel logic
-        // let (mut convolutions, mut target_chunks) = self
-        //     .package_convolutions()
-        //     .expect("In runtime, this should never fail.");
-        // convolutions
-        //     .par_iter_mut()
-        //     .zip(target_chunks.par_iter_mut())
-        //     .for_each(|(convolution, target_chunk)| {
-        //         target_chunk.process(convolution, delta);
-        //     });
-        // self.unpackage_convolutions(convolutions, target_chunks);
+    pub fn process(&mut self, delta: Time) {
+        self.process_parallel(
+            self.process_targets.standard_convolution[self.process_count % 9].clone(),
+            delta,
+        );
+        self.process_sequence(
+            self.process_targets.has_single_bottom_neighbor[self.process_count % 9].clone(),
+            delta,
+        );
+        self.process_parallel(
+            self.process_targets.has_multi_bottom_neighbor[self.process_count % 9].clone(),
+            delta,
+        );
+        self.process_count += 1;
 
-        // // Increment the process count and check for errors
-        // if self.process_count % 9 == 0 {
-        //     let unprocessed = self.get_unprocessed_chunk_idxs();
-        //     debug_assert_ne!(
-        //         unprocessed.len(),
-        //         0,
-        //         "After 9 iterations not all chunks are processed. Missing {:?}",
-        //         unprocessed
-        //     );
-        //     self.unlock_all_chunks();
-        // }
-        unimplemented!()
+        // Check for errors and unlock all chunks every 9 iterations
+        if self.process_count % 9 == 0 {
+            debug_assert_eq!(
+                self.get_unprocessed_chunk_idxs().len(),
+                0,
+                "After 9 iterations not all chunks are processed. Missing {:?}",
+                self.get_unprocessed_chunk_idxs()
+            );
+            self.unlock_all_chunks();
+        }
+    }
+
+    fn process_sequence(&mut self, targets: Sequential<HashSet<ChunkIjkVector>>, delta: Time) {
+        for target in targets.0 {
+            let mut conv = self
+                .package_coordinate_neighbors(target)
+                .expect("In runtime, this should never fail.");
+            let mut chunk = self.chunks[target.i]
+                .replace(target.to_jk_vector(), None)
+                .expect("Should not have been replaced already.");
+            chunk.process(&mut conv, delta);
+            // Unpackage the convolution
+            self.unpackage_convolution(chunk, conv);
+        }
+    }
+    fn process_parallel(&mut self, targets: Parallel<HashSet<ChunkIjkVector>>, delta: Time) {
+        let (mut convolutions, mut target_chunks) = self
+            .package_convolutions(targets.0)
+            .expect("In runtime, this should never fail.");
+        convolutions
+            .par_iter_mut()
+            .zip(target_chunks.par_iter_mut())
+            .for_each(|(convolution, target_chunk)| {
+                target_chunk.process(convolution, delta);
+            });
+        self.unpackage_convolutions(convolutions, target_chunks);
     }
 
     /// Get the number of chunks from the coordinate directory
     pub fn get_num_chunks(&self) -> usize {
         self.coords.get_num_chunks()
+    }
+    pub fn get_total_num_cells(&self) -> usize {
+        let mut out = 0;
+        for i in 0..self.coords.get_num_layers() {
+            let j_size = self.coords.get_layer_num_concentric_chunks(i);
+            let k_size = self.coords.get_layer_num_radial_chunks(i);
+            for j in 0..j_size {
+                for k in 0..k_size {
+                    let coord = ChunkIjkVector { i, j, k };
+                    out += self
+                        .get_chunk_by_chunk_ijk(coord)
+                        .get_chunk_coords()
+                        .total_size();
+                }
+            }
+        }
+        out
     }
 
     /// Gets the chunk at the given index
@@ -1033,23 +1081,26 @@ mod tests {
             }
         }
 
-        // /// Not really necessary since this is done in sequence but good to have a test anyway
-        // #[test]
-        // fn test_has_single_bottom_neighbor_packaging() {
-        //     let mut element_grid_dir = get_element_grid_dir();
-        //     let process_targets = element_grid_dir.get_process_targets();
-        //     for frame_nb in 0..9 {
-        //         for chunk in process_targets.has_single_bottom_neighbor[frame_nb].0.iter() {
-        //             if let Err(e) = element_grid_dir
-        //                 .package_coordinate_neighbors(*chunk) {
-        //                     panic!(
-        //                         "The following chunk {:?} for frame {} could not be packaged: {:?}",
-        //                         chunk, frame_nb, e
-        //                     );
-        //                 }
-        //         }
-        //     }
-        // }
+        /// Not really necessary since this is done in sequence but good to have a test anyway
+        #[test]
+        fn test_has_single_bottom_neighbor_packaging() {
+            let mut element_grid_dir = get_element_grid_dir();
+            let process_targets = element_grid_dir.get_process_targets();
+            for frame_nb in 0..9 {
+                for chunk_coord in process_targets.has_single_bottom_neighbor[frame_nb]
+                    .0
+                    .iter()
+                {
+                    let conv = element_grid_dir
+                        .package_coordinate_neighbors(*chunk_coord)
+                        .unwrap();
+                    let chunk = element_grid_dir.chunks[chunk_coord.i]
+                        .replace(chunk_coord.to_jk_vector(), None)
+                        .unwrap();
+                    element_grid_dir.unpackage_convolution(chunk, conv);
+                }
+            }
+        }
 
         #[test]
         #[warn(unused_variables)]
