@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+extern crate orbiting_sand;
 
 use ggegui::{egui, Gui};
 use ggez::conf::WindowMode;
@@ -8,20 +8,17 @@ use ggez::graphics::{self, DrawParam, FilterMode, Mesh, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
-use physics::fallingsand::element_directory::ElementGridDir;
-use physics::fallingsand::util::enums::{MeshDrawMode, ZoomDrawMode};
+use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
+use orbiting_sand::physics::fallingsand::util::enums::{MeshDrawMode, ZoomDrawMode};
 
-use physics::fallingsand::util::vectors::JkVector;
+use orbiting_sand::physics::fallingsand::util::vectors::JkVector;
 use uom::si::f64::*;
 use uom::si::time::second;
 
-use crate::nodes::camera::Camera;
-use crate::nodes::celestial::Celestial;
+use orbiting_sand::nodes::camera::Camera;
+use orbiting_sand::nodes::celestial::Celestial;
 
-use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
-
-mod nodes;
-mod physics;
+use orbiting_sand::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
 
 // =================
 // Helper methods

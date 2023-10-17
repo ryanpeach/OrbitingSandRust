@@ -65,9 +65,6 @@ impl Celestial {
     pub fn get_combined_texture(&self) -> &RawImage {
         &self.combined_texture
     }
-    pub fn len(&self) -> usize {
-        self.all_meshes.len()
-    }
     pub fn get_all_bounding_boxes(&self) -> &Vec<Grid<Rect>> {
         &self.bounding_boxes
     }

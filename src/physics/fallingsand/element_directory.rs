@@ -657,6 +657,9 @@ impl ElementGridDir {
     pub fn len(&self) -> usize {
         self.chunks.len()
     }
+    pub fn is_empty(&self) -> bool {
+        self.chunks.is_empty()
+    }
     pub fn get_textures(&self) -> Vec<Grid<RawImage>> {
         let mut out = Vec::new();
         for i in 0..self.coords.get_num_layers() {
