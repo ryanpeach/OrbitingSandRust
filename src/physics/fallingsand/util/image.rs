@@ -88,3 +88,32 @@ impl RawImage {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
+    use crate::physics::fallingsand::element_directory::ElementGridDir;
+    use crate::physics::fallingsand::util::enums::MeshDrawMode;
+    use crate::physics::fallingsand::elements::{element::Element, sand::Sand, vacuum::Vacuum};
+
+    /// The default element grid directory for testing
+    fn get_element_grid_dir() -> ElementGridDir {
+        let coordinate_dir = CoordinateDirBuilder::new()
+            .cell_radius(1.0)
+            .num_layers(7)
+            .first_num_radial_lines(6)
+            .second_num_concentric_circles(3)
+            .max_cells(64 * 64)
+            .build();
+        let fill0: Box<dyn Element> = Box::<Vacuum>::default();
+        let fill1: Box<dyn Element> = Box::<Sand>::default();
+        ElementGridDir::new_checkerboard(coordinate_dir, &fill0, &fill1)
+    }
+
+    #[test]
+    fn test_combine() {
+        let textures = get_element_grid_dir().get_textures();
+        let combined_mesh = RawImage::combine(&textures);
+    }
+}

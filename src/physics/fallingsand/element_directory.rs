@@ -8,6 +8,7 @@ use super::element_convolution::{
     LeftRightNeighbors, TopNeighbors,
 };
 use super::element_grid::ElementGrid;
+use super::elements::element::Element;
 use super::util::functions::modulo;
 use super::util::grid::Grid;
 use super::util::image::RawImage;
@@ -243,6 +244,36 @@ impl ElementGridDir {
                 for k in 0..k_size {
                     let element_grid =
                         ElementGrid::new_empty(coords.get_chunk_at_idx(ChunkIjkVector { i, j, k }));
+                    layer.replace(JkVector { j, k }, Some(element_grid));
+                }
+            }
+            chunks.push(layer);
+        }
+        let process_targets = pregen_process_targets(&coords);
+        Self {
+            coords,
+            chunks,
+            process_targets,
+            process_count: 0,
+        }
+    }
+
+    pub fn new_checkerboard(coords: CoordinateDir, fill0: &Box<dyn Element>, fill1: &Box<dyn Element>) -> Self {
+        let mut chunks: Vec<Grid<Option<ElementGrid>>> =
+            Vec::with_capacity(coords.get_num_layers());
+        for i in 0..coords.get_num_layers() {
+            let j_size = coords.get_layer_num_concentric_chunks(i);
+            let k_size = coords.get_layer_num_radial_chunks(i);
+            let mut layer = Grid::new_empty(k_size, j_size);
+            for j in 0..j_size {
+                for k in 0..k_size {
+                    let fill: Box<dyn Element> = if (j + k) % 2 == 0 {
+                        fill0.box_clone()
+                    } else {
+                        fill1.box_clone()
+                    };
+                    let element_grid =
+                        ElementGrid::new_filled(coords.get_chunk_at_idx(ChunkIjkVector { i, j, k }), &fill);
                     layer.replace(JkVector { j, k }, Some(element_grid));
                 }
             }
