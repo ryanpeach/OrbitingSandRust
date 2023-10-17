@@ -685,6 +685,29 @@ impl CoordinateDir {
             Ok(IjkVector { i, j, k })
         }
     }
+
+    fn cell_idx_to_chunk_idx(&self, cell_idx: IjkVector) -> ChunkIjkVector {
+        let chunk_layer_num_concentric_circles =
+            self.get_chunk_num_concentric_circles(ChunkIjkVector {
+                i: cell_idx.i,
+                j: 0,
+                k: 0,
+            });
+        let chunk_layer_num_radial_lines = self.get_chunk_num_radial_lines(ChunkIjkVector {
+            i: cell_idx.i,
+            j: 0,
+            k: 0,
+        });
+        let cj = cell_idx.j / chunk_layer_num_concentric_circles;
+        let ck = cell_idx.k / chunk_layer_num_radial_lines;
+        debug_assert!(cj < self.get_layer_num_concentric_chunks(cell_idx.i));
+        debug_assert!(ck < self.get_layer_num_radial_chunks(cell_idx.i));
+        ChunkIjkVector {
+            i: cell_idx.i,
+            j: cj,
+            k: ck,
+        }
+    }
 }
 
 /* ===================
@@ -1032,6 +1055,54 @@ mod tests {
                     let cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
                     assert_eq!(cell_idx, IjkVector { i, j, k });
                 }
+            }
+        }
+    }
+
+    #[test]
+    fn test_cell_idx_to_chunk_idx() {
+        let coordinate_dir = CoordinateDirBuilder::new()
+            .cell_radius(1.0)
+            .num_layers(8)
+            .first_num_radial_lines(8)
+            .second_num_concentric_circles(2)
+            .max_cells(64 * 64) // 24x24
+            .build();
+
+        // Test the core
+        let i = 0;
+        let j = 0;
+        for k in 0..coordinate_dir.get_core_chunk().get_num_radial_lines() {
+            // This radius and theta should define the midpoint of each cell
+            let coord = IjkVector { i, j, k };
+            let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
+            assert_eq!(chunk_idx, ChunkIjkVector { i: 0, j: 0, k: 0 },);
+        }
+
+        // Test the rest
+        for i in 1..coordinate_dir.get_num_layers() {
+            let num_concentric_chunks = coordinate_dir.get_layer_num_concentric_chunks(i);
+            let num_radial_chunks = coordinate_dir.get_layer_num_radial_chunks(i);
+            let mut total_concentric_circles = 0;
+            for cj in 0..num_concentric_chunks {
+                let mut total_radial_lines = 0;
+                let chunk_layer_num_concentric_circles = coordinate_dir
+                    .get_chunk_num_concentric_circles(ChunkIjkVector { i, j: cj, k: 0 });
+                for ck in 0..num_radial_chunks {
+                    let chunk_num_radial_lines = coordinate_dir
+                        .get_chunk_num_radial_lines(ChunkIjkVector { i, j: cj, k: ck });
+                    for j in total_concentric_circles
+                        ..total_concentric_circles + chunk_layer_num_concentric_circles
+                    {
+                        for k in total_radial_lines..total_radial_lines + chunk_num_radial_lines {
+                            let coord = IjkVector { i, j, k };
+                            let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
+                            assert_eq!(chunk_idx, ChunkIjkVector { i, j: cj, k: ck });
+                        }
+                    }
+                    total_radial_lines += chunk_num_radial_lines;
+                }
+                total_concentric_circles += chunk_layer_num_concentric_circles;
             }
         }
     }
