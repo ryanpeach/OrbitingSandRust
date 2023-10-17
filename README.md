@@ -65,16 +65,7 @@ There is no way that most engines could handle the custom physics of this game. 
 
 # Installation
 
-## Windows, Mac, Linux
-
-Just download rust and `cargo run`
-
-## WSL
-
-It really doesn't work. Read the markdown comments if you want to attempt from my last stopping point.
-
-<!--
-There are a lot of dependencies:
+## Ubuntu
 
 ```
 sudo apt update
@@ -89,22 +80,20 @@ sudo apt install libasound2-dev
 sudo apt install libusb-1.0-0-dev libftdi1-dev
 sudo apt install libudev-dev
 
-# We want to install perf
-# REF: https://gist.github.com/abel0b/b1881e41b9e1c4b16d84e5e083c38a13
-# windows
-wsl --update
-# wsl 2
-sudo apt update
-sudo apt install flex bison
-sudo apt install libdwarf-dev libelf-dev libnuma-dev libunwind-dev \
-libnewt-dev libdwarf++0 libelf++0 libdw-dev libbfb0-dev \
-systemtap-sdt-dev libssl-dev libperl-dev python-dev-is-python3 \
-binutils-dev libiberty-dev libzstd-dev libcap-dev libbabeltrace-dev
-git clone https://github.com/microsoft/WSL2-Linux-Kernel --depth 1
-cd WSL2-Linux-Kernel/tools/perf
-make -j8 # parallel build
-sudo cp perf /usr/local/bin
-``` -->
+# OPTIONAL: Install perf and https://github.com/flamegraph-rs/flamegraph for profiling
+sudo apt install linux-tools-common linux-tools-generic linux-tools-`uname -r`
+cargo install flamegraph
+cargo flamegraph
+
+# Test the code
+cargo test
+
+# Benchmark the code
+cargo bench
+
+# Now run your code
+cargo run
+```
 
 # Statement on Open Source
 
