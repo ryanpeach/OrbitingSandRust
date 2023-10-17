@@ -1,5 +1,3 @@
-use std::f32::consts::PI;
-
 use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use crate::physics::util::vectors::RelXyPoint;
@@ -657,51 +655,29 @@ impl CoordinateDir {
             outside_mesh = true;
         }
 
-        // Get the concentric circle we are on
+        // Some layer constants
+        let ith_num_radial_lines = self.get_layer_num_radial_lines(i);
         let ith_num_concentric_circles = self.get_layer_num_concentric_circles(i);
         let starting_r = self.get_layer_start_radius(i);
         let ending_r = self.get_layer_end_radius(i);
+
+        // Get the concentric circle we are on
         let circle_separation_distance =
             (ending_r - starting_r) / ith_num_concentric_circles as f32;
 
-        let mut j = 0;
-        while j < ith_num_concentric_circles {
-            let diff = (j + 1) as f32 * circle_separation_distance;
-            if norm_vertex_coord <= (starting_r + diff) {
-                break;
-            }
-            j += 1;
-        }
-
-        // If you go outside the mesh, stay inside
-        if j >= ith_num_concentric_circles {
-            j -= 1;
-            outside_mesh = true;
-        }
+        // Calculate 'j' directly without the while loop
+        let j_rel =
+            ((norm_vertex_coord - starting_r) / circle_separation_distance).floor() as usize;
+        let j = j_rel.min(ith_num_concentric_circles - 1);
 
         // Get the radial line to the left of the vertex
-        let mut angle = xy_coord.0.y.atan2(xy_coord.0.x);
-        if angle < 0.0 {
-            angle += 2.0 * PI;
-        }
-        let ith_num_radial_lines = self.get_layer_num_radial_lines(i);
-        let theta = 2.0 * PI / ith_num_radial_lines as f32;
+        let angle = (xy_coord.0.y.atan2(xy_coord.0.x) + 2.0 * std::f32::consts::PI)
+            % (2.0 * std::f32::consts::PI);
+        let theta = 2.0 * std::f32::consts::PI / ith_num_radial_lines as f32;
 
-        let mut k = 0;
-        while k < ith_num_radial_lines {
-            let angle_point = k as f32 * theta;
-            let next_angle_point = (k + 1) as f32 * theta;
-
-            if angle <= next_angle_point && angle > angle_point {
-                break;
-            }
-            k += 1;
-        }
-
-        // Loop
-        if k == ith_num_radial_lines {
-            k = 0;
-        }
+        // Calculate 'k' directly without the while loop
+        let k_rel = (angle / theta).floor() as usize;
+        let k = k_rel.min(ith_num_radial_lines - 1);
 
         if outside_mesh {
             Err(IjkVector { i, j, k })

@@ -1,6 +1,4 @@
-use std::time::Duration;
-
-use criterion::{black_box, criterion_group, BenchmarkId, Criterion};
+use criterion::{black_box, criterion_group, Criterion};
 use ggez::glam::Vec2;
 use orbiting_sand::physics::{
     fallingsand::coordinates::{
@@ -16,8 +14,6 @@ fn get_rel_pos_to_cell_idx_input_coords(coordinate_dir: &CoordinateDir) -> Vec<R
     let mut out = Vec::new();
 
     // Test the core
-    let i = 0;
-    let j = 0;
     for k in 0..coordinate_dir.get_core_chunk().get_num_radial_lines() {
         // This radius and theta should define the midpoint of each cell
         let radius = coordinate_dir.get_cell_radius() / 2.0;
