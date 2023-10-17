@@ -1087,17 +1087,17 @@ mod tests {
             for cj in 0..num_concentric_chunks {
                 let mut total_radial_lines = 0;
                 let chunk_layer_num_concentric_circles = coordinate_dir
-                    .get_chunk_num_concentric_circles(ChunkIjkVector { i: i, j: cj, k: 0 });
+                    .get_chunk_num_concentric_circles(ChunkIjkVector { i, j: cj, k: 0 });
                 for ck in 0..num_radial_chunks {
                     let chunk_num_radial_lines = coordinate_dir
-                        .get_chunk_num_radial_lines(ChunkIjkVector { i: i, j: cj, k: ck });
+                        .get_chunk_num_radial_lines(ChunkIjkVector { i, j: cj, k: ck });
                     for j in total_concentric_circles
                         ..total_concentric_circles + chunk_layer_num_concentric_circles
                     {
                         for k in total_radial_lines..total_radial_lines + chunk_num_radial_lines {
                             let coord = IjkVector { i, j, k };
                             let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
-                            assert_eq!(chunk_idx, ChunkIjkVector { i: i, j: cj, k: ck });
+                            assert_eq!(chunk_idx, ChunkIjkVector { i, j: cj, k: ck });
                         }
                     }
                     total_radial_lines += chunk_num_radial_lines;
