@@ -32,6 +32,12 @@ pub struct PartialLayerChunkCoordsBuilder {
     num_concentric_circles: usize,
 }
 
+impl Default for PartialLayerChunkCoordsBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PartialLayerChunkCoordsBuilder {
     /// Defaults to first layer defaults
     pub fn new() -> PartialLayerChunkCoordsBuilder {

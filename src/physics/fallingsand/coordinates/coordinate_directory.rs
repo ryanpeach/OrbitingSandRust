@@ -1,5 +1,6 @@
 use crate::physics::fallingsand::util::grid::Grid;
-use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, JkVector};
+use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
+use crate::physics::util::vectors::RelXyPoint;
 
 use super::chunk_coords::ChunkCoords;
 use super::core_coords::CoreChunkCoords;
@@ -35,6 +36,12 @@ pub struct CoordinateDirBuilder {
     first_num_radial_lines: usize,
     second_num_concentric_circles: usize,
     max_cells: usize,
+}
+
+impl Default for CoordinateDirBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 /// Builds a CoordinateDir
@@ -529,6 +536,7 @@ impl CoordinateDir {
         Err("j is out of bounds".to_owned())
     }
 }
+
 /* ========================================
  * Simple Getters
  * Misc attributes of the directory itself.
@@ -595,6 +603,87 @@ impl CoordinateDir {
             out += layer.get_width() * layer.get_height();
         }
         out
+    }
+
+    /// Gets the starting radius of an entire layer
+    pub fn get_layer_start_radius(&self, layer_num: usize) -> f32 {
+        if layer_num == 0 {
+            self.core_chunk.get_start_radius()
+        } else {
+            self.partial_chunks[layer_num - 1]
+                .get(JkVector { j: 0, k: 0 })
+                .get_start_radius()
+        }
+    }
+
+    /// Gets the ending radius of an entire layer
+    pub fn get_layer_end_radius(&self, layer_num: usize) -> f32 {
+        if layer_num == 0 {
+            self.core_chunk.get_end_radius()
+        } else {
+            self.partial_chunks[layer_num - 1]
+                .get(JkVector {
+                    j: self.partial_chunks[layer_num - 1].get_height() - 1,
+                    k: 0,
+                })
+                .get_end_radius()
+        }
+    }
+}
+
+/* ===================
+ * Inverse Coordinate
+ * =================== */
+impl CoordinateDir {
+    /// Converts a position relative to the origin of the circle to a cell index
+    pub fn rel_pos_to_cell_idx(&self, xy_coord: RelXyPoint) -> Result<IjkVector, IjkVector> {
+        let norm_vertex_coord = (xy_coord.0.x * xy_coord.0.x + xy_coord.0.y * xy_coord.0.y).sqrt();
+
+        // Get the layer we are on
+        let mut i = 0;
+        while i < self.get_num_layers() {
+            if norm_vertex_coord <= self.get_layer_end_radius(i) {
+                break;
+            }
+            i += 1;
+        }
+
+        // If you go outside the mesh, stay inside
+        let mut outside_mesh = false;
+        if i == self.get_num_layers() {
+            i -= 1;
+            outside_mesh = true;
+        }
+
+        // Some layer constants
+        let ith_num_radial_lines = self.get_layer_num_radial_lines(i);
+        let ith_num_concentric_circles = self.get_layer_num_concentric_circles(i);
+        let starting_r = self.get_layer_start_radius(i);
+        let ending_r = self.get_layer_end_radius(i);
+
+        // Get the concentric circle we are on
+        let circle_separation_distance =
+            (ending_r - starting_r) / ith_num_concentric_circles as f32;
+
+        // Calculate 'j' directly without the while loop
+        let j_rel =
+            ((norm_vertex_coord - starting_r) / circle_separation_distance).floor() as usize;
+        let j = j_rel.min(ith_num_concentric_circles - 1);
+
+        // Get the radial line to the left of the vertex
+        let angle = (xy_coord.0.y.atan2(xy_coord.0.x) + 2.0 * std::f32::consts::PI)
+            % (2.0 * std::f32::consts::PI);
+        let theta = 2.0 * std::f32::consts::PI / ith_num_radial_lines as f32;
+
+        // Calculate 'k' directly without the while loop
+        let k_rel = (angle / theta).floor() as usize;
+        let k = k_rel.min(ith_num_radial_lines - 1);
+
+        if outside_mesh {
+            Err(IjkVector { i, j, k })
+        } else {
+            Ok(IjkVector { i, j, k })
+        }
     }
 }
 
@@ -882,6 +971,68 @@ mod tests {
                     .unwrap(),
                 (8, 11)
             );
+        }
+    }
+
+    /// Iterate around the circle in every direction, targetting each cells midpoint, and make sure
+    /// the cell index is correct returned by rel_pos_to_cell_idx
+    #[test]
+    fn test_rel_pos_to_cell_idx() {
+        let coordinate_dir = CoordinateDirBuilder::new()
+            .cell_radius(1.0)
+            .num_layers(8)
+            .first_num_radial_lines(8)
+            .second_num_concentric_circles(2)
+            .max_cells(64 * 64) // 24x24
+            .build();
+
+        // Test the core
+        let i = 0;
+        let j = 0;
+        for k in 0..coordinate_dir.get_core_chunk().get_num_radial_lines() {
+            // This radius and theta should define the midpoint of each cell
+            let radius = coordinate_dir.get_cell_radius() / 2.0;
+            let theta = 2.0 * std::f32::consts::PI
+                / coordinate_dir.get_core_chunk().get_num_radial_lines() as f32
+                * (k as f32 + 0.5);
+            let xycoord = RelXyPoint(Vec2 {
+                x: radius * theta.cos(),
+                y: radius * theta.sin(),
+            });
+            let cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
+            assert_eq!(
+                cell_idx,
+                IjkVector { i, j, k },
+                "k: {}, radius: {}, theta: {}, xycoord: {:?}",
+                k,
+                radius,
+                theta,
+                xycoord
+            );
+        }
+
+        // Test the rest
+        for i in 1..coordinate_dir.get_num_layers() {
+            let num_concentric_circles = coordinate_dir.get_layer_num_concentric_circles(i);
+            let num_radial_lines = coordinate_dir.get_layer_num_radial_lines(i);
+            for j in 0..num_concentric_circles {
+                for k in 0..num_radial_lines {
+                    // This radius and theta should define the midpoint of each cell
+                    let radius = coordinate_dir.get_layer_start_radius(i)
+                        + (coordinate_dir.get_layer_end_radius(i)
+                            - coordinate_dir.get_layer_start_radius(i))
+                            / num_concentric_circles as f32
+                            * (j as f32 + 0.5);
+                    let theta =
+                        2.0 * std::f32::consts::PI / num_radial_lines as f32 * (k as f32 + 0.5);
+                    let xycoord = RelXyPoint(Vec2 {
+                        x: radius * theta.cos(),
+                        y: radius * theta.sin(),
+                    });
+                    let cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
+                    assert_eq!(cell_idx, IjkVector { i, j, k });
+                }
+            }
         }
     }
 

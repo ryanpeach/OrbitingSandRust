@@ -274,10 +274,12 @@ impl ElementGridConvolutionNeighbors {
     }
 }
 
-/// Iterators
-impl ElementGridConvolutionNeighbors {
-    /// Useful for unpackaging the convolution neighbors
-    pub fn into_iter(self) -> impl Iterator<Item = (ChunkIjkVector, ElementGrid)> {
+// Into Iter
+impl IntoIterator for ElementGridConvolutionNeighbors {
+    type Item = (ChunkIjkVector, ElementGrid);
+    type IntoIter = std::collections::hash_map::IntoIter<ChunkIjkVector, ElementGrid>;
+
+    fn into_iter(self) -> Self::IntoIter {
         self.grids.into_iter()
     }
 }
