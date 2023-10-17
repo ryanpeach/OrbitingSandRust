@@ -995,12 +995,10 @@ mod tests {
             let theta = 2.0 * std::f32::consts::PI
                 / coordinate_dir.get_core_chunk().get_num_radial_lines() as f32
                 * (k as f32 + 0.5);
-            let xycoord = RelXyPoint {
-                0: Vec2 {
-                    x: radius * theta.cos(),
-                    y: radius * theta.sin(),
-                },
-            };
+            let xycoord = RelXyPoint(Vec2 {
+                x: radius * theta.cos(),
+                y: radius * theta.sin(),
+            });
             let cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
             assert_eq!(
                 cell_idx,
@@ -1027,12 +1025,10 @@ mod tests {
                             * (j as f32 + 0.5);
                     let theta =
                         2.0 * std::f32::consts::PI / num_radial_lines as f32 * (k as f32 + 0.5);
-                    let xycoord = RelXyPoint {
-                        0: Vec2 {
-                            x: radius * theta.cos(),
-                            y: radius * theta.sin(),
-                        },
-                    };
+                    let xycoord = RelXyPoint(Vec2 {
+                        x: radius * theta.cos(),
+                        y: radius * theta.sin(),
+                    });
                     let cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
                     assert_eq!(cell_idx, IjkVector { i, j, k });
                 }
