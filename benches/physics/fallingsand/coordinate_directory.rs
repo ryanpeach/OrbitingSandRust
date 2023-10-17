@@ -40,12 +40,10 @@ fn get_rel_pos_to_cell_idx_input_coords(coordinate_dir: &CoordinateDir) -> Vec<R
                         / num_concentric_circles as f32
                         * (j as f32 + 0.5);
                 let theta = 2.0 * std::f32::consts::PI / num_radial_lines as f32 * (k as f32 + 0.5);
-                let xycoord = RelXyPoint {
-                    0: Vec2 {
-                        x: radius * theta.cos(),
-                        y: radius * theta.sin(),
-                    },
-                };
+                let xycoord = RelXyPoint(Vec2 {
+                    x: radius * theta.cos(),
+                    y: radius * theta.sin(),
+                });
                 out.push(xycoord);
             }
         }
