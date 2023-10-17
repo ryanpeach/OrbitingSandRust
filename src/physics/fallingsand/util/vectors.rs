@@ -47,6 +47,12 @@ pub struct IjkVector {
 /// Convienient constants
 impl IjkVector {
     pub const ZERO: Self = Self { i: 0, j: 0, k: 0 };
+    pub fn to_jk_vector(self) -> JkVector {
+        JkVector {
+            j: self.j,
+            k: self.k,
+        }
+    }
 }
 
 /// The ijk coordinates of a chunk within an element grid directory

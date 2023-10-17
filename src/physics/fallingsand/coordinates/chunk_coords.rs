@@ -3,11 +3,13 @@ use ggez::graphics::Color;
 use ggez::graphics::MeshBuilder;
 use ggez::graphics::Rect;
 use ggez::graphics::Vertex;
+use std::f32::consts::PI;
 
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::fallingsand::util::vectors::IjkVector;
 use crate::physics::fallingsand::util::vectors::JkVector;
+use crate::physics::util::vectors::RelXyPoint;
 
 /// A set of coordinates that tell you where on the circle a chunk is located
 /// and how big it is. Also provides methods for drawing the mesh.
@@ -209,5 +211,103 @@ pub trait ChunkCoords: Send + Sync {
                     - self.get_start_concentric_circle_absolute() as f32,
             ),
         }
+    }
+
+    /// Converts a position relative to the origin of the circle to a cell index
+    /// Returns an Err if the position is not on the circle
+    fn rel_pos_to_cell_idx(&self, xy_coord: RelXyPoint) -> Result<IjkVector, String> {
+        let norm_vertex_coord = (xy_coord.0.x * xy_coord.0.x + xy_coord.0.y * xy_coord.0.y).sqrt();
+        let start_concentric_circle = self.get_start_concentric_circle_layer_relative();
+        let end_concentric_circle = self.get_end_concentric_circle_layer_relative();
+        let starting_r = self.get_start_radius();
+        let ending_r = self.get_end_radius();
+        let num_concentric_circles = self.get_num_concentric_circles();
+        let num_radial_lines = self.get_num_radial_lines();
+        let start_radial_line = self.get_start_radial_line();
+        let end_radial_line = self.get_end_radial_line();
+        let start_radial_theta = self.get_start_radial_theta();
+        let end_radial_theta = self.get_end_radial_theta();
+
+        // Get the concentric circle we are on
+        let circle_separation_distance = (ending_r - starting_r) / num_concentric_circles as f32;
+
+        // Calculate 'j' directly without the while loop
+        let j_rel =
+            ((norm_vertex_coord - starting_r) / circle_separation_distance).floor() as usize;
+        let j = j_rel.min(end_concentric_circle - 1) + start_concentric_circle;
+
+        // Get the radial line to the left of the vertex
+        let angle = (xy_coord.0.y.atan2(xy_coord.0.x) + 2.0 * PI) % (2.0 * PI);
+        let theta = (end_radial_theta - start_radial_theta) / num_radial_lines as f32;
+
+        // Calculate 'k' directly without the while loop
+        let k_rel = (angle / theta).floor() as usize;
+        let k = k_rel.min(end_radial_line - 1);
+
+        // Check to see if the vertex is in the chunk
+        if j < start_concentric_circle && j >= end_concentric_circle {
+            return Err(format!(
+                "Vertex j {:?} is not in chunk {:?}. start_concentric_circle: {}, end_concentric_circle: {}",
+                xy_coord,
+                self.get_chunk_idx(),
+                start_concentric_circle,
+                end_concentric_circle,
+            ));
+        }
+        if k < start_radial_line && k >= end_radial_line {
+            return Err(format!(
+                "Vertex k {:?} is not in chunk {:?}. start_radial_line: {}, end_radial_line: {}",
+                xy_coord,
+                self.get_chunk_idx(),
+                start_radial_line,
+                end_radial_line,
+            ));
+        }
+        Ok(IjkVector {
+            i: self.get_layer_num(),
+            j,
+            k,
+        })
+    }
+
+    /// Convert a cell coordinate "on the circle" to a position "on the chunk"
+    /// Return an Err if this is not on the chunk
+    fn absolute_cell_idx_to_in_chunk_cell_idx(
+        &self,
+        cell_idx: IjkVector,
+    ) -> Result<JkVector, String> {
+        if cell_idx.i != self.get_layer_num() {
+            return Err(format!(
+                "Cell index i {:?} is not in chunk {:?}",
+                cell_idx,
+                self.get_chunk_idx()
+            ));
+        }
+        let start_radial_line = self.get_start_radial_line();
+        let end_radial_line = self.get_end_radial_line();
+        let start_concentric_circle = self.get_start_concentric_circle_layer_relative();
+        let end_concentric_circle = self.get_end_concentric_circle_layer_relative();
+        if cell_idx.j < start_concentric_circle || cell_idx.j >= end_concentric_circle {
+            return Err(format!(
+                "Cell index j {:?} is not in chunk {:?}. start_concentric_circle: {}, end_concentric_circle: {}",
+                cell_idx,
+                self.get_chunk_idx(),
+                start_concentric_circle,
+                end_concentric_circle,
+            ));
+        }
+        if cell_idx.k < start_radial_line || cell_idx.k >= end_radial_line {
+            return Err(format!(
+                "Cell index k {:?} is not in chunk {:?}. start_radial_line: {}, end_radial_line: {}",
+                cell_idx,
+                self.get_chunk_idx(),
+                start_radial_line,
+                end_radial_line,
+            ));
+        }
+        Ok(JkVector {
+            j: cell_idx.j - start_concentric_circle,
+            k: cell_idx.k - start_radial_line,
+        })
     }
 }
