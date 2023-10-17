@@ -80,11 +80,6 @@ sudo apt install libasound2-dev
 sudo apt install libusb-1.0-0-dev libftdi1-dev
 sudo apt install libudev-dev
 
-# OPTIONAL: Install perf and https://github.com/flamegraph-rs/flamegraph for profiling
-sudo apt install linux-tools-common linux-tools-generic linux-tools-`uname -r`
-cargo install flamegraph
-cargo flamegraph
-
 # Test the code
 cargo test
 
@@ -93,6 +88,11 @@ cargo bench
 
 # Now run your code
 cargo run
+
+# OPTIONAL: Install perf and https://github.com/flamegraph-rs/flamegraph for profiling
+sudo apt install linux-tools-common linux-tools-generic linux-tools-`uname -r`
+cargo install flamegraph
+cargo flamegraph
 ```
 
 # Statement on Open Source
