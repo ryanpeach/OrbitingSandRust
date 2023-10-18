@@ -94,8 +94,8 @@ mod tests {
     use super::*;
     use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
     use crate::physics::fallingsand::element_directory::ElementGridDir;
-    use crate::physics::fallingsand::util::enums::MeshDrawMode;
     use crate::physics::fallingsand::elements::{element::Element, sand::Sand, vacuum::Vacuum};
+    use crate::physics::fallingsand::util::vectors::JkVector;
 
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {
@@ -114,6 +114,10 @@ mod tests {
     #[test]
     fn test_combine() {
         let textures = get_element_grid_dir().get_textures();
-        let combined_mesh = RawImage::combine(&textures);
+        let img = RawImage::combine(&textures);
+        let j_size = textures.iter().map(|x| x.get_height()*x.get(JkVector{j: 0, k: 0}).bounds.h as usize).sum::<usize>();
+        let k_size = textures[textures.len() - 1].get_width()*textures[textures.len() - 1].get(JkVector{j: 0, k: 0}).bounds.w as usize;
+        assert_eq!(img.bounds.h, j_size as f32);
+        assert_eq!(img.bounds.w, k_size as f32);
     }
 }

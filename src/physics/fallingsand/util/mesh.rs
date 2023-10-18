@@ -133,5 +133,27 @@ mod tests {
     fn test_combine() {
         let meshes = get_element_grid_dir().get_coordinate_dir().get_mesh_data(MeshDrawMode::TexturedMesh);
         let combined_mesh = OwnedMeshData::combine(&meshes);
+        // Test that the combined_mesh uvs are normalized
+        for vertex in &combined_mesh.vertices {
+            assert!(vertex.uv[0] <= 1.0);
+            assert!(vertex.uv[0] >= 0.0);
+            assert!(vertex.uv[1] <= 1.0);
+            assert!(vertex.uv[1] >= 0.0);
+        }
+        // Test that the length of the combined_mesh indices is the same as the sum of the lengths of the meshes
+        let mut sum_indices = 0;
+        let mut sum_vertices = 0;
+        for grid in &meshes {
+            for mesh in grid {
+                sum_indices += mesh.indices.len();
+                sum_vertices += mesh.vertices.len();
+            }
+        }
+        assert_eq!(combined_mesh.indices.len(), sum_indices);
+        assert_eq!(combined_mesh.vertices.len(), sum_vertices);
+        // Test that the indices have been offset correctly
+        assert_eq!(*combined_mesh.indices.iter().min().unwrap(), 0u32);
+        assert_eq!(*combined_mesh.indices.iter().max().unwrap(), (combined_mesh.vertices.iter().len() - 1) as u32);
+
     }
 }
