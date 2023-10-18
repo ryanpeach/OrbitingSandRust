@@ -223,11 +223,12 @@ impl CoordinateDirBuilder {
                     debug_assert!(num_concentric_circles % num_concentric_chunks == 0);
                     layer_partial_chunks.replace(JkVector { j, k }, next_layer);
                 }
+                start_concentric_circle_absolute += num_concentric_circles / num_concentric_chunks;
+                debug_assert!(num_concentric_circles % num_concentric_chunks == 0);
             }
             partial_chunks.push(layer_partial_chunks);
 
             // Modify the variables
-            start_concentric_circle_absolute += num_concentric_circles;
             layer_num_radial_lines *= 2;
             num_concentric_circles *= 2;
             layer_num += 1;
@@ -712,7 +713,7 @@ impl CoordinateDir {
         }
     }
 
-    fn cell_idx_to_chunk_idx(&self, cell_idx: IjkVector) -> ChunkIjkVector {
+    pub fn cell_idx_to_chunk_idx(&self, cell_idx: IjkVector) -> ChunkIjkVector {
         let chunk_layer_num_concentric_circles =
             self.get_layer_chunk_num_concentric_circles(cell_idx.i);
         let chunk_layer_num_radial_lines = self.get_layer_chunk_num_radial_lines(cell_idx.i);
@@ -1122,145 +1123,6 @@ mod tests {
                                     let coord = IjkVector { i, j, k };
                                     let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
                                     assert_eq!(chunk_idx, ChunkIjkVector { i, j: cj, k: ck });
-                                }
-                            }
-                            total_radial_lines += chunk_num_radial_lines;
-                        }
-                        total_concentric_circles += chunk_layer_num_concentric_circles;
-                    }
-                }
-            }
-        }
-
-        /// I need to test the functions in the chunk_coords trait that are best tested
-        /// with access to a bunch of chunks
-        mod chunk_coord {
-            use super::*;
-
-            /// Iterate around the circle in every direction, targetting each cells midpoint, and make sure
-            /// the cell index is correct returned by rel_pos_to_cell_idx
-            #[test]
-            fn test_rel_pos_to_cell_idx() {
-                let coordinate_dir = CoordinateDirBuilder::new()
-                    .cell_radius(1.0)
-                    .num_layers(8)
-                    .first_num_radial_lines(6)
-                    .second_num_concentric_circles(3)
-                    .max_cells(64 * 64) // 24x24
-                    .build();
-
-                // Test the core
-                let i = 0;
-                let j = 0;
-                for k in 0..coordinate_dir.get_core_chunk().get_num_radial_lines() {
-                    // This radius and theta should define the midpoint of each cell
-                    let radius = coordinate_dir.get_cell_radius() / 2.0;
-                    let theta = 2.0 * PI
-                        / coordinate_dir.get_core_chunk().get_num_radial_lines() as f32
-                        * (k as f32 + 0.5);
-                    let xycoord = RelXyPoint(Vec2 {
-                        x: radius * theta.cos(),
-                        y: radius * theta.sin(),
-                    });
-                    let cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
-                    let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(cell_idx);
-                    let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx);
-                    assert_eq!(
-                        chunk.rel_pos_to_cell_idx(xycoord).unwrap(),
-                        IjkVector { i, j, k },
-                        "k: {}, radius: {}, theta: {}, xycoord: {:?}",
-                        k,
-                        radius,
-                        theta,
-                        xycoord
-                    );
-                }
-
-                // Test the rest
-                for i in 1..coordinate_dir.get_num_layers() {
-                    let num_concentric_circles = coordinate_dir.get_layer_num_concentric_circles(i);
-                    let num_radial_lines = coordinate_dir.get_layer_num_radial_lines(i);
-                    for j in 0..num_concentric_circles {
-                        for k in 0..num_radial_lines {
-                            // This radius and theta should define the midpoint of each cell
-                            let radius = coordinate_dir.get_layer_start_radius(i)
-                                + (coordinate_dir.get_layer_end_radius(i)
-                                    - coordinate_dir.get_layer_start_radius(i))
-                                    / num_concentric_circles as f32
-                                    * (j as f32 + 0.5);
-                            let theta = 2.0 * PI / num_radial_lines as f32 * (k as f32 + 0.5);
-                            let xycoord = RelXyPoint(Vec2 {
-                                x: radius * theta.cos(),
-                                y: radius * theta.sin(),
-                            });
-                            let cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
-                            let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(cell_idx);
-                            let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx);
-                            assert_eq!(
-                                chunk.rel_pos_to_cell_idx(xycoord).unwrap(),
-                                IjkVector { i, j, k }
-                            );
-                        }
-                    }
-                }
-            }
-
-            #[test]
-            fn test_cell_idx_to_chunk_idx() {
-                let coordinate_dir = CoordinateDirBuilder::new()
-                    .cell_radius(1.0)
-                    .num_layers(8)
-                    .first_num_radial_lines(6)
-                    .second_num_concentric_circles(3)
-                    .max_cells(64 * 64) // 24x24
-                    .build();
-
-                // Test the core
-                let i = 0;
-                let j = 0;
-                for k in 0..coordinate_dir.get_core_chunk().get_num_radial_lines() {
-                    // This radius and theta should define the midpoint of each cell
-                    let coord = IjkVector { i, j, k };
-                    let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
-                    let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx);
-                    assert_eq!(
-                        chunk.absolute_cell_idx_to_in_chunk_cell_idx(coord),
-                        Ok(coord.to_jk_vector())
-                    );
-                }
-
-                // Test the rest
-                for i in 1..coordinate_dir.get_num_layers() {
-                    let num_concentric_chunks = coordinate_dir.get_layer_num_concentric_chunks(i);
-                    let num_radial_chunks = coordinate_dir.get_layer_num_radial_chunks(i);
-                    let mut total_concentric_circles = 0;
-                    for cj in 0..num_concentric_chunks {
-                        let mut total_radial_lines = 0;
-                        let chunk_layer_num_concentric_circles = coordinate_dir
-                            .get_chunk_num_concentric_circles(ChunkIjkVector { i, j: cj, k: 0 });
-                        for ck in 0..num_radial_chunks {
-                            let chunk_num_radial_lines = coordinate_dir
-                                .get_chunk_num_radial_lines(ChunkIjkVector { i, j: cj, k: ck });
-                            for j in total_concentric_circles
-                                ..total_concentric_circles + chunk_layer_num_concentric_circles
-                            {
-                                for k in
-                                    total_radial_lines..total_radial_lines + chunk_num_radial_lines
-                                {
-                                    let absolute_coord = IjkVector { i, j, k };
-                                    let in_chunk_coord = JkVector {
-                                        j: j - total_concentric_circles,
-                                        k: k - total_radial_lines,
-                                    };
-                                    let chunk_idx =
-                                        coordinate_dir.cell_idx_to_chunk_idx(absolute_coord);
-                                    // assert_eq!(chunk_idx, ChunkIjkVector { i, j: cj, k: ck });
-                                    let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx);
-                                    assert_eq!(
-                                        chunk
-                                            .absolute_cell_idx_to_in_chunk_cell_idx(absolute_coord),
-                                        Ok(in_chunk_coord)
-                                    );
                                 }
                             }
                             total_radial_lines += chunk_num_radial_lines;

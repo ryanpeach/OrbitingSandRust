@@ -26,4 +26,5 @@ pub trait Element: Send + Sync {
         element_grid_conv: &mut ElementGridConvolutionNeighbors,
         delta: Time,
     ) -> ElementTakeOptions;
+    fn box_clone(&self) -> Box<dyn Element>;
 }

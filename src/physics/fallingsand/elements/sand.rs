@@ -9,12 +9,12 @@ use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
 
 /// Literally nothing
 #[derive(Default, Copy, Clone, Debug)]
-pub struct Vacuum {}
+pub struct Sand {}
 
-impl Element for Vacuum {
+impl Element for Sand {
     #[allow(clippy::borrowed_box)]
     fn get_color(&self, _pos: JkVector, _chunk_coords: &Box<dyn ChunkCoords>) -> Color {
-        Color::BLACK
+        Color::YELLOW
     }
     fn process(
         &mut self,

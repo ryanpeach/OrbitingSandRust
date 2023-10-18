@@ -9,6 +9,9 @@ use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
 use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
+use orbiting_sand::physics::fallingsand::elements::element::Element;
+use orbiting_sand::physics::fallingsand::elements::sand::Sand;
+use orbiting_sand::physics::fallingsand::elements::vacuum::Vacuum;
 use orbiting_sand::physics::fallingsand::util::enums::{MeshDrawMode, ZoomDrawMode};
 
 use orbiting_sand::physics::fallingsand::util::vectors::JkVector;
@@ -54,7 +57,9 @@ impl MainState {
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
             .build();
-        let element_grid_dir = ElementGridDir::new_empty(coordinate_dir);
+        let fill0: &dyn Element = &Vacuum::default();
+        let fill1: &dyn Element = &Sand::default();
+        let element_grid_dir = ElementGridDir::new_checkerboard(coordinate_dir, fill0, fill1);
         println!("Num elements: {}", element_grid_dir.get_total_num_cells());
 
         let celestial = Celestial::new(element_grid_dir, MeshDrawMode::TexturedMesh);

@@ -333,7 +333,6 @@ impl ChunkCoords for PartialLayerChunkCoords {
     }
     fn get_start_radius(&self) -> f32 {
         self.start_concentric_circle_absolute as f32 * self.cell_radius
-            + self.start_concentric_circle_layer_relative as f32 * self.cell_radius
     }
     fn get_end_radius(&self) -> f32 {
         self.get_start_radius() + self.cell_radius * (self.num_concentric_circles as f32)
@@ -677,7 +676,7 @@ mod tests {
             num_concentric_circles: 1,
             chunk_idx: ChunkIjkVector { i: 1, j: 0, k: 0 },
             start_concentric_circle_layer_relative: 1,
-            start_concentric_circle_absolute: 2,
+            start_concentric_circle_absolute: 3,
             start_radial_line: 6,
             end_radial_line: 12,
             layer_num_radial_lines: 12,
