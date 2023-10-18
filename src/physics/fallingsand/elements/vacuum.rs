@@ -13,8 +13,8 @@ pub struct Vacuum {}
 
 impl Element for Vacuum {
     #[allow(clippy::borrowed_box)]
-    fn get_color(&self, _pos: JkVector, chunk_coords: &Box<dyn ChunkCoords>) -> Color {
-        Color::WHITE
+    fn get_color(&self, _pos: JkVector, _chunk_coords: &Box<dyn ChunkCoords>) -> Color {
+        Color::BLACK
     }
     fn process(
         &mut self,

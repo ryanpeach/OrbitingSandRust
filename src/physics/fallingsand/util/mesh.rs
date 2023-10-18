@@ -106,14 +106,13 @@ impl OwnedMeshData {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
     use crate::physics::fallingsand::element_directory::ElementGridDir;
-    use crate::physics::fallingsand::util::enums::MeshDrawMode;
     use crate::physics::fallingsand::elements::{element::Element, sand::Sand, vacuum::Vacuum};
+    use crate::physics::fallingsand::util::enums::MeshDrawMode;
 
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {
@@ -124,14 +123,16 @@ mod tests {
             .second_num_concentric_circles(3)
             .max_cells(64 * 64)
             .build();
-        let fill0: Box<dyn Element> = Box::<Vacuum>::default();
-        let fill1: Box<dyn Element> = Box::<Sand>::default();
-        ElementGridDir::new_checkerboard(coordinate_dir, &fill0, &fill1)
+        let fill0: &dyn Element = &Vacuum::default();
+        let fill1: &dyn Element = &Sand::default();
+        ElementGridDir::new_checkerboard(coordinate_dir, fill0, fill1)
     }
 
     #[test]
     fn test_combine() {
-        let meshes = get_element_grid_dir().get_coordinate_dir().get_mesh_data(MeshDrawMode::TexturedMesh);
+        let meshes = get_element_grid_dir()
+            .get_coordinate_dir()
+            .get_mesh_data(MeshDrawMode::TexturedMesh);
         let combined_mesh = OwnedMeshData::combine(&meshes);
         // Test that the combined_mesh uvs are normalized
         for vertex in &combined_mesh.vertices {
@@ -153,7 +154,9 @@ mod tests {
         assert_eq!(combined_mesh.vertices.len(), sum_vertices);
         // Test that the indices have been offset correctly
         assert_eq!(*combined_mesh.indices.iter().min().unwrap(), 0u32);
-        assert_eq!(*combined_mesh.indices.iter().max().unwrap(), (combined_mesh.vertices.iter().len() - 1) as u32);
-
+        assert_eq!(
+            *combined_mesh.indices.iter().max().unwrap(),
+            (combined_mesh.vertices.iter().len() - 1) as u32
+        );
     }
 }

@@ -1,6 +1,7 @@
 use criterion::{criterion_group, Criterion};
-use orbiting_sand::physics::fallingsand::{element_directory::ElementGridDir, coordinates::coordinate_directory::CoordinateDirBuilder};
-
+use orbiting_sand::physics::fallingsand::{
+    coordinates::coordinate_directory::CoordinateDirBuilder, element_directory::ElementGridDir,
+};
 
 /// The default element grid directory for testing
 fn get_element_grid_dir() -> ElementGridDir {

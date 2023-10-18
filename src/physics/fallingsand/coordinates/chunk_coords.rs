@@ -312,7 +312,6 @@ pub trait ChunkCoords: Send + Sync {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -337,8 +336,7 @@ mod tests {
         for k in 0..coordinate_dir.get_core_chunk().get_num_radial_lines() {
             // This radius and theta should define the midpoint of each cell
             let radius = coordinate_dir.get_cell_radius() / 2.0;
-            let theta = 2.0 * PI
-                / coordinate_dir.get_core_chunk().get_num_radial_lines() as f32
+            let theta = 2.0 * PI / coordinate_dir.get_core_chunk().get_num_radial_lines() as f32
                 * (k as f32 + 0.5);
             let xycoord = RelXyPoint(Vec2 {
                 x: radius * theta.cos(),
@@ -426,21 +424,17 @@ mod tests {
                     for j in total_concentric_circles
                         ..total_concentric_circles + chunk_layer_num_concentric_circles
                     {
-                        for k in
-                            total_radial_lines..total_radial_lines + chunk_num_radial_lines
-                        {
+                        for k in total_radial_lines..total_radial_lines + chunk_num_radial_lines {
                             let absolute_coord = IjkVector { i, j, k };
                             let in_chunk_coord = JkVector {
                                 j: j - total_concentric_circles,
                                 k: k - total_radial_lines,
                             };
-                            let chunk_idx =
-                                coordinate_dir.cell_idx_to_chunk_idx(absolute_coord);
+                            let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(absolute_coord);
                             // assert_eq!(chunk_idx, ChunkIjkVector { i, j: cj, k: ck });
                             let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx);
                             assert_eq!(
-                                chunk
-                                    .absolute_cell_idx_to_in_chunk_cell_idx(absolute_coord),
+                                chunk.absolute_cell_idx_to_in_chunk_cell_idx(absolute_coord),
                                 Ok(in_chunk_coord)
                             );
                         }
@@ -451,5 +445,4 @@ mod tests {
             }
         }
     }
-
 }

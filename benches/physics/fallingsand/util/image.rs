@@ -1,8 +1,7 @@
 use criterion::{black_box, criterion_group, Criterion};
 use orbiting_sand::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
-use orbiting_sand::physics::fallingsand::util::image::RawImage;
 use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
-
+use orbiting_sand::physics::fallingsand::util::image::RawImage;
 
 /// The default element grid directory for testing
 fn get_element_grid_dir() -> ElementGridDir {
@@ -24,6 +23,5 @@ fn bench_combine_images(c: &mut Criterion) {
         })
     });
 }
-
 
 criterion_group!(benches, bench_combine_images);

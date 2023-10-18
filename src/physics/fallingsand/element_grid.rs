@@ -29,12 +29,12 @@ impl Default for ElementGrid {
 impl ElementGrid {
     /// Creates a new element grid with the given chunk coords and fills it with vacuum
     pub fn new_empty(chunk_coords: Box<dyn ChunkCoords>) -> Self {
-        let fill: Box<dyn Element> = Box::<Vacuum>::default();
-        ElementGrid::new_filled(chunk_coords, &fill)
+        let fill: &dyn Element = &Vacuum::default();
+        ElementGrid::new_filled(chunk_coords, fill)
     }
 
     /// Creates a new element grid with the given chunk coords and fills it with the given element
-    pub fn new_filled(chunk_coords: Box<dyn ChunkCoords>, fill: &Box<dyn Element>) -> Self {
+    pub fn new_filled(chunk_coords: Box<dyn ChunkCoords>, fill: &dyn Element) -> Self {
         let mut grid: Vec<Box<dyn Element>> = Vec::with_capacity(
             chunk_coords.get_num_radial_lines() * chunk_coords.get_num_concentric_circles(),
         );

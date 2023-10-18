@@ -258,7 +258,11 @@ impl ElementGridDir {
         }
     }
 
-    pub fn new_checkerboard(coords: CoordinateDir, fill0: &Box<dyn Element>, fill1: &Box<dyn Element>) -> Self {
+    pub fn new_checkerboard(
+        coords: CoordinateDir,
+        fill0: &dyn Element,
+        fill1: &dyn Element,
+    ) -> Self {
         let mut chunks: Vec<Grid<Option<ElementGrid>>> =
             Vec::with_capacity(coords.get_num_layers());
         for i in 0..coords.get_num_layers() {
@@ -267,13 +271,11 @@ impl ElementGridDir {
             let mut layer = Grid::new_empty(k_size, j_size);
             for j in 0..j_size {
                 for k in 0..k_size {
-                    let fill: Box<dyn Element> = if (j + k) % 2 == 0 {
-                        fill0.box_clone()
-                    } else {
-                        fill1.box_clone()
-                    };
-                    let element_grid =
-                        ElementGrid::new_filled(coords.get_chunk_at_idx(ChunkIjkVector { i, j, k }), &fill);
+                    let fill: &dyn Element = if (j + k) % 2 == 0 { fill0 } else { fill1 };
+                    let element_grid = ElementGrid::new_filled(
+                        coords.get_chunk_at_idx(ChunkIjkVector { i, j, k }),
+                        fill,
+                    );
                     layer.replace(JkVector { j, k }, Some(element_grid));
                 }
             }

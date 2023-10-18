@@ -106,17 +106,24 @@ mod tests {
             .second_num_concentric_circles(3)
             .max_cells(64 * 64)
             .build();
-        let fill0: Box<dyn Element> = Box::<Vacuum>::default();
-        let fill1: Box<dyn Element> = Box::<Sand>::default();
-        ElementGridDir::new_checkerboard(coordinate_dir, &fill0, &fill1)
+        let fill0: &dyn Element = &Vacuum::default();
+        let fill1: &dyn Element = &Sand::default();
+        ElementGridDir::new_checkerboard(coordinate_dir, fill0, fill1)
     }
 
     #[test]
     fn test_combine() {
         let textures = get_element_grid_dir().get_textures();
         let img = RawImage::combine(&textures);
-        let j_size = textures.iter().map(|x| x.get_height()*x.get(JkVector{j: 0, k: 0}).bounds.h as usize).sum::<usize>();
-        let k_size = textures[textures.len() - 1].get_width()*textures[textures.len() - 1].get(JkVector{j: 0, k: 0}).bounds.w as usize;
+        let j_size = textures
+            .iter()
+            .map(|x| x.get_height() * x.get(JkVector { j: 0, k: 0 }).bounds.h as usize)
+            .sum::<usize>();
+        let k_size = textures[textures.len() - 1].get_width()
+            * textures[textures.len() - 1]
+                .get(JkVector { j: 0, k: 0 })
+                .bounds
+                .w as usize;
         assert_eq!(img.bounds.h, j_size as f32);
         assert_eq!(img.bounds.w, k_size as f32);
     }

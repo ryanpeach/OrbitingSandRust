@@ -13,7 +13,7 @@ pub struct Sand {}
 
 impl Element for Sand {
     #[allow(clippy::borrowed_box)]
-    fn get_color(&self, _pos: JkVector, chunk_coords: &Box<dyn ChunkCoords>) -> Color {
+    fn get_color(&self, _pos: JkVector, _chunk_coords: &Box<dyn ChunkCoords>) -> Color {
         Color::YELLOW
     }
     fn process(
