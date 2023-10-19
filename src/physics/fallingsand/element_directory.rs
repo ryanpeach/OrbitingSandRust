@@ -1,6 +1,5 @@
 use std::collections::{HashMap, HashSet};
-
-use uom::si::f64::Time;
+use std::time::Duration;
 
 use super::coordinates::coordinate_directory::CoordinateDir;
 use super::element_convolution::{
@@ -592,18 +591,18 @@ impl ElementGridDir {
     /// The passes ensure that no two adjacent elementgrids are processed at the same time
     /// This is important because elementgrids can effect one another at a maximum range of
     /// the size of one elementgrid.
-    pub fn process(&mut self, delta: Time) {
+    pub fn process(&mut self, current_time: Duration) {
         self.process_parallel(
             self.process_targets.standard_convolution[self.process_count % 9].clone(),
-            delta,
+            current_time,
         );
         self.process_sequence(
             self.process_targets.has_single_bottom_neighbor[self.process_count % 9].clone(),
-            delta,
+            current_time,
         );
         self.process_parallel(
             self.process_targets.has_multi_bottom_neighbor[self.process_count % 9].clone(),
-            delta,
+            current_time,
         );
         self.process_count += 1;
 
@@ -619,7 +618,11 @@ impl ElementGridDir {
         }
     }
 
-    fn process_sequence(&mut self, targets: Sequential<HashSet<ChunkIjkVector>>, delta: Time) {
+    fn process_sequence(
+        &mut self,
+        targets: Sequential<HashSet<ChunkIjkVector>>,
+        current_time: Duration,
+    ) {
         for target in targets.0 {
             let mut conv = self
                 .package_coordinate_neighbors(target)
@@ -627,12 +630,16 @@ impl ElementGridDir {
             let mut chunk = self.chunks[target.i]
                 .replace(target.to_jk_vector(), None)
                 .expect("Should not have been replaced already.");
-            chunk.process(&mut conv, delta);
+            chunk.process(&mut conv, current_time);
             // Unpackage the convolution
             self.unpackage_convolution(chunk, conv);
         }
     }
-    fn process_parallel(&mut self, targets: Parallel<HashSet<ChunkIjkVector>>, delta: Time) {
+    fn process_parallel(
+        &mut self,
+        targets: Parallel<HashSet<ChunkIjkVector>>,
+        current_time: Duration,
+    ) {
         let (mut convolutions, mut target_chunks) = self
             .package_convolutions(targets.0)
             .expect("In runtime, this should never fail.");
@@ -640,7 +647,7 @@ impl ElementGridDir {
             .par_iter_mut()
             .zip(target_chunks.par_iter_mut())
             .for_each(|(convolution, target_chunk)| {
-                target_chunk.process(convolution, delta);
+                target_chunk.process(convolution, current_time);
             });
         self.unpackage_convolutions(convolutions, target_chunks);
     }

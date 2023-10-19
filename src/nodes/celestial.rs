@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use ggez::graphics::Rect;
 
 use crate::physics::fallingsand::element_directory::ElementGridDir;
@@ -7,8 +9,6 @@ use crate::physics::fallingsand::util::image::RawImage;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 
 use super::camera::Camera;
-
-use uom::si::f64::*;
 
 /// Acts as a cache for a radial mesh's meshes and textures
 pub struct Celestial {
@@ -51,8 +51,8 @@ impl Celestial {
         self.combined_mesh = OwnedMeshData::combine(self.get_all_meshes());
         self.combined_texture = RawImage::combine(self.get_all_textures());
     }
-    pub fn process(&mut self, delta: Time) {
-        self.element_grid_dir.process(delta);
+    pub fn process(&mut self, current_time: Duration) {
+        self.element_grid_dir.process(current_time);
         // self.update_textures();
     }
     pub fn set_draw_mode(&mut self, draw_mode: MeshDrawMode) {

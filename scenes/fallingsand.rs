@@ -1,5 +1,7 @@
 extern crate orbiting_sand;
 
+use std::time::Duration;
+
 use ggegui::{egui, Gui};
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
@@ -15,8 +17,6 @@ use orbiting_sand::physics::fallingsand::elements::vacuum::Vacuum;
 use orbiting_sand::physics::fallingsand::util::enums::{MeshDrawMode, ZoomDrawMode};
 
 use orbiting_sand::physics::fallingsand::util::vectors::JkVector;
-use uom::si::f64::*;
-use uom::si::time::second;
 
 use orbiting_sand::nodes::camera::Camera;
 use orbiting_sand::nodes::celestial::Celestial;
@@ -36,6 +36,7 @@ struct MainState {
     celestial: Celestial,
     camera: Camera,
     gui: Gui,
+    current_time: Duration,
 }
 
 // Translates the world coordinate system, which
@@ -71,6 +72,7 @@ impl MainState {
             mesh_draw_mode: MeshDrawMode::TexturedMesh,
             zoom_draw_mode: ZoomDrawMode::Combine,
             gui: Gui::new(ctx),
+            current_time: Duration::new(0, 0),
         })
     }
 }
@@ -119,9 +121,9 @@ impl EventHandler<ggez::GameError> for MainState {
             self.celestial.set_draw_mode(mesh_draw_mode);
             self.mesh_draw_mode = mesh_draw_mode;
         }
-        let delta_time = ctx.time.delta().as_secs_f64();
-        let delta_time_sec = Time::new::<second>(delta_time);
-        self.celestial.process(delta_time_sec);
+        let delta_time = ctx.time.delta();
+        self.current_time += delta_time;
+        self.celestial.process(self.current_time);
         Ok(())
     }
 

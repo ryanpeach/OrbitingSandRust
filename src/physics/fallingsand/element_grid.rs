@@ -1,5 +1,6 @@
+use std::time::Duration;
+
 use ggez::graphics::Rect;
-use uom::si::f64::Time;
 
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions};
@@ -15,7 +16,13 @@ use super::util::image::RawImage;
 pub struct ElementGrid {
     grid: Grid<Box<dyn Element>>,
     coords: Box<dyn ChunkCoords>,
+
+    /// This deals with a lock during convolution
     already_processed: bool,
+
+    /// This deals with whether or not the element grid needs to be processed
+    /// or if it hasn't seen any changes since the last frame maybe you can skip it
+    last_set: Duration,
 }
 
 /// Useful for borrowing the grid to have a default value of one
@@ -50,6 +57,7 @@ impl ElementGrid {
             ),
             coords: chunk_coords,
             already_processed: false,
+            last_set: Duration::default(),
         }
     }
 }
@@ -62,6 +70,7 @@ impl ElementGrid {
     pub fn set_already_processed(&mut self, already_processed: bool) {
         self.already_processed = already_processed;
     }
+    /// Sets the already processed flag and errors if it is set to the same value twice
     pub fn set_already_processed_deduplicated(
         &mut self,
         already_processed: bool,
@@ -72,12 +81,31 @@ impl ElementGrid {
         self.already_processed = already_processed;
         Ok(())
     }
+    pub fn get_last_set(&self) -> Duration {
+        self.last_set
+    }
     #[allow(clippy::borrowed_box)]
     pub fn get_chunk_coords(&self) -> &Box<dyn ChunkCoords> {
         &self.coords
     }
     pub fn get_grid(&self) -> &Grid<Box<dyn Element>> {
         &self.grid
+    }
+}
+
+/// Public modifiers for the element grid
+impl ElementGrid {
+    pub fn set(&mut self, jk: JkVector, element: Box<dyn Element>, time: Duration) {
+        self.replace(jk, element, time);
+    }
+    pub fn replace(
+        &mut self,
+        jk: JkVector,
+        element: Box<dyn Element>,
+        time: Duration,
+    ) -> Box<dyn Element> {
+        self.last_set = time;
+        self.grid.replace(jk, element)
     }
 }
 
@@ -88,7 +116,7 @@ impl ElementGrid {
     pub fn process(
         &mut self,
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
-        delta: Time,
+        current_time: Duration,
     ) {
         let already_processed = self.get_already_processed();
         debug_assert!(!already_processed, "Already processed");
@@ -109,7 +137,7 @@ impl ElementGrid {
 
                 // You have to send self and element_grid_conv_neigh my reference instead of packaging them together in an object
                 // because you are borrowing both. Without using a lifetime you can't package a borrow.
-                let res = element.process(pos, self, element_grid_conv_neigh, delta);
+                let res = element.process(pos, self, element_grid_conv_neigh, current_time);
 
                 // The reason we return options instead of passing the element to process by value (letting it put itself back) is twofold
                 // The first is this prevents the common programming error where the author forgets that the element
