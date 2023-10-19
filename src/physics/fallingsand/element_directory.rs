@@ -700,14 +700,39 @@ impl ElementGridDir {
     pub fn is_empty(&self) -> bool {
         self.chunks.is_empty()
     }
+
+    /// Get all textures
     pub fn get_textures(&self) -> Vec<Grid<RawImage>> {
-        let mut out = Vec::new();
+        // Create a filter with all true
+        let mut filter: Vec<Grid<bool>> = Vec::with_capacity(self.coords.get_num_layers());
         for i in 0..self.coords.get_num_layers() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
             let k_size = self.coords.get_layer_num_radial_chunks(i);
             let mut layer = Grid::new_empty(k_size, j_size);
             for j in 0..j_size {
                 for k in 0..k_size {
+                    layer.replace(JkVector { j, k }, true);
+                }
+            }
+            filter.push(layer);
+        }
+
+        // Call the filtered version
+        self.get_textures_filtered(filter)
+    }
+
+    /// Where filter is true, get the textures
+    pub fn get_textures_filtered(&self, filter: Vec<Grid<bool>>) -> Vec<Grid<RawImage>> {
+        let mut out = Vec::new();
+        for (i, item) in filter.iter().enumerate() {
+            let j_size = self.coords.get_layer_num_concentric_chunks(i);
+            let k_size = self.coords.get_layer_num_radial_chunks(i);
+            let mut layer = Grid::new_empty(k_size, j_size);
+            for j in 0..j_size {
+                for k in 0..k_size {
+                    if !item.get(JkVector { j, k }) {
+                        continue;
+                    }
                     let coord = ChunkIjkVector { i, j, k };
                     layer.replace(
                         JkVector { j, k },
