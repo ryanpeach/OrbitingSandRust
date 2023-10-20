@@ -1,11 +1,10 @@
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
+use crate::physics::fallingsand::util::mesh::Square;
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use ggez::glam::Vec2;
-use ggez::graphics::{Color, Rect};
+use ggez::graphics::Rect;
 
 use std::f32::consts::PI;
-
-use crate::physics::fallingsand::util::image::RawImage;
 
 /// The core is always the first layer
 /// It defines the radius of all future layers cell_radius
@@ -40,7 +39,7 @@ impl CoreChunkCoords {
 
     /// The goal is to go from the center to the outer edge and then one "unit" around the circle
     /// each vertex triplet for the position.
-    fn get_positions(&self) -> Vec<Vec2> {
+    fn get_positions(&self) -> Vec<Square> {
         let mut vertices = Vec::new();
 
         // Outer vertices
@@ -50,9 +49,12 @@ impl CoreChunkCoords {
             let pos0 = Vec2::new(0.0, 0.0);
             let pos1 = Vec2::new(self.radius * angle1.cos(), self.radius * angle1.sin());
             let pos2 = Vec2::new(self.radius * angle2.cos(), self.radius * angle2.sin());
-            vertices.push(pos0);
-            vertices.push(pos1);
-            vertices.push(pos2);
+            vertices.push(Square {
+                tl: pos0,
+                tr: pos0,
+                bl: pos2,
+                br: pos1,
+            });
         }
 
         vertices
@@ -71,52 +73,6 @@ impl CoreChunkCoords {
 
         vertices
     }
-
-    /// For the uv, go from top left, to bottom left, to top right of a unit square for each triplet
-    /// where the top left of the unit square is the index of the cell normalized.
-    fn get_uvs(&self) -> Vec<Vec2> {
-        let mut vertices = Vec::new();
-
-        // Outer vertices
-        for i in 0..self.num_radial_lines {
-            let uv0 = Vec2::new(i as f32 / self.num_radial_lines as f32, 0.0);
-            let uv1 = Vec2::new((i + 1) as f32 / self.num_radial_lines as f32, 1.0);
-            let uv2 = Vec2::new((i + 1) as f32 / self.num_radial_lines as f32, 0.0);
-            vertices.push(uv0);
-            vertices.push(uv1);
-            vertices.push(uv2);
-        }
-
-        vertices
-    }
-
-    /// The indices are just the indices of the vertices in order
-    fn get_indices(&self) -> Vec<u32> {
-        (0..self.num_radial_lines * 3).map(|i| i as u32).collect()
-    }
-
-    /// Right now we are just going to return a checkerboard texture
-    fn get_texture(&self) -> RawImage {
-        let width = self.num_radial_lines;
-        let height = 1;
-        let mut pixels: Vec<u8> = Vec::with_capacity(self.num_radial_lines * 4);
-        for i in 0..self.num_radial_lines {
-            let color = if i % 2 == 0 {
-                Color::YELLOW
-            } else {
-                Color::BLUE
-            };
-            let rgba = color.to_rgba();
-            pixels.push(rgba.0);
-            pixels.push(rgba.1);
-            pixels.push(rgba.2);
-            pixels.push(rgba.3);
-        }
-        RawImage {
-            pixels,
-            bounds: Rect::new(0.0, 0.0, width as f32, height as f32),
-        }
-    }
 }
 
 impl ChunkCoords for CoreChunkCoords {
@@ -124,7 +80,7 @@ impl ChunkCoords for CoreChunkCoords {
         self.get_outline()
     }
     /// Res does not matter at all for the core chunk
-    fn get_positions(&self) -> Vec<Vec2> {
+    fn get_positions(&self) -> Vec<Square> {
         self.get_positions()
     }
     fn get_cell_radius(&self) -> f32 {

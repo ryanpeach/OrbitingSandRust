@@ -39,7 +39,7 @@ impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
         let coordinate_dir = CoordinateDirBuilder::new()
             .cell_radius(1.0)
-            .num_layers(10)
+            .num_layers(9)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
             .build();
@@ -48,7 +48,7 @@ impl MainState {
         let element_grid_dir = ElementGridDir::new_checkerboard(coordinate_dir, fill0, fill1);
         println!("Num elements: {}", element_grid_dir.get_total_num_cells());
 
-        let celestial = Celestial::new(ctx, element_grid_dir, MeshDrawMode::TexturedMesh);
+        let celestial = Celestial::new(element_grid_dir, MeshDrawMode::TexturedMesh);
         let _screen_size = ctx.gfx.drawable_size();
         let camera = Camera::new(Vec2::new(_screen_size.0, _screen_size.1));
         Ok(MainState {

@@ -6,10 +6,10 @@ use ggez::{
 /// Represents a square in 2D space
 #[derive(Clone)]
 pub struct Square {
-    tl: Vec2,
-    tr: Vec2,
-    bl: Vec2,
-    br: Vec2,
+    pub tl: Vec2,
+    pub tr: Vec2,
+    pub bl: Vec2,
+    pub br: Vec2,
 }
 
 impl Square {
@@ -49,8 +49,13 @@ impl Default for OwnedMeshData {
 
 impl OwnedMeshData {
     pub fn new(positions: Vec<Square>, uvs: Vec<Square>) -> Self {
-        let vertexes = OwnedMeshData::calc_vertexes(positions, uvs);
-        let indices = OwnedMeshData::calc_indices(positions.len());
+        let (indices, vertexes) = OwnedMeshData::calc(positions, uvs);
+        Self { vertexes, indices }
+    }
+
+    pub fn from_meshdata(mesh_data: &MeshData) -> Self {
+        let vertexes = mesh_data.vertices.to_vec();
+        let indices = mesh_data.indices.to_vec();
         Self { vertexes, indices }
     }
 
@@ -104,6 +109,34 @@ impl OwnedMeshData {
         MeshData {
             vertices: &self.vertexes,
             indices: &self.indices,
+        }
+    }
+}
+
+use hashbrown::HashMap;
+
+pub struct VertexPool {
+    vertices: Vec<Vec2>,
+    vertex_map: HashMap<(f32, f32), usize>,
+}
+
+impl VertexPool {
+    pub fn new() -> Self {
+        Self {
+            vertices: Vec::new(),
+            vertex_map: HashMap::new(),
+        }
+    }
+
+    pub fn add_vertex(&mut self, position: (f32, f32), uv: [f32; 2]) -> usize {
+        match self.vertex_map.get(&position) {
+            Some(&index) => index,
+            None => {
+                let index = self.vertices.len();
+                self.vertices.push(vertex);
+                self.vertex_map.insert(vertex, index);
+                index
+            }
         }
     }
 }

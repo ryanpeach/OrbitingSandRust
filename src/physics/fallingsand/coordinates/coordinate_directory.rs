@@ -262,55 +262,48 @@ impl CoordinateDirBuilder {
  * ========================================= */
 impl CoordinateDir {
     pub fn get_outlines(&self) -> HashMap<ChunkIjkVector, Vec<Vec2>> {
-        let mut outlines = Vec::new();
-        outlines.push(Grid::new(1, 1, vec![self.core_chunk.get_outline()]));
+        let mut outlines = HashMap::with_capacity(self.partial_chunks.len() + 1);
+        outlines.insert(ChunkIjkVector::ZERO, self.core_chunk.get_outline());
         for layer in &self.partial_chunks {
-            let new_grid = Grid::new(
-                layer.get_width(),
-                layer.get_height(),
-                layer
-                    .get_data()
-                    .iter()
-                    .map(|partial_chunk| partial_chunk.get_outline())
-                    .collect(),
-            );
-            outlines.push(new_grid);
+            let new_grid: HashMap<ChunkIjkVector, Vec<Vec2>> = layer
+                .get_data()
+                .iter()
+                .map(|partial_chunk| (partial_chunk.get_chunk_idx(), partial_chunk.get_outline()))
+                .collect();
+            outlines.extend(new_grid);
         }
         outlines
     }
 
     pub fn get_positions(&self) -> HashMap<ChunkIjkVector, Vec<Square>> {
-        let mut positions = Vec::new();
-        positions.push(Grid::new(1, 1, vec![self.core_chunk.get_positions()]));
+        let mut positions = HashMap::with_capacity(self.partial_chunks.len() + 1);
+        positions.insert(ChunkIjkVector::ZERO, self.core_chunk.get_positions());
         for layer in &self.partial_chunks {
-            let new_grid = Grid::new(
-                layer.get_width(),
-                layer.get_height(),
-                layer
-                    .get_data()
-                    .iter()
-                    .map(|partial_chunk| partial_chunk.get_positions())
-                    .collect(),
-            );
-            positions.push(new_grid);
+            let new_grid: HashMap<ChunkIjkVector, Vec<Square>> = layer
+                .get_data()
+                .iter()
+                .map(|partial_chunk| (partial_chunk.get_chunk_idx(), partial_chunk.get_positions()))
+                .collect();
+            positions.extend(new_grid);
         }
         positions
     }
 
     pub fn get_chunk_bounding_boxes(&self) -> HashMap<ChunkIjkVector, Rect> {
-        let mut bounding_boxes = Vec::new();
-        bounding_boxes.push(Grid::new(1, 1, vec![self.core_chunk.get_bounding_box()]));
+        let mut bounding_boxes = HashMap::with_capacity(self.partial_chunks.len() + 1);
+        bounding_boxes.insert(ChunkIjkVector::ZERO, self.core_chunk.get_bounding_box());
         for layer in &self.partial_chunks {
-            let new_grid = Grid::new(
-                layer.get_width(),
-                layer.get_height(),
-                layer
-                    .get_data()
-                    .iter()
-                    .map(|partial_chunk| partial_chunk.get_bounding_box())
-                    .collect(),
-            );
-            bounding_boxes.push(new_grid);
+            let new_grid: HashMap<ChunkIjkVector, Rect> = layer
+                .get_data()
+                .iter()
+                .map(|partial_chunk| {
+                    (
+                        partial_chunk.get_chunk_idx(),
+                        partial_chunk.get_bounding_box(),
+                    )
+                })
+                .collect();
+            bounding_boxes.extend(new_grid);
         }
         bounding_boxes
     }
@@ -674,46 +667,6 @@ impl CoordinateDir {
             j: cj,
             k: ck,
         }
-    }
-}
-
-/* ===================
- * Drawing
- * =================== */
-impl CoordinateDir {
-    /// Gets mesh data for every chunk in the directory
-    pub fn get_mesh_data(&self, draw_mode: MeshDrawMode) -> Vec<Grid<OwnedMeshData>> {
-        let mut out = Vec::with_capacity(self.get_num_chunks());
-
-        // Get the data for core_chunk
-        let core_data = match draw_mode {
-            MeshDrawMode::TexturedMesh => self.core_chunk.calc_chunk_meshdata(),
-            MeshDrawMode::UVWireframe => self.core_chunk.calc_chunk_uv_wireframe(),
-            MeshDrawMode::TriangleWireframe => self.core_chunk.calc_chunk_triangle_wireframe(),
-            MeshDrawMode::Outline => self.core_chunk.calc_chunk_outline(),
-        };
-        out.push(Grid::new(1, 1, vec![core_data]));
-
-        // Get the data for partial_chunks
-        for layer in &self.partial_chunks {
-            let new_grid = Grid::new(
-                layer.get_width(),
-                layer.get_height(),
-                layer
-                    .get_data()
-                    .iter()
-                    .map(|chunk| match draw_mode {
-                        MeshDrawMode::TexturedMesh => chunk.calc_chunk_meshdata(),
-                        MeshDrawMode::UVWireframe => chunk.calc_chunk_uv_wireframe(),
-                        MeshDrawMode::TriangleWireframe => chunk.calc_chunk_triangle_wireframe(),
-                        MeshDrawMode::Outline => chunk.calc_chunk_outline(),
-                    })
-                    .collect(),
-            );
-            out.push(new_grid);
-        }
-
-        out
     }
 }
 

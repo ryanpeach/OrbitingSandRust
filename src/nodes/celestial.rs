@@ -9,9 +9,8 @@ use crate::physics::fallingsand::elements::element::Element;
 use crate::physics::fallingsand::elements::sand::Sand;
 use crate::physics::fallingsand::elements::vacuum::Vacuum;
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
-use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::mesh::{OwnedMeshData, Square};
-use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, JkVector};
+use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::util::clock::Clock;
 
 use super::camera::Camera;
@@ -23,15 +22,11 @@ pub struct Celestial {
     all_positions: HashMap<ChunkIjkVector, Vec<Square>>,
     all_uvs: HashMap<ChunkIjkVector, Vec<Square>>,
     bounding_boxes: HashMap<ChunkIjkVector, Rect>,
-    texture: Image,
+    texture: Vec<u8>,
 }
 
 impl Celestial {
-    pub fn new(
-        ctx: &mut Context,
-        element_grid_dir: ElementGridDir,
-        draw_mode: MeshDrawMode,
-    ) -> Self {
+    pub fn new(element_grid_dir: ElementGridDir, draw_mode: MeshDrawMode) -> Self {
         // In testing we found that the resolution doesn't matter, so make it infinite
         // a misnomer is the fact that in this case, big "res" is fewer mesh cells
         let mut out = Self {
@@ -40,13 +35,13 @@ impl Celestial {
             all_positions: HashMap::new(),
             all_uvs: HashMap::new(),
             bounding_boxes: HashMap::new(),
-            texture: Celestial::create_texture(ctx),
+            texture: Celestial::create_texture(),
         };
         out.ready();
         out
     }
 
-    pub fn create_texture(ctx: &mut Context) -> Image {
+    pub fn create_texture() -> Vec<u8> {
         let mut element_lst = vec![
             (
                 Vacuum::default().get_uv_index(),
@@ -63,20 +58,13 @@ impl Celestial {
             }
         }
         element_lst.sort_by(|a, b| a.0.cmp(&b.0));
-        let pixels = element_lst
+        element_lst
             .into_iter()
             .flat_map(|x| {
                 let rgba = x.1.to_rgba();
                 vec![rgba.0, rgba.1, rgba.2, rgba.3]
             })
-            .collect::<Vec<u8>>();
-        Image::from_pixels(
-            ctx,
-            &pixels[..],
-            ImageFormat::Rgba8Unorm,
-            pixels.len() as u32,
-            1,
-        )
+            .collect::<Vec<u8>>()
     }
 
     /// Something to call only on MAJOR changes, not every frame
@@ -109,10 +97,15 @@ impl Celestial {
 
         let meshdata = self.get_mesh();
         let mesh: Mesh = Mesh::from_data(ctx, meshdata.to_mesh_data());
+        let texture = Image::from_pixels(
+            ctx,
+            &self.texture,
+            ImageFormat::Rgba8Unorm,
+            self.texture.len() as u32 / 4,
+            1,
+        );
         match self.draw_mode {
-            MeshDrawMode::TexturedMesh => {
-                canvas.draw_textured_mesh(mesh, self.texture, draw_params)
-            }
+            MeshDrawMode::TexturedMesh => canvas.draw_textured_mesh(mesh, texture, draw_params),
             MeshDrawMode::TriangleWireframe => canvas.draw(&mesh, draw_params),
             MeshDrawMode::UVWireframe => canvas.draw(&mesh, draw_params),
             MeshDrawMode::Outline => canvas.draw(&mesh, draw_params),

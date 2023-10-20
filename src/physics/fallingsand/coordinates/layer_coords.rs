@@ -1,6 +1,7 @@
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::functions::interpolate_points;
 use crate::physics::fallingsand::util::image::RawImage;
+use crate::physics::fallingsand::util::mesh::Square;
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use ggez::glam::Vec2;
 use ggez::graphics::{Color, Rect};
@@ -134,8 +135,8 @@ impl PartialLayerChunkCoords {
     /// If you set skip to 1, you will get the full resolution
     /// If you set skip to 2, you will get half the resolution
     /// ...
-    fn get_circle_vertexes(&self) -> Vec<Vec2> {
-        let mut vertexes: Vec<Vec2> = Vec::new();
+    fn get_circle_vertexes(&self) -> Vec<Square> {
+        let mut vertexes: Vec<Square> = Vec::new();
 
         let start_concentric = self.start_concentric_circle_layer_relative;
         let start_radial = self.start_radial_line;
@@ -146,25 +147,54 @@ impl PartialLayerChunkCoords {
             (ending_r - starting_r) / self.get_num_concentric_circles() as f32;
         let theta = (-2.0 * PI) / self.layer_num_radial_lines as f32;
 
-        for j in [
-            start_concentric,
-            self.get_num_concentric_circles() + start_concentric,
-        ] {
+        for j in start_concentric..(self.get_num_concentric_circles() + start_concentric) {
             let diff = (j - start_concentric) as f32 * circle_separation_distance;
 
-            for k in start_radial..(self.end_radial_line + 1) {
+            for k in start_radial..self.end_radial_line {
                 if j == 0 && k % 2 == 1 {
+                    let angle_this = k as f32 * theta;
                     let angle_next = (k + 1) as f32 * theta;
-                    let radius = starting_r + diff;
-                    let v_last = vertexes.last().unwrap();
-                    let v_next = Vec2::new(angle_next.cos() * radius, angle_next.sin() * radius);
-                    vertexes.push(interpolate_points(v_last, &v_next));
+                    let radius_this = starting_r + diff;
+                    let radius_next = starting_r + 2.0 * diff;
+                    let v_last = vertexes.last().unwrap().tr;
+                    let v_next = Vec2::new(
+                        angle_next.cos() * radius_this,
+                        angle_next.sin() * radius_this,
+                    );
+                    let tr = interpolate_points(&v_last, &v_next);
+                    let tl = v_next;
+                    let br = Vec2::new(
+                        angle_this.cos() * radius_next,
+                        angle_this.sin() * radius_next,
+                    );
+                    let bl = Vec2::new(
+                        angle_next.cos() * radius_next,
+                        angle_next.sin() * radius_next,
+                    );
+                    vertexes.push(Square { tr, tl, br, bl })
                 } else {
-                    let angle_point = k as f32 * theta;
-                    let radius = starting_r + diff;
-                    let new_coord =
-                        Vec2::new(angle_point.cos() * radius, angle_point.sin() * radius);
-                    vertexes.push(new_coord);
+                    let angle_this = k as f32 * theta;
+                    let angle_next = (k + 1) as f32 * theta;
+                    let radius_this = starting_r + diff;
+                    let radius_next = starting_r + diff + circle_separation_distance;
+                    let new_coord = Vec2::new(
+                        angle_this.cos() * radius_this,
+                        angle_this.sin() * radius_this,
+                    );
+                    let tr = new_coord;
+                    let tl = Vec2::new(
+                        angle_next.cos() * radius_this,
+                        angle_next.sin() * radius_this,
+                    );
+                    let br = Vec2::new(
+                        angle_this.cos() * radius_next,
+                        angle_this.sin() * radius_next,
+                    );
+                    let bl = Vec2::new(
+                        angle_next.cos() * radius_next,
+                        angle_next.sin() * radius_next,
+                    );
+                    vertexes.push(Square { tr, tl, br, bl })
                 }
             }
         }
@@ -236,7 +266,7 @@ impl ChunkCoords for PartialLayerChunkCoords {
     fn get_outline(&self) -> Vec<Vec2> {
         self.get_outline()
     }
-    fn get_positions(&self) -> Vec<Vec2> {
+    fn get_positions(&self) -> Vec<Square> {
         self.get_circle_vertexes()
     }
     fn get_cell_radius(&self) -> f32 {
