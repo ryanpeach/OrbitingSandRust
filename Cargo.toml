@@ -13,7 +13,7 @@ debug = true
 [dependencies]
 ggegui = "0.3.7"
 ggez = "0.9.3"
-hashbrown = { version = "0.14.2", features = ["rayon"] }
+hashbrown = { version = "0.14.2", features = ["ahash", "rayon"] }
 rayon = "1.8.0"
 
 [dev-dependencies]
