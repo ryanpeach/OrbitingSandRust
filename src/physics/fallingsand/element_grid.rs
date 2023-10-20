@@ -90,6 +90,9 @@ impl ElementGrid {
     pub fn get_grid(&self) -> &Grid<Box<dyn Element>> {
         &self.grid
     }
+    pub fn get_process_unneeded(&self, current_time: Clock) -> bool {
+        self.last_set.get_current_frame() < current_time.get_current_frame() - 1
+    }
 }
 
 /// Public modifiers for the element grid
@@ -117,6 +120,10 @@ impl ElementGrid {
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) {
+        let locked = self.get_process_unneeded(current_time);
+        if locked {
+            return;
+        }
         let already_processed = self.get_already_processed();
         debug_assert!(!already_processed, "Already processed");
         for j in 0..self.coords.get_num_concentric_circles() {

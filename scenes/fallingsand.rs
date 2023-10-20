@@ -4,7 +4,7 @@ use ggegui::{egui, Gui};
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
 use ggez::glam::Vec2;
-use ggez::graphics::{self, DrawParam, FilterMode, Mesh, Sampler};
+use ggez::graphics::{self, DrawParam, FilterMode, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
@@ -33,17 +33,6 @@ struct MainState {
     camera: Camera,
     gui: Gui,
     current_time: Clock,
-}
-
-// Translates the world coordinate system, which
-// has Y pointing up and the origin at the center,
-// to the screen coordinate system, which has Y
-// pointing downward and the origin at the top-left
-
-fn world_to_screen_coords(screen_size: Vec2, point: Vec2) -> Vec2 {
-    let x = point.x + screen_size.x / 2.0;
-    let y = screen_size.y - (point.y + screen_size.y / 2.0);
-    Vec2::new(x, y)
 }
 
 impl MainState {
@@ -117,28 +106,8 @@ impl EventHandler<ggez::GameError> for MainState {
         let mut canvas = graphics::Canvas::from_frame(ctx, graphics::Color::BLACK);
         canvas.set_sampler(Sampler::from(FilterMode::Nearest));
 
-        // Draw planets
-        let screen_size = ctx.gfx.drawable_size();
-        let pos = world_to_screen_coords(
-            Vec2::new(screen_size.0, screen_size.1),
-            self.camera.get_world_coords(),
-        );
-        let zoom = self.camera.get_zoom();
-        let draw_params = graphics::DrawParam::new()
-            .dest(pos)
-            .scale(Vec2::new(zoom, zoom))
-            .rotation(self.camera.get_rotation())
-            .offset(Vec2::new(0.5, 0.5));
-
-        let (meshdata, rawimg) = self.celestial.get_combined_mesh_texture(&self.camera);
-        let mesh = Mesh::from_data(ctx, meshdata.to_mesh_data());
-        let img = rawimg.to_image(ctx);
-        match self.mesh_draw_mode {
-            MeshDrawMode::TexturedMesh => canvas.draw_textured_mesh(mesh, img, draw_params),
-            MeshDrawMode::TriangleWireframe => canvas.draw(&mesh, draw_params),
-            MeshDrawMode::UVWireframe => canvas.draw(&mesh, draw_params),
-            MeshDrawMode::Outline => canvas.draw(&mesh, draw_params),
-        }
+        // Draw the celestial
+        self.celestial.draw(ctx, &mut canvas, &self.camera);
 
         // Draw gui
         canvas.draw(&self.gui, DrawParam::default().dest(Vec2::ZERO));

@@ -39,6 +39,20 @@ impl Camera {
         )
     }
 
+    // Translates the world coordinate system, which
+    // has Y pointing up and the origin at the center,
+    // to the screen coordinate system, which has Y
+    // pointing downward and the origin at the top-left
+    pub fn world_to_screen_coords(&self, point: Vec2) -> Vec2 {
+        let x = point.x + self.screen_size.x / 2.0;
+        let y = self.screen_size.y - (point.y + self.screen_size.y / 2.0);
+        Vec2::new(x, y)
+    }
+
+    pub fn get_screen_coords(&self) -> Vec2 {
+        self.world_to_screen_coords(self.get_world_coords())
+    }
+
     // ===========================
     // Getters
     // ===========================

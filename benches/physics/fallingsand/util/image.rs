@@ -1,7 +1,9 @@
 use criterion::{black_box, criterion_group, Criterion};
 use orbiting_sand::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
 use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
+use orbiting_sand::physics::fallingsand::util::enums::MeshDrawMode;
 use orbiting_sand::physics::fallingsand::util::image::RawImage;
+use orbiting_sand::physics::fallingsand::util::mesh::OwnedMeshData;
 
 /// The default element grid directory for testing
 fn get_element_grid_dir() -> ElementGridDir {
@@ -16,10 +18,18 @@ fn get_element_grid_dir() -> ElementGridDir {
 }
 
 fn bench_combine_images(c: &mut Criterion) {
-    let textures = get_element_grid_dir().get_textures();
+    let element_grid = get_element_grid_dir();
+    let meshes = element_grid
+        .get_coordinate_dir()
+        .get_mesh_data(MeshDrawMode::TexturedMesh);
+    let combined_meshes = OwnedMeshData::combine(&meshes);
+    let textures = element_grid.get_textures();
     c.bench_function("combine_images", |b| {
         b.iter(|| {
-            RawImage::combine(black_box(&textures[..]));
+            RawImage::combine(
+                black_box(textures.clone()),
+                black_box(combined_meshes.uv_bounds),
+            );
         })
     });
 }

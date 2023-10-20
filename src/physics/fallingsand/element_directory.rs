@@ -619,6 +619,28 @@ impl ElementGridDir {
         }
     }
 
+    /// Gets the textures of the targets updated in the last call to process
+    pub fn get_updated_target_textures(&self) -> HashMap<ChunkIjkVector, RawImage> {
+        // You should call this function only AFTER calling process
+        let process_count = self.process_count - 1;
+        let targets1 = self.process_targets.standard_convolution[process_count % 9].clone();
+        let targets2 = self.process_targets.has_single_bottom_neighbor[process_count % 9].clone();
+        let targets3 = self.process_targets.has_multi_bottom_neighbor[process_count % 9].clone();
+        let all_targets: Vec<ChunkIjkVector> = targets1
+            .0
+            .into_iter()
+            .chain(targets2.0)
+            .chain(targets3.0)
+            .collect();
+        all_targets
+            .into_par_iter()
+            .map(|target| {
+                let chunk = self.get_chunk_by_chunk_ijk(target);
+                (target, chunk.get_texture())
+            })
+            .collect()
+    }
+
     fn process_sequence(
         &mut self,
         targets: Sequential<HashSet<ChunkIjkVector>>,
@@ -703,7 +725,7 @@ impl ElementGridDir {
     }
 
     /// Get all textures
-    pub fn get_textures(&self) -> Vec<Grid<RawImage>> {
+    pub fn get_textures(&self) -> HashMap<ChunkIjkVector, RawImage> {
         // Create a filter with all true
         let mut filter: Vec<Grid<bool>> = Vec::with_capacity(self.coords.get_num_layers());
         for i in 0..self.coords.get_num_layers() {
@@ -718,25 +740,24 @@ impl ElementGridDir {
     }
 
     /// Where filter is true, get the textures
-    pub fn get_textures_filtered(&self, filter: &[Grid<bool>]) -> Vec<Grid<RawImage>> {
-        let mut out = Vec::new();
+    pub fn get_textures_filtered(
+        &self,
+        filter: &[Grid<bool>],
+    ) -> HashMap<ChunkIjkVector, RawImage> {
+        let mut out = HashMap::new();
         for (i, item) in filter.iter().enumerate() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
             let k_size = self.coords.get_layer_num_radial_chunks(i);
-            let mut layer = Grid::new_empty(k_size, j_size);
             for j in 0..j_size {
                 for k in 0..k_size {
                     if !item.get(JkVector { j, k }) {
                         continue;
                     }
                     let coord = ChunkIjkVector { i, j, k };
-                    layer.replace(
-                        JkVector { j, k },
-                        self.get_chunk_by_chunk_ijk(coord).get_texture(),
-                    );
+                    let tex = self.get_chunk_by_chunk_ijk(coord).get_texture();
+                    out.insert(coord, tex);
                 }
             }
-            out.push(layer);
         }
         out
     }
