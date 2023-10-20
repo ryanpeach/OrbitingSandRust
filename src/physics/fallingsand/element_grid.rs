@@ -1,10 +1,9 @@
-use std::time::Duration;
-
 use ggez::graphics::Rect;
 
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions};
 use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
+use crate::physics::util::clock::Clock;
 
 use super::coordinates::core_coords::CoreChunkCoords;
 use super::element_convolution::ElementGridConvolutionNeighbors;
@@ -22,7 +21,7 @@ pub struct ElementGrid {
 
     /// This deals with whether or not the element grid needs to be processed
     /// or if it hasn't seen any changes since the last frame maybe you can skip it
-    last_set: Duration,
+    last_set: Clock,
 }
 
 /// Useful for borrowing the grid to have a default value of one
@@ -57,7 +56,7 @@ impl ElementGrid {
             ),
             coords: chunk_coords,
             already_processed: false,
-            last_set: Duration::default(),
+            last_set: Clock::default(),
         }
     }
 }
@@ -81,7 +80,7 @@ impl ElementGrid {
         self.already_processed = already_processed;
         Ok(())
     }
-    pub fn get_last_set(&self) -> Duration {
+    pub fn get_last_set(&self) -> Clock {
         self.last_set
     }
     #[allow(clippy::borrowed_box)]
@@ -95,14 +94,14 @@ impl ElementGrid {
 
 /// Public modifiers for the element grid
 impl ElementGrid {
-    pub fn set(&mut self, jk: JkVector, element: Box<dyn Element>, time: Duration) {
+    pub fn set(&mut self, jk: JkVector, element: Box<dyn Element>, time: Clock) {
         self.replace(jk, element, time);
     }
     pub fn replace(
         &mut self,
         jk: JkVector,
         element: Box<dyn Element>,
-        time: Duration,
+        time: Clock,
     ) -> Box<dyn Element> {
         self.last_set = time;
         self.grid.replace(jk, element)
@@ -116,7 +115,7 @@ impl ElementGrid {
     pub fn process(
         &mut self,
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
-        current_time: Duration,
+        current_time: Clock,
     ) {
         let already_processed = self.get_already_processed();
         debug_assert!(!already_processed, "Already processed");

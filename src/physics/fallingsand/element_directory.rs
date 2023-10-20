@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
-use std::time::Duration;
+
+use crate::physics::util::clock::Clock;
 
 use super::coordinates::coordinate_directory::CoordinateDir;
 use super::element_convolution::{
@@ -591,7 +592,7 @@ impl ElementGridDir {
     /// The passes ensure that no two adjacent elementgrids are processed at the same time
     /// This is important because elementgrids can effect one another at a maximum range of
     /// the size of one elementgrid.
-    pub fn process(&mut self, current_time: Duration) {
+    pub fn process(&mut self, current_time: Clock) {
         self.process_parallel(
             self.process_targets.standard_convolution[self.process_count % 9].clone(),
             current_time,
@@ -621,7 +622,7 @@ impl ElementGridDir {
     fn process_sequence(
         &mut self,
         targets: Sequential<HashSet<ChunkIjkVector>>,
-        current_time: Duration,
+        current_time: Clock,
     ) {
         for target in targets.0 {
             let mut conv = self
@@ -638,7 +639,7 @@ impl ElementGridDir {
     fn process_parallel(
         &mut self,
         targets: Parallel<HashSet<ChunkIjkVector>>,
-        current_time: Duration,
+        current_time: Clock,
     ) {
         let (mut convolutions, mut target_chunks) = self
             .package_convolutions(targets.0)
@@ -708,21 +709,16 @@ impl ElementGridDir {
         for i in 0..self.coords.get_num_layers() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
             let k_size = self.coords.get_layer_num_radial_chunks(i);
-            let mut layer = Grid::new_empty(k_size, j_size);
-            for j in 0..j_size {
-                for k in 0..k_size {
-                    layer.replace(JkVector { j, k }, true);
-                }
-            }
+            let layer = Grid::new(k_size, j_size, vec![true; k_size * j_size]);
             filter.push(layer);
         }
 
         // Call the filtered version
-        self.get_textures_filtered(filter)
+        self.get_textures_filtered(&filter)
     }
 
     /// Where filter is true, get the textures
-    pub fn get_textures_filtered(&self, filter: Vec<Grid<bool>>) -> Vec<Grid<RawImage>> {
+    pub fn get_textures_filtered(&self, filter: &[Grid<bool>]) -> Vec<Grid<RawImage>> {
         let mut out = Vec::new();
         for (i, item) in filter.iter().enumerate() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);

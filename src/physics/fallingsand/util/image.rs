@@ -8,6 +8,7 @@ use super::grid::Grid;
 /// Representing a raw RGBA image
 /// For some reason ggez::graphics::Image requires a
 /// Context for an image to be created, so we use this instead
+#[derive(Clone)]
 pub struct RawImage {
     pub bounds: Rect,
     pub pixels: Vec<u8>,

@@ -1,9 +1,8 @@
-use std::time::Duration;
-
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::element_convolution::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::element_grid::ElementGrid;
 use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
+use crate::physics::util::clock::Clock;
 use ggez::graphics::Color;
 
 /// What to do after process is called on the elementgrid
@@ -18,7 +17,7 @@ pub enum ElementTakeOptions {
 }
 
 pub trait Element: Send + Sync {
-    fn get_last_processed(&self) -> Duration;
+    fn get_last_processed(&self) -> Clock;
     #[allow(clippy::borrowed_box)]
     fn get_color(&self, pos: JkVector, chunk_coords: &Box<dyn ChunkCoords>) -> Color;
     fn process(
@@ -26,7 +25,7 @@ pub trait Element: Send + Sync {
         pos: IjkVector,
         target_chunk: &mut ElementGrid,
         element_grid_conv: &mut ElementGridConvolutionNeighbors,
-        current_time: Duration,
+        current_time: Clock,
     ) -> ElementTakeOptions;
     fn box_clone(&self) -> Box<dyn Element>;
 }

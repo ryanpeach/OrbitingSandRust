@@ -66,7 +66,11 @@ impl<T> Grid<T> {
     pub fn get_mut(&mut self, coord: JkVector) -> &mut T {
         &mut self.data[coord.k + coord.j * self.width]
     }
-    /// Like get, but gives you ownership of the value and replaces it with the replacement
+    /// Sets the value at the given coordinate, overwriting the old value
+    pub fn set(&mut self, coord: JkVector, value: T) {
+        self.replace(coord, value);
+    }
+    /// Like set, but gives you ownership of the original value
     pub fn replace(&mut self, coord: JkVector, replacement: T) -> T {
         let idx = coord.k + coord.j * self.width;
         std::mem::replace(&mut self.data[idx], replacement)
@@ -117,6 +121,28 @@ impl<'a, T> IntoIterator for &'a mut Grid<T> {
     fn into_iter(self) -> Self::IntoIter {
         self.data.iter_mut()
     }
+}
+
+/// Where filter is true, get the textures
+pub fn filter_vecgrid<T>(grid: &[Grid<T>], filter: &[Grid<bool>]) -> Vec<Grid<T>>
+where
+    T: Default + Clone,
+{
+    let mut out = Vec::new();
+    for (i, item) in filter.iter().enumerate() {
+        let j_size = item.get_height();
+        let k_size = item.get_width();
+        let mut layer = Grid::new_empty(k_size, j_size);
+        for j in 0..j_size {
+            for k in 0..k_size {
+                if *item.get(JkVector { j, k }) {
+                    layer.set(JkVector { j, k }, grid[i].get(JkVector { j, k }).clone());
+                }
+            }
+        }
+        out.push(layer);
+    }
+    out
 }
 
 #[cfg(test)]
