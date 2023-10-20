@@ -12,8 +12,10 @@ use super::elements::element::Element;
 use super::util::functions::modulo;
 use super::util::grid::Grid;
 use super::util::image::RawImage;
+use super::util::mesh::Square;
 use super::util::vectors::{ChunkIjkVector, JkVector};
 
+use ggez::graphics::Quad;
 use rayon::prelude::*;
 
 /// Useful for indicating at compile time that an iterable should be ran in parallel
@@ -620,7 +622,7 @@ impl ElementGridDir {
     }
 
     /// Gets the textures of the targets updated in the last call to process
-    pub fn get_updated_target_textures(&self) -> HashMap<ChunkIjkVector, RawImage> {
+    pub fn get_updated_target_uvs(&self) -> HashMap<ChunkIjkVector, Vec<Square>> {
         // You should call this function only AFTER calling process
         let process_count = self.process_count - 1;
         let targets1 = self.process_targets.standard_convolution[process_count % 9].clone();
@@ -636,9 +638,40 @@ impl ElementGridDir {
             .into_par_iter()
             .map(|target| {
                 let chunk = self.get_chunk_by_chunk_ijk(target);
-                (target, chunk.get_texture())
+                (target, chunk.get_uvs())
             })
             .collect()
+    }
+
+    /// Gets the textures of the targets updated in the last call to process
+    pub fn get_uvs(&self) -> HashMap<ChunkIjkVector, Vec<Square>> {
+        // You should call this function only AFTER calling process
+        let all_targets: Vec<ChunkIjkVector> = self.get_all_chunk_ijks();
+        all_targets
+            .into_par_iter()
+            .map(|target| {
+                let chunk = self.get_chunk_by_chunk_ijk(target);
+                (target, chunk.get_uvs())
+            })
+            .collect()
+    }
+
+    /// A convienience function for getting all the chunk indexes
+    /// great for paralell processing
+    /// TODO: Replace everything in this file with this paradigm
+    pub fn get_all_chunk_ijks(&self) -> Vec<ChunkIjkVector> {
+        let mut out = Vec::new();
+        for i in 0..self.coords.get_num_layers() {
+            let j_size = self.coords.get_layer_num_concentric_chunks(i);
+            let k_size = self.coords.get_layer_num_radial_chunks(i);
+            for j in 0..j_size {
+                for k in 0..k_size {
+                    let coord = ChunkIjkVector { i, j, k };
+                    out.push(coord);
+                }
+            }
+        }
+        out
     }
 
     fn process_sequence(
@@ -722,44 +755,6 @@ impl ElementGridDir {
     }
     pub fn is_empty(&self) -> bool {
         self.chunks.is_empty()
-    }
-
-    /// Get all textures
-    pub fn get_textures(&self) -> HashMap<ChunkIjkVector, RawImage> {
-        // Create a filter with all true
-        let mut filter: Vec<Grid<bool>> = Vec::with_capacity(self.coords.get_num_layers());
-        for i in 0..self.coords.get_num_layers() {
-            let j_size = self.coords.get_layer_num_concentric_chunks(i);
-            let k_size = self.coords.get_layer_num_radial_chunks(i);
-            let layer = Grid::new(k_size, j_size, vec![true; k_size * j_size]);
-            filter.push(layer);
-        }
-
-        // Call the filtered version
-        self.get_textures_filtered(&filter)
-    }
-
-    /// Where filter is true, get the textures
-    pub fn get_textures_filtered(
-        &self,
-        filter: &[Grid<bool>],
-    ) -> HashMap<ChunkIjkVector, RawImage> {
-        let mut out = HashMap::new();
-        for (i, item) in filter.iter().enumerate() {
-            let j_size = self.coords.get_layer_num_concentric_chunks(i);
-            let k_size = self.coords.get_layer_num_radial_chunks(i);
-            for j in 0..j_size {
-                for k in 0..k_size {
-                    if !item.get(JkVector { j, k }) {
-                        continue;
-                    }
-                    let coord = ChunkIjkVector { i, j, k };
-                    let tex = self.get_chunk_by_chunk_ijk(coord).get_texture();
-                    out.insert(coord, tex);
-                }
-            }
-        }
-        out
     }
 }
 

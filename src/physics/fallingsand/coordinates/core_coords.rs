@@ -127,14 +127,6 @@ impl ChunkCoords for CoreChunkCoords {
     fn get_positions(&self) -> Vec<Vec2> {
         self.get_positions()
     }
-    /// Res does not matter at all for the core chunk
-    fn get_indices(&self) -> Vec<u32> {
-        self.get_indices()
-    }
-    /// Res does not matter at all for the core chunk
-    fn get_uvs(&self) -> Vec<Vec2> {
-        self.get_uvs()
-    }
     fn get_cell_radius(&self) -> f32 {
         self.radius
     }

@@ -1,30 +1,99 @@
-use ggez::graphics::{MeshData, Rect, Vertex};
+use ggez::{
+    glam::Vec2,
+    graphics::{MeshData, Rect, Vertex},
+};
 
-use super::grid::Grid;
+/// Represents a square in 2D space
+#[derive(Clone)]
+pub struct Square {
+    tl: Vec2,
+    tr: Vec2,
+    bl: Vec2,
+    br: Vec2,
+}
+
+impl Square {
+    /// Create a new square from the four corners
+    pub fn new(tl: Vec2, tr: Vec2, bl: Vec2, br: Vec2) -> Self {
+        Self { tl, tr, bl, br }
+    }
+    /// Create a new square from the top left corner and the width and height (hw stands for height width)
+    pub fn new_hw(x: f32, y: f32, w: f32, h: f32) -> Self {
+        Self {
+            tl: Vec2::new(x, y),
+            tr: Vec2::new(x + w, y),
+            bl: Vec2::new(x, y + h),
+            br: Vec2::new(x + w, y + h),
+        }
+    }
+}
 
 /// Represents a mesh that is owned by this object
 /// For some reason a MeshData object has a lifetime and is a set of borrows.
 /// This is a workaround for that.
 #[derive(Clone)]
 pub struct OwnedMeshData {
-    pub uv_bounds: Rect,
-    pub vertices: Vec<Vertex>,
-    pub indices: Vec<u32>,
+    vertexes: Vec<Vertex>,
+    indices: Vec<u32>,
 }
 
 /// Create an empty OwnedMeshData
 impl Default for OwnedMeshData {
     fn default() -> Self {
         Self {
-            uv_bounds: Rect {
-                x: 0.0,
-                y: 0.0,
-                w: 0.0,
-                h: 0.0,
-            },
-            vertices: Vec::new(),
+            vertexes: Vec::new(),
             indices: Vec::new(),
         }
+    }
+}
+
+impl OwnedMeshData {
+    pub fn new(positions: Vec<Square>, uvs: Vec<Square>) -> Self {
+        let vertexes = OwnedMeshData::calc_vertexes(positions, uvs);
+        let indices = OwnedMeshData::calc_indices(positions.len());
+        Self { vertexes, indices }
+    }
+
+    pub fn calc_vertexes(positions: Vec<Square>, uvs: Vec<Square>) -> Vec<Vertex> {
+        debug_assert_eq!(positions.len(), uvs.len());
+        let mut result = Vec::with_capacity(positions.len() * 4);
+        for i in 0..positions.len() {
+            result.push(Vertex {
+                position: positions[i].tl.to_array(),
+                uv: uvs[i].tl.to_array(),
+                color: [1.0, 1.0, 1.0, 1.0],
+            });
+            result.push(Vertex {
+                position: positions[i].tr.to_array(),
+                uv: uvs[i].tr.to_array(),
+                color: [1.0, 1.0, 1.0, 1.0],
+            });
+            result.push(Vertex {
+                position: positions[i].bl.to_array(),
+                uv: uvs[i].bl.to_array(),
+                color: [1.0, 1.0, 1.0, 1.0],
+            });
+            result.push(Vertex {
+                position: positions[i].br.to_array(),
+                uv: uvs[i].br.to_array(),
+                color: [1.0, 1.0, 1.0, 1.0],
+            });
+        }
+        result
+    }
+
+    pub fn calc_indices(num_squares: usize) -> Vec<u32> {
+        let mut result = Vec::with_capacity(num_squares * 6);
+        for i in 0..num_squares {
+            let offset = i as u32 * 4;
+            result.push(offset);
+            result.push(offset + 1);
+            result.push(offset + 2);
+            result.push(offset + 1);
+            result.push(offset + 2);
+            result.push(offset + 3);
+        }
+        result
     }
 }
 
@@ -33,131 +102,8 @@ impl OwnedMeshData {
     /// which takes references and has a lifetime
     pub fn to_mesh_data(&self) -> MeshData {
         MeshData {
-            vertices: &self.vertices,
-            indices: self.indices.as_slice(),
+            vertices: &self.vertexes,
+            indices: &self.indices,
         }
-    }
-
-    /// Combine a list of OwnedMeshData objects into one OwnedMeshData object
-    /// This dramatically increases draw performance in testing.
-    /// Remarks on Implementation:
-    /// * You need to add the previous last_idx to all the elements of the next indices
-    /// * You also need to un_normalize the uvs and then re_normalize them at the end
-    pub fn combine(vec_grid: &[Grid<OwnedMeshData>]) -> OwnedMeshData {
-        let mut combined_vertices = Vec::new();
-        let mut combined_indices = Vec::new();
-        let lst = vec_grid.iter().flatten().collect::<Vec<&OwnedMeshData>>();
-
-        // This is to find the max and min bounds for the UVs
-        let width: f32 = lst
-            .iter()
-            .map(|mesh| mesh.uv_bounds.w + mesh.uv_bounds.x)
-            .fold(0.0, |a, b| a.max(b));
-        let height: f32 = lst
-            .iter()
-            .map(|mesh| mesh.uv_bounds.h + mesh.uv_bounds.y)
-            .fold(0.0, |a, b| a.max(b));
-        let min_x: f32 = lst
-            .iter()
-            .map(|mesh| mesh.uv_bounds.x)
-            .fold(f32::INFINITY, |a, b| a.min(b));
-        let min_y: f32 = lst
-            .iter()
-            .map(|mesh| mesh.uv_bounds.y)
-            .fold(f32::INFINITY, |a, b| a.min(b));
-        let max_x: f32 = lst
-            .iter()
-            .map(|mesh| mesh.uv_bounds.x + mesh.uv_bounds.w)
-            .fold(0.0, |a, b| a.max(b));
-        let max_y: f32 = lst
-            .iter()
-            .map(|mesh| mesh.uv_bounds.y + mesh.uv_bounds.h)
-            .fold(0.0, |a, b| a.max(b));
-
-        let mut last_idx = 0usize;
-        for mesh_data in lst {
-            let mut new_vertices = Vec::with_capacity(mesh_data.vertices.len());
-            for vertex in &mesh_data.vertices {
-                let un_normalized_u =
-                    (vertex.uv[0] * mesh_data.uv_bounds.w + mesh_data.uv_bounds.x) / max_x;
-                let un_normalized_v =
-                    (vertex.uv[1] * mesh_data.uv_bounds.h + mesh_data.uv_bounds.y) / max_y;
-                new_vertices.push(Vertex {
-                    position: vertex.position,
-                    uv: [un_normalized_u, un_normalized_v],
-                    color: vertex.color,
-                })
-            }
-
-            let mut new_indices = Vec::with_capacity(mesh_data.indices.len());
-            for index in &mesh_data.indices {
-                new_indices.push(index + last_idx as u32);
-            }
-
-            last_idx += new_vertices.len();
-            combined_vertices.extend(new_vertices);
-            combined_indices.extend(new_indices);
-        }
-
-        OwnedMeshData {
-            uv_bounds: Rect::new(min_x, min_y, width, height),
-            vertices: combined_vertices,
-            indices: combined_indices,
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
-    use crate::physics::fallingsand::element_directory::ElementGridDir;
-    use crate::physics::fallingsand::elements::{element::Element, sand::Sand, vacuum::Vacuum};
-    use crate::physics::fallingsand::util::enums::MeshDrawMode;
-
-    /// The default element grid directory for testing
-    fn get_element_grid_dir() -> ElementGridDir {
-        let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(1.0)
-            .num_layers(7)
-            .first_num_radial_lines(6)
-            .second_num_concentric_circles(3)
-            .max_cells(64 * 64)
-            .build();
-        let fill0: &dyn Element = &Vacuum::default();
-        let fill1: &dyn Element = &Sand::default();
-        ElementGridDir::new_checkerboard(coordinate_dir, fill0, fill1)
-    }
-
-    #[test]
-    fn test_combine() {
-        let meshes = get_element_grid_dir()
-            .get_coordinate_dir()
-            .get_mesh_data(MeshDrawMode::TexturedMesh);
-        let combined_mesh = OwnedMeshData::combine(&meshes);
-        // Test that the combined_mesh uvs are normalized
-        for vertex in &combined_mesh.vertices {
-            assert!(vertex.uv[0] <= 1.0);
-            assert!(vertex.uv[0] >= 0.0);
-            assert!(vertex.uv[1] <= 1.0);
-            assert!(vertex.uv[1] >= 0.0);
-        }
-        // Test that the length of the combined_mesh indices is the same as the sum of the lengths of the meshes
-        let mut sum_indices = 0;
-        let mut sum_vertices = 0;
-        for grid in &meshes {
-            for mesh in grid {
-                sum_indices += mesh.indices.len();
-                sum_vertices += mesh.vertices.len();
-            }
-        }
-        assert_eq!(combined_mesh.indices.len(), sum_indices);
-        assert_eq!(combined_mesh.vertices.len(), sum_vertices);
-        // Test that the indices have been offset correctly
-        assert_eq!(*combined_mesh.indices.iter().min().unwrap(), 0u32);
-        assert_eq!(
-            *combined_mesh.indices.iter().max().unwrap(),
-            (combined_mesh.vertices.iter().len() - 1) as u32
-        );
     }
 }

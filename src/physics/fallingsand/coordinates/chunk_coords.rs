@@ -17,8 +17,6 @@ pub trait ChunkCoords: Send + Sync {
     /* Raw Data */
     fn get_outline(&self) -> Vec<Vec2>;
     fn get_positions(&self) -> Vec<Vec2>;
-    fn get_indices(&self) -> Vec<u32>;
-    fn get_uvs(&self) -> Vec<Vec2>;
 
     /* Shape Parameter Getters */
     fn get_num_radial_lines(&self) -> usize;
@@ -100,21 +98,6 @@ pub trait ChunkCoords: Send + Sync {
         }
     }
 
-    /* Convienience Functions */
-    fn get_vertices(&self) -> Vec<Vertex> {
-        let positions = self.get_positions();
-        let uvs = self.get_uvs();
-        let vertexes: Vec<Vertex> = positions
-            .iter()
-            .zip(uvs.iter())
-            .map(|(p, uv)| Vertex {
-                position: [p.x, p.y],
-                uv: [uv.x, uv.y],
-                color: [1.0, 1.0, 1.0, 1.0],
-            })
-            .collect();
-        vertexes
-    }
     fn calc_chunk_outline(&self) -> OwnedMeshData {
         let mut mb = MeshBuilder::new();
         let outline = self.get_outline();

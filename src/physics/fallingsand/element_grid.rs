@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use ggez::graphics::Rect;
 
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
@@ -10,6 +12,8 @@ use super::element_convolution::ElementGridConvolutionNeighbors;
 use super::elements::vacuum::Vacuum;
 use super::util::grid::Grid;
 use super::util::image::RawImage;
+use super::util::mesh::Square;
+use super::util::vectors::ChunkIjkVector;
 
 /// An element grid is a 2D grid of elements tied to a chunk
 pub struct ElementGrid {
@@ -168,33 +172,16 @@ impl ElementGrid {
     }
 }
 
-/* Drawing */
+/// Handle Drawing
 impl ElementGrid {
-    /// Draw the texture as the color of each element
-    pub fn get_texture(&self) -> RawImage {
-        let mut out = Vec::with_capacity(
-            self.coords.get_num_radial_lines() * self.coords.get_num_concentric_circles() * 4,
-        );
-        for j in 0..self.coords.get_num_concentric_circles() {
-            for k in 0..self.coords.get_num_radial_lines() {
-                let element = self.grid.get(JkVector { j, k });
-                let color = element
-                    .get_color(JkVector { j, k }, self.get_chunk_coords())
-                    .to_rgba();
-                out.push(color.0);
-                out.push(color.1);
-                out.push(color.2);
-                out.push(color.3);
+    /// Get the latest uvs for the element grid
+    pub fn get_uvs(&self) -> Vec<Square> {
+        let mut out = Vec::with_capacity(self.grid.get_height() * self.grid.get_width());
+        for j in 0..self.grid.get_height() {
+            for k in 0..self.grid.get_width() {
+                out.push(self.grid.get(JkVector { j, k }).get_uvs());
             }
         }
-        RawImage {
-            pixels: out,
-            bounds: Rect::new(
-                self.coords.get_start_radial_line() as f32,
-                self.coords.get_start_concentric_circle_absolute() as f32,
-                self.coords.get_num_radial_lines() as f32,
-                self.coords.get_num_concentric_circles() as f32,
-            ),
-        }
+        out
     }
 }

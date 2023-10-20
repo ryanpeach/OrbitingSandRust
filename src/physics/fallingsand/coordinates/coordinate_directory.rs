@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::f32::consts::PI;
 
 use crate::physics::fallingsand::util::grid::Grid;
@@ -8,7 +9,7 @@ use super::chunk_coords::ChunkCoords;
 use super::core_coords::CoreChunkCoords;
 use super::layer_coords::{PartialLayerChunkCoords, PartialLayerChunkCoordsBuilder};
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
-use crate::physics::fallingsand::util::mesh::OwnedMeshData;
+use crate::physics::fallingsand::util::mesh::{OwnedMeshData, Square};
 use ggez::glam::Vec2;
 use ggez::graphics::{Rect, Vertex};
 
@@ -260,7 +261,7 @@ impl CoordinateDirBuilder {
  * chunk and return a vector of the results
  * ========================================= */
 impl CoordinateDir {
-    pub fn get_outlines(&self) -> Vec<Grid<Vec<Vec2>>> {
+    pub fn get_outlines(&self) -> HashMap<ChunkIjkVector, Vec<Square>> {
         let mut outlines = Vec::new();
         outlines.push(Grid::new(1, 1, vec![self.core_chunk.get_outline()]));
         for layer in &self.partial_chunks {
@@ -277,25 +278,8 @@ impl CoordinateDir {
         }
         outlines
     }
-    pub fn get_vertexes(&self) -> Vec<Grid<Vec<Vertex>>> {
-        let mut vertexes = Vec::new();
-        vertexes.push(Grid::new(1, 1, vec![self.core_chunk.get_vertices()]));
-        for layer in &self.partial_chunks {
-            let new_grid = Grid::new(
-                layer.get_width(),
-                layer.get_height(),
-                layer
-                    .get_data()
-                    .iter()
-                    .map(|partial_chunk| partial_chunk.get_vertices())
-                    .collect(),
-            );
-            vertexes.push(new_grid);
-        }
-        vertexes
-    }
 
-    pub fn get_positions(&self) -> Vec<Grid<Vec<Vec2>>> {
+    pub fn get_positions(&self) -> HashMap<ChunkIjkVector, Vec<Square>> {
         let mut positions = Vec::new();
         positions.push(Grid::new(1, 1, vec![self.core_chunk.get_positions()]));
         for layer in &self.partial_chunks {
@@ -311,42 +295,6 @@ impl CoordinateDir {
             positions.push(new_grid);
         }
         positions
-    }
-
-    pub fn get_uvs(&self) -> Vec<Grid<Vec<Vec2>>> {
-        let mut uvs = Vec::new();
-        uvs.push(Grid::new(1, 1, vec![self.core_chunk.get_uvs()]));
-        for layer in &self.partial_chunks {
-            let new_grid = Grid::new(
-                layer.get_width(),
-                layer.get_height(),
-                layer
-                    .get_data()
-                    .iter()
-                    .map(|partial_chunk| partial_chunk.get_uvs())
-                    .collect(),
-            );
-            uvs.push(new_grid);
-        }
-        uvs
-    }
-
-    pub fn get_indices(&self) -> Vec<Grid<Vec<u32>>> {
-        let mut indices = Vec::new();
-        indices.push(Grid::new(1, 1, vec![self.core_chunk.get_indices()]));
-        for layer in &self.partial_chunks {
-            let new_grid = Grid::new(
-                layer.get_width(),
-                layer.get_height(),
-                layer
-                    .get_data()
-                    .iter()
-                    .map(|partial_chunk| partial_chunk.get_indices())
-                    .collect(),
-            );
-            indices.push(new_grid);
-        }
-        indices
     }
 
     pub fn get_chunk_bounding_boxes(&self) -> Vec<Grid<Rect>> {

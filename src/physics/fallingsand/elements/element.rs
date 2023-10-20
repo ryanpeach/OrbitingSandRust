@@ -1,6 +1,7 @@
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::element_convolution::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::element_grid::ElementGrid;
+use crate::physics::fallingsand::util::mesh::Square;
 use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
 use crate::physics::util::clock::Clock;
 use ggez::graphics::Color;
@@ -19,7 +20,11 @@ pub enum ElementTakeOptions {
 pub trait Element: Send + Sync {
     fn get_last_processed(&self) -> Clock;
     #[allow(clippy::borrowed_box)]
-    fn get_color(&self, pos: JkVector, chunk_coords: &Box<dyn ChunkCoords>) -> Color;
+    fn get_color(&self) -> Color;
+    fn get_uv_index(&self) -> u8;
+    fn get_uvs(&self) -> Square {
+        Square::new_hw(self.get_uv_index() as f32, 0.0, 1.0, 1.0)
+    }
     fn process(
         &mut self,
         pos: IjkVector,

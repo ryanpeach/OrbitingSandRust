@@ -230,89 +230,6 @@ impl PartialLayerChunkCoords {
         let max_y = all_y.fold(f32::NEG_INFINITY, f32::max);
         Rect::new(min_x, min_y, max_x - min_x, max_y - min_y)
     }
-
-    /// Gets the UV coordinates of the vertexes of the chunk
-    /// This is a more traditional square grid
-    /// If you set skip to 1, you will get the full resolution
-    /// If you set skip to 2, you will get half the resolution
-    /// ...
-    fn get_uv_vertexes(&self) -> Vec<Vec2> {
-        let mut vertexes: Vec<Vec2> = Vec::new();
-
-        for j in [0, self.get_num_concentric_circles()] {
-            for k in 0..(self.get_num_radial_lines() + 1) {
-                let new_vec = Vec2::new(
-                    k as f32 / self.get_num_radial_lines() as f32,
-                    j as f32 / self.get_num_concentric_circles() as f32,
-                );
-                vertexes.push(new_vec);
-            }
-        }
-
-        vertexes
-    }
-
-    fn get_indices(&self) -> Vec<u32> {
-        let _j_iter = [0, self.get_num_concentric_circles() + 1];
-        let j_count = 2;
-        let k_iter = 0..(self.get_num_radial_lines() + 1);
-        let k_count = k_iter.len();
-        let mut indices = Vec::with_capacity(j_count * k_count * 6);
-        for j in 0..j_count - 1 {
-            for k in 0..k_count - 1 {
-                // Compute the four corners of our current grid cell
-                let v0 = j * (self.get_num_radial_lines() + 1) + k; // Top-left
-                let v1 = v0 + 1; // Top-right
-                let v2 = v0 + (self.get_num_radial_lines() + 1) + 1; // Bottom-right
-                let v3 = v0 + (self.get_num_radial_lines() + 1); // Bottom-left
-
-                // First triangle (top-left, bottom-left, top-right)
-                indices.push(v0 as u32);
-                indices.push(v3 as u32);
-                indices.push(v1 as u32);
-
-                // Second triangle (top-right, bottom-left, bottom-right)
-                indices.push(v1 as u32);
-                indices.push(v3 as u32);
-                indices.push(v2 as u32);
-            }
-        }
-
-        indices
-    }
-
-    /// Right now we are just going to return a checkerboard texture
-    fn get_texture(&self, _step: usize) -> RawImage {
-        let j_count = self.get_num_concentric_circles();
-        let k_count = self.get_num_radial_lines();
-        let mut pixels: Vec<u8> = Vec::with_capacity(j_count * k_count * 4);
-        let mut i = 0;
-        for _ in 0..j_count {
-            for _ in 0..k_count {
-                let color = if i % 2 == 0 {
-                    Color::YELLOW
-                } else {
-                    Color::BLUE
-                };
-                let rgba = color.to_rgba();
-                pixels.push(rgba.0);
-                pixels.push(rgba.1);
-                pixels.push(rgba.2);
-                pixels.push(rgba.3);
-                i += 1;
-            }
-            i += 1;
-        }
-        RawImage {
-            pixels,
-            bounds: Rect::new(
-                self.get_start_radial_line() as f32,
-                self.get_start_concentric_circle_absolute() as f32,
-                k_count as f32,
-                j_count as f32,
-            ),
-        }
-    }
 }
 
 impl ChunkCoords for PartialLayerChunkCoords {
@@ -321,12 +238,6 @@ impl ChunkCoords for PartialLayerChunkCoords {
     }
     fn get_positions(&self) -> Vec<Vec2> {
         self.get_circle_vertexes()
-    }
-    fn get_indices(&self) -> Vec<u32> {
-        self.get_indices()
-    }
-    fn get_uvs(&self) -> Vec<Vec2> {
-        self.get_uv_vertexes()
     }
     fn get_cell_radius(&self) -> f32 {
         self.cell_radius

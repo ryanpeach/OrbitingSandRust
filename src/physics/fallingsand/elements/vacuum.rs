@@ -4,6 +4,7 @@ use super::element::{Element, ElementTakeOptions};
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::element_convolution::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::element_grid::ElementGrid;
+use crate::physics::fallingsand::util::mesh::Square;
 use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
 use crate::physics::util::clock::Clock;
 
@@ -17,9 +18,11 @@ impl Element for Vacuum {
     fn get_last_processed(&self) -> Clock {
         self.last_processed
     }
-    #[allow(clippy::borrowed_box)]
-    fn get_color(&self, _pos: JkVector, _chunk_coords: &Box<dyn ChunkCoords>) -> Color {
+    fn get_color(&self) -> Color {
         Color::BLACK
+    }
+    fn get_uv_index(&self) -> u8 {
+        0
     }
     fn process(
         &mut self,
