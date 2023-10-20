@@ -626,20 +626,19 @@ impl ElementGridDir {
         let targets1 = self.process_targets.standard_convolution[process_count % 9].clone();
         let targets2 = self.process_targets.has_single_bottom_neighbor[process_count % 9].clone();
         let targets3 = self.process_targets.has_multi_bottom_neighbor[process_count % 9].clone();
-        let mut out = HashMap::new();
-        for target in targets1.0.into_iter() {
-            let chunk = self.get_chunk_by_chunk_ijk(target);
-            out.insert(target, chunk.get_texture());
-        }
-        for target in targets2.0.into_iter() {
-            let chunk = self.get_chunk_by_chunk_ijk(target);
-            out.insert(target, chunk.get_texture());
-        }
-        for target in targets3.0.into_iter() {
-            let chunk = self.get_chunk_by_chunk_ijk(target);
-            out.insert(target, chunk.get_texture());
-        }
-        out
+        let all_targets: Vec<ChunkIjkVector> = targets1
+            .0
+            .into_iter()
+            .chain(targets2.0)
+            .chain(targets3.0)
+            .collect();
+        all_targets
+            .into_par_iter()
+            .map(|target| {
+                let chunk = self.get_chunk_by_chunk_ijk(target);
+                (target, chunk.get_texture())
+            })
+            .collect()
     }
 
     fn process_sequence(
