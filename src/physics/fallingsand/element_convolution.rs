@@ -1,6 +1,16 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt};
 
-use super::{element_grid::ElementGrid, util::vectors::ChunkIjkVector};
+use crate::physics::fallingsand::util::vectors::TempJkVector;
+
+use super::{
+    coordinates::chunk_coords::ChunkCoords,
+    element_grid::ElementGrid,
+    elements::element::Element,
+    util::{
+        functions::modulo,
+        vectors::{ChunkIjkVector, FullIdx, JkVector, RelJkVector},
+    },
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum LeftRightNeighbors {
@@ -281,5 +291,90 @@ impl IntoIterator for ElementGridConvolutionNeighbors {
 
     fn into_iter(self) -> Self::IntoIter {
         self.grids.into_iter()
+    }
+}
+
+/// Defines when the user has simply exceeded the bounds of the convolution
+#[derive(Debug, Clone)]
+pub struct OutOfBoundsError {
+    pub from_chunk: ChunkIjkVector,
+    pub naive_idx: TempJkVector,
+}
+impl fmt::Display for OutOfBoundsError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{:?} went outside the constraints of chunk {:?}",
+            self.naive_idx, self.from_chunk
+        )
+    }
+}
+
+/// Behavior Methods
+/// Methods which allow you to get an index "relative" to another index on the element convolution.
+/// All of these methods are given "lr priority". Meaning if you ask for rel_idx RelJkVector(-1, -1) that means
+/// go clockwise one then go down one. This is easier to program as lr is easy.
+impl ElementGridConvolutionNeighbors {
+    /// Gets the element one cell below you
+    /// TODO: Test this
+    pub fn get_below(
+        &self,
+        target_chunk: &ElementGrid,
+        pos: &JkVector,
+    ) -> Result<FullIdx, OutOfBoundsError> {
+        if pos.j > 0 {
+            let new_coord = JkVector {
+                j: pos.j - 1,
+                k: pos.k,
+            };
+            Ok(FullIdx::new(
+                target_chunk.get_chunk_coords().get_chunk_idx(),
+                new_coord,
+            ))
+        } else {
+            match self.chunk_idxs.bottom {
+                BottomNeighbors::BottomOfGrid => Err(OutOfBoundsError {
+                    naive_idx: TempJkVector {
+                        j: pos.j as isize - 1,
+                        k: pos.k as isize,
+                    },
+                    from_chunk: target_chunk.get_chunk_coords().get_chunk_idx(),
+                }),
+                BottomNeighbors::FullLayerBelow { b } => {
+                    let bcoords = self.grids.get(&b).unwrap().get_chunk_coords();
+                    let new_coords = JkVector {
+                        j: bcoords.get_num_radial_lines() - 1,
+                        k: pos.k / 2,
+                    };
+                    Ok(FullIdx::new(b, new_coords))
+                }
+                BottomNeighbors::LayerTransition { bl, br } => {
+                    // TODO: Test this, I forget which way it is
+                    if target_chunk.get_chunk_coords().get_chunk_idx().k % 2 == 0 {
+                        let blcoords = self.grids.get(&bl).unwrap().get_chunk_coords();
+                        let new_coords = JkVector {
+                            j: blcoords.get_num_radial_lines() - 1,
+                            k: pos.k / 2,
+                        };
+                        Ok(FullIdx::new(bl, new_coords))
+                    } else {
+                        let brcoords = self.grids.get(&br).unwrap().get_chunk_coords();
+                        let new_coords = JkVector {
+                            j: brcoords.get_num_radial_lines() - 1,
+                            k: pos.k / 2,
+                        };
+                        Ok(FullIdx::new(br, new_coords))
+                    }
+                }
+                BottomNeighbors::Normal { bl: _, b, br: _ } => {
+                    let bcoords = self.grids.get(&b).unwrap().get_chunk_coords();
+                    let new_coords = JkVector {
+                        j: bcoords.get_num_radial_lines() - 1,
+                        k: pos.k / 2,
+                    };
+                    Ok(FullIdx::new(b, new_coords))
+                }
+            }
+        }
     }
 }

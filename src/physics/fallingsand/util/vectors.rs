@@ -35,6 +35,38 @@ impl RelJkVector {
     }
 }
 
+/// Sometimes while resolving a relative JKVector into a JKVector you
+/// need isize type fields
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct TempJkVector {
+    pub j: isize,
+    pub k: isize,
+}
+
+/// Instantiation
+impl TempJkVector {
+    pub fn add(pos: &JkVector, rel: &RelJkVector) -> Self {
+        Self {
+            j: pos.j as isize + rel.rj,
+            k: pos.k as isize + rel.rk,
+        }
+    }
+}
+
+/// Defines both the chunk and the internal idx of the element
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct FullIdx {
+    pub chunk_idx: ChunkIjkVector,
+    pub pos: JkVector,
+}
+
+/// Instantiation
+impl FullIdx {
+    pub fn new(chunk_idx: ChunkIjkVector, pos: JkVector) -> Self {
+        Self { chunk_idx, pos }
+    }
+}
+
 /// Same as JkVector, but with i indicating the "layer number"
 /// The core is layer 0
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
