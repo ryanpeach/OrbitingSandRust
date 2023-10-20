@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use hashbrown::HashMap;
 use std::f32::consts::PI;
 
 use crate::physics::fallingsand::util::grid::Grid;
@@ -261,7 +261,7 @@ impl CoordinateDirBuilder {
  * chunk and return a vector of the results
  * ========================================= */
 impl CoordinateDir {
-    pub fn get_outlines(&self) -> HashMap<ChunkIjkVector, Vec<Square>> {
+    pub fn get_outlines(&self) -> HashMap<ChunkIjkVector, Vec<Vec2>> {
         let mut outlines = Vec::new();
         outlines.push(Grid::new(1, 1, vec![self.core_chunk.get_outline()]));
         for layer in &self.partial_chunks {
@@ -297,7 +297,7 @@ impl CoordinateDir {
         positions
     }
 
-    pub fn get_chunk_bounding_boxes(&self) -> Vec<Grid<Rect>> {
+    pub fn get_chunk_bounding_boxes(&self) -> HashMap<ChunkIjkVector, Rect> {
         let mut bounding_boxes = Vec::new();
         bounding_boxes.push(Grid::new(1, 1, vec![self.core_chunk.get_bounding_box()]));
         for layer in &self.partial_chunks {

@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use hashbrown::{HashMap, HashSet};
 
 use ggez::glam::Vec2;
 use ggez::graphics::{self, Canvas, Image, ImageFormat, Mesh, Rect};
@@ -22,7 +22,7 @@ pub struct Celestial {
     draw_mode: MeshDrawMode,
     all_positions: HashMap<ChunkIjkVector, Vec<Square>>,
     all_uvs: HashMap<ChunkIjkVector, Vec<Square>>,
-    bounding_boxes: Vec<Grid<Rect>>,
+    bounding_boxes: HashMap<ChunkIjkVector, Rect>,
     texture: Image,
 }
 
@@ -39,7 +39,7 @@ impl Celestial {
             draw_mode,
             all_positions: HashMap::new(),
             all_uvs: HashMap::new(),
-            bounding_boxes: Vec::new(),
+            bounding_boxes: HashMap::new(),
             texture: Celestial::create_texture(ctx),
         };
         out.ready();
@@ -131,48 +131,21 @@ impl Celestial {
         }
         OwnedMeshData::new(all_positions, all_uvs)
     }
-    pub fn get_all_bounding_boxes(&self) -> &Vec<Grid<Rect>> {
+    pub fn get_all_bounding_boxes(&self) -> &HashMap<ChunkIjkVector, Rect> {
         &self.bounding_boxes
     }
 }
 
 impl Celestial {
     /// Produces a mask of which chunks are visible, true if visible, false if not
-    fn frustum_cull(&self, camera: &Camera) -> Vec<Grid<bool>> {
+    fn frustum_cull(&self, camera: &Camera) -> HashSet<ChunkIjkVector> {
         let cam_bb = &camera.get_bounding_box();
         let mut out =
-            Vec::with_capacity(self.element_grid_dir.get_coordinate_dir().get_num_layers());
+            HashSet::with_capacity(self.element_grid_dir.get_coordinate_dir().get_num_layers());
         for layer in self.get_all_bounding_boxes() {
-            let vec_out = layer
-                .iter()
-                .map(|x| x.overlaps(cam_bb))
-                .collect::<Vec<bool>>();
-            out.push(Grid::new(layer.get_width(), layer.get_height(), vec_out));
-        }
-        out
-    }
-
-    /// Produce a mask of which chunks need to be processed
-    fn filter_inactive(&self, current_time: Clock) -> Vec<Grid<bool>> {
-        let coords = self.element_grid_dir.get_coordinate_dir();
-        let mut out = Vec::with_capacity(coords.get_num_layers());
-        for i in 0..coords.get_num_layers() {
-            let size_j = coords.get_layer_num_concentric_chunks(i);
-            let size_k = coords.get_layer_num_radial_chunks(i);
-            let mut grid_out = Grid::new(size_k, size_j, vec![false; size_j * size_k]);
-            for j in 0..size_j {
-                for k in 0..size_k {
-                    let chunk = self
-                        .element_grid_dir
-                        .get_chunk_by_chunk_ijk(ChunkIjkVector { i, j, k });
-                    if chunk.get_last_set().get_current_frame()
-                        > current_time.get_current_frame() - 1
-                    {
-                        grid_out.set(JkVector { j, k }, true);
-                    }
-                }
+            if cam_bb.overlaps(layer.1) {
+                out.insert(layer.0.clone());
             }
-            out.push(grid_out);
         }
         out
     }

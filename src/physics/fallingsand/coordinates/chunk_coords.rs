@@ -6,6 +6,7 @@ use ggez::graphics::Vertex;
 use std::f32::consts::PI;
 
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
+use crate::physics::fallingsand::util::mesh::Square;
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::fallingsand::util::vectors::IjkVector;
 use crate::physics::fallingsand::util::vectors::JkVector;
@@ -16,7 +17,7 @@ use crate::physics::util::vectors::RelXyPoint;
 pub trait ChunkCoords: Send + Sync {
     /* Raw Data */
     fn get_outline(&self) -> Vec<Vec2>;
-    fn get_positions(&self) -> Vec<Vec2>;
+    fn get_positions(&self) -> Vec<Square>;
 
     /* Shape Parameter Getters */
     fn get_num_radial_lines(&self) -> usize;

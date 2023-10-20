@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use hashbrown::{HashMap, HashSet};
 
 use crate::physics::util::clock::Clock;
 
@@ -468,7 +468,7 @@ impl ElementGridDir {
         coord: ChunkIjkVector,
     ) -> Result<ElementGridConvolutionNeighbors, String> {
         let neighbors = self.get_chunk_neighbors(coord);
-        let mut out = HashMap::new();
+        let mut out = HashMap::with_capacity(9);
         for neighbor in neighbors.iter() {
             if let Some(chunk) = self.chunks[neighbor.i].replace(neighbor.to_jk_vector(), None) {
                 out.insert(neighbor, chunk);
