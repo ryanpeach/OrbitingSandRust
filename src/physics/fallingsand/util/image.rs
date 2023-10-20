@@ -1,9 +1,11 @@
+use std::collections::HashMap;
+
 use ggez::{
     graphics::{Image, ImageFormat, Rect},
     Context,
 };
 
-use super::grid::Grid;
+use super::vectors::ChunkIjkVector;
 
 /// Representing a raw RGBA image
 /// For some reason ggez::graphics::Image requires a
@@ -45,25 +47,13 @@ impl RawImage {
     /// The images are placed on the canvas according to their bounds
     /// This dramatically increases draw speed in testing.
     /// TODO: Test
-    pub fn combine(vec_grid: &[Grid<RawImage>]) -> RawImage {
-        let lst = vec_grid.iter().flatten().collect::<Vec<&RawImage>>();
+    pub fn combine(vec_grid: HashMap<ChunkIjkVector, RawImage>, uvbounds: Rect) -> RawImage {
+        let lst = vec_grid.into_iter().map(|x| x.1).collect::<Vec<RawImage>>();
         // Calculate total width and height for the canvas
-        let width: f32 = lst
-            .iter()
-            .map(|img| img.bounds.w + img.bounds.x)
-            .fold(0.0, |a, b| a.max(b));
-        let height: f32 = lst
-            .iter()
-            .map(|img| img.bounds.h + img.bounds.y)
-            .fold(0.0, |a, b| a.max(b));
-        let min_x: f32 = lst
-            .iter()
-            .map(|img| img.bounds.x)
-            .fold(f32::INFINITY, |a, b| a.min(b));
-        let min_y: f32 = lst
-            .iter()
-            .map(|img| img.bounds.y)
-            .fold(f32::INFINITY, |a, b| a.min(b));
+        let width: f32 = uvbounds.w;
+        let height: f32 = uvbounds.h;
+        let min_x: f32 = uvbounds.x;
+        let min_y: f32 = uvbounds.y;
         let mut canvas = vec![0; width as usize * height as usize * 4usize]; // Assuming pixels are u8 or some type and initialized to 0
 
         for image in lst {
@@ -96,7 +86,8 @@ mod tests {
     use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
     use crate::physics::fallingsand::element_directory::ElementGridDir;
     use crate::physics::fallingsand::elements::{element::Element, sand::Sand, vacuum::Vacuum};
-    use crate::physics::fallingsand::util::vectors::JkVector;
+    use crate::physics::fallingsand::util::enums::MeshDrawMode;
+    use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {
@@ -114,17 +105,25 @@ mod tests {
 
     #[test]
     fn test_combine() {
-        let textures = get_element_grid_dir().get_textures();
-        let img = RawImage::combine(&textures);
+        let element_grid = get_element_grid_dir();
+        let meshes = element_grid
+            .get_coordinate_dir()
+            .get_mesh_data(MeshDrawMode::TexturedMesh);
+        let combined_meshes = OwnedMeshData::combine(&meshes);
+        let textures = element_grid.get_textures();
         let j_size = textures
             .iter()
-            .map(|x| x.get_height() * x.get(JkVector { j: 0, k: 0 }).bounds.h as usize)
+            .filter(|x| x.0.k == 0)
+            .map(|x| x.1.bounds.h as usize)
             .sum::<usize>();
-        let k_size = textures[textures.len() - 1].get_width()
-            * textures[textures.len() - 1]
-                .get(JkVector { j: 0, k: 0 })
-                .bounds
-                .w as usize;
+        let k_size = textures
+            .iter()
+            .filter(|x| {
+                x.0.j == 0 && x.0.i == element_grid.get_coordinate_dir().get_num_layers() - 1
+            })
+            .map(|x| x.1.bounds.w as usize)
+            .sum::<usize>();
+        let img = RawImage::combine(textures, combined_meshes.uv_bounds);
         assert_eq!(img.bounds.h, j_size as f32);
         assert_eq!(img.bounds.w, k_size as f32);
     }
