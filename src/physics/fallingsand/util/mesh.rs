@@ -5,6 +5,7 @@ use super::grid::Grid;
 /// Represents a mesh that is owned by this object
 /// For some reason a MeshData object has a lifetime and is a set of borrows.
 /// This is a workaround for that.
+#[derive(Clone)]
 pub struct OwnedMeshData {
     pub uv_bounds: Rect,
     pub vertices: Vec<Vertex>,

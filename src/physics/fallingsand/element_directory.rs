@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use uom::si::f64::Time;
+use crate::physics::util::clock::Clock;
 
 use super::coordinates::coordinate_directory::CoordinateDir;
 use super::element_convolution::{
@@ -592,18 +592,18 @@ impl ElementGridDir {
     /// The passes ensure that no two adjacent elementgrids are processed at the same time
     /// This is important because elementgrids can effect one another at a maximum range of
     /// the size of one elementgrid.
-    pub fn process(&mut self, delta: Time) {
+    pub fn process(&mut self, current_time: Clock) {
         self.process_parallel(
             self.process_targets.standard_convolution[self.process_count % 9].clone(),
-            delta,
+            current_time,
         );
         self.process_sequence(
             self.process_targets.has_single_bottom_neighbor[self.process_count % 9].clone(),
-            delta,
+            current_time,
         );
         self.process_parallel(
             self.process_targets.has_multi_bottom_neighbor[self.process_count % 9].clone(),
-            delta,
+            current_time,
         );
         self.process_count += 1;
 
@@ -619,7 +619,11 @@ impl ElementGridDir {
         }
     }
 
-    fn process_sequence(&mut self, targets: Sequential<HashSet<ChunkIjkVector>>, delta: Time) {
+    fn process_sequence(
+        &mut self,
+        targets: Sequential<HashSet<ChunkIjkVector>>,
+        current_time: Clock,
+    ) {
         for target in targets.0 {
             let mut conv = self
                 .package_coordinate_neighbors(target)
@@ -627,12 +631,16 @@ impl ElementGridDir {
             let mut chunk = self.chunks[target.i]
                 .replace(target.to_jk_vector(), None)
                 .expect("Should not have been replaced already.");
-            chunk.process(&mut conv, delta);
+            chunk.process(&mut conv, current_time);
             // Unpackage the convolution
             self.unpackage_convolution(chunk, conv);
         }
     }
-    fn process_parallel(&mut self, targets: Parallel<HashSet<ChunkIjkVector>>, delta: Time) {
+    fn process_parallel(
+        &mut self,
+        targets: Parallel<HashSet<ChunkIjkVector>>,
+        current_time: Clock,
+    ) {
         let (mut convolutions, mut target_chunks) = self
             .package_convolutions(targets.0)
             .expect("In runtime, this should never fail.");
@@ -640,7 +648,7 @@ impl ElementGridDir {
             .par_iter_mut()
             .zip(target_chunks.par_iter_mut())
             .for_each(|(convolution, target_chunk)| {
-                target_chunk.process(convolution, delta);
+                target_chunk.process(convolution, current_time);
             });
         self.unpackage_convolutions(convolutions, target_chunks);
     }
@@ -693,14 +701,34 @@ impl ElementGridDir {
     pub fn is_empty(&self) -> bool {
         self.chunks.is_empty()
     }
+
+    /// Get all textures
     pub fn get_textures(&self) -> Vec<Grid<RawImage>> {
-        let mut out = Vec::new();
+        // Create a filter with all true
+        let mut filter: Vec<Grid<bool>> = Vec::with_capacity(self.coords.get_num_layers());
         for i in 0..self.coords.get_num_layers() {
+            let j_size = self.coords.get_layer_num_concentric_chunks(i);
+            let k_size = self.coords.get_layer_num_radial_chunks(i);
+            let layer = Grid::new(k_size, j_size, vec![true; k_size * j_size]);
+            filter.push(layer);
+        }
+
+        // Call the filtered version
+        self.get_textures_filtered(&filter)
+    }
+
+    /// Where filter is true, get the textures
+    pub fn get_textures_filtered(&self, filter: &[Grid<bool>]) -> Vec<Grid<RawImage>> {
+        let mut out = Vec::new();
+        for (i, item) in filter.iter().enumerate() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
             let k_size = self.coords.get_layer_num_radial_chunks(i);
             let mut layer = Grid::new_empty(k_size, j_size);
             for j in 0..j_size {
                 for k in 0..k_size {
+                    if !item.get(JkVector { j, k }) {
+                        continue;
+                    }
                     let coord = ChunkIjkVector { i, j, k };
                     layer.replace(
                         JkVector { j, k },
