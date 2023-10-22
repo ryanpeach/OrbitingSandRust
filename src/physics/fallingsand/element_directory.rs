@@ -2,11 +2,12 @@ use std::collections::{HashMap, HashSet};
 
 use crate::physics::util::clock::Clock;
 
-use super::coordinates::coordinate_directory::CoordinateDir;
-use super::element_convolution::{
-    BottomNeighbors, ElementGridConvolutionNeighbors, ElementGridConvolutionNeighborsChunkIdx,
-    LeftRightNeighbors, TopNeighbors,
+use super::convolution::behaviors::ElementGridConvolutionNeighbors;
+use super::convolution::neighbor_grids::ElementGridConvolutionNeighborGrids;
+use super::convolution::neighbor_indexes::{
+    BottomNeighborIdxs, ElementGridConvolutionNeighborIdxs, LeftRightNeighborIdxs, TopNeighborIdxs,
 };
+use super::coordinates::coordinate_directory::CoordinateDir;
 use super::element_grid::ElementGrid;
 use super::elements::element::Element;
 use super::util::functions::modulo;
@@ -295,7 +296,7 @@ impl ElementGridDir {
     }
 
     // TODO: This needs testing
-    fn get_chunk_top_neighbors(&self, coord: ChunkIjkVector) -> TopNeighbors {
+    fn get_chunk_top_neighbors(&self, coord: ChunkIjkVector) -> TopNeighborIdxs {
         let top_chunk_in_layer = self.coords.get_layer_num_concentric_chunks(coord.i) - 1;
         let top_layer = self.coords.get_num_layers() - 1;
         let radial_lines = |i: usize| self.coords.get_layer_num_radial_chunks(i);
@@ -306,7 +307,7 @@ impl ElementGridDir {
             ChunkIjkVector {
                 i,
                 j,
-                k: modulo(k, radial_lines(i) as isize) as usize,
+                k: modulo(k, radial_lines(i)),
             }
         };
 
@@ -324,11 +325,11 @@ impl ElementGridDir {
                 };
                 out.push(next_layer_chunk);
             }
-            return TopNeighbors::MultiChunkLayerAbove { chunks: out };
+            return TopNeighborIdxs::MultiChunkLayerAbove { chunks: out };
         }
 
         // Default neighbors (assuming you are in the middle of stuff, not on a layer boundary)
-        let default_neighbors = TopNeighbors::Normal {
+        let default_neighbors = TopNeighborIdxs::Normal {
             tl: make_vector(coord.i, coord.j + 1, k_isize + 1),
             t: make_vector(coord.i, coord.j + 1, k_isize),
             tr: make_vector(coord.i, coord.j + 1, k_isize - 1),
@@ -336,11 +337,11 @@ impl ElementGridDir {
 
         match (coord.i, coord.j) {
             (i, _) if i == top_layer => match coord.j {
-                j if j == top_chunk_in_layer => TopNeighbors::TopOfGrid,
+                j if j == top_chunk_in_layer => TopNeighborIdxs::TopOfGrid,
                 _ => default_neighbors,
             },
             (i, j) if j == top_chunk_in_layer && radial_lines(i) != radial_lines(i + 1) => {
-                TopNeighbors::LayerTransition {
+                TopNeighborIdxs::LayerTransition {
                     tl: make_vector(i + 1, 0, k_isize * 2 + 2),
                     t1: make_vector(i + 1, 0, k_isize * 2 + 1),
                     t0: make_vector(i + 1, 0, k_isize * 2),
@@ -348,12 +349,12 @@ impl ElementGridDir {
                 }
             }
             (i, j) if j == top_chunk_in_layer && radial_lines(i + 1) == 1 => {
-                TopNeighbors::SingleChunkLayerAbove {
+                TopNeighborIdxs::SingleChunkLayerAbove {
                     t: make_vector(i + 1, 0, 0),
                 }
             }
             (i, j) if j == top_chunk_in_layer && radial_lines(i) == radial_lines(i + 1) => {
-                TopNeighbors::Normal {
+                TopNeighborIdxs::Normal {
                     tl: make_vector(i + 1, 0, k_isize + 1),
                     t: make_vector(i + 1, 0, k_isize),
                     tr: make_vector(i + 1, 0, k_isize - 1),
@@ -364,29 +365,29 @@ impl ElementGridDir {
     }
 
     // TODO: This needs testing
-    fn get_chunk_left_right_neighbors(&self, coord: ChunkIjkVector) -> LeftRightNeighbors {
+    fn get_chunk_left_right_neighbors(&self, coord: ChunkIjkVector) -> LeftRightNeighborIdxs {
         let num_radial_chunks = self.coords.get_layer_num_radial_chunks(coord.i);
         if num_radial_chunks == 1 {
-            return LeftRightNeighbors::SingleChunkLayer;
+            return LeftRightNeighborIdxs::SingleChunkLayer;
         }
         let left = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
-            k: modulo(coord.k as isize - 1, num_radial_chunks as isize) as usize,
+            k: modulo(coord.k as isize - 1, num_radial_chunks),
         };
         debug_assert_ne!(left, coord);
         let right = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
-            k: modulo(coord.k as isize + 1, num_radial_chunks as isize) as usize,
+            k: modulo(coord.k as isize + 1, num_radial_chunks),
         };
         debug_assert_ne!(right, coord);
         debug_assert_ne!(left, right);
-        LeftRightNeighbors::LR { l: left, r: right }
+        LeftRightNeighborIdxs::LR { l: left, r: right }
     }
 
     // TODO: This needs testing
-    fn get_chunk_bottom_neighbors(&self, coord: ChunkIjkVector) -> BottomNeighbors {
+    fn get_chunk_bottom_neighbors(&self, coord: ChunkIjkVector) -> BottomNeighborIdxs {
         let bottom_chunk_in_layer = 0usize;
         let bottom_layer = 0usize;
         let radial_lines = |i: usize| self.coords.get_layer_num_radial_chunks(i);
@@ -398,16 +399,16 @@ impl ElementGridDir {
             ChunkIjkVector {
                 i,
                 j,
-                k: modulo(k, radial_lines(i) as isize) as usize,
+                k: modulo(k, radial_lines(i)),
             }
         };
 
         match (coord.i, coord.j, coord.k) {
             (i, j, _) if i == bottom_layer && j == bottom_chunk_in_layer => {
-                BottomNeighbors::BottomOfGrid
+                BottomNeighborIdxs::BottomOfGrid
             }
             (i, j, _) if j == bottom_chunk_in_layer && radial_lines(i - 1) == 1 => {
-                BottomNeighbors::FullLayerBelow {
+                BottomNeighborIdxs::FullLayerBelow {
                     b: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), 0),
                 }
             }
@@ -417,7 +418,7 @@ impl ElementGridDir {
                     && radial_lines(i) != radial_lines(i - 1)
                     && k % 2 == 0 =>
             {
-                BottomNeighbors::LayerTransition {
+                BottomNeighborIdxs::LayerTransition {
                     bl: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2),
                     br: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2 - 1),
                 }
@@ -427,19 +428,19 @@ impl ElementGridDir {
                     && radial_lines(i) != radial_lines(i - 1)
                     && k % 2 == 1 =>
             {
-                BottomNeighbors::LayerTransition {
+                BottomNeighborIdxs::LayerTransition {
                     bl: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2 + 1),
                     br: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2),
                 }
             }
             (i, j, _) if j == bottom_chunk_in_layer && radial_lines(i) == radial_lines(i - 1) => {
-                BottomNeighbors::Normal {
+                BottomNeighborIdxs::Normal {
                     bl: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize + 1),
                     b: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize),
                     br: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize - 1),
                 }
             }
-            _ => BottomNeighbors::Normal {
+            _ => BottomNeighborIdxs::Normal {
                 bl: make_vector(coord.i, coord.j - 1, k_isize + 1),
                 b: make_vector(coord.i, coord.j - 1, k_isize),
                 br: make_vector(coord.i, coord.j - 1, k_isize - 1),
@@ -447,14 +448,11 @@ impl ElementGridDir {
         }
     }
 
-    fn get_chunk_neighbors(
-        &self,
-        coord: ChunkIjkVector,
-    ) -> ElementGridConvolutionNeighborsChunkIdx {
+    fn get_chunk_neighbors(&self, coord: ChunkIjkVector) -> ElementGridConvolutionNeighborIdxs {
         let top = self.get_chunk_top_neighbors(coord);
         let left_right = self.get_chunk_left_right_neighbors(coord);
         let bottom = self.get_chunk_bottom_neighbors(coord);
-        ElementGridConvolutionNeighborsChunkIdx {
+        ElementGridConvolutionNeighborIdxs {
             top,
             left_right,
             bottom,
@@ -484,7 +482,7 @@ impl ElementGridDir {
                 ));
             }
         }
-        Ok(ElementGridConvolutionNeighbors::new(neighbors, out))
+        Ok(ElementGridConvolutionNeighbors::new(neighbors, coord, out))
     }
 
     // This takes ownership of the chunk and all its neighbors from the directory

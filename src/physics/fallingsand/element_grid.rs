@@ -5,8 +5,9 @@ use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions
 use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
 use crate::physics::util::clock::Clock;
 
+use super::convolution::behaviors::ElementGridConvolutionNeighbors;
+use super::convolution::neighbor_grids::ElementGridConvolutionNeighborGrids;
 use super::coordinates::core_coords::CoreChunkCoords;
-use super::element_convolution::ElementGridConvolutionNeighbors;
 use super::elements::vacuum::Vacuum;
 use super::util::grid::Grid;
 use super::util::image::RawImage;
