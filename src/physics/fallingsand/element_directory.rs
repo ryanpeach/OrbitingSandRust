@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use crate::physics::util::clock::Clock;
 
 use super::convolution::behaviors::ElementGridConvolutionNeighbors;
-use super::convolution::neighbor_grids::ElementGridConvolutionNeighborGrids;
+
 use super::convolution::neighbor_indexes::{
     BottomNeighborIdxs, ElementGridConvolutionNeighborIdxs, LeftRightNeighborIdxs, TopNeighborIdxs,
 };

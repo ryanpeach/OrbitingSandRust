@@ -4,7 +4,7 @@ use crate::physics::fallingsand::{
     element_grid::ElementGrid,
     util::{
         functions::modulo,
-        vectors::{ChunkIjkVector, FullIdx, JkVector, TempJkVector},
+        vectors::{ChunkIjkVector, JkVector},
     },
 };
 
@@ -29,9 +29,9 @@ pub struct ElementGridConvolutionNeighbors {
 /// Instantiation
 impl ElementGridConvolutionNeighbors {
     pub fn new(
-        chunk_idxs: ElementGridConvolutionNeighborIdxs,
-        target_idx: ChunkIjkVector,
-        grids: HashMap<ChunkIjkVector, ElementGrid>,
+        _chunk_idxs: ElementGridConvolutionNeighborIdxs,
+        _target_idx: ChunkIjkVector,
+        _grids: HashMap<ChunkIjkVector, ElementGrid>,
     ) -> Self {
         unimplemented!()
     }
@@ -117,7 +117,7 @@ impl ElementGridConvolutionNeighbors {
 
         let conv_id = match self.chunk_idxs.bottom {
             BottomNeighborIdxs::BottomOfGrid if pos.j == 0 => Err(OutOfBoundsError(
-                ConvolutionIdx(new_coords.clone(), ConvolutionIdentifier::Center),
+                ConvolutionIdx(new_coords, ConvolutionIdentifier::Center),
             )),
             BottomNeighborIdxs::FullLayerBelow { .. } => Ok(ConvolutionIdentifier::Bottom(
                 BottomNeighborIdentifier::FullLayerBelow,
@@ -149,8 +149,20 @@ impl ElementGridConvolutionNeighbors {
         pos: &JkVector,
         rk: isize,
     ) -> Result<ConvolutionIdx, OutOfBoundsError> {
-        /// In the left right direction, unlike up down, every chunk has the same number of radial lines
+        // In the left right direction, unlike up down, every chunk has the same number of radial lines
         let radial_lines = target_chunk.get_chunk_coords().get_num_radial_lines();
+
+        // You should not be doing any loops that might make you re-target yourself
+        if rk.abs() >= radial_lines as isize {
+            return Err(OutOfBoundsError(ConvolutionIdx(
+                JkVector {
+                    j: pos.j,
+                    k: modulo(pos.k as isize + rk, radial_lines),
+                },
+                ConvolutionIdentifier::Center,
+            )));
+        }
+
         let new_k = modulo(pos.k as isize + rk, radial_lines);
         match self.chunk_idxs.left_right {
             LeftRightNeighborIdxs::SingleChunkLayer => {
@@ -179,10 +191,6 @@ impl ElementGridConvolutionNeighbors {
                     ))
                 }
             }
-            _ => Err(OutOfBoundsError(ConvolutionIdx(
-                JkVector { j: pos.j, k: new_k },
-                ConvolutionIdentifier::Center,
-            ))),
         }
     }
 }

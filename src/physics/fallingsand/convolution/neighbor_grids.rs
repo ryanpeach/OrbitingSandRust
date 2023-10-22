@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::physics::fallingsand::{element_grid::ElementGrid, util::vectors::ChunkIjkVector};
 
+#[allow(clippy::large_enum_variant)]
 pub enum LeftRightNeighborGrids {
     LR { l: ElementGrid, r: ElementGrid },
     SingleChunkLayer,
@@ -16,10 +17,7 @@ impl LeftRightNeighborGrids {
                 map.insert(r.get_chunk_coords().get_chunk_idx(), r);
                 map
             }
-            LeftRightNeighborGrids::SingleChunkLayer => {
-                let mut map = HashMap::new();
-                map
-            }
+            LeftRightNeighborGrids::SingleChunkLayer => HashMap::new(),
         }
     }
 }
@@ -75,10 +73,7 @@ impl TopNeighborGrids {
                 }
                 map
             }
-            TopNeighborGrids::TopOfGrid => {
-                let mut map = HashMap::new();
-                map
-            }
+            TopNeighborGrids::TopOfGrid => HashMap::new(),
         }
     }
 
@@ -162,10 +157,7 @@ impl BottomNeighborGrids {
                 map.insert(b.get_chunk_coords().get_chunk_idx(), b);
                 map
             }
-            BottomNeighborGrids::BottomOfGrid => {
-                let mut map = HashMap::new();
-                map
-            }
+            BottomNeighborGrids::BottomOfGrid => HashMap::new(),
         }
     }
 
