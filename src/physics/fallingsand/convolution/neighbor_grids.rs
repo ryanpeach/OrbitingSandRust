@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use hashbrown::HashMap;
 
 use crate::physics::fallingsand::{element_grid::ElementGrid, util::vectors::ChunkIjkVector};
 

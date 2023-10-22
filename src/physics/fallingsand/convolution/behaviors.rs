@@ -1,4 +1,6 @@
-use std::{collections::HashMap, fmt};
+use std::fmt;
+
+use hashbrown::HashMap;
 
 use crate::physics::fallingsand::{
     element_grid::ElementGrid,

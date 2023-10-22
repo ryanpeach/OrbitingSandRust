@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use hashbrown::HashMap;
 
 use ggez::glam::Vec2;
 use ggez::graphics::{self, Canvas, Mesh, Rect};
