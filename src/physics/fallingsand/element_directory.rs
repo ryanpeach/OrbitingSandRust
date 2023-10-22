@@ -482,7 +482,7 @@ impl ElementGridDir {
                 ));
             }
         }
-        Ok(ElementGridConvolutionNeighbors::new(neighbors, coord, out))
+        Ok(ElementGridConvolutionNeighbors::new(neighbors, out))
     }
 
     // This takes ownership of the chunk and all its neighbors from the directory

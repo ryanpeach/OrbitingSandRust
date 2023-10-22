@@ -23,7 +23,7 @@ impl Element for Vacuum {
     }
     fn process(
         &mut self,
-        _pos: IjkVector,
+        _pos: JkVector,
         _target_chunk: &mut ElementGrid,
         _element_grid_conv: &mut ElementGridConvolutionNeighbors,
         _current_time: Clock,

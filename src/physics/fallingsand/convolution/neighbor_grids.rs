@@ -1,6 +1,27 @@
+use std::fmt;
+
 use hashbrown::HashMap;
 
-use crate::physics::fallingsand::{element_grid::ElementGrid, util::vectors::ChunkIjkVector};
+use crate::physics::fallingsand::{
+    element_grid::ElementGrid,
+    elements::element::Element,
+    util::vectors::{ChunkIjkVector, JkVector},
+};
+
+use super::{neighbor_identifiers::*, neighbor_indexes::*};
+
+/// Defines when the user has simply exceeded the bounds of the convolution
+#[derive(Debug, Clone)]
+pub struct ConvOutOfBoundsError(pub ConvolutionIdx);
+impl fmt::Display for ConvOutOfBoundsError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{:?} went outside the constraints of chunk {:?} and there are no further chunks",
+            self.0 .0, self.0 .1
+        )
+    }
+}
 
 #[allow(clippy::large_enum_variant)]
 pub enum LeftRightNeighborGrids {
@@ -18,6 +39,19 @@ impl LeftRightNeighborGrids {
                 map
             }
             LeftRightNeighborGrids::SingleChunkLayer => HashMap::new(),
+        }
+    }
+
+    pub fn from_hashmap(
+        idxs: &LeftRightNeighborIdxs,
+        grids: &mut HashMap<ChunkIjkVector, ElementGrid>,
+    ) -> Self {
+        match idxs {
+            LeftRightNeighborIdxs::LR { l, r } => LeftRightNeighborGrids::LR {
+                l: grids.remove(l).unwrap(),
+                r: grids.remove(r).unwrap(),
+            },
+            LeftRightNeighborIdxs::SingleChunkLayer => LeftRightNeighborGrids::SingleChunkLayer,
         }
     }
 }
@@ -74,6 +108,196 @@ impl TopNeighborGrids {
                 map
             }
             TopNeighborGrids::TopOfGrid => HashMap::new(),
+        }
+    }
+
+    pub fn from_hashmap(
+        idxs: &TopNeighborIdxs,
+        grids: &mut HashMap<ChunkIjkVector, ElementGrid>,
+    ) -> Self {
+        match idxs {
+            TopNeighborIdxs::Normal { tl, t, tr } => TopNeighborGrids::Normal {
+                tl: grids.remove(tl).unwrap(),
+                t: grids.remove(t).unwrap(),
+                tr: grids.remove(tr).unwrap(),
+            },
+            TopNeighborIdxs::LayerTransition { tl, t1, t0, tr } => {
+                TopNeighborGrids::LayerTransition {
+                    tl: grids.remove(tl).unwrap(),
+                    t1: grids.remove(t1).unwrap(),
+                    t0: grids.remove(t0).unwrap(),
+                    tr: grids.remove(tr).unwrap(),
+                }
+            }
+            TopNeighborIdxs::SingleChunkLayerAbove { t } => {
+                TopNeighborGrids::SingleChunkLayerAbove {
+                    t: grids.remove(t).unwrap(),
+                }
+            }
+            TopNeighborIdxs::MultiChunkLayerAbove { chunks } => {
+                let mut vec = Vec::new();
+                for chunk in chunks {
+                    vec.push(grids.remove(chunk).unwrap());
+                }
+                TopNeighborGrids::MultiChunkLayerAbove { chunks: vec }
+            }
+            TopNeighborIdxs::TopOfGrid => TopNeighborGrids::TopOfGrid,
+        }
+    }
+
+    pub fn get(
+        &self,
+        idx: JkVector,
+        top_neighbor_id: TopNeighborIdentifier,
+    ) -> Result<&Box<dyn Element>, ConvOutOfBoundsError> {
+        match top_neighbor_id {
+            TopNeighborIdentifier::Normal(normal_id) => match normal_id {
+                TopNeighborIdentifierNormal::Top => {
+                    if let TopNeighborGrids::Normal { tl: _, t, tr: _ } = &self {
+                        match t.checked_get(idx) {
+                            Ok(element) => Ok(element),
+                            Err(_) => Err(ConvOutOfBoundsError(ConvolutionIdx(
+                                idx,
+                                ConvolutionIdentifier::Top(top_neighbor_id),
+                            ))),
+                        }
+                    } else {
+                        panic!("The identifier said the index was from a normal top neighbor, but the top neighbor grids were not normal")
+                    }
+                }
+                TopNeighborIdentifierNormal::TopLeft => {
+                    if let TopNeighborGrids::Normal { tl, t: _, tr: _ } = &self {
+                        match tl.checked_get(idx) {
+                            Ok(element) => Ok(element),
+                            Err(_) => Err(ConvOutOfBoundsError(ConvolutionIdx(
+                                idx,
+                                ConvolutionIdentifier::Top(top_neighbor_id),
+                            ))),
+                        }
+                    } else {
+                        panic!("The identifier said the index was from a normal top left neighbor, but the top neighbor grids were not normal")
+                    }
+                }
+                TopNeighborIdentifierNormal::TopRight => {
+                    if let TopNeighborGrids::Normal { tl: _, t: _, tr } = &self {
+                        match tr.checked_get(idx) {
+                            Ok(element) => Ok(element),
+                            Err(_) => Err(ConvOutOfBoundsError(ConvolutionIdx(
+                                idx,
+                                ConvolutionIdentifier::Top(top_neighbor_id),
+                            ))),
+                        }
+                    } else {
+                        panic!("The identifier said the index was from a normal top right neighbor, but the top neighbor grids were not normal")
+                    }
+                }
+            },
+            TopNeighborIdentifier::LayerTransition(layer_transition_id) => {
+                match layer_transition_id {
+                    TopNeighborIdentifierLayerTransition::Top0 => {
+                        if let TopNeighborGrids::LayerTransition {
+                            tl: _,
+                            t0,
+                            t1: _,
+                            tr: _,
+                        } = &self
+                        {
+                            match t0.checked_get(idx) {
+                                Ok(element) => Ok(element),
+                                Err(_) => Err(ConvOutOfBoundsError(ConvolutionIdx(
+                                    idx,
+                                    ConvolutionIdentifier::Top(top_neighbor_id),
+                                ))),
+                            }
+                        } else {
+                            panic!("The identifier said the index was from a layer transition top0 neighbor, but the top neighbor grids were not layer transition")
+                        }
+                    }
+                    TopNeighborIdentifierLayerTransition::Top1 => {
+                        if let TopNeighborGrids::LayerTransition {
+                            tl: _,
+                            t0: _,
+                            t1,
+                            tr: _,
+                        } = &self
+                        {
+                            match t1.checked_get(idx) {
+                                Ok(element) => Ok(element),
+                                Err(_) => Err(ConvOutOfBoundsError(ConvolutionIdx(
+                                    idx,
+                                    ConvolutionIdentifier::Top(top_neighbor_id),
+                                ))),
+                            }
+                        } else {
+                            panic!("The identifier said the index was from a layer transition top1 neighbor, but the top neighbor grids were not layer transition")
+                        }
+                    }
+                    TopNeighborIdentifierLayerTransition::TopLeft => {
+                        if let TopNeighborGrids::LayerTransition {
+                            tl,
+                            t0: _,
+                            t1: _,
+                            tr: _,
+                        } = &self
+                        {
+                            match tl.checked_get(idx) {
+                                Ok(element) => Ok(element),
+                                Err(_) => Err(ConvOutOfBoundsError(ConvolutionIdx(
+                                    idx,
+                                    ConvolutionIdentifier::Top(top_neighbor_id),
+                                ))),
+                            }
+                        } else {
+                            panic!("The identifier said the index was from a layer transition top left neighbor, but the top neighbor grids were not layer transition")
+                        }
+                    }
+                    TopNeighborIdentifierLayerTransition::TopRight => {
+                        if let TopNeighborGrids::LayerTransition {
+                            tl: _,
+                            t0: _,
+                            t1: _,
+                            tr,
+                        } = &self
+                        {
+                            match tr.checked_get(idx) {
+                                Ok(element) => Ok(element),
+                                Err(_) => Err(ConvOutOfBoundsError(ConvolutionIdx(
+                                    idx,
+                                    ConvolutionIdentifier::Top(top_neighbor_id),
+                                ))),
+                            }
+                        } else {
+                            panic!("The identifier said the index was from a layer transition top right neighbor, but the top neighbor grids were not layer transition")
+                        }
+                    }
+                }
+            }
+            TopNeighborIdentifier::SingleChunkLayerAbove => {
+                if let TopNeighborGrids::SingleChunkLayerAbove { t } = &self {
+                    match t.checked_get(idx) {
+                        Ok(element) => Ok(element),
+                        Err(_) => Err(ConvOutOfBoundsError(ConvolutionIdx(
+                            idx,
+                            ConvolutionIdentifier::Top(top_neighbor_id),
+                        ))),
+                    }
+                } else {
+                    panic!("The identifier said the index was from a single chunk layer above neighbor, but the top neighbor grids were not single chunk layer above")
+                }
+            }
+            TopNeighborIdentifier::MultiChunkLayerAbove(chunk_idx) => {
+                if let TopNeighborGrids::MultiChunkLayerAbove { chunks } = &self {
+                    match chunks.get(chunk_idx) {
+                        Some(chunk) => match chunk.checked_get(idx) {
+                            Ok(element) => Ok(element),
+                            Err(_) => Err(ConvOutOfBoundsError(ConvolutionIdx(idx, ConvolutionIdentifier::Top(top_neighbor_id)))),
+                        },
+                        None => panic!("The identifier said the index was from a multi chunk layer above neighbor, but the top neighbor grids were not multi chunk layer above"),
+                    }
+                } else {
+                    panic!("The identifier said the index was from a multi chunk layer above neighbor, but the top neighbor grids were not multi chunk layer above")
+                }
+            }
         }
     }
 
@@ -158,6 +382,29 @@ impl BottomNeighborGrids {
                 map
             }
             BottomNeighborGrids::BottomOfGrid => HashMap::new(),
+        }
+    }
+
+    pub fn from_hashmap(
+        idxs: &BottomNeighborIdxs,
+        grids: &mut HashMap<ChunkIjkVector, ElementGrid>,
+    ) -> Self {
+        match idxs {
+            BottomNeighborIdxs::Normal { bl, b, br } => BottomNeighborGrids::Normal {
+                bl: grids.remove(bl).unwrap(),
+                b: grids.remove(b).unwrap(),
+                br: grids.remove(br).unwrap(),
+            },
+            BottomNeighborIdxs::LayerTransition { bl, br } => {
+                BottomNeighborGrids::LayerTransition {
+                    bl: grids.remove(bl).unwrap(),
+                    br: grids.remove(br).unwrap(),
+                }
+            }
+            BottomNeighborIdxs::FullLayerBelow { b } => BottomNeighborGrids::FullLayerBelow {
+                b: grids.remove(b).unwrap(),
+            },
+            BottomNeighborIdxs::BottomOfGrid => BottomNeighborGrids::BottomOfGrid,
         }
     }
 

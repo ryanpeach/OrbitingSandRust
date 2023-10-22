@@ -1,3 +1,5 @@
+use std::fmt;
+
 use super::vectors::JkVector;
 
 /// A simple 2d grid type
@@ -55,6 +57,15 @@ impl<T> Grid<T> {
     }
 }
 
+/// Defines when the user has simply exceeded the bounds of the convolution
+#[derive(Debug, Clone)]
+pub struct GridOutOfBoundsError(pub JkVector);
+impl fmt::Display for GridOutOfBoundsError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?} went outside the constraints of grid", self.0)
+    }
+}
+
 /* ======================================
  * Position Based Getters
  * Access data at a position
@@ -62,6 +73,12 @@ impl<T> Grid<T> {
 impl<T> Grid<T> {
     pub fn get(&self, coord: JkVector) -> &T {
         &self.data[coord.k + coord.j * self.width]
+    }
+    pub fn checked_get(&self, coord: JkVector) -> Result<&T, GridOutOfBoundsError> {
+        if coord.j >= self.height || coord.k >= self.width {
+            return Err(GridOutOfBoundsError(coord));
+        }
+        Ok(&self.data[coord.k + coord.j * self.width])
     }
     pub fn get_mut(&mut self, coord: JkVector) -> &mut T {
         &mut self.data[coord.k + coord.j * self.width]

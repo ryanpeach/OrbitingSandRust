@@ -2,20 +2,28 @@ use std::fmt;
 
 use hashbrown::HashMap;
 
-use crate::physics::fallingsand::{
-    element_grid::ElementGrid,
-    util::{
-        functions::modulo,
-        vectors::{ChunkIjkVector, JkVector},
+use crate::physics::{
+    fallingsand::{
+        element_grid::ElementGrid,
+        elements::element::Element,
+        util::{
+            functions::modulo,
+            vectors::{ChunkIjkVector, JkVector},
+        },
     },
+    util::clock::Clock,
 };
 
 use super::{
-    neighbor_grids::ElementGridConvolutionNeighborGrids,
+    neighbor_grids::{
+        BottomNeighborGrids, ConvOutOfBoundsError, ElementGridConvolutionNeighborGrids,
+        LeftRightNeighborGrids, TopNeighborGrids,
+    },
     neighbor_identifiers::{
         BottomNeighborIdentifier, BottomNeighborIdentifierLayerTransition,
         BottomNeighborIdentifierNormal, ConvolutionIdentifier, ConvolutionIdx,
-        LeftRightNeighborIdentifier, LeftRightNeighborIdentifierLR,
+        LeftRightNeighborIdentifier, LeftRightNeighborIdentifierLR, TopNeighborIdentifier,
+        TopNeighborIdentifierLayerTransition, TopNeighborIdentifierNormal,
     },
     neighbor_indexes::{
         BottomNeighborIdxs, ElementGridConvolutionNeighborIdxs,
@@ -31,11 +39,20 @@ pub struct ElementGridConvolutionNeighbors {
 /// Instantiation
 impl ElementGridConvolutionNeighbors {
     pub fn new(
-        _chunk_idxs: ElementGridConvolutionNeighborIdxs,
-        _target_idx: ChunkIjkVector,
-        _grids: HashMap<ChunkIjkVector, ElementGrid>,
+        chunk_idxs: ElementGridConvolutionNeighborIdxs,
+        mut grids: HashMap<ChunkIjkVector, ElementGrid>,
     ) -> Self {
-        unimplemented!()
+        let lr_neighbors = LeftRightNeighborGrids::from_hashmap(&chunk_idxs.left_right, &mut grids);
+        let top_neighbors = TopNeighborGrids::from_hashmap(&chunk_idxs.top, &mut grids);
+        let bottom_neighbors = BottomNeighborGrids::from_hashmap(&chunk_idxs.bottom, &mut grids);
+        ElementGridConvolutionNeighbors {
+            chunk_idxs: chunk_idxs,
+            grids: ElementGridConvolutionNeighborGrids {
+                left_right: lr_neighbors,
+                top: top_neighbors,
+                bottom: bottom_neighbors,
+            },
+        }
     }
 }
 
@@ -73,40 +90,25 @@ impl IntoIterator for ElementGridConvolutionNeighbors {
     }
 }
 
-/// Defines when the user has simply exceeded the bounds of the convolution
-#[derive(Debug, Clone)]
-pub struct OutOfBoundsError(pub ConvolutionIdx);
-impl fmt::Display for OutOfBoundsError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{:?} went outside the constraints of chunk {:?} and there are no further chunks",
-            self.0 .0, self.0 .1
-        )
-    }
-}
-
-/// Behavior Methods
+/// Coordinate tranformations
 /// Methods which allow you to get an index "relative" to another index on the element convolution.
-/// All of these methods are given "lr priority". Meaning if you ask for rel_idx RelJkVector(-1, -1) that means
-/// go clockwise one then go down one. This is easier to program as lr is easy.
 impl ElementGridConvolutionNeighbors {
     /// Gets the element n cells below the position in the target chunk
     /// the target chunk is the chunk in the center of the convolution
     /// the pos is the position in the target chunk
-    pub fn get_below(
+    pub fn get_below_idx_from_center(
         &self,
         target_chunk: &ElementGrid,
         pos: &JkVector,
         n: usize,
-    ) -> Result<ConvolutionIdx, OutOfBoundsError> {
+    ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
         let b_concentric_circles = self.grids.bottom.get_num_concentric_circles();
         let (new_j, new_k) = if pos.j >= n {
             (pos.j - n, pos.k)
         } else if pos.j as isize - n as isize + b_concentric_circles as isize >= 0 {
             (pos.j + b_concentric_circles - n, pos.k / 2)
         } else {
-            return Err(OutOfBoundsError(ConvolutionIdx(
+            return Err(ConvOutOfBoundsError(ConvolutionIdx(
                 JkVector {
                     j: pos.j - n,
                     k: pos.k,
@@ -118,7 +120,7 @@ impl ElementGridConvolutionNeighbors {
         let new_coords = JkVector { j: new_j, k: new_k };
 
         let conv_id = match self.chunk_idxs.bottom {
-            BottomNeighborIdxs::BottomOfGrid if pos.j == 0 => Err(OutOfBoundsError(
+            BottomNeighborIdxs::BottomOfGrid if pos.j == 0 => Err(ConvOutOfBoundsError(
                 ConvolutionIdx(new_coords, ConvolutionIdentifier::Center),
             )),
             BottomNeighborIdxs::FullLayerBelow { .. } => Ok(ConvolutionIdentifier::Bottom(
@@ -145,18 +147,18 @@ impl ElementGridConvolutionNeighbors {
 
     /// Positive k is left, counter clockwise
     /// Negative k is right, clockwise
-    pub fn get_left_right(
+    pub fn get_left_right_idx_from_center(
         &self,
         target_chunk: &ElementGrid,
         pos: &JkVector,
         rk: isize,
-    ) -> Result<ConvolutionIdx, OutOfBoundsError> {
+    ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
         // In the left right direction, unlike up down, every chunk has the same number of radial lines
         let radial_lines = target_chunk.get_chunk_coords().get_num_radial_lines();
 
         // You should not be doing any loops that might make you re-target yourself
         if rk.abs() >= radial_lines as isize {
-            return Err(OutOfBoundsError(ConvolutionIdx(
+            return Err(ConvOutOfBoundsError(ConvolutionIdx(
                 JkVector {
                     j: pos.j,
                     k: modulo(pos.k as isize + rk, radial_lines),
@@ -192,6 +194,66 @@ impl ElementGridConvolutionNeighbors {
                         ConvolutionIdentifier::Center,
                     ))
                 }
+            }
+        }
+    }
+
+    pub fn get_left_right_idx_from_bottom(
+        &self,
+        pos: &JkVector,
+        chunk_id: BottomNeighborIdentifier,
+        rk: isize,
+    ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
+        unimplemented!()
+    }
+}
+
+/// Getter and setter methods
+impl ElementGridConvolutionNeighbors {
+    pub fn get(
+        &self,
+        target_grid: &ElementGrid,
+        idx: ConvolutionIdx,
+    ) -> Result<&Box<dyn Element>, ConvOutOfBoundsError> {
+        match idx.1 {
+            ConvolutionIdentifier::Center => match target_grid.checked_get(idx.0) {
+                Ok(element) => Ok(element),
+                Err(_) => Err(ConvOutOfBoundsError(idx)),
+            },
+            ConvolutionIdentifier::Top(top_id) => self.grids.top.get(idx.0, top_id),
+            ConvolutionIdentifier::Bottom(bottom_id) => self.grids.bottom.get(idx.0, bottom_id),
+            ConvolutionIdentifier::LeftRight(left_right_id) => {
+                self.grids.left_right.get(idx.0, left_right_id)
+            }
+        }
+    }
+
+    pub fn replace(
+        &mut self,
+        target_grid: &mut ElementGrid,
+        idx: ConvolutionIdx,
+        element: Box<dyn Element>,
+        current_time: Clock,
+    ) -> Result<Box<dyn Element>, ConvOutOfBoundsError> {
+        match idx.1 {
+            ConvolutionIdentifier::Center => {
+                match target_grid.replace(idx.0, element, current_time) {
+                    Ok(ele) => Ok(ele),
+                    Err(_) => Err(ConvOutOfBoundsError(idx)),
+                }
+            }
+            ConvolutionIdentifier::Top(top_id) => {
+                self.grids.top.replace(idx.0, top_id, element, current_time)
+            }
+            ConvolutionIdentifier::Bottom(bottom_id) => {
+                self.grids
+                    .bottom
+                    .replace(idx.0, bottom_id, element, current_time)
+            }
+            ConvolutionIdentifier::LeftRight(left_right_id) => {
+                self.grids
+                    .left_right
+                    .replace(idx.0, left_right_id, element, current_time)
             }
         }
     }

@@ -9,7 +9,7 @@ use super::convolution::behaviors::ElementGridConvolutionNeighbors;
 
 use super::coordinates::core_coords::CoreChunkCoords;
 use super::elements::vacuum::Vacuum;
-use super::util::grid::Grid;
+use super::util::grid::{Grid, GridOutOfBoundsError};
 use super::util::image::RawImage;
 
 /// An element grid is a 2D grid of elements tied to a chunk
@@ -98,6 +98,12 @@ impl ElementGrid {
 
 /// Public modifiers for the element grid
 impl ElementGrid {
+    pub fn get(&self, jk: JkVector) -> &Box<dyn Element> {
+        self.grid.get(jk)
+    }
+    pub fn checked_get(&self, jk: JkVector) -> Result<&Box<dyn Element>, GridOutOfBoundsError> {
+        self.grid.checked_get(jk)
+    }
     pub fn set(&mut self, jk: JkVector, element: Box<dyn Element>, time: Clock) {
         self.replace(jk, element, time);
     }

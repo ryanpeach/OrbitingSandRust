@@ -62,6 +62,10 @@ pub enum ConvolutionIdentifier {
     Center,
 }
 
+impl ConvolutionIdentifier {
+    fn get_top_from_center
+}
+
 /// The main type exported by this module
 /// Identifies a coordinate on an element grid, and then uniquely identifies the chunk in the convolution that it is in
 /// This is better than a hashmap because by using enums it can be quite a bit faster and more rhobust
