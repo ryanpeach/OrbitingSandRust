@@ -17,7 +17,14 @@ pub enum ElementTakeOptions {
     ReplaceWith(Box<dyn Element>),
 }
 
+/// Useful for match statements
+pub enum ElementType {
+    Vacuum,
+    Sand,
+}
+
 pub trait Element: Send + Sync {
+    fn get_type(&self) -> ElementType;
     fn get_last_processed(&self) -> Clock;
     #[allow(clippy::borrowed_box)]
     fn get_color(&self, pos: JkVector, chunk_coords: &Box<dyn ChunkCoords>) -> Color;

@@ -127,19 +127,15 @@ impl ElementGrid {
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) {
-        let locked = self.get_process_unneeded(current_time);
-        if locked {
-            return;
-        }
+        // let locked = self.get_process_unneeded(current_time);
+        // if locked {
+        //     return;
+        // }
         let already_processed = self.get_already_processed();
         debug_assert!(!already_processed, "Already processed");
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {
-                let pos = IjkVector {
-                    i: self.coords.get_layer_num(),
-                    j,
-                    k,
-                };
+                let pos = JkVector { j, k };
 
                 // We have to take the element out of our grid to call it with a reference to self
                 // Otherwise we would have a reference to it, and process would have a reference to it through target_chunk
@@ -163,10 +159,10 @@ impl ElementGrid {
                 //
                 match res {
                     ElementTakeOptions::PutBack => {
-                        self.grid.replace(JkVector { j, k }, element);
+                        self.grid.replace(pos, element);
                     }
                     ElementTakeOptions::ReplaceWith(new_element) => {
-                        self.grid.replace(JkVector { j, k }, new_element);
+                        self.grid.replace(pos, new_element);
                     }
                     ElementTakeOptions::DoNothing => {}
                 }

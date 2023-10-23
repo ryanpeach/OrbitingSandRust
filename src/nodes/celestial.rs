@@ -119,29 +119,4 @@ impl Celestial {
         }
         out
     }
-
-    /// Produce a mask of which chunks need to be processed
-    fn filter_inactive(&self, current_time: Clock) -> Vec<Grid<bool>> {
-        let coords = self.element_grid_dir.get_coordinate_dir();
-        let mut out = Vec::with_capacity(coords.get_num_layers());
-        for i in 0..coords.get_num_layers() {
-            let size_j = coords.get_layer_num_concentric_chunks(i);
-            let size_k = coords.get_layer_num_radial_chunks(i);
-            let mut grid_out = Grid::new(size_k, size_j, vec![false; size_j * size_k]);
-            for j in 0..size_j {
-                for k in 0..size_k {
-                    let chunk = self
-                        .element_grid_dir
-                        .get_chunk_by_chunk_ijk(ChunkIjkVector { i, j, k });
-                    if chunk.get_last_set().get_current_frame()
-                        > current_time.get_current_frame() - 1
-                    {
-                        grid_out.set(JkVector { j, k }, true);
-                    }
-                }
-            }
-            out.push(grid_out);
-        }
-        out
-    }
 }

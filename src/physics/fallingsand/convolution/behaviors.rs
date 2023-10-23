@@ -109,10 +109,7 @@ impl ElementGridConvolutionNeighbors {
             (pos.j + b_concentric_circles - n, pos.k / 2)
         } else {
             return Err(ConvOutOfBoundsError(ConvolutionIdx(
-                JkVector {
-                    j: pos.j - n,
-                    k: pos.k,
-                },
+                JkVector { j: pos.j, k: pos.k },
                 ConvolutionIdentifier::Center,
             )));
         };
@@ -208,23 +205,343 @@ impl ElementGridConvolutionNeighbors {
     }
 }
 
+pub enum GetChunkErr {
+    ReturnsVector,
+}
+
 /// Getter and setter methods
 impl ElementGridConvolutionNeighbors {
+    /// TODO, use macros to get rid of redundancy
+    fn get_chunk_mut(
+        &mut self,
+        id: ConvolutionIdentifier,
+    ) -> Result<&mut ElementGrid, GetChunkErr> {
+        match id {
+            ConvolutionIdentifier::Top(top_id) => match top_id {
+                TopNeighborIdentifier::Normal(normal_id) => match normal_id {
+                    TopNeighborIdentifierNormal::Top { .. } => {
+                        if let TopNeighborGrids::Normal { t, .. } = &mut self.grids.top {
+                            Ok(t)
+                        } else {
+                            panic!("Tried to get t chunk that doesn't exist")
+                        }
+                    }
+                    TopNeighborIdentifierNormal::TopLeft { .. } => {
+                        if let TopNeighborGrids::Normal { tl, .. } = &mut self.grids.top {
+                            Ok(tl)
+                        } else {
+                            panic!("Tried to get tl chunk that doesn't exist")
+                        }
+                    }
+                    TopNeighborIdentifierNormal::TopRight { .. } => {
+                        if let TopNeighborGrids::Normal { tr, .. } = &mut self.grids.top {
+                            Ok(tr)
+                        } else {
+                            panic!("Tried to get tr chunk that doesn't exist")
+                        }
+                    }
+                },
+                TopNeighborIdentifier::LayerTransition(layer_transition_id) => {
+                    match layer_transition_id {
+                        TopNeighborIdentifierLayerTransition::Top0 { .. } => {
+                            if let TopNeighborGrids::LayerTransition { t0, .. } =
+                                &mut self.grids.top
+                            {
+                                Ok(t0)
+                            } else {
+                                panic!("Tried to get t0 chunk that doesn't exist")
+                            }
+                        }
+                        TopNeighborIdentifierLayerTransition::Top1 { .. } => {
+                            if let TopNeighborGrids::LayerTransition { t1, .. } =
+                                &mut self.grids.top
+                            {
+                                Ok(t1)
+                            } else {
+                                panic!("Tried to get t1 chunk that doesn't exist")
+                            }
+                        }
+                        TopNeighborIdentifierLayerTransition::TopLeft { .. } => {
+                            if let TopNeighborGrids::LayerTransition { tl, .. } =
+                                &mut self.grids.top
+                            {
+                                Ok(tl)
+                            } else {
+                                panic!("Tried to get tl chunk that doesn't exist")
+                            }
+                        }
+                        TopNeighborIdentifierLayerTransition::TopRight { .. } => {
+                            if let TopNeighborGrids::LayerTransition { tr, .. } =
+                                &mut self.grids.top
+                            {
+                                Ok(tr)
+                            } else {
+                                panic!("Tried to get tr chunk that doesn't exist")
+                            }
+                        }
+                    }
+                }
+                TopNeighborIdentifier::SingleChunkLayerAbove { .. } => {
+                    if let TopNeighborGrids::SingleChunkLayerAbove { t, .. } = &mut self.grids.top {
+                        Ok(t)
+                    } else {
+                        panic!("Tried to get t chunk that doesn't exist")
+                    }
+                }
+                TopNeighborIdentifier::MultiChunkLayerAbove { .. } => {
+                    if let TopNeighborGrids::MultiChunkLayerAbove { chunks, .. } =
+                        &mut self.grids.top
+                    {
+                        Err(GetChunkErr::ReturnsVector)
+                    } else {
+                        panic!("Tried to get t chunk that doesn't exist")
+                    }
+                }
+            },
+            ConvolutionIdentifier::Bottom(bottom_id) => match bottom_id {
+                BottomNeighborIdentifier::Normal(normal_id) => match normal_id {
+                    BottomNeighborIdentifierNormal::Bottom { .. } => {
+                        if let BottomNeighborGrids::Normal { b, .. } = &mut self.grids.bottom {
+                            Ok(b)
+                        } else {
+                            panic!("Tried to get b chunk that doesn't exist")
+                        }
+                    }
+                    BottomNeighborIdentifierNormal::BottomLeft { .. } => {
+                        if let BottomNeighborGrids::Normal { bl, .. } = &mut self.grids.bottom {
+                            Ok(bl)
+                        } else {
+                            panic!("Tried to get bl chunk that doesn't exist")
+                        }
+                    }
+                    BottomNeighborIdentifierNormal::BottomRight { .. } => {
+                        if let BottomNeighborGrids::Normal { br, .. } = &mut self.grids.bottom {
+                            Ok(br)
+                        } else {
+                            panic!("Tried to get br chunk that doesn't exist")
+                        }
+                    }
+                },
+                BottomNeighborIdentifier::LayerTransition(layer_transition_id) => {
+                    match layer_transition_id {
+                        BottomNeighborIdentifierLayerTransition::BottomLeft { .. } => {
+                            if let BottomNeighborGrids::LayerTransition { bl, .. } =
+                                &mut self.grids.bottom
+                            {
+                                Ok(bl)
+                            } else {
+                                panic!("Tried to get bl chunk that doesn't exist")
+                            }
+                        }
+                        BottomNeighborIdentifierLayerTransition::BottomRight { .. } => {
+                            if let BottomNeighborGrids::LayerTransition { br, .. } =
+                                &mut self.grids.bottom
+                            {
+                                Ok(br)
+                            } else {
+                                panic!("Tried to get br chunk that doesn't exist")
+                            }
+                        }
+                    }
+                }
+                BottomNeighborIdentifier::FullLayerBelow { .. } => {
+                    if let BottomNeighborGrids::FullLayerBelow { b, .. } = &mut self.grids.bottom {
+                        Ok(b)
+                    } else {
+                        panic!("Tried to get b chunk that doesn't exist")
+                    }
+                }
+            },
+            ConvolutionIdentifier::LeftRight(left_right_id) => match left_right_id {
+                LeftRightNeighborIdentifier::LR(lr_id) => match lr_id {
+                    LeftRightNeighborIdentifierLR::Left { .. } => {
+                        if let LeftRightNeighborGrids::LR { l, .. } = &mut self.grids.left_right {
+                            Ok(l)
+                        } else {
+                            panic!("Tried to get l chunk that doesn't exist")
+                        }
+                    }
+                    LeftRightNeighborIdentifierLR::Right { .. } => {
+                        if let LeftRightNeighborGrids::LR { r, .. } = &mut self.grids.left_right {
+                            Ok(r)
+                        } else {
+                            panic!("Tried to get r chunk that doesn't exist")
+                        }
+                    }
+                },
+            },
+            ConvolutionIdentifier::Center => panic!("Tried to get the center chunk"),
+        }
+    }
+
+    fn get_chunk(&self, id: ConvolutionIdentifier) -> Result<&ElementGrid, GetChunkErr> {
+        match id {
+            ConvolutionIdentifier::Top(top_id) => match top_id {
+                TopNeighborIdentifier::Normal(normal_id) => match normal_id {
+                    TopNeighborIdentifierNormal::Top { .. } => {
+                        if let TopNeighborGrids::Normal { t, .. } = &self.grids.top {
+                            Ok(t)
+                        } else {
+                            panic!("Tried to get t chunk that doesn't exist")
+                        }
+                    }
+                    TopNeighborIdentifierNormal::TopLeft { .. } => {
+                        if let TopNeighborGrids::Normal { tl, .. } = &self.grids.top {
+                            Ok(tl)
+                        } else {
+                            panic!("Tried to get tl chunk that doesn't exist")
+                        }
+                    }
+                    TopNeighborIdentifierNormal::TopRight { .. } => {
+                        if let TopNeighborGrids::Normal { tr, .. } = &self.grids.top {
+                            Ok(tr)
+                        } else {
+                            panic!("Tried to get tr chunk that doesn't exist")
+                        }
+                    }
+                },
+                TopNeighborIdentifier::LayerTransition(layer_transition_id) => {
+                    match layer_transition_id {
+                        TopNeighborIdentifierLayerTransition::Top0 { .. } => {
+                            if let TopNeighborGrids::LayerTransition { t0, .. } = &self.grids.top {
+                                Ok(t0)
+                            } else {
+                                panic!("Tried to get t0 chunk that doesn't exist")
+                            }
+                        }
+                        TopNeighborIdentifierLayerTransition::Top1 { .. } => {
+                            if let TopNeighborGrids::LayerTransition { t1, .. } = &self.grids.top {
+                                Ok(t1)
+                            } else {
+                                panic!("Tried to get t1 chunk that doesn't exist")
+                            }
+                        }
+                        TopNeighborIdentifierLayerTransition::TopLeft { .. } => {
+                            if let TopNeighborGrids::LayerTransition { tl, .. } = &self.grids.top {
+                                Ok(tl)
+                            } else {
+                                panic!("Tried to get tl chunk that doesn't exist")
+                            }
+                        }
+                        TopNeighborIdentifierLayerTransition::TopRight { .. } => {
+                            if let TopNeighborGrids::LayerTransition { tr, .. } = &self.grids.top {
+                                Ok(tr)
+                            } else {
+                                panic!("Tried to get tr chunk that doesn't exist")
+                            }
+                        }
+                    }
+                }
+                TopNeighborIdentifier::SingleChunkLayerAbove { .. } => {
+                    if let TopNeighborGrids::SingleChunkLayerAbove { t, .. } = &self.grids.top {
+                        Ok(t)
+                    } else {
+                        panic!("Tried to get t chunk that doesn't exist")
+                    }
+                }
+                TopNeighborIdentifier::MultiChunkLayerAbove { .. } => {
+                    if let TopNeighborGrids::MultiChunkLayerAbove { chunks, .. } = &self.grids.top {
+                        Err(GetChunkErr::ReturnsVector)
+                    } else {
+                        panic!("Tried to get t chunk that doesn't exist")
+                    }
+                }
+            },
+            ConvolutionIdentifier::Bottom(bottom_id) => match bottom_id {
+                BottomNeighborIdentifier::Normal(normal_id) => match normal_id {
+                    BottomNeighborIdentifierNormal::Bottom { .. } => {
+                        if let BottomNeighborGrids::Normal { b, .. } = &self.grids.bottom {
+                            Ok(b)
+                        } else {
+                            panic!("Tried to get b chunk that doesn't exist")
+                        }
+                    }
+                    BottomNeighborIdentifierNormal::BottomLeft { .. } => {
+                        if let BottomNeighborGrids::Normal { bl, .. } = &self.grids.bottom {
+                            Ok(bl)
+                        } else {
+                            panic!("Tried to get bl chunk that doesn't exist")
+                        }
+                    }
+                    BottomNeighborIdentifierNormal::BottomRight { .. } => {
+                        if let BottomNeighborGrids::Normal { br, .. } = &self.grids.bottom {
+                            Ok(br)
+                        } else {
+                            panic!("Tried to get br chunk that doesn't exist")
+                        }
+                    }
+                },
+                BottomNeighborIdentifier::LayerTransition(layer_transition_id) => {
+                    match layer_transition_id {
+                        BottomNeighborIdentifierLayerTransition::BottomLeft { .. } => {
+                            if let BottomNeighborGrids::LayerTransition { bl, .. } =
+                                &self.grids.bottom
+                            {
+                                Ok(bl)
+                            } else {
+                                panic!("Tried to get bl chunk that doesn't exist")
+                            }
+                        }
+                        BottomNeighborIdentifierLayerTransition::BottomRight { .. } => {
+                            if let BottomNeighborGrids::LayerTransition { br, .. } =
+                                &self.grids.bottom
+                            {
+                                Ok(br)
+                            } else {
+                                panic!("Tried to get br chunk that doesn't exist")
+                            }
+                        }
+                    }
+                }
+                BottomNeighborIdentifier::FullLayerBelow { .. } => {
+                    if let BottomNeighborGrids::FullLayerBelow { b, .. } = &self.grids.bottom {
+                        Ok(b)
+                    } else {
+                        panic!("Tried to get b chunk that doesn't exist")
+                    }
+                }
+            },
+            ConvolutionIdentifier::LeftRight(left_right_id) => match left_right_id {
+                LeftRightNeighborIdentifier::LR(lr_id) => match lr_id {
+                    LeftRightNeighborIdentifierLR::Left { .. } => {
+                        if let LeftRightNeighborGrids::LR { l, .. } = &self.grids.left_right {
+                            Ok(l)
+                        } else {
+                            panic!("Tried to get l chunk that doesn't exist")
+                        }
+                    }
+                    LeftRightNeighborIdentifierLR::Right { .. } => {
+                        if let LeftRightNeighborGrids::LR { r, .. } = &self.grids.left_right {
+                            Ok(r)
+                        } else {
+                            panic!("Tried to get r chunk that doesn't exist")
+                        }
+                    }
+                },
+            },
+            ConvolutionIdentifier::Center => panic!("Tried to get the center chunk"),
+        }
+    }
+
     pub fn get(
         &self,
         target_grid: &ElementGrid,
         idx: ConvolutionIdx,
-    ) -> Result<&Box<dyn Element>, ConvOutOfBoundsError> {
+    ) -> Result<Box<dyn Element>, ConvOutOfBoundsError> {
         match idx.1 {
             ConvolutionIdentifier::Center => match target_grid.checked_get(idx.0) {
-                Ok(element) => Ok(element),
+                Ok(element) => Ok(element.box_clone()),
                 Err(_) => Err(ConvOutOfBoundsError(idx)),
             },
-            ConvolutionIdentifier::Top(top_id) => self.grids.top.get(idx.0, top_id),
-            ConvolutionIdentifier::Bottom(bottom_id) => self.grids.bottom.get(idx.0, bottom_id),
-            ConvolutionIdentifier::LeftRight(left_right_id) => {
-                self.grids.left_right.get(idx.0, left_right_id)
-            }
+            _ => match self.get_chunk(idx.1) {
+                Ok(chunk) => match chunk.checked_get(idx.0) {
+                    Ok(element) => Ok(element.box_clone()),
+                    Err(_) => Err(ConvOutOfBoundsError(idx)),
+                },
+                Err(GetChunkErr::ReturnsVector) => {
+                    unimplemented!("This is fairly easy to implement but not yet needed.")
+                }
+            },
         }
     }
 
@@ -237,24 +554,18 @@ impl ElementGridConvolutionNeighbors {
     ) -> Result<Box<dyn Element>, ConvOutOfBoundsError> {
         match idx.1 {
             ConvolutionIdentifier::Center => {
-                match target_grid.replace(idx.0, element, current_time) {
-                    Ok(ele) => Ok(ele),
-                    Err(_) => Err(ConvOutOfBoundsError(idx)),
+                let out = target_grid.replace(idx.0, element, current_time);
+                Ok(out)
+            }
+            _ => match self.get_chunk_mut(idx.1) {
+                Ok(chunk) => {
+                    let out = chunk.replace(idx.0, element, current_time);
+                    Ok(out)
                 }
-            }
-            ConvolutionIdentifier::Top(top_id) => {
-                self.grids.top.replace(idx.0, top_id, element, current_time)
-            }
-            ConvolutionIdentifier::Bottom(bottom_id) => {
-                self.grids
-                    .bottom
-                    .replace(idx.0, bottom_id, element, current_time)
-            }
-            ConvolutionIdentifier::LeftRight(left_right_id) => {
-                self.grids
-                    .left_right
-                    .replace(idx.0, left_right_id, element, current_time)
-            }
+                Err(GetChunkErr::ReturnsVector) => {
+                    unimplemented!("This is fairly easy to implement but not yet needed.")
+                }
+            },
         }
     }
 }
