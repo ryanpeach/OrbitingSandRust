@@ -60,6 +60,7 @@ impl Celestial {
         self.element_grid_dir.process(current_time);
         self.all_textures
             .extend(self.element_grid_dir.get_updated_target_textures());
+        // self.all_textures = self.element_grid_dir.get_textures();
     }
 
     pub fn draw(&self, ctx: &mut Context, canvas: &mut Canvas, camera: &Camera) {
