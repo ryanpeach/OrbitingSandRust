@@ -2,7 +2,7 @@ use ggez::graphics::Rect;
 
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions};
-use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
+use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 
 use super::convolution::behaviors::ElementGridConvolutionNeighbors;

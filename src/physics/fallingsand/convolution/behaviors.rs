@@ -1,5 +1,3 @@
-use std::fmt;
-
 use hashbrown::HashMap;
 
 use crate::physics::{
@@ -197,9 +195,9 @@ impl ElementGridConvolutionNeighbors {
 
     pub fn get_left_right_idx_from_bottom(
         &self,
-        pos: &JkVector,
-        chunk_id: BottomNeighborIdentifier,
-        rk: isize,
+        _pos: &JkVector,
+        _chunk_id: BottomNeighborIdentifier,
+        _rk: isize,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
         unimplemented!()
     }
@@ -289,9 +287,7 @@ impl ElementGridConvolutionNeighbors {
                     }
                 }
                 TopNeighborIdentifier::MultiChunkLayerAbove { .. } => {
-                    if let TopNeighborGrids::MultiChunkLayerAbove { chunks, .. } =
-                        &mut self.grids.top
-                    {
+                    if let TopNeighborGrids::MultiChunkLayerAbove { .. } = &mut self.grids.top {
                         Err(GetChunkErr::ReturnsVector)
                     } else {
                         panic!("Tried to get t chunk that doesn't exist")
@@ -440,7 +436,7 @@ impl ElementGridConvolutionNeighbors {
                     }
                 }
                 TopNeighborIdentifier::MultiChunkLayerAbove { .. } => {
-                    if let TopNeighborGrids::MultiChunkLayerAbove { chunks, .. } = &self.grids.top {
+                    if let TopNeighborGrids::MultiChunkLayerAbove { .. } = &self.grids.top {
                         Err(GetChunkErr::ReturnsVector)
                     } else {
                         panic!("Tried to get t chunk that doesn't exist")

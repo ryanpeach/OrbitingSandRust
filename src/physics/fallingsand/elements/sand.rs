@@ -106,13 +106,13 @@ impl Element for Sand {
 }
 
 // 6, 0, 0
-
+#[cfg(test)]
 mod tests {
-    use super::*;
     use crate::physics::fallingsand::{
         coordinates::coordinate_directory::CoordinateDirBuilder, element_directory::ElementGridDir,
-        elements::vacuum::Vacuum,
     };
+
+    use super::*;
 
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {
@@ -130,9 +130,11 @@ mod tests {
     mod falls_down {
         use std::time::Duration;
 
-        use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
-
         use super::*;
+        use crate::physics::fallingsand::{
+            elements::element::ElementType,
+            util::vectors::{ChunkIjkVector, JkVector},
+        };
 
         /// For some reason I am seeing hanging chunks.
         #[test]

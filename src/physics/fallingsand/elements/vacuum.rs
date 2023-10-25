@@ -4,7 +4,7 @@ use super::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::element_grid::ElementGrid;
-use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
+use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 
 /// Literally nothing
