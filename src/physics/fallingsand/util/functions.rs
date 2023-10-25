@@ -1,8 +1,9 @@
 use ggez::glam::Vec2;
 
 /// A modulo that works for negative numbers
-pub fn modulo(x: isize, y: isize) -> isize {
-    ((x % y) + y) % y
+pub fn modulo(x: isize, y: usize) -> usize {
+    let y_isize = y as isize;
+    (((x % y_isize) + y_isize) % y_isize) as usize
 }
 
 /// Tests if a number is a power of 2

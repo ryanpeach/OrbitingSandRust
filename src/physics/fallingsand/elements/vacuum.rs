@@ -1,10 +1,10 @@
 use ggez::graphics::Color;
 
-use super::element::{Element, ElementTakeOptions};
+use super::element::{Element, ElementTakeOptions, ElementType};
+use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
-use crate::physics::fallingsand::element_convolution::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::element_grid::ElementGrid;
-use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
+use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 
 /// Literally nothing
@@ -14,6 +14,9 @@ pub struct Vacuum {
 }
 
 impl Element for Vacuum {
+    fn get_type(&self) -> ElementType {
+        ElementType::Vacuum
+    }
     fn get_last_processed(&self) -> Clock {
         self.last_processed
     }
@@ -23,7 +26,7 @@ impl Element for Vacuum {
     }
     fn process(
         &mut self,
-        _pos: IjkVector,
+        _pos: JkVector,
         _target_chunk: &mut ElementGrid,
         _element_grid_conv: &mut ElementGridConvolutionNeighbors,
         _current_time: Clock,

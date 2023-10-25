@@ -1,9 +1,7 @@
-use std::collections::HashMap;
-
-use super::{element_grid::ElementGrid, util::vectors::ChunkIjkVector};
+use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum LeftRightNeighbors {
+pub enum LeftRightNeighborIdxs {
     LR {
         l: ChunkIjkVector,
         r: ChunkIjkVector,
@@ -11,17 +9,17 @@ pub enum LeftRightNeighbors {
     SingleChunkLayer,
 }
 
-pub struct LeftRightNeighborsIter {
-    lr: Option<LeftRightNeighbors>,
+pub struct LeftRightNeighborIdxsIter {
+    lr: Option<LeftRightNeighborIdxs>,
     index: usize,
 }
 
-impl Iterator for LeftRightNeighborsIter {
+impl Iterator for LeftRightNeighborIdxsIter {
     type Item = ChunkIjkVector;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.lr {
-            Some(LeftRightNeighbors::LR { l, r }) => {
+            Some(LeftRightNeighborIdxs::LR { l, r }) => {
                 self.index += 1;
                 match self.index {
                     1 => Some(l),
@@ -34,9 +32,9 @@ impl Iterator for LeftRightNeighborsIter {
     }
 }
 
-impl LeftRightNeighbors {
-    pub fn iter(&self) -> LeftRightNeighborsIter {
-        LeftRightNeighborsIter {
+impl LeftRightNeighborIdxs {
+    pub fn iter(&self) -> LeftRightNeighborIdxsIter {
+        LeftRightNeighborIdxsIter {
             lr: Some(self.clone()),
             index: 0,
         }
@@ -44,7 +42,7 @@ impl LeftRightNeighbors {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum TopNeighbors {
+pub enum TopNeighborIdxs {
     Normal {
         tl: ChunkIjkVector,
         t: ChunkIjkVector,
@@ -65,17 +63,17 @@ pub enum TopNeighbors {
     TopOfGrid,
 }
 
-pub struct TopNeighborsIter {
-    top: Option<TopNeighbors>,
+pub struct TopNeighborIdxsIter {
+    top: Option<TopNeighborIdxs>,
     index: usize,
 }
 
-impl Iterator for TopNeighborsIter {
+impl Iterator for TopNeighborIdxsIter {
     type Item = ChunkIjkVector;
 
     fn next(&mut self) -> Option<Self::Item> {
         match &self.top {
-            Some(TopNeighbors::Normal { tl, t, tr }) => {
+            Some(TopNeighborIdxs::Normal { tl, t, tr }) => {
                 self.index += 1;
                 match self.index {
                     1 => Some(*tl),
@@ -84,7 +82,7 @@ impl Iterator for TopNeighborsIter {
                     _ => None,
                 }
             }
-            Some(TopNeighbors::LayerTransition { tl, t0, t1, tr }) => {
+            Some(TopNeighborIdxs::LayerTransition { tl, t0, t1, tr }) => {
                 self.index += 1;
                 match self.index {
                     1 => Some(*tl),
@@ -94,14 +92,14 @@ impl Iterator for TopNeighborsIter {
                     _ => None,
                 }
             }
-            Some(TopNeighbors::SingleChunkLayerAbove { t }) => {
+            Some(TopNeighborIdxs::SingleChunkLayerAbove { t }) => {
                 self.index += 1;
                 match self.index {
                     1 => Some(*t),
                     _ => None,
                 }
             }
-            Some(TopNeighbors::MultiChunkLayerAbove { chunks }) => {
+            Some(TopNeighborIdxs::MultiChunkLayerAbove { chunks }) => {
                 if self.index < chunks.len() {
                     self.index += 1;
                     Some(chunks[self.index - 1])
@@ -109,15 +107,15 @@ impl Iterator for TopNeighborsIter {
                     None
                 }
             }
-            Some(TopNeighbors::TopOfGrid) => None,
+            Some(TopNeighborIdxs::TopOfGrid) => None,
             None => None,
         }
     }
 }
 
-impl TopNeighbors {
-    pub fn iter(&self) -> TopNeighborsIter {
-        TopNeighborsIter {
+impl TopNeighborIdxs {
+    pub fn iter(&self) -> TopNeighborIdxsIter {
+        TopNeighborIdxsIter {
             top: Some(self.clone()),
             index: 0,
         }
@@ -125,7 +123,7 @@ impl TopNeighbors {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum BottomNeighbors {
+pub enum BottomNeighborIdxs {
     Normal {
         bl: ChunkIjkVector,
         b: ChunkIjkVector,
@@ -141,17 +139,17 @@ pub enum BottomNeighbors {
     BottomOfGrid,
 }
 
-pub struct BottomNeighborsIter {
-    bottom: Option<BottomNeighbors>,
+pub struct BottomNeighborIdxsIter {
+    bottom: Option<BottomNeighborIdxs>,
     index: usize,
 }
 
-impl Iterator for BottomNeighborsIter {
+impl Iterator for BottomNeighborIdxsIter {
     type Item = ChunkIjkVector;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.bottom {
-            Some(BottomNeighbors::Normal { bl, b, br }) => {
+            Some(BottomNeighborIdxs::Normal { bl, b, br }) => {
                 self.index += 1;
                 match self.index {
                     1 => Some(bl),
@@ -160,7 +158,7 @@ impl Iterator for BottomNeighborsIter {
                     _ => None,
                 }
             }
-            Some(BottomNeighbors::LayerTransition { bl, br }) => {
+            Some(BottomNeighborIdxs::LayerTransition { bl, br }) => {
                 self.index += 1;
                 match self.index {
                     1 => Some(bl),
@@ -168,22 +166,22 @@ impl Iterator for BottomNeighborsIter {
                     _ => None,
                 }
             }
-            Some(BottomNeighbors::FullLayerBelow { b }) => {
+            Some(BottomNeighborIdxs::FullLayerBelow { b }) => {
                 self.index += 1;
                 match self.index {
                     1 => Some(b),
                     _ => None,
                 }
             }
-            Some(BottomNeighbors::BottomOfGrid) => None,
+            Some(BottomNeighborIdxs::BottomOfGrid) => None,
             None => None,
         }
     }
 }
 
-impl BottomNeighbors {
-    pub fn iter(&self) -> BottomNeighborsIter {
-        BottomNeighborsIter {
+impl BottomNeighborIdxs {
+    pub fn iter(&self) -> BottomNeighborIdxsIter {
+        BottomNeighborIdxsIter {
             bottom: Some(self.clone()),
             index: 0,
         }
@@ -192,20 +190,20 @@ impl BottomNeighbors {
 
 /// Just the indices of the element grid convolution
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ElementGridConvolutionNeighborsChunkIdx {
-    pub top: TopNeighbors,
-    pub left_right: LeftRightNeighbors,
-    pub bottom: BottomNeighbors,
+pub struct ElementGridConvolutionNeighborIdxs {
+    pub top: TopNeighborIdxs,
+    pub left_right: LeftRightNeighborIdxs,
+    pub bottom: BottomNeighborIdxs,
 }
 
-pub struct ElementGridConvolutionNeighborsChunkIdxIter {
-    top_neighbors_iter: TopNeighborsIter,
-    left_right_neighbors_iter: LeftRightNeighborsIter,
-    bottom_neighbors_iter: BottomNeighborsIter,
+pub struct ElementGridConvolutionNeighborIdxsIter {
+    top_neighbors_iter: TopNeighborIdxsIter,
+    left_right_neighbors_iter: LeftRightNeighborIdxsIter,
+    bottom_neighbors_iter: BottomNeighborIdxsIter,
     index: usize,
 }
 
-impl Iterator for ElementGridConvolutionNeighborsChunkIdxIter {
+impl Iterator for ElementGridConvolutionNeighborIdxsIter {
     type Item = ChunkIjkVector;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -239,9 +237,9 @@ impl Iterator for ElementGridConvolutionNeighborsChunkIdxIter {
     }
 }
 
-impl ElementGridConvolutionNeighborsChunkIdx {
-    pub fn iter(&self) -> ElementGridConvolutionNeighborsChunkIdxIter {
-        ElementGridConvolutionNeighborsChunkIdxIter {
+impl ElementGridConvolutionNeighborIdxs {
+    pub fn iter(&self) -> ElementGridConvolutionNeighborIdxsIter {
+        ElementGridConvolutionNeighborIdxsIter {
             top_neighbors_iter: self.top.iter(),
             left_right_neighbors_iter: self.left_right.iter(),
             bottom_neighbors_iter: self.bottom.iter(),
@@ -250,36 +248,5 @@ impl ElementGridConvolutionNeighborsChunkIdx {
     }
     pub fn contains(&self, chunk_idx: &ChunkIjkVector) -> bool {
         self.iter().any(|c| c == *chunk_idx)
-    }
-}
-
-/// A 3x3 ish grid of element grids
-/// However, it's a bit complicated because at the top boundary
-/// Also when you go from a single chunk layer to a multi chunk layer
-/// And going down a layer you might not have a bottom layer, because you might be at the bottom
-/// Also going down a layer you may not have anything below you
-/// This has options because you can take stuff from it and give it back
-pub struct ElementGridConvolutionNeighbors {
-    chunk_idxs: ElementGridConvolutionNeighborsChunkIdx,
-    grids: HashMap<ChunkIjkVector, ElementGrid>,
-}
-
-/// Instantiation
-impl ElementGridConvolutionNeighbors {
-    pub fn new(
-        chunk_idxs: ElementGridConvolutionNeighborsChunkIdx,
-        grids: HashMap<ChunkIjkVector, ElementGrid>,
-    ) -> Self {
-        Self { chunk_idxs, grids }
-    }
-}
-
-// Into Iter
-impl IntoIterator for ElementGridConvolutionNeighbors {
-    type Item = (ChunkIjkVector, ElementGrid);
-    type IntoIter = std::collections::hash_map::IntoIter<ChunkIjkVector, ElementGrid>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.grids.into_iter()
     }
 }

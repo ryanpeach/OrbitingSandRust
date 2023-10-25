@@ -2,13 +2,14 @@ use ggez::graphics::Rect;
 
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions};
-use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
+use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 
+use super::convolution::behaviors::ElementGridConvolutionNeighbors;
+
 use super::coordinates::core_coords::CoreChunkCoords;
-use super::element_convolution::ElementGridConvolutionNeighbors;
 use super::elements::vacuum::Vacuum;
-use super::util::grid::Grid;
+use super::util::grid::{Grid, GridOutOfBoundsError};
 use super::util::image::RawImage;
 
 /// An element grid is a 2D grid of elements tied to a chunk
@@ -97,6 +98,14 @@ impl ElementGrid {
 
 /// Public modifiers for the element grid
 impl ElementGrid {
+    #[allow(clippy::borrowed_box)]
+    pub fn get(&self, jk: JkVector) -> &Box<dyn Element> {
+        self.grid.get(jk)
+    }
+    #[allow(clippy::borrowed_box)]
+    pub fn checked_get(&self, jk: JkVector) -> Result<&Box<dyn Element>, GridOutOfBoundsError> {
+        self.grid.checked_get(jk)
+    }
     pub fn set(&mut self, jk: JkVector, element: Box<dyn Element>, time: Clock) {
         self.replace(jk, element, time);
     }
@@ -120,19 +129,15 @@ impl ElementGrid {
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) {
-        let locked = self.get_process_unneeded(current_time);
-        if locked {
-            return;
-        }
+        // let locked = self.get_process_unneeded(current_time);
+        // if locked {
+        //     return;
+        // }
         let already_processed = self.get_already_processed();
         debug_assert!(!already_processed, "Already processed");
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {
-                let pos = IjkVector {
-                    i: self.coords.get_layer_num(),
-                    j,
-                    k,
-                };
+                let pos = JkVector { j, k };
 
                 // We have to take the element out of our grid to call it with a reference to self
                 // Otherwise we would have a reference to it, and process would have a reference to it through target_chunk
@@ -156,10 +161,10 @@ impl ElementGrid {
                 //
                 match res {
                     ElementTakeOptions::PutBack => {
-                        self.grid.replace(JkVector { j, k }, element);
+                        self.grid.replace(pos, element);
                     }
                     ElementTakeOptions::ReplaceWith(new_element) => {
-                        self.grid.replace(JkVector { j, k }, new_element);
+                        self.grid.replace(pos, new_element);
                     }
                     ElementTakeOptions::DoNothing => {}
                 }

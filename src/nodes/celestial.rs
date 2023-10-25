@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use hashbrown::HashMap;
 
 use ggez::glam::Vec2;
 use ggez::graphics::{self, Canvas, Mesh, Rect};
@@ -9,7 +9,7 @@ use crate::physics::fallingsand::util::enums::MeshDrawMode;
 use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::image::RawImage;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
-use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, JkVector};
+use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::util::clock::Clock;
 
 use super::camera::Camera;
@@ -60,6 +60,7 @@ impl Celestial {
         self.element_grid_dir.process(current_time);
         self.all_textures
             .extend(self.element_grid_dir.get_updated_target_textures());
+        // self.all_textures = self.element_grid_dir.get_textures();
     }
 
     pub fn draw(&self, ctx: &mut Context, canvas: &mut Canvas, camera: &Camera) {
@@ -116,31 +117,6 @@ impl Celestial {
                 .map(|x| x.overlaps(cam_bb))
                 .collect::<Vec<bool>>();
             out.push(Grid::new(layer.get_width(), layer.get_height(), vec_out));
-        }
-        out
-    }
-
-    /// Produce a mask of which chunks need to be processed
-    fn filter_inactive(&self, current_time: Clock) -> Vec<Grid<bool>> {
-        let coords = self.element_grid_dir.get_coordinate_dir();
-        let mut out = Vec::with_capacity(coords.get_num_layers());
-        for i in 0..coords.get_num_layers() {
-            let size_j = coords.get_layer_num_concentric_chunks(i);
-            let size_k = coords.get_layer_num_radial_chunks(i);
-            let mut grid_out = Grid::new(size_k, size_j, vec![false; size_j * size_k]);
-            for j in 0..size_j {
-                for k in 0..size_k {
-                    let chunk = self
-                        .element_grid_dir
-                        .get_chunk_by_chunk_ijk(ChunkIjkVector { i, j, k });
-                    if chunk.get_last_set().get_current_frame()
-                        > current_time.get_current_frame() - 1
-                    {
-                        grid_out.set(JkVector { j, k }, true);
-                    }
-                }
-            }
-            out.push(grid_out);
         }
         out
     }
