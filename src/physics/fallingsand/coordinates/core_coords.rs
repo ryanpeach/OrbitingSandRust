@@ -7,6 +7,8 @@ use std::f32::consts::PI;
 
 use crate::physics::fallingsand::util::image::RawImage;
 
+use super::chunk_coords::VertexMode;
+
 /// The core is always the first layer
 /// It defines the radius of all future layers cell_radius
 /// All future layers have 2x their previous layers num_radial_lines
@@ -124,15 +126,15 @@ impl ChunkCoords for CoreChunkCoords {
         self.get_outline()
     }
     /// Res does not matter at all for the core chunk
-    fn get_positions(&self) -> Vec<Vec2> {
+    fn get_positions(&self, _mode: VertexMode) -> Vec<Vec2> {
         self.get_positions()
     }
     /// Res does not matter at all for the core chunk
-    fn get_indices(&self) -> Vec<u32> {
+    fn get_indices(&self, _mode: VertexMode) -> Vec<u32> {
         self.get_indices()
     }
     /// Res does not matter at all for the core chunk
-    fn get_uvs(&self) -> Vec<Vec2> {
+    fn get_uvs(&self, _mode: VertexMode) -> Vec<Vec2> {
         self.get_uvs()
     }
     fn get_cell_radius(&self) -> f32 {

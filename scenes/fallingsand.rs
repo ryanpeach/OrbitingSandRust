@@ -1,18 +1,17 @@
 extern crate orbiting_sand;
 
-use ggegui::{egui, Gui};
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
 use ggez::glam::Vec2;
-use ggez::graphics::{self, DrawParam, FilterMode, Sampler};
+use ggez::graphics::{self, FilterMode, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
+use orbiting_sand::gui::camera_window::CameraWindow;
 use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
 use orbiting_sand::physics::fallingsand::elements::element::Element;
 use orbiting_sand::physics::fallingsand::elements::sand::Sand;
 use orbiting_sand::physics::fallingsand::elements::vacuum::Vacuum;
-use orbiting_sand::physics::fallingsand::util::enums::MeshDrawMode;
 
 use orbiting_sand::nodes::camera::Camera;
 use orbiting_sand::nodes::celestial::Celestial;
@@ -28,18 +27,18 @@ use orbiting_sand::physics::util::clock::Clock;
 // Main Game
 // ==================
 struct MainState {
-    mesh_draw_mode: MeshDrawMode,
     celestial: Celestial,
     camera: Camera,
-    gui: Gui,
+    camera_window: CameraWindow,
     current_time: Clock,
 }
 
 impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
+        // Create the celestial
         let coordinate_dir = CoordinateDirBuilder::new()
             .cell_radius(1.0)
-            .num_layers(10)
+            .num_layers(8)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
             .build();
@@ -47,15 +46,15 @@ impl MainState {
         let fill1: &dyn Element = &Sand::default();
         let element_grid_dir = ElementGridDir::new_checkerboard(coordinate_dir, fill0, fill1);
         println!("Num elements: {}", element_grid_dir.get_total_num_cells());
+        let celestial = Celestial::new(element_grid_dir);
 
-        let celestial = Celestial::new(element_grid_dir, MeshDrawMode::TexturedMesh);
+        // Create the camera
         let _screen_size = ctx.gfx.drawable_size();
         let camera = Camera::new(Vec2::new(_screen_size.0, _screen_size.1));
         Ok(MainState {
             celestial,
             camera,
-            mesh_draw_mode: MeshDrawMode::TexturedMesh,
-            gui: Gui::new(ctx),
+            camera_window: CameraWindow::new(ctx),
             current_time: Clock::new(),
         })
     }
@@ -63,41 +62,14 @@ impl MainState {
 
 impl EventHandler<ggez::GameError> for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
-        let gui_ctx = self.gui.ctx();
+        // Update the gui
+        self.camera_window.update(ctx, &self.camera);
 
-        // Handle res updates
-        let mut mesh_draw_mode = self.mesh_draw_mode;
-        egui::Window::new("Title").show(&gui_ctx, |ui| {
-            ui.label(format!("zoom: {}", self.camera.get_zoom()));
-            ui.label(format!("FPS: {}", ctx.time.fps()));
-            // Set a radiomode for "DrawMode"
-            ui.separator();
-            ui.label("MeshDrawMode:");
-            ui.radio_value(
-                &mut mesh_draw_mode,
-                MeshDrawMode::TexturedMesh,
-                "TexturedMesh",
-            );
-            ui.radio_value(
-                &mut mesh_draw_mode,
-                MeshDrawMode::UVWireframe,
-                "UVWireframe",
-            );
-            ui.radio_value(
-                &mut mesh_draw_mode,
-                MeshDrawMode::TriangleWireframe,
-                "TriangleWireframe",
-            );
-            ui.radio_value(&mut mesh_draw_mode, MeshDrawMode::Outline, "Outline");
-        });
-        self.gui.update(ctx);
-
-        if mesh_draw_mode != self.mesh_draw_mode {
-            self.celestial.set_draw_mode(mesh_draw_mode);
-            self.mesh_draw_mode = mesh_draw_mode;
-        }
+        // Update the clock
         let delta_time = ctx.time.delta();
         self.current_time.update(delta_time);
+
+        // Process the celestial
         self.celestial.process(self.current_time);
         Ok(())
     }
@@ -108,9 +80,16 @@ impl EventHandler<ggez::GameError> for MainState {
 
         // Draw the celestial
         self.celestial.draw(ctx, &mut canvas, &self.camera);
+        if self.camera_window.get_outline() {
+            self.celestial.draw_outline(ctx, &mut canvas, &self.camera);
+        }
+        if self.camera_window.get_wireframe() {
+            self.celestial
+                .draw_wireframe(ctx, &mut canvas, &self.camera);
+        }
 
-        // Draw gui
-        canvas.draw(&self.gui, DrawParam::default().dest(Vec2::ZERO));
+        // Draw the gui
+        self.camera_window.draw(&mut canvas);
 
         let _ = canvas.finish(ctx);
         Ok(())

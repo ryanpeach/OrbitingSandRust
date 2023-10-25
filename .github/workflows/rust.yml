@@ -47,6 +47,9 @@ jobs:
       run: cargo tarpaulin --out Xml > coverage_output.txt
       continue-on-error: true
 
+    - name: Run benching just so we know we haven't broken it
+      run: cargo bench
+
     - name: Comment PR with coverage output
       uses: actions/github-script@v6
       with:

@@ -17,24 +17,24 @@ use super::camera::Camera;
 /// Acts as a cache for a radial mesh's meshes and textures
 pub struct Celestial {
     element_grid_dir: ElementGridDir,
-    draw_mode: MeshDrawMode,
-    all_meshes: Vec<Grid<OwnedMeshData>>,
     all_textures: HashMap<ChunkIjkVector, RawImage>,
     bounding_boxes: Vec<Grid<Rect>>,
     combined_mesh: OwnedMeshData,
+    combined_outline_mesh: OwnedMeshData,
+    combined_wireframe_mesh: OwnedMeshData,
 }
 
 impl Celestial {
-    pub fn new(element_grid_dir: ElementGridDir, draw_mode: MeshDrawMode) -> Self {
+    pub fn new(element_grid_dir: ElementGridDir) -> Self {
         // In testing we found that the resolution doesn't matter, so make it infinite
         // a misnomer is the fact that in this case, big "res" is fewer mesh cells
         let mut out = Self {
             element_grid_dir,
-            draw_mode,
-            all_meshes: Vec::new(),
             all_textures: HashMap::new(),
             bounding_boxes: Vec::new(),
             combined_mesh: OwnedMeshData::default(),
+            combined_outline_mesh: OwnedMeshData::default(),
+            combined_wireframe_mesh: OwnedMeshData::default(),
         };
         out.ready();
         out
@@ -43,16 +43,26 @@ impl Celestial {
     /// Something to call only on MAJOR changes, not every frame
     fn ready(&mut self) {
         let _res = 31;
-        self.all_meshes = self
+        let all_meshes = self
             .element_grid_dir
             .get_coordinate_dir()
-            .get_mesh_data(self.draw_mode);
+            .get_mesh_data(MeshDrawMode::TexturedMesh);
+        let all_outlines = self
+            .element_grid_dir
+            .get_coordinate_dir()
+            .get_mesh_data(MeshDrawMode::Outline);
+        let all_wireframes = self
+            .element_grid_dir
+            .get_coordinate_dir()
+            .get_mesh_data(MeshDrawMode::TriangleWireframe);
         self.all_textures = self.element_grid_dir.get_textures();
         self.bounding_boxes = self
             .element_grid_dir
             .get_coordinate_dir()
             .get_chunk_bounding_boxes();
-        self.combined_mesh = OwnedMeshData::combine(self.get_all_meshes());
+        self.combined_mesh = OwnedMeshData::combine(&all_meshes);
+        self.combined_outline_mesh = OwnedMeshData::combine(&all_outlines);
+        self.combined_wireframe_mesh = OwnedMeshData::combine(&all_wireframes);
     }
 
     /// Something to call every frame
@@ -63,6 +73,7 @@ impl Celestial {
         // self.all_textures = self.element_grid_dir.get_textures();
     }
 
+    /// Draw the textures
     pub fn draw(&self, ctx: &mut Context, canvas: &mut Canvas, camera: &Camera) {
         // Draw planets
         let pos = camera.get_screen_coords();
@@ -76,17 +87,37 @@ impl Celestial {
         let (meshdata, rawimg) = self.get_combined_mesh_texture(camera);
         let mesh = Mesh::from_data(ctx, meshdata.to_mesh_data());
         let img = rawimg.to_image(ctx);
-        match self.draw_mode {
-            MeshDrawMode::TexturedMesh => canvas.draw_textured_mesh(mesh, img, draw_params),
-            MeshDrawMode::TriangleWireframe => canvas.draw(&mesh, draw_params),
-            MeshDrawMode::UVWireframe => canvas.draw(&mesh, draw_params),
-            MeshDrawMode::Outline => canvas.draw(&mesh, draw_params),
-        }
+        canvas.draw_textured_mesh(mesh, img, draw_params);
     }
-    pub fn set_draw_mode(&mut self, draw_mode: MeshDrawMode) {
-        self.draw_mode = draw_mode;
-        self.ready();
+
+    pub fn draw_outline(&self, ctx: &mut Context, canvas: &mut Canvas, camera: &Camera) {
+        // Draw planets
+        let pos = camera.get_screen_coords();
+        let zoom = camera.get_zoom();
+        let draw_params = graphics::DrawParam::new()
+            .dest(pos)
+            .scale(Vec2::new(zoom, zoom))
+            .rotation(camera.get_rotation())
+            .offset(Vec2::new(0.5, 0.5));
+
+        let mesh = Mesh::from_data(ctx, self.combined_outline_mesh.to_mesh_data());
+        canvas.draw(&mesh, draw_params);
     }
+
+    pub fn draw_wireframe(&self, ctx: &mut Context, canvas: &mut Canvas, camera: &Camera) {
+        // Draw planets
+        let pos = camera.get_screen_coords();
+        let zoom = camera.get_zoom();
+        let draw_params = graphics::DrawParam::new()
+            .dest(pos)
+            .scale(Vec2::new(zoom, zoom))
+            .rotation(camera.get_rotation())
+            .offset(Vec2::new(0.5, 0.5));
+
+        let mesh = Mesh::from_data(ctx, self.combined_wireframe_mesh.to_mesh_data());
+        canvas.draw(&mesh, draw_params);
+    }
+
     pub fn get_combined_mesh_texture(&self, _camera: &Camera) -> (&OwnedMeshData, RawImage) {
         // let filter = self.frustum_cull(camera);
         (
@@ -96,9 +127,6 @@ impl Celestial {
     }
     pub fn get_all_bounding_boxes(&self) -> &Vec<Grid<Rect>> {
         &self.bounding_boxes
-    }
-    pub fn get_all_meshes(&self) -> &Vec<Grid<OwnedMeshData>> {
-        &self.all_meshes
     }
     pub fn get_all_textures(&self) -> &HashMap<ChunkIjkVector, RawImage> {
         &self.all_textures
