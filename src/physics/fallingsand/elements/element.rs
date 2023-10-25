@@ -18,6 +18,7 @@ pub enum ElementTakeOptions {
 }
 
 /// Useful for match statements
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ElementType {
     Vacuum,
     Sand,

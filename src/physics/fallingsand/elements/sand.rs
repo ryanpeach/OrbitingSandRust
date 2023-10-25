@@ -104,3 +104,75 @@ impl Element for Sand {
         Box::new(*self)
     }
 }
+
+// 6, 0, 0
+
+mod tests {
+    use super::*;
+    use crate::physics::fallingsand::{
+        coordinates::coordinate_directory::CoordinateDirBuilder, element_directory::ElementGridDir,
+        elements::vacuum::Vacuum,
+    };
+
+    /// The default element grid directory for testing
+    fn get_element_grid_dir() -> ElementGridDir {
+        let coordinate_dir = CoordinateDirBuilder::new()
+            .cell_radius(1.0)
+            .num_layers(10)
+            .first_num_radial_lines(6)
+            .second_num_concentric_circles(3)
+            .max_cells(64 * 64)
+            .build();
+        ElementGridDir::new_empty(coordinate_dir)
+    }
+
+    /// Simple tests for testing that the sand falls down
+    mod falls_down {
+        use std::time::Duration;
+
+        use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
+
+        use super::*;
+
+        /// For some reason I am seeing hanging chunks.
+        #[test]
+        fn test_error_case_at_i6_j0_k0() {
+            let mut element_grid_dir = get_element_grid_dir();
+            let mut clock = Clock::new();
+
+            // Set the bottom right to sand
+            {
+                let chunk =
+                    element_grid_dir.get_chunk_by_chunk_ijk_mut(ChunkIjkVector::new(6, 0, 0));
+                let sand = Sand::default();
+                chunk.set(JkVector::new(0, 0), Box::new(sand), clock);
+            }
+
+            // Now process one frame
+            for _ in 0..9 {
+                clock.update(Duration::from_millis(100));
+                element_grid_dir.process(clock);
+            }
+
+            // Now check that this chunk location no longer has sand
+            {
+                let chunk =
+                    element_grid_dir.get_chunk_by_chunk_ijk_mut(ChunkIjkVector::new(6, 0, 0));
+                let previous_location_type = chunk.get(JkVector::new(0, 0)).get_type();
+                assert_ne!(previous_location_type, ElementType::Sand);
+            }
+
+            // Now check that the chunk below has sand
+            {
+                let below_chunk =
+                    element_grid_dir.get_chunk_by_chunk_ijk_mut(ChunkIjkVector::new(5, 0, 0));
+                let below_chunk_nb_concentric_circles =
+                    below_chunk.get_chunk_coords().get_num_concentric_circles();
+                let below_location_type = below_chunk
+                    .get(JkVector::new(below_chunk_nb_concentric_circles - 1, 0))
+                    .get_type();
+                assert_eq!(below_location_type, ElementType::Sand);
+            }
+        }
+    }
+}
