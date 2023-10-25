@@ -44,7 +44,7 @@ impl ElementGridConvolutionNeighbors {
         let top_neighbors = TopNeighborGrids::from_hashmap(&chunk_idxs.top, &mut grids);
         let bottom_neighbors = BottomNeighborGrids::from_hashmap(&chunk_idxs.bottom, &mut grids);
         ElementGridConvolutionNeighbors {
-            chunk_idxs: chunk_idxs,
+            chunk_idxs,
             grids: ElementGridConvolutionNeighborGrids {
                 left_right: lr_neighbors,
                 top: top_neighbors,

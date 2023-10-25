@@ -98,9 +98,11 @@ impl ElementGrid {
 
 /// Public modifiers for the element grid
 impl ElementGrid {
+    #[allow(clippy::borrowed_box)]
     pub fn get(&self, jk: JkVector) -> &Box<dyn Element> {
         self.grid.get(jk)
     }
+    #[allow(clippy::borrowed_box)]
     pub fn checked_get(&self, jk: JkVector) -> Result<&Box<dyn Element>, GridOutOfBoundsError> {
         self.grid.checked_get(jk)
     }

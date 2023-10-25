@@ -145,6 +145,7 @@ impl TopNeighborGrids {
         }
     }
 
+    #[allow(clippy::borrowed_box)]
     pub fn get(
         &self,
         idx: JkVector,
