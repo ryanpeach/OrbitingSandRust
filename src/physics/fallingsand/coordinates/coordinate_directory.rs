@@ -4,7 +4,7 @@ use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use crate::physics::util::vectors::RelXyPoint;
 
-use super::chunk_coords::ChunkCoords;
+use super::chunk_coords::{ChunkCoords, VertexMode};
 use super::core_coords::CoreChunkCoords;
 use super::layer_coords::{PartialLayerChunkCoords, PartialLayerChunkCoordsBuilder};
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
@@ -277,9 +277,9 @@ impl CoordinateDir {
         }
         outlines
     }
-    pub fn get_vertexes(&self) -> Vec<Grid<Vec<Vertex>>> {
+    pub fn get_vertexes(&self, mode: VertexMode) -> Vec<Grid<Vec<Vertex>>> {
         let mut vertexes = Vec::new();
-        vertexes.push(Grid::new(1, 1, vec![self.core_chunk.get_vertices()]));
+        vertexes.push(Grid::new(1, 1, vec![self.core_chunk.get_vertices(mode)]));
         for layer in &self.partial_chunks {
             let new_grid = Grid::new(
                 layer.get_width(),
@@ -287,7 +287,7 @@ impl CoordinateDir {
                 layer
                     .get_data()
                     .iter()
-                    .map(|partial_chunk| partial_chunk.get_vertices())
+                    .map(|partial_chunk| partial_chunk.get_vertices(mode))
                     .collect(),
             );
             vertexes.push(new_grid);
@@ -295,9 +295,9 @@ impl CoordinateDir {
         vertexes
     }
 
-    pub fn get_positions(&self) -> Vec<Grid<Vec<Vec2>>> {
+    pub fn get_positions(&self, mode: VertexMode) -> Vec<Grid<Vec<Vec2>>> {
         let mut positions = Vec::new();
-        positions.push(Grid::new(1, 1, vec![self.core_chunk.get_positions()]));
+        positions.push(Grid::new(1, 1, vec![self.core_chunk.get_positions(mode)]));
         for layer in &self.partial_chunks {
             let new_grid = Grid::new(
                 layer.get_width(),
@@ -305,7 +305,7 @@ impl CoordinateDir {
                 layer
                     .get_data()
                     .iter()
-                    .map(|partial_chunk| partial_chunk.get_positions())
+                    .map(|partial_chunk| partial_chunk.get_positions(mode))
                     .collect(),
             );
             positions.push(new_grid);
@@ -313,9 +313,9 @@ impl CoordinateDir {
         positions
     }
 
-    pub fn get_uvs(&self) -> Vec<Grid<Vec<Vec2>>> {
+    pub fn get_uvs(&self, mode: VertexMode) -> Vec<Grid<Vec<Vec2>>> {
         let mut uvs = Vec::new();
-        uvs.push(Grid::new(1, 1, vec![self.core_chunk.get_uvs()]));
+        uvs.push(Grid::new(1, 1, vec![self.core_chunk.get_uvs(mode)]));
         for layer in &self.partial_chunks {
             let new_grid = Grid::new(
                 layer.get_width(),
@@ -323,7 +323,7 @@ impl CoordinateDir {
                 layer
                     .get_data()
                     .iter()
-                    .map(|partial_chunk| partial_chunk.get_uvs())
+                    .map(|partial_chunk| partial_chunk.get_uvs(mode))
                     .collect(),
             );
             uvs.push(new_grid);
@@ -331,9 +331,9 @@ impl CoordinateDir {
         uvs
     }
 
-    pub fn get_indices(&self) -> Vec<Grid<Vec<u32>>> {
+    pub fn get_indices(&self, mode: VertexMode) -> Vec<Grid<Vec<u32>>> {
         let mut indices = Vec::new();
-        indices.push(Grid::new(1, 1, vec![self.core_chunk.get_indices()]));
+        indices.push(Grid::new(1, 1, vec![self.core_chunk.get_indices(mode)]));
         for layer in &self.partial_chunks {
             let new_grid = Grid::new(
                 layer.get_width(),
@@ -341,7 +341,7 @@ impl CoordinateDir {
                 layer
                     .get_data()
                     .iter()
-                    .map(|partial_chunk| partial_chunk.get_indices())
+                    .map(|partial_chunk| partial_chunk.get_indices(mode))
                     .collect(),
             );
             indices.push(new_grid);
@@ -740,7 +740,6 @@ impl CoordinateDir {
         // Get the data for core_chunk
         let core_data = match draw_mode {
             MeshDrawMode::TexturedMesh => self.core_chunk.calc_chunk_meshdata(),
-            MeshDrawMode::UVWireframe => self.core_chunk.calc_chunk_uv_wireframe(),
             MeshDrawMode::TriangleWireframe => self.core_chunk.calc_chunk_triangle_wireframe(),
             MeshDrawMode::Outline => self.core_chunk.calc_chunk_outline(),
         };
@@ -756,7 +755,6 @@ impl CoordinateDir {
                     .iter()
                     .map(|chunk| match draw_mode {
                         MeshDrawMode::TexturedMesh => chunk.calc_chunk_meshdata(),
-                        MeshDrawMode::UVWireframe => chunk.calc_chunk_uv_wireframe(),
                         MeshDrawMode::TriangleWireframe => chunk.calc_chunk_triangle_wireframe(),
                         MeshDrawMode::Outline => chunk.calc_chunk_outline(),
                     })

@@ -7,6 +7,8 @@ use ggez::graphics::{Color, Rect};
 
 use std::f32::consts::PI;
 
+use super::chunk_coords::VertexMode;
+
 /// This is a chunk that represents a "full" layer.
 /// It doesn't split itself in either the radial or concentric directions.
 #[derive(Debug, Clone, Copy, Default)]
@@ -128,14 +130,6 @@ impl PartialLayerChunkCoordsBuilder {
     }
 }
 
-/// The optimal way of drawing the vertexes is just to draw the radial lines.
-/// Because the texture will map along the column perfectly.
-/// However, if you want to see the whole grid you can use the grid vertexes.
-enum VertexMode {
-    Lines,
-    Grid,
-}
-
 impl PartialLayerChunkCoords {
     fn get_vertexes(&self, mode: VertexMode) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
@@ -246,10 +240,15 @@ impl PartialLayerChunkCoords {
     /// If you set skip to 1, you will get the full resolution
     /// If you set skip to 2, you will get half the resolution
     /// ...
-    fn get_uv_vertexes(&self) -> Vec<Vec2> {
+    fn get_uv_vertexes(&self, mode: VertexMode) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
-        for j in [0, self.get_num_concentric_circles()] {
+        let concentric_range = match mode {
+            VertexMode::Lines => vec![0, self.get_num_concentric_circles()],
+            VertexMode::Grid => (0..(self.get_num_concentric_circles() + 1)).collect::<Vec<_>>(),
+        };
+
+        for j in concentric_range {
             for k in 0..(self.get_num_radial_lines() + 1) {
                 let new_vec = Vec2::new(
                     k as f32 / self.get_num_radial_lines() as f32,
@@ -262,9 +261,11 @@ impl PartialLayerChunkCoords {
         vertexes
     }
 
-    fn get_indices(&self) -> Vec<u32> {
-        let _j_iter = [0, self.get_num_concentric_circles() + 1];
-        let j_count = 2;
+    fn get_indices(&self, mode: VertexMode) -> Vec<u32> {
+        let j_count = match mode {
+            VertexMode::Lines => 2,
+            VertexMode::Grid => self.get_num_concentric_circles() + 1,
+        };
         let k_iter = 0..(self.get_num_radial_lines() + 1);
         let k_count = k_iter.len();
         let mut indices = Vec::with_capacity(j_count * k_count * 6);
@@ -329,17 +330,14 @@ impl ChunkCoords for PartialLayerChunkCoords {
     fn get_outline(&self) -> Vec<Vec2> {
         self.get_outline()
     }
-    fn get_positions(&self) -> Vec<Vec2> {
-        self.get_vertexes(VertexMode::Lines)
+    fn get_positions(&self, mode: VertexMode) -> Vec<Vec2> {
+        self.get_vertexes(mode)
     }
-    fn get_grid(&self) -> Vec<Vec2> {
-        self.get_vertexes(VertexMode::Grid)
+    fn get_indices(&self, mode: VertexMode) -> Vec<u32> {
+        self.get_indices(mode)
     }
-    fn get_indices(&self) -> Vec<u32> {
-        self.get_indices()
-    }
-    fn get_uvs(&self) -> Vec<Vec2> {
-        self.get_uv_vertexes()
+    fn get_uvs(&self, mode: VertexMode) -> Vec<Vec2> {
+        self.get_uv_vertexes(mode)
     }
     fn get_cell_radius(&self) -> f32 {
         self.cell_radius
@@ -428,7 +426,7 @@ mod tests {
 
         #[test]
         fn test_first_layer_circle() {
-            let vertices = FIRST_LAYER.get_positions();
+            let vertices = FIRST_LAYER.get_positions(VertexMode::Lines);
             assert_eq!(vertices.len(), 13 * 2);
 
             // The inner circle
@@ -580,7 +578,7 @@ mod tests {
 
         #[test]
         fn test_first_layer_uv() {
-            let uvs = FIRST_LAYER.get_uv_vertexes();
+            let uvs = FIRST_LAYER.get_uv_vertexes(VertexMode::Lines);
             assert_eq!(uvs.len(), 13 * 2);
 
             // Test first layer
@@ -655,7 +653,7 @@ mod tests {
 
         #[test]
         fn test_first_layer_indices() {
-            let indices = FIRST_LAYER.get_indices();
+            let indices = FIRST_LAYER.get_indices(VertexMode::Lines);
             assert_eq!(indices.len(), 12 * 6);
 
             // The first concentric circle
@@ -697,7 +695,7 @@ mod tests {
 
         #[test]
         fn test_first_layer_circle_partial() {
-            let vertices = FIRST_LAYER_PARTIAL.get_positions();
+            let vertices = FIRST_LAYER_PARTIAL.get_positions(VertexMode::Lines);
             assert_eq!(vertices.len(), 14);
 
             let radius = 3.0;
@@ -808,7 +806,7 @@ mod tests {
 
         #[test]
         fn test_first_layer_uv_partial() {
-            let uvs = FIRST_LAYER_PARTIAL.get_uv_vertexes();
+            let uvs = FIRST_LAYER_PARTIAL.get_uv_vertexes(VertexMode::Lines);
             assert_eq!(uvs.len(), 14);
 
             // Middle layer

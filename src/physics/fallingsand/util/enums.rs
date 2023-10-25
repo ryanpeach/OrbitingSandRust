@@ -4,7 +4,6 @@ pub enum MeshDrawMode {
     TexturedMesh,
     Outline,
     TriangleWireframe,
-    UVWireframe,
 }
 
 /// How to draw the mesh to, in the future, be handled by zoom levels
