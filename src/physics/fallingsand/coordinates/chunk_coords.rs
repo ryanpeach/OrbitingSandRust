@@ -16,6 +16,7 @@ use crate::physics::util::vectors::RelXyPoint;
 pub trait ChunkCoords: Send + Sync {
     /* Raw Data */
     fn get_outline(&self) -> Vec<Vec2>;
+    fn get_grid(&self) -> Vec<Vec2>;
     fn get_positions(&self) -> Vec<Vec2>;
     fn get_indices(&self) -> Vec<u32>;
     fn get_uvs(&self) -> Vec<Vec2>;

@@ -127,6 +127,10 @@ impl ChunkCoords for CoreChunkCoords {
     fn get_positions(&self) -> Vec<Vec2> {
         self.get_positions()
     }
+    /// For the core chunk, the grid is just the positions
+    fn get_grid(&self) -> Vec<Vec2> {
+        self.get_positions()
+    }
     /// Res does not matter at all for the core chunk
     fn get_indices(&self) -> Vec<u32> {
         self.get_indices()

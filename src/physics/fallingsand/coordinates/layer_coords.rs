@@ -128,13 +128,16 @@ impl PartialLayerChunkCoordsBuilder {
     }
 }
 
+/// The optimal way of drawing the vertexes is just to draw the radial lines.
+/// Because the texture will map along the column perfectly.
+/// However, if you want to see the whole grid you can use the grid vertexes.
+enum VertexMode {
+    Lines,
+    Grid,
+}
+
 impl PartialLayerChunkCoords {
-    /// Gets the positions of the vertexes of the chunk
-    /// These represent a radial grid of cells
-    /// If you set skip to 1, you will get the full resolution
-    /// If you set skip to 2, you will get half the resolution
-    /// ...
-    fn get_circle_vertexes(&self) -> Vec<Vec2> {
+    fn get_vertexes(&self, mode: VertexMode) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
         let start_concentric = self.start_concentric_circle_layer_relative;
@@ -146,10 +149,17 @@ impl PartialLayerChunkCoords {
             (ending_r - starting_r) / self.get_num_concentric_circles() as f32;
         let theta = (-2.0 * PI) / self.layer_num_radial_lines as f32;
 
-        for j in [
-            start_concentric,
-            self.get_num_concentric_circles() + start_concentric,
-        ] {
+        let concentric_range = match mode {
+            VertexMode::Lines => vec![
+                start_concentric,
+                self.get_num_concentric_circles() + start_concentric,
+            ],
+            VertexMode::Grid => (start_concentric
+                ..(self.get_num_concentric_circles() + start_concentric + 1))
+                .collect::<Vec<_>>(),
+        };
+
+        for j in concentric_range {
             let diff = (j - start_concentric) as f32 * circle_separation_distance;
 
             for k in start_radial..(self.end_radial_line + 1) {
@@ -320,7 +330,10 @@ impl ChunkCoords for PartialLayerChunkCoords {
         self.get_outline()
     }
     fn get_positions(&self) -> Vec<Vec2> {
-        self.get_circle_vertexes()
+        self.get_vertexes(VertexMode::Lines)
+    }
+    fn get_grid(&self) -> Vec<Vec2> {
+        self.get_vertexes(VertexMode::Grid)
     }
     fn get_indices(&self) -> Vec<u32> {
         self.get_indices()
@@ -415,7 +428,7 @@ mod tests {
 
         #[test]
         fn test_first_layer_circle() {
-            let vertices = FIRST_LAYER.get_circle_vertexes();
+            let vertices = FIRST_LAYER.get_positions();
             assert_eq!(vertices.len(), 13 * 2);
 
             // The inner circle
@@ -684,7 +697,7 @@ mod tests {
 
         #[test]
         fn test_first_layer_circle_partial() {
-            let vertices = FIRST_LAYER_PARTIAL.get_circle_vertexes();
+            let vertices = FIRST_LAYER_PARTIAL.get_positions();
             assert_eq!(vertices.len(), 14);
 
             let radius = 3.0;
