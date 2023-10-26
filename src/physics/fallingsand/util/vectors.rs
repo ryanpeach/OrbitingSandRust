@@ -79,6 +79,9 @@ pub struct IjkVector {
 /// Convienient constants
 impl IjkVector {
     pub const ZERO: Self = Self { i: 0, j: 0, k: 0 };
+    pub fn new(i: usize, j: usize, k: usize) -> Self {
+        Self { i, j, k }
+    }
     pub fn to_jk_vector(self) -> JkVector {
         JkVector {
             j: self.j,
