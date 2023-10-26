@@ -133,21 +133,21 @@ mod tests {
         use super::*;
         use crate::physics::fallingsand::{
             elements::element::ElementType,
-            util::vectors::{ChunkIjkVector, JkVector},
+            util::vectors::{ChunkIjkVector, IjkVector, JkVector},
         };
 
-        /// For some reason I am seeing hanging chunks.
-        #[test]
-        fn test_error_case_at_i6_j0_k0() {
-            let mut element_grid_dir = get_element_grid_dir();
+        fn assert_movement(
+            mut element_grid_dir: ElementGridDir,
+            loc1: (ChunkIjkVector, JkVector),
+            loc2: (ChunkIjkVector, JkVector),
+        ) {
             let mut clock = Clock::new();
 
             // Set the bottom right to sand
             {
-                let chunk =
-                    element_grid_dir.get_chunk_by_chunk_ijk_mut(ChunkIjkVector::new(6, 0, 0));
+                let chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc1.0);
                 let sand = Sand::default();
-                chunk.set(JkVector::new(0, 0), Box::new(sand), clock);
+                chunk.set(loc1.1, Box::new(sand), clock);
             }
 
             // Now process one frame
@@ -158,23 +158,60 @@ mod tests {
 
             // Now check that this chunk location no longer has sand
             {
-                let chunk =
-                    element_grid_dir.get_chunk_by_chunk_ijk_mut(ChunkIjkVector::new(6, 0, 0));
-                let previous_location_type = chunk.get(JkVector::new(0, 0)).get_type();
+                let chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc1.0);
+                let previous_location_type = chunk.get(loc1.1).get_type();
                 assert_ne!(previous_location_type, ElementType::Sand);
             }
 
             // Now check that the chunk below has sand
             {
-                let below_chunk =
-                    element_grid_dir.get_chunk_by_chunk_ijk_mut(ChunkIjkVector::new(5, 0, 0));
-                let below_chunk_nb_concentric_circles =
-                    below_chunk.get_chunk_coords().get_num_concentric_circles();
-                let below_location_type = below_chunk
-                    .get(JkVector::new(below_chunk_nb_concentric_circles - 1, 0))
-                    .get_type();
+                let below_chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc2.0);
+                let below_location_type = below_chunk.get(loc2.1).get_type();
                 assert_eq!(below_location_type, ElementType::Sand);
             }
         }
+
+        fn assert_movement_down_one_chunk(
+            this_cell_coord: IjkVector,
+            mut element_grid_dir: ElementGridDir,
+        ) {
+            let below_chunk_coord = ChunkIjkVector::new(this_cell_coord.i - 1, 0, 0);
+            let loc1 = element_grid_dir
+                .get_coordinate_dir()
+                .cell_idx_to_chunk_idx(this_cell_coord);
+            let loc2 = {
+                let below_chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(below_chunk_coord);
+                let below_chunk_nb_concentric_circles =
+                    below_chunk.get_chunk_coords().get_num_concentric_circles();
+                let below_cell_coord = IjkVector::new(
+                    this_cell_coord.i - 1,
+                    below_chunk_nb_concentric_circles - 1,
+                    this_cell_coord.k / 2,
+                );
+                element_grid_dir
+                    .get_coordinate_dir()
+                    .cell_idx_to_chunk_idx(below_cell_coord)
+            };
+
+            assert_movement(element_grid_dir, loc1, loc2);
+        }
+
+        macro_rules! test_error_case {
+            ($name:ident, $i:expr) => {
+                #[test]
+                fn $name() {
+                    let element_grid_dir = get_element_grid_dir();
+                    assert_movement_down_one_chunk(IjkVector::new($i, 0, 0), element_grid_dir);
+                }
+            };
+        }
+
+        // Usage:
+        test_error_case!(test_error_case_at_i6, 6);
+        test_error_case!(test_error_case_at_i5, 5);
+        test_error_case!(test_error_case_at_i4, 4);
+        test_error_case!(test_error_case_at_i3, 3);
+        test_error_case!(test_error_case_at_i2, 2);
+        test_error_case!(test_error_case_at_i1, 1);
     }
 }
