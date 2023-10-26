@@ -202,4 +202,12 @@ impl ElementGrid {
             ),
         }
     }
+
+    /// Save the grid
+    /// dir_path is the path to the directory where the grid will be saved WITHOUT a trailing slash
+    pub fn save(&self, ctx: &mut ggez::Context, dir_path: &str) -> Result<(), ggez::GameError> {
+        let idx = self.get_chunk_coords().get_chunk_idx();
+        let chunk_path = format!("{}/i{}_j{}_k{}.png", dir_path, idx.i, idx.j, idx.k);
+        self.get_texture().save(ctx, chunk_path.as_str())
+    }
 }

@@ -5,19 +5,25 @@ use ggez::{
     Context,
 };
 
-use crate::nodes::camera::Camera;
+use crate::nodes::{camera::Camera, celestial::Celestial};
 
 pub struct CameraWindow {
     outline: bool,
     wireframe: bool,
+    queue_save: bool,
+    path: String,
     gui: Gui,
 }
 
 impl CameraWindow {
     pub fn new(ctx: &Context) -> Self {
+        // let pwd = std::env::current_dir().unwrap();
+        // let pwdstr = pwd.to_str().unwrap();
         Self {
             outline: false,
             wireframe: false,
+            queue_save: false,
+            path: ".".to_owned(),
             gui: Gui::new(ctx),
         }
     }
@@ -31,6 +37,12 @@ impl CameraWindow {
             ui.separator();
             ui.checkbox(&mut self.outline, "Outline");
             ui.checkbox(&mut self.wireframe, "Wireframe");
+            // Create a save button and a path selector
+            ui.separator();
+            ui.label(format!("Save to: {}", self.path));
+            if ui.button("Save").clicked() {
+                self.queue_save = true;
+            }
         });
         self.gui.update(ctx);
     }
@@ -45,5 +57,15 @@ impl CameraWindow {
 
     pub fn get_wireframe(&self) -> bool {
         self.wireframe
+    }
+
+    pub fn save_optionally(&mut self, ctx: &mut Context, celestial: &Celestial) {
+        if self.queue_save {
+            self.queue_save = false;
+            match celestial.save(ctx, &self.path) {
+                Ok(_) => println!("Saved to {}", self.path),
+                Err(e) => println!("Error saving to {}: {}", self.path, e),
+            }
+        }
     }
 }
