@@ -71,6 +71,9 @@ impl EventHandler<ggez::GameError> for MainState {
 
         // Process the celestial
         self.celestial.process(self.current_time);
+
+        // Save the celestial if requested
+        self.camera_window.save_optionally(ctx, &self.celestial);
         Ok(())
     }
 

@@ -40,6 +40,15 @@ impl Celestial {
         out
     }
 
+    /// Save the combined mesh and textures to a directory
+    /// As well as all the chunks
+    pub fn save(&self, ctx: &mut Context, dir_path: &str) -> Result<(), ggez::GameError> {
+        let img = self.get_combined_mesh_texture().1.to_image(ctx);
+        let combined_path = format!("{}/combined.png", dir_path);
+        img.encode(ctx, ggez::graphics::ImageEncodingFormat::Png, combined_path)?;
+        self.element_grid_dir.save(ctx, dir_path)
+    }
+
     /// Something to call only on MAJOR changes, not every frame
     fn ready(&mut self) {
         let _res = 31;
@@ -84,7 +93,7 @@ impl Celestial {
             .rotation(camera.get_rotation())
             .offset(Vec2::new(0.5, 0.5));
 
-        let (meshdata, rawimg) = self.get_combined_mesh_texture(camera);
+        let (meshdata, rawimg) = self.get_combined_mesh_texture();
         let mesh = Mesh::from_data(ctx, meshdata.to_mesh_data());
         let img = rawimg.to_image(ctx);
         canvas.draw_textured_mesh(mesh, img, draw_params);
@@ -118,7 +127,7 @@ impl Celestial {
         canvas.draw(&mesh, draw_params);
     }
 
-    pub fn get_combined_mesh_texture(&self, _camera: &Camera) -> (&OwnedMeshData, RawImage) {
+    pub fn get_combined_mesh_texture(&self) -> (&OwnedMeshData, RawImage) {
         // let filter = self.frustum_cull(camera);
         (
             &self.combined_mesh,
