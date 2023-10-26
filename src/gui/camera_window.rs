@@ -22,8 +22,8 @@ impl CameraWindow {
         Self {
             outline: false,
             wireframe: false,
-            queue_save: false,
-            path: ".".to_owned(),
+            queue_save: true,
+            path: "".to_owned(),
             gui: Gui::new(ctx),
         }
     }
@@ -39,7 +39,6 @@ impl CameraWindow {
             ui.checkbox(&mut self.wireframe, "Wireframe");
             // Create a save button and a path selector
             ui.separator();
-            ui.label(format!("Save to: {}", self.path));
             if ui.button("Save").clicked() {
                 self.queue_save = true;
             }
@@ -63,7 +62,7 @@ impl CameraWindow {
         if self.queue_save {
             self.queue_save = false;
             match celestial.save(ctx, &self.path) {
-                Ok(_) => println!("Saved to {}", self.path),
+                Ok(_) => println!("Saved to '{}'", self.path),
                 Err(e) => println!("Error saving to {}: {}", self.path, e),
             }
         }

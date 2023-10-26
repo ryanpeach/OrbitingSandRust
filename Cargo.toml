@@ -18,6 +18,9 @@ rayon = "1.8.0"
 serde = "1.0.189"
 serde_yaml = "0.9.25"
 
+[patch.crates-io]
+ggez = { git="https://github.com/ryanpeach/ggez.git", branch="feature/fix-image-master" }
+
 [dev-dependencies]
 criterion = { version = "0.4", features = ["html_reports"] }
 
@@ -31,3 +34,6 @@ path = "src/lib.rs"
 [[bin]]
 name = "daemon"
 path = "scenes/fallingsand.rs"
+
+[net]
+git-fetch-with-cli = true

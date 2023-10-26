@@ -1,5 +1,7 @@
 extern crate orbiting_sand;
 
+use std::{env, path};
+
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
 use ggez::glam::Vec2;
@@ -65,6 +67,9 @@ impl EventHandler<ggez::GameError> for MainState {
         // Update the gui
         self.camera_window.update(ctx, &self.camera);
 
+        // Save the celestial if requested
+        self.camera_window.save_optionally(ctx, &self.celestial);
+
         // Update the clock
         let delta_time = ctx.time.delta();
         self.current_time.update(delta_time);
@@ -72,8 +77,6 @@ impl EventHandler<ggez::GameError> for MainState {
         // Process the celestial
         self.celestial.process(self.current_time);
 
-        // Save the celestial if requested
-        self.camera_window.save_optionally(ctx, &self.celestial);
         Ok(())
     }
 
@@ -144,9 +147,23 @@ impl EventHandler<ggez::GameError> for MainState {
 }
 
 pub fn main() -> GameResult {
+    let resource_dir = if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
+        let mut path = path::PathBuf::from(manifest_dir);
+        path.push("saves");
+        path
+    } else {
+        path::PathBuf::from("./saves")
+    };
+
     let wm = WindowMode::default().dimensions(1920.0, 1080.0);
-    let cb = ggez::ContextBuilder::new("drawing", "ggez").window_mode(wm);
+    let cb = ggez::ContextBuilder::new("drawing", "ggez")
+        .add_resource_path(resource_dir)
+        .window_mode(wm);
     let (mut ctx, events_loop) = cb.build()?;
+    println!("Full filesystem info: {:#?}", ctx.fs);
+
+    println!("Resource stats:");
+    ctx.fs.print_all();
     let state = MainState::new(&mut ctx).unwrap();
     event::run(ctx, events_loop, state)
 }
