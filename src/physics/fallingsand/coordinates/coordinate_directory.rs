@@ -713,7 +713,7 @@ impl CoordinateDir {
         }
     }
 
-    pub fn cell_idx_to_chunk_idx(&self, cell_idx: IjkVector) -> ChunkIjkVector {
+    pub fn cell_idx_to_chunk_idx(&self, cell_idx: IjkVector) -> (ChunkIjkVector, JkVector) {
         let chunk_layer_num_concentric_circles =
             self.get_layer_chunk_num_concentric_circles(cell_idx.i);
         let chunk_layer_num_radial_lines = self.get_layer_chunk_num_radial_lines(cell_idx.i);
@@ -721,11 +721,17 @@ impl CoordinateDir {
         let ck = cell_idx.k / chunk_layer_num_radial_lines;
         debug_assert!(cj < self.get_layer_num_concentric_chunks(cell_idx.i));
         debug_assert!(ck < self.get_layer_num_radial_chunks(cell_idx.i));
-        ChunkIjkVector {
-            i: cell_idx.i,
-            j: cj,
-            k: ck,
-        }
+        (
+            ChunkIjkVector {
+                i: cell_idx.i,
+                j: cj,
+                k: ck,
+            },
+            JkVector {
+                j: cell_idx.j % chunk_layer_num_concentric_circles,
+                k: cell_idx.k % chunk_layer_num_radial_lines,
+            },
+        )
     }
 }
 
@@ -1097,7 +1103,8 @@ mod tests {
                     // This radius and theta should define the midpoint of each cell
                     let coord = IjkVector { i, j, k };
                     let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
-                    assert_eq!(chunk_idx, ChunkIjkVector { i: 0, j: 0, k: 0 },);
+                    assert_eq!(chunk_idx.0, ChunkIjkVector { i: 0, j: 0, k: 0 },);
+                    assert_eq!(chunk_idx.1, JkVector { j: 0, k });
                 }
 
                 // Test the rest
@@ -1120,7 +1127,14 @@ mod tests {
                                 {
                                     let coord = IjkVector { i, j, k };
                                     let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
-                                    assert_eq!(chunk_idx, ChunkIjkVector { i, j: cj, k: ck });
+                                    assert_eq!(chunk_idx.0, ChunkIjkVector { i, j: cj, k: ck });
+                                    assert_eq!(
+                                        chunk_idx.1,
+                                        JkVector {
+                                            j: j - total_concentric_circles,
+                                            k: k - total_radial_lines
+                                        }
+                                    );
                                 }
                             }
                             total_radial_lines += chunk_num_radial_lines;

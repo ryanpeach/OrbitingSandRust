@@ -316,7 +316,7 @@ mod tests {
             });
             let cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
             let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(cell_idx);
-            let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx);
+            let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx.0);
             assert_eq!(
                 chunk.rel_pos_to_cell_idx(xycoord).unwrap(),
                 IjkVector { i, j, k },
@@ -347,7 +347,7 @@ mod tests {
                     });
                     let cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
                     let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(cell_idx);
-                    let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx);
+                    let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx.0);
                     assert_eq!(
                         chunk.rel_pos_to_cell_idx(xycoord).unwrap(),
                         IjkVector { i, j, k }
@@ -374,7 +374,7 @@ mod tests {
             // This radius and theta should define the midpoint of each cell
             let coord = IjkVector { i, j, k };
             let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
-            let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx);
+            let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx.0);
             assert_eq!(
                 chunk.absolute_cell_idx_to_in_chunk_cell_idx(coord),
                 Ok(coord.to_jk_vector())
@@ -404,7 +404,7 @@ mod tests {
                             };
                             let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(absolute_coord);
                             // assert_eq!(chunk_idx, ChunkIjkVector { i, j: cj, k: ck });
-                            let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx);
+                            let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx.0);
                             assert_eq!(
                                 chunk.absolute_cell_idx_to_in_chunk_cell_idx(absolute_coord),
                                 Ok(in_chunk_coord)
