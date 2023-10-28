@@ -118,6 +118,9 @@ impl Celestial {
     pub fn get_element_dir(&self) -> &ElementGridDir {
         &self.element_grid_dir
     }
+    pub fn get_element_dir_mut(&mut self) -> &mut ElementGridDir {
+        &mut self.element_grid_dir
+    }
 }
 
 impl Celestial {

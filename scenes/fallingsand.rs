@@ -22,6 +22,7 @@ use orbiting_sand::nodes::celestial::Celestial;
 
 use orbiting_sand::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
 use orbiting_sand::physics::util::clock::Clock;
+use orbiting_sand::physics::util::vectors::RelXyPoint;
 
 // =================
 // Helper methods
@@ -161,6 +162,29 @@ impl EventHandler<ggez::GameError> for MainState {
     ) -> Result<(), ggez::GameError> {
         println!("Mouse pos: ({}, {})", x, y);
         self.cursor_tooltip.set_pos(Point2 { x, y }, &self.camera);
+        Ok(())
+    }
+
+    fn mouse_button_down_event(
+        &mut self,
+        _ctx: &mut Context,
+        _button: event::MouseButton,
+        x: f32,
+        y: f32,
+    ) -> Result<(), ggez::GameError> {
+        let coordinate_dir = self.celestial.get_element_dir().get_coordinate_dir();
+        let coords = {
+            let world_coord = self.camera.screen_to_world_coords(Point2 { x, y });
+            match coordinate_dir.rel_pos_to_cell_idx(RelXyPoint(world_coord.into())) {
+                Ok(coords) => coords,
+                Err(coords) => coords,
+            }
+        };
+        self.celestial.get_element_dir_mut().set_element(
+            coords,
+            Box::<Sand>::default(),
+            self.current_time,
+        );
         Ok(())
     }
 }
