@@ -10,6 +10,7 @@ use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
 use orbiting_sand::gui::camera_window::CameraWindow;
+use orbiting_sand::gui::cursor_tooltip::CursorTooltip;
 use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
 use orbiting_sand::physics::fallingsand::elements::element::Element;
 use orbiting_sand::physics::fallingsand::elements::sand::Sand;
@@ -31,6 +32,7 @@ use orbiting_sand::physics::util::clock::Clock;
 struct MainState {
     celestial: Celestial,
     camera: Camera,
+    cursor_tooltip: CursorTooltip,
     camera_window: CameraWindow,
     current_time: Clock,
 }
@@ -56,6 +58,7 @@ impl MainState {
         Ok(MainState {
             celestial,
             camera,
+            cursor_tooltip: CursorTooltip::new(ctx),
             camera_window: CameraWindow::new(ctx),
             current_time: Clock::new(),
         })
@@ -66,6 +69,8 @@ impl EventHandler<ggez::GameError> for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         // Update the gui
         self.camera_window.update(ctx, &self.camera);
+        self.cursor_tooltip
+            .update(ctx, &self.camera, &self.celestial);
 
         // Save the celestial if requested
         self.camera_window.save_optionally(ctx, &self.celestial);
@@ -96,6 +101,7 @@ impl EventHandler<ggez::GameError> for MainState {
 
         // Draw the gui
         self.camera_window.draw(&mut canvas);
+        self.cursor_tooltip.draw(&mut canvas);
 
         let _ = canvas.finish(ctx);
         Ok(())
@@ -142,6 +148,19 @@ impl EventHandler<ggez::GameError> for MainState {
         } else if _y < 0.0 {
             self.camera.zoom_out();
         }
+        Ok(())
+    }
+
+    fn mouse_motion_event(
+        &mut self,
+        _ctx: &mut Context,
+        x: f32,
+        y: f32,
+        _dx: f32,
+        _dy: f32,
+    ) -> Result<(), ggez::GameError> {
+        println!("Mouse pos: ({}, {})", x, y);
+        self.cursor_tooltip.set_pos(Vec2::new(x, y), &self.camera);
         Ok(())
     }
 }

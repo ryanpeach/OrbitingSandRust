@@ -49,6 +49,8 @@ impl Camera {
         Vec2::new(x, y)
     }
 
+    pub fn screen_to_world_coords(&self, screen_pos: Vec2) -> Vec2 {}
+
     pub fn get_screen_coords(&self) -> Vec2 {
         self.world_to_screen_coords(self.get_world_coords())
     }

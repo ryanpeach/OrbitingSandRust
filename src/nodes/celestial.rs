@@ -140,6 +140,9 @@ impl Celestial {
     pub fn get_all_textures(&self) -> &HashMap<ChunkIjkVector, RawImage> {
         &self.all_textures
     }
+    pub fn get_element_dir(&self) -> &ElementGridDir {
+        &self.element_grid_dir
+    }
 }
 
 impl Celestial {
