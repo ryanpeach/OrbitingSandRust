@@ -9,6 +9,7 @@ use ggez::graphics::{self, FilterMode, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
+use mint::{Point2, Vector2};
 use orbiting_sand::gui::camera_window::CameraWindow;
 use orbiting_sand::gui::cursor_tooltip::CursorTooltip;
 use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
@@ -16,7 +17,7 @@ use orbiting_sand::physics::fallingsand::elements::element::Element;
 use orbiting_sand::physics::fallingsand::elements::sand::Sand;
 use orbiting_sand::physics::fallingsand::elements::vacuum::Vacuum;
 
-use orbiting_sand::nodes::camera::Camera;
+use orbiting_sand::nodes::camera::cam::Camera;
 use orbiting_sand::nodes::celestial::Celestial;
 
 use orbiting_sand::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
@@ -90,13 +91,12 @@ impl EventHandler<ggez::GameError> for MainState {
         canvas.set_sampler(Sampler::from(FilterMode::Nearest));
 
         // Draw the celestial
-        self.celestial.draw(ctx, &mut canvas, &self.camera);
+        self.celestial.draw(ctx, &mut canvas, self.camera);
         if self.camera_window.get_outline() {
-            self.celestial.draw_outline(ctx, &mut canvas, &self.camera);
+            self.celestial.draw_outline(ctx, &mut canvas, self.camera);
         }
         if self.camera_window.get_wireframe() {
-            self.celestial
-                .draw_wireframe(ctx, &mut canvas, &self.camera);
+            self.celestial.draw_wireframe(ctx, &mut canvas, self.camera);
         }
 
         // Draw the gui
@@ -115,16 +115,16 @@ impl EventHandler<ggez::GameError> for MainState {
     ) -> GameResult {
         match input.keycode {
             Some(KeyCode::W) => {
-                self.camera.move_up();
+                self.camera.move_by_screen_coords(Point2 { x: 0., y: 1. });
             }
             Some(KeyCode::A) => {
-                self.camera.move_right();
+                self.camera.move_by_screen_coords(Point2 { x: 1., y: 0. });
             }
             Some(KeyCode::S) => {
-                self.camera.move_down();
+                self.camera.move_by_screen_coords(Point2 { x: 0., y: -1. });
             }
             Some(KeyCode::D) => {
-                self.camera.move_left();
+                self.camera.move_by_screen_coords(Point2 { x: -1., y: 0. });
             }
             // Some(KeyCode::Q) => {
             //     self.camera.RotateLeft();
@@ -144,9 +144,9 @@ impl EventHandler<ggez::GameError> for MainState {
         _y: f32,
     ) -> Result<(), ggez::GameError> {
         if _y > 0.0 {
-            self.camera.zoom_in();
+            self.camera.zoom(Vector2 { x: 0.9, y: 0.9 });
         } else if _y < 0.0 {
-            self.camera.zoom_out();
+            self.camera.zoom(Vector2 { x: 1.1, y: 1.1 });
         }
         Ok(())
     }
@@ -160,7 +160,7 @@ impl EventHandler<ggez::GameError> for MainState {
         _dy: f32,
     ) -> Result<(), ggez::GameError> {
         println!("Mouse pos: ({}, {})", x, y);
-        self.cursor_tooltip.set_pos(Vec2::new(x, y), &self.camera);
+        self.cursor_tooltip.set_pos(Point2 { x, y }, &self.camera);
         Ok(())
     }
 }
