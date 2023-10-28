@@ -13,9 +13,7 @@ use mint::{Point2, Vector2};
 use orbiting_sand::gui::camera_window::CameraWindow;
 use orbiting_sand::gui::cursor_tooltip::CursorTooltip;
 use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
-use orbiting_sand::physics::fallingsand::elements::element::Element;
 use orbiting_sand::physics::fallingsand::elements::sand::Sand;
-use orbiting_sand::physics::fallingsand::elements::vacuum::Vacuum;
 
 use orbiting_sand::nodes::camera::cam::Camera;
 use orbiting_sand::nodes::celestial::Celestial;
@@ -190,8 +188,8 @@ impl EventHandler<ggez::GameError> for MainState {
         &mut self,
         _ctx: &mut Context,
         _button: event::MouseButton,
-        x: f32,
-        y: f32,
+        _x: f32,
+        _y: f32,
     ) -> Result<(), ggez::GameError> {
         self.mouse_down = true;
         Ok(())
