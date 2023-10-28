@@ -9,17 +9,20 @@ use ggez::graphics::{self, FilterMode, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
+use mint::{Point2, Vector2};
 use orbiting_sand::gui::camera_window::CameraWindow;
+use orbiting_sand::gui::cursor_tooltip::CursorTooltip;
 use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
 use orbiting_sand::physics::fallingsand::elements::element::Element;
 use orbiting_sand::physics::fallingsand::elements::sand::Sand;
 use orbiting_sand::physics::fallingsand::elements::vacuum::Vacuum;
 
-use orbiting_sand::nodes::camera::Camera;
+use orbiting_sand::nodes::camera::cam::Camera;
 use orbiting_sand::nodes::celestial::Celestial;
 
 use orbiting_sand::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
 use orbiting_sand::physics::util::clock::Clock;
+use orbiting_sand::physics::util::vectors::RelXyPoint;
 
 // =================
 // Helper methods
@@ -31,6 +34,7 @@ use orbiting_sand::physics::util::clock::Clock;
 struct MainState {
     celestial: Celestial,
     camera: Camera,
+    cursor_tooltip: CursorTooltip,
     camera_window: CameraWindow,
     current_time: Clock,
 }
@@ -56,6 +60,7 @@ impl MainState {
         Ok(MainState {
             celestial,
             camera,
+            cursor_tooltip: CursorTooltip::new(ctx),
             camera_window: CameraWindow::new(ctx),
             current_time: Clock::new(),
         })
@@ -66,6 +71,8 @@ impl EventHandler<ggez::GameError> for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         // Update the gui
         self.camera_window.update(ctx, &self.camera);
+        self.cursor_tooltip
+            .update(ctx, &self.camera, &self.celestial);
 
         // Save the celestial if requested
         self.camera_window.save_optionally(ctx, &self.celestial);
@@ -85,17 +92,17 @@ impl EventHandler<ggez::GameError> for MainState {
         canvas.set_sampler(Sampler::from(FilterMode::Nearest));
 
         // Draw the celestial
-        self.celestial.draw(ctx, &mut canvas, &self.camera);
+        self.celestial.draw(ctx, &mut canvas, self.camera);
         if self.camera_window.get_outline() {
-            self.celestial.draw_outline(ctx, &mut canvas, &self.camera);
+            self.celestial.draw_outline(ctx, &mut canvas, self.camera);
         }
         if self.camera_window.get_wireframe() {
-            self.celestial
-                .draw_wireframe(ctx, &mut canvas, &self.camera);
+            self.celestial.draw_wireframe(ctx, &mut canvas, self.camera);
         }
 
         // Draw the gui
         self.camera_window.draw(&mut canvas);
+        self.cursor_tooltip.draw(&mut canvas);
 
         let _ = canvas.finish(ctx);
         Ok(())
@@ -109,16 +116,16 @@ impl EventHandler<ggez::GameError> for MainState {
     ) -> GameResult {
         match input.keycode {
             Some(KeyCode::W) => {
-                self.camera.move_up();
+                self.camera.move_by_screen_coords(Point2 { x: 0., y: 1. });
             }
             Some(KeyCode::A) => {
-                self.camera.move_right();
+                self.camera.move_by_screen_coords(Point2 { x: 1., y: 0. });
             }
             Some(KeyCode::S) => {
-                self.camera.move_down();
+                self.camera.move_by_screen_coords(Point2 { x: 0., y: -1. });
             }
             Some(KeyCode::D) => {
-                self.camera.move_left();
+                self.camera.move_by_screen_coords(Point2 { x: -1., y: 0. });
             }
             // Some(KeyCode::Q) => {
             //     self.camera.RotateLeft();
@@ -138,10 +145,46 @@ impl EventHandler<ggez::GameError> for MainState {
         _y: f32,
     ) -> Result<(), ggez::GameError> {
         if _y > 0.0 {
-            self.camera.zoom_in();
+            self.camera.zoom(Vector2 { x: 0.9, y: 0.9 });
         } else if _y < 0.0 {
-            self.camera.zoom_out();
+            self.camera.zoom(Vector2 { x: 1.1, y: 1.1 });
         }
+        Ok(())
+    }
+
+    fn mouse_motion_event(
+        &mut self,
+        _ctx: &mut Context,
+        x: f32,
+        y: f32,
+        _dx: f32,
+        _dy: f32,
+    ) -> Result<(), ggez::GameError> {
+        println!("Mouse pos: ({}, {})", x, y);
+        self.cursor_tooltip.set_pos(Point2 { x, y }, &self.camera);
+        Ok(())
+    }
+
+    fn mouse_button_down_event(
+        &mut self,
+        _ctx: &mut Context,
+        _button: event::MouseButton,
+        x: f32,
+        y: f32,
+    ) -> Result<(), ggez::GameError> {
+        let coordinate_dir = self.celestial.get_element_dir().get_coordinate_dir();
+        let coords = {
+            let world_coord = self.camera.screen_to_world_coords(Point2 { x, y });
+            match coordinate_dir.rel_pos_to_cell_idx(RelXyPoint(world_coord.into())) {
+                Ok(coords) => coords,
+                Err(coords) => coords,
+            }
+        };
+        self.celestial.get_element_dir_mut().set_element(
+            coords,
+            Box::<Sand>::default(),
+            self.current_time,
+        );
         Ok(())
     }
 }

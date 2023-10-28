@@ -209,8 +209,8 @@ pub trait ChunkCoords: Send + Sync {
         let j = j_rel.min(end_concentric_circle - 1) + start_concentric_circle;
 
         // Get the radial line to the left of the vertex
-        let angle = (xy_coord.0.y.atan2(xy_coord.0.x) + 2.0 * PI) % (2.0 * PI);
-        let theta = (end_radial_theta - start_radial_theta) / num_radial_lines as f32;
+        let angle = (xy_coord.0.y.atan2(xy_coord.0.x) + -2.0 * PI) % (2.0 * PI);
+        let theta = -(end_radial_theta - start_radial_theta) / num_radial_lines as f32;
 
         // Calculate 'k' directly without the while loop
         let k_rel = (angle / theta).floor() as usize;
@@ -308,7 +308,7 @@ mod tests {
         for k in 0..coordinate_dir.get_core_chunk().get_num_radial_lines() {
             // This radius and theta should define the midpoint of each cell
             let radius = coordinate_dir.get_cell_radius() / 2.0;
-            let theta = 2.0 * PI / coordinate_dir.get_core_chunk().get_num_radial_lines() as f32
+            let theta = -2.0 * PI / coordinate_dir.get_core_chunk().get_num_radial_lines() as f32
                 * (k as f32 + 0.5);
             let xycoord = RelXyPoint(Vec2 {
                 x: radius * theta.cos(),
@@ -340,7 +340,7 @@ mod tests {
                             - coordinate_dir.get_layer_start_radius(i))
                             / num_concentric_circles as f32
                             * (j as f32 + 0.5);
-                    let theta = 2.0 * PI / num_radial_lines as f32 * (k as f32 + 0.5);
+                    let theta = -2.0 * PI / num_radial_lines as f32 * (k as f32 + 0.5);
                     let xycoord = RelXyPoint(Vec2 {
                         x: radius * theta.cos(),
                         y: radius * theta.sin(),

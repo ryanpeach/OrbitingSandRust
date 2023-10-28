@@ -14,6 +14,7 @@ debug = true
 ggegui = "0.3.7"
 ggez = "0.9.3"
 hashbrown = { version = "0.14.2", features = ["rayon", "ahash"] }
+mint = "0.5.9"
 rayon = "1.8.0"
 serde = "1.0.189"
 serde_yaml = "0.9.25"

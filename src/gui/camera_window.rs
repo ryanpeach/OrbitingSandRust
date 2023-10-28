@@ -5,7 +5,7 @@ use ggez::{
     Context,
 };
 
-use crate::nodes::{camera::Camera, celestial::Celestial};
+use crate::nodes::{camera::cam::Camera, celestial::Celestial};
 
 pub struct CameraWindow {
     outline: bool,
@@ -31,7 +31,7 @@ impl CameraWindow {
     pub fn update(&mut self, ctx: &mut Context, camera: &Camera) {
         let gui_ctx = self.gui.ctx();
         egui::Window::new("Title").show(&gui_ctx, |ui| {
-            ui.label(format!("zoom: {}", camera.get_zoom()));
+            ui.label(format!("zoom: {:?}", camera.get_zoom()));
             ui.label(format!("FPS: {}", ctx.time.fps()));
             // Set a radiomode for "DrawMode"
             ui.separator();

@@ -13,7 +13,7 @@ use super::elements::element::Element;
 use super::util::functions::modulo;
 use super::util::grid::Grid;
 use super::util::image::RawImage;
-use super::util::vectors::{ChunkIjkVector, JkVector};
+use super::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 
 use rayon::prelude::*;
 
@@ -710,6 +710,24 @@ impl ElementGridDir {
             .get_mut(coord.to_jk_vector())
             .as_mut()
             .unwrap()
+    }
+
+    #[allow(clippy::borrowed_box)]
+    pub fn get_element(&self, coord: IjkVector) -> &Box<dyn Element> {
+        let chunk_idx = self.get_coordinate_dir().cell_idx_to_chunk_idx(coord);
+        let chunk = self.get_chunk_by_chunk_ijk(chunk_idx.0);
+        chunk.get(chunk_idx.1)
+    }
+
+    pub fn set_element(
+        &mut self,
+        coord: IjkVector,
+        element: Box<dyn Element>,
+        current_time: Clock,
+    ) {
+        let chunk_idx = self.get_coordinate_dir().cell_idx_to_chunk_idx(coord);
+        let chunk = self.get_chunk_by_chunk_ijk_mut(chunk_idx.0);
+        chunk.set(chunk_idx.1, element, current_time);
     }
 
     pub fn get_coordinate_dir(&self) -> &CoordinateDir {

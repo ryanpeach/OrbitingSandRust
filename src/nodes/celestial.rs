@@ -1,7 +1,6 @@
 use hashbrown::HashMap;
 
-use ggez::glam::Vec2;
-use ggez::graphics::{self, Canvas, Mesh, Rect};
+use ggez::graphics::{Canvas, Mesh, Rect};
 use ggez::Context;
 
 use crate::physics::fallingsand::element_directory::ElementGridDir;
@@ -12,7 +11,7 @@ use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::util::clock::Clock;
 
-use super::camera::Camera;
+use super::camera::cam::Camera;
 
 /// Acts as a cache for a radial mesh's meshes and textures
 pub struct Celestial {
@@ -83,48 +82,24 @@ impl Celestial {
     }
 
     /// Draw the textures
-    pub fn draw(&self, ctx: &mut Context, canvas: &mut Canvas, camera: &Camera) {
+    pub fn draw(&self, ctx: &mut Context, canvas: &mut Canvas, camera: Camera) {
         // Draw planets
-        let pos = camera.get_screen_coords();
-        let zoom = camera.get_zoom();
-        let draw_params = graphics::DrawParam::new()
-            .dest(pos)
-            .scale(Vec2::new(zoom, zoom))
-            .rotation(camera.get_rotation())
-            .offset(Vec2::new(0.5, 0.5));
-
         let (meshdata, rawimg) = self.get_combined_mesh_texture();
         let mesh = Mesh::from_data(ctx, meshdata.to_mesh_data());
         let img = rawimg.to_image(ctx);
-        canvas.draw_textured_mesh(mesh, img, draw_params);
+        canvas.draw_textured_mesh(mesh, img, camera);
     }
 
-    pub fn draw_outline(&self, ctx: &mut Context, canvas: &mut Canvas, camera: &Camera) {
+    pub fn draw_outline(&self, ctx: &mut Context, canvas: &mut Canvas, camera: Camera) {
         // Draw planets
-        let pos = camera.get_screen_coords();
-        let zoom = camera.get_zoom();
-        let draw_params = graphics::DrawParam::new()
-            .dest(pos)
-            .scale(Vec2::new(zoom, zoom))
-            .rotation(camera.get_rotation())
-            .offset(Vec2::new(0.5, 0.5));
-
         let mesh = Mesh::from_data(ctx, self.combined_outline_mesh.to_mesh_data());
-        canvas.draw(&mesh, draw_params);
+        canvas.draw(&mesh, camera);
     }
 
-    pub fn draw_wireframe(&self, ctx: &mut Context, canvas: &mut Canvas, camera: &Camera) {
+    pub fn draw_wireframe(&self, ctx: &mut Context, canvas: &mut Canvas, camera: Camera) {
         // Draw planets
-        let pos = camera.get_screen_coords();
-        let zoom = camera.get_zoom();
-        let draw_params = graphics::DrawParam::new()
-            .dest(pos)
-            .scale(Vec2::new(zoom, zoom))
-            .rotation(camera.get_rotation())
-            .offset(Vec2::new(0.5, 0.5));
-
         let mesh = Mesh::from_data(ctx, self.combined_wireframe_mesh.to_mesh_data());
-        canvas.draw(&mesh, draw_params);
+        canvas.draw(&mesh, camera);
     }
 
     pub fn get_combined_mesh_texture(&self) -> (&OwnedMeshData, RawImage) {
@@ -140,12 +115,18 @@ impl Celestial {
     pub fn get_all_textures(&self) -> &HashMap<ChunkIjkVector, RawImage> {
         &self.all_textures
     }
+    pub fn get_element_dir(&self) -> &ElementGridDir {
+        &self.element_grid_dir
+    }
+    pub fn get_element_dir_mut(&mut self) -> &mut ElementGridDir {
+        &mut self.element_grid_dir
+    }
 }
 
 impl Celestial {
     /// Produces a mask of which chunks are visible, true if visible, false if not
     fn frustum_cull(&self, camera: &Camera) -> Vec<Grid<bool>> {
-        let cam_bb = &camera.get_bounding_box();
+        let cam_bb = &camera.world_coord_bounding_box();
         let mut out =
             Vec::with_capacity(self.element_grid_dir.get_coordinate_dir().get_num_layers());
         for layer in self.get_all_bounding_boxes() {
