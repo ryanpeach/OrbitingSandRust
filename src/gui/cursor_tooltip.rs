@@ -46,6 +46,10 @@ impl CursorTooltip {
                 chunk_coords.0.i, chunk_coords.0.j, chunk_coords.0.k
             ));
             ui.label(format!(
+                "JkCoord: ({}, {})",
+                chunk_coords.1.j, chunk_coords.1.k
+            ));
+            ui.label(format!(
                 "Type: {:?}",
                 celestial.get_element_dir().get_element(coords).get_type()
             ))

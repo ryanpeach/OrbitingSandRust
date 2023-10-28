@@ -81,13 +81,9 @@ impl Element for Sand {
                 Ok(idx) => {
                     if let Ok(element) = element_grid_conv.get(target_chunk, idx) {
                         match element.get_type() {
-                            ElementType::Vacuum => self.try_swap_me(
-                                pos,
-                                idx,
-                                target_chunk,
-                                element_grid_conv,
-                                current_time,
-                            ),
+                            ElementType::Vacuum => {
+                                self.try_swap_me(idx, target_chunk, element_grid_conv, current_time)
+                            }
                             _ => ElementTakeOptions::PutBack,
                         }
                     } else {
@@ -171,47 +167,22 @@ mod tests {
             }
         }
 
-        fn assert_movement_down_one_chunk(
-            this_cell_coord: IjkVector,
-            mut element_grid_dir: ElementGridDir,
-        ) {
-            let below_chunk_coord = ChunkIjkVector::new(this_cell_coord.i - 1, 0, 0);
-            let loc1 = element_grid_dir
-                .get_coordinate_dir()
-                .cell_idx_to_chunk_idx(this_cell_coord);
-            let loc2 = {
-                let below_chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(below_chunk_coord);
-                let below_chunk_nb_concentric_circles =
-                    below_chunk.get_chunk_coords().get_num_concentric_circles();
-                let below_cell_coord = IjkVector::new(
-                    this_cell_coord.i - 1,
-                    below_chunk_nb_concentric_circles - 1,
-                    this_cell_coord.k / 2,
-                );
-                element_grid_dir
-                    .get_coordinate_dir()
-                    .cell_idx_to_chunk_idx(below_cell_coord)
-            };
-
-            assert_movement(element_grid_dir, loc1, loc2);
-        }
-
-        macro_rules! test_error_case {
-            ($name:ident, $i:expr) => {
+        macro_rules! test_movement {
+            ($name:ident, $pos1:expr, $pos2:expr) => {
                 #[test]
                 fn $name() {
                     let element_grid_dir = get_element_grid_dir();
-                    assert_movement_down_one_chunk(IjkVector::new($i, 0, 0), element_grid_dir);
+                    let pos1 = element_grid_dir
+                        .get_coordinate_dir()
+                        .cell_idx_to_chunk_idx(IjkVector::new($pos1.0, $pos1.1, $pos1.2));
+                    let pos2 = element_grid_dir
+                        .get_coordinate_dir()
+                        .cell_idx_to_chunk_idx(IjkVector::new($pos2.0, $pos2.1, $pos2.2));
+                    assert_movement(element_grid_dir, pos1, pos2);
                 }
             };
         }
 
-        // Usage:
-        test_error_case!(test_error_case_at_i6, 6);
-        test_error_case!(test_error_case_at_i5, 5);
-        test_error_case!(test_error_case_at_i4, 4);
-        test_error_case!(test_error_case_at_i3, 3);
-        test_error_case!(test_error_case_at_i2, 2);
-        test_error_case!(test_error_case_at_i1, 1);
+        test_movement!(test_movement_i2_j2_k1, (2, 2, 1), (2, 1, 1));
     }
 }

@@ -44,7 +44,6 @@ pub trait Element: Send + Sync {
     /// as such this function will panic if pos1 is invalid
     fn try_swap_me(
         &self,
-        _pos0: JkVector,
         pos1: ConvolutionIdx,
         target_chunk: &mut ElementGrid,
         element_grid_conv: &mut ElementGridConvolutionNeighbors,

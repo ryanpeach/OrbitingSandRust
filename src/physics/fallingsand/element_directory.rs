@@ -459,7 +459,7 @@ impl ElementGridDir {
         }
     }
 
-    fn package_coordinate_neighbors(
+    pub fn package_coordinate_neighbors(
         &mut self,
         coord: ChunkIjkVector,
     ) -> Result<ElementGridConvolutionNeighbors, String> {
