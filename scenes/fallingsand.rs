@@ -13,7 +13,7 @@ use mint::{Point2, Vector2};
 use orbiting_sand::gui::camera_window::CameraWindow;
 use orbiting_sand::gui::cursor_tooltip::CursorTooltip;
 use orbiting_sand::gui::element_picker::ElementPicker;
-use orbiting_sand::gui::gui_trait::GuiTrait;
+use orbiting_sand::gui::gui_trait::WindowTrait;
 use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
 use orbiting_sand::physics::fallingsand::elements::element::Element;
 use orbiting_sand::physics::fallingsand::elements::sand::Sand;

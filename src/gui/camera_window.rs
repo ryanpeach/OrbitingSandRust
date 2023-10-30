@@ -7,7 +7,7 @@ use mint::{Point2, Vector2};
 
 use crate::nodes::{camera::cam::Camera, celestial::Celestial};
 
-use super::gui_trait::GuiTrait;
+use super::gui_trait::WindowTrait;
 
 pub struct CameraWindow {
     draw_coords: Point2<f32>,
@@ -60,7 +60,7 @@ impl CameraWindow {
     }
 }
 
-impl GuiTrait for CameraWindow {
+impl WindowTrait for CameraWindow {
     fn get_offset(&self) -> Point2<f32> {
         self.draw_coords
     }

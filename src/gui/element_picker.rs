@@ -7,7 +7,7 @@ use mint::Point2;
 
 use crate::physics::fallingsand::elements::element::ElementType;
 
-use super::gui_trait::GuiTrait;
+use super::gui_trait::WindowTrait;
 
 /// A window used to select an element to place
 pub struct ElementPicker {
@@ -33,7 +33,7 @@ impl ElementPicker {
     }
 }
 
-impl GuiTrait for ElementPicker {
+impl WindowTrait for ElementPicker {
     fn get_offset(&self) -> Point2<f32> {
         self.screen_coords
     }
