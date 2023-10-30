@@ -12,6 +12,7 @@ use ggez::{Context, GameResult};
 use mint::{Point2, Vector2};
 use orbiting_sand::gui::camera_window::CameraWindow;
 use orbiting_sand::gui::cursor_tooltip::CursorTooltip;
+use orbiting_sand::gui::gui_trait::GuiTrait;
 use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
 use orbiting_sand::physics::fallingsand::elements::element::Element;
 use orbiting_sand::physics::fallingsand::elements::sand::Sand;
@@ -90,8 +91,7 @@ impl EventHandler<ggez::GameError> for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         // Update the gui
         self.camera_window.update(ctx, &self.camera);
-        self.cursor_tooltip
-            .update(ctx, &self.camera, &self.celestial);
+        self.cursor_tooltip.update(&self.camera, &self.celestial);
 
         // Save the celestial if requested
         self.camera_window.save_optionally(ctx, &self.celestial);
@@ -120,8 +120,8 @@ impl EventHandler<ggez::GameError> for MainState {
         }
 
         // Draw the gui
-        self.camera_window.draw(&mut canvas);
-        self.cursor_tooltip.draw(&mut canvas);
+        self.camera_window.draw(ctx, &mut canvas);
+        self.cursor_tooltip.draw(ctx, &mut canvas);
 
         let _ = canvas.finish(ctx);
         Ok(())
@@ -179,7 +179,7 @@ impl EventHandler<ggez::GameError> for MainState {
         _dx: f32,
         _dy: f32,
     ) -> Result<(), ggez::GameError> {
-        self.cursor_tooltip.set_pos(Point2 { x, y }, &self.camera);
+        self.cursor_tooltip.set_screen_coords(Point2 { x, y });
         if self.mouse_down {
             self.set_element(Point2 { x, y });
         }

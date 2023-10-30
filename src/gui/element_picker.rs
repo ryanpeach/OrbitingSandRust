@@ -1,4 +1,4 @@
-use ggegui::Gui;
+use ggegui::{egui, Gui, GuiContext};
 use ggez::Context;
 use mint::Point2;
 
@@ -6,12 +6,11 @@ use crate::physics::fallingsand::elements::element::ElementType;
 
 use super::gui_trait::GuiTrait;
 
-
 /// A window used to select an element to place
 struct ElementPicker {
     screen_coords: Point2<f32>,
-    current_selection: ElementType
-    gui: Gui
+    current_selection: ElementType,
+    gui: Gui,
 }
 
 impl ElementPicker {
@@ -37,15 +36,23 @@ impl GuiTrait for ElementPicker {
         self.screen_coords = screen_coords;
     }
 
-    fn get_gui(&self) -> Gui {
-        self.gui
+    fn get_gui(&self) -> &Gui {
+        &self.gui
+    }
+
+    fn get_gui_mut(&mut self) -> &mut Gui {
+        &mut self.gui
     }
 
     fn window(&mut self, gui_ctx: &mut GuiContext) {
-        egui::Window::new("Title").show(&gui_ctx, |ui| {
+        egui::Window::new("Element Picker").show(gui_ctx, |ui| {
             ui.label(format!("Current Selection: {:?}", self.current_selection));
-            ui.seperator();
-            ui.radio_value(&mut self.current_selection, ElementType::DownFlier, "DownFlier");
+            ui.separator();
+            ui.radio_value(
+                &mut self.current_selection,
+                ElementType::DownFlier,
+                "DownFlier",
+            );
             ui.separator();
             ui.radio_value(&mut self.current_selection, ElementType::Vacuum, "Vacuum");
             ui.radio_value(&mut self.current_selection, ElementType::Sand, "Sand");
