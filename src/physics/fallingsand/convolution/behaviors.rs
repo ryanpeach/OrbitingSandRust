@@ -98,7 +98,7 @@ impl ElementGridConvolutionNeighbors {
     pub fn get_below_idx_from_center(
         &self,
         target_chunk: &ElementGrid,
-        coord_dir: &CoordinateDir,
+        _coord_dir: &CoordinateDir,
         pos: &JkVector,
         n: usize,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
@@ -130,31 +130,26 @@ impl ElementGridConvolutionNeighbors {
             // If there is a full layer below you, just return the index of the new coordinate
             // Dont allow yourself to go to the layer below that
             BottomNeighborIdxs::FullLayerBelow { .. } => {
-                let mut new_coords = JkVector {
+                println!("Full layer below");
+                let new_coords = JkVector {
                     j: pos.j + b_concentric_circles - n,
-                    k: pos.k + this_start_radial_line,
+                    k: (pos.k + this_start_radial_line) / 2,
                 };
-                let b_radial_chunks = coord_dir.get_layer_num_radial_chunks(
-                    target_chunk.get_chunk_coords().get_layer_num() - 1,
-                );
-                let this_radial_chunks = coord_dir
-                    .get_layer_num_radial_chunks(target_chunk.get_chunk_coords().get_layer_num());
-                if b_radial_chunks != this_radial_chunks {
-                    new_coords.k /= 2;
-                }
                 Ok(ConvolutionIdx(
                     new_coords,
                     ConvolutionIdentifier::Bottom(BottomNeighborIdentifier::FullLayerBelow),
                 ))
             }
             BottomNeighborIdxs::LayerTransition { .. } => {
-                let new_coords = JkVector {
+                println!("Layer transition: {:?}", self.chunk_idxs.bottom);
+                let mut new_coords = JkVector {
                     j: pos.j + b_concentric_circles - n,
                     k: pos.k / 2,
                 };
                 let transition = if target_chunk.get_chunk_coords().get_chunk_idx().k % 2 == 0 {
                     BottomNeighborIdentifierLayerTransition::BottomLeft
                 } else {
+                    new_coords.k += self.grids.bottom.get_num_radial_lines() / 2;
                     BottomNeighborIdentifierLayerTransition::BottomRight
                 };
                 Ok(ConvolutionIdx(
@@ -165,10 +160,20 @@ impl ElementGridConvolutionNeighbors {
                 ))
             }
             BottomNeighborIdxs::Normal { .. } => {
-                let new_coords = JkVector {
+                println!("Normal");
+                let mut new_coords = JkVector {
                     j: pos.j + b_concentric_circles - n,
                     k: pos.k,
                 };
+                // Sometimes a "Normal" bottom index is actually on a different layer
+                // just with the same number of radial chunks
+                // If there are the same number of radial lines (not a layer transition) we dont
+                // need to divide k by 2
+                let this_radial_lines = target_chunk.get_chunk_coords().get_num_radial_lines();
+                let b_radial_lines = self.grids.bottom.get_num_radial_lines();
+                if this_radial_lines != b_radial_lines {
+                    new_coords.k = pos.k / 2;
+                }
                 Ok(ConvolutionIdx(
                     new_coords,
                     ConvolutionIdentifier::Bottom(BottomNeighborIdentifier::Normal(

@@ -1,13 +1,14 @@
 use ggegui::{egui, Gui};
 use ggez::{
-    glam::Vec2,
     graphics::{Canvas, DrawParam},
     Context,
 };
+use mint::Point2;
 
 use crate::nodes::{camera::cam::Camera, celestial::Celestial};
 
 pub struct CameraWindow {
+    draw_coords: Point2<f32>,
     outline: bool,
     wireframe: bool,
     queue_save: bool,
@@ -20,6 +21,7 @@ impl CameraWindow {
         // let pwd = std::env::current_dir().unwrap();
         // let pwdstr = pwd.to_str().unwrap();
         Self {
+            draw_coords: Point2 { x: 1000.0, y: 0.0 },
             outline: false,
             wireframe: false,
             queue_save: true,
@@ -47,7 +49,7 @@ impl CameraWindow {
     }
 
     pub fn draw(&self, canvas: &mut Canvas) {
-        canvas.draw(&self.gui, DrawParam::default().dest(Vec2::ZERO));
+        canvas.draw(&self.gui, DrawParam::default().dest(self.draw_coords));
     }
 
     pub fn get_outline(&self) -> bool {

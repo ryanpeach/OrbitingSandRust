@@ -390,7 +390,7 @@ impl ElementGridDir {
     fn get_chunk_bottom_neighbors(&self, coord: ChunkIjkVector) -> BottomNeighborIdxs {
         let bottom_chunk_in_layer = 0usize;
         let bottom_layer = 0usize;
-        let radial_lines = |i: usize| self.coords.get_layer_num_radial_chunks(i);
+        let radial_chunks = |i: usize| self.coords.get_layer_num_radial_chunks(i);
         let top_chunk_in_prev_layer =
             |i: usize| self.coords.get_layer_num_concentric_chunks(i - 1) - 1;
         let k_isize = coord.k as isize;
@@ -399,7 +399,7 @@ impl ElementGridDir {
             ChunkIjkVector {
                 i,
                 j,
-                k: modulo(k, radial_lines(i)),
+                k: modulo(k, radial_chunks(i)),
             }
         };
 
@@ -407,7 +407,7 @@ impl ElementGridDir {
             (i, j, _) if i == bottom_layer && j == bottom_chunk_in_layer => {
                 BottomNeighborIdxs::BottomOfGrid
             }
-            (i, j, _) if j == bottom_chunk_in_layer && radial_lines(i - 1) == 1 => {
+            (i, j, _) if j == bottom_chunk_in_layer && radial_chunks(i - 1) == 1 => {
                 BottomNeighborIdxs::FullLayerBelow {
                     b: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), 0),
                 }
@@ -415,7 +415,7 @@ impl ElementGridDir {
             // If going down a layer but you are not at the bottom
             (i, j, k)
                 if j == bottom_chunk_in_layer
-                    && radial_lines(i) != radial_lines(i - 1)
+                    && radial_chunks(i) != radial_chunks(i - 1)
                     && k % 2 == 0 =>
             {
                 BottomNeighborIdxs::LayerTransition {
@@ -425,7 +425,7 @@ impl ElementGridDir {
             }
             (i, j, k)
                 if j == bottom_chunk_in_layer
-                    && radial_lines(i) != radial_lines(i - 1)
+                    && radial_chunks(i) != radial_chunks(i - 1)
                     && k % 2 == 1 =>
             {
                 BottomNeighborIdxs::LayerTransition {
@@ -433,7 +433,7 @@ impl ElementGridDir {
                     br: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2),
                 }
             }
-            (i, j, _) if j == bottom_chunk_in_layer && radial_lines(i) == radial_lines(i - 1) => {
+            (i, j, _) if j == bottom_chunk_in_layer && radial_chunks(i) == radial_chunks(i - 1) => {
                 BottomNeighborIdxs::Normal {
                     bl: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize + 1),
                     b: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize),

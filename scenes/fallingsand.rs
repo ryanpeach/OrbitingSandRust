@@ -176,7 +176,6 @@ impl EventHandler<ggez::GameError> for MainState {
         _dx: f32,
         _dy: f32,
     ) -> Result<(), ggez::GameError> {
-        println!("Mouse pos: ({}, {})", x, y);
         self.cursor_tooltip.set_pos(Point2 { x, y }, &self.camera);
         if self.mouse_down {
             self.set_element(Point2 { x, y });
