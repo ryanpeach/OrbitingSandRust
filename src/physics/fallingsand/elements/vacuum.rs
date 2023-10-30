@@ -3,6 +3,7 @@ use ggez::graphics::Color;
 use super::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
+use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::element_grid::ElementGrid;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
@@ -27,6 +28,7 @@ impl Element for Vacuum {
     fn process(
         &mut self,
         _pos: JkVector,
+        _coord_dir: &CoordinateDir,
         _target_chunk: &mut ElementGrid,
         _element_grid_conv: &mut ElementGridConvolutionNeighbors,
         _current_time: Clock,

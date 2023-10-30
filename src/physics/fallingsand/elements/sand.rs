@@ -5,6 +5,7 @@ use crate::physics::fallingsand::convolution::neighbor_identifiers::{
     ConvolutionIdentifier, ConvolutionIdx,
 };
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
+use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::element_grid::ElementGrid;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
@@ -13,10 +14,11 @@ use ggez::graphics::Color;
 pub fn get_bottom_left(
     conv: &ElementGridConvolutionNeighbors,
     target_grid: &ElementGrid,
+    coord_dir: &CoordinateDir,
     pos: &JkVector,
     n: usize,
 ) -> Result<(ConvolutionIdx, Box<dyn Element>), ConvOutOfBoundsError> {
-    let idx = conv.get_below_idx_from_center(target_grid, pos, n)?;
+    let idx = conv.get_below_idx_from_center(target_grid, coord_dir, pos, n)?;
     match idx.1 {
         ConvolutionIdentifier::Bottom(bottom_id) => {
             let new_idx = conv.get_left_right_idx_from_bottom(&idx.0, bottom_id, 1)?;
@@ -33,10 +35,11 @@ pub fn get_bottom_left(
 pub fn get_bottom_right(
     conv: &ElementGridConvolutionNeighbors,
     target_grid: &ElementGrid,
+    coord_dir: &CoordinateDir,
     pos: &JkVector,
     n: usize,
 ) -> Result<(ConvolutionIdx, Box<dyn Element>), ConvOutOfBoundsError> {
-    let idx = conv.get_below_idx_from_center(target_grid, pos, n)?;
+    let idx = conv.get_below_idx_from_center(target_grid, coord_dir, pos, n)?;
     match idx.1 {
         ConvolutionIdentifier::Bottom(bottom_id) => {
             let new_idx = conv.get_left_right_idx_from_bottom(&idx.0, bottom_id, -1)?;
@@ -70,13 +73,15 @@ impl Element for Sand {
     fn process(
         &mut self,
         pos: JkVector,
+        coord_dir: &CoordinateDir,
         target_chunk: &mut ElementGrid,
         element_grid_conv: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) -> ElementTakeOptions {
         // Doing this as a way to make sure I set last_processed AFTER I've done all the processing
         let out: ElementTakeOptions = {
-            let below = element_grid_conv.get_below_idx_from_center(target_chunk, &pos, 1);
+            let below =
+                element_grid_conv.get_below_idx_from_center(target_chunk, coord_dir, &pos, 1);
             match below {
                 Ok(idx) => {
                     if let Ok(element) = element_grid_conv.get(target_chunk, idx) {

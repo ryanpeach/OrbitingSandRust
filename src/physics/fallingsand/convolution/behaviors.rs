@@ -2,6 +2,7 @@ use hashbrown::HashMap;
 
 use crate::physics::{
     fallingsand::{
+        coordinates::coordinate_directory::CoordinateDir,
         element_grid::ElementGrid,
         elements::element::Element,
         util::{
@@ -97,6 +98,7 @@ impl ElementGridConvolutionNeighbors {
     pub fn get_below_idx_from_center(
         &self,
         target_chunk: &ElementGrid,
+        coord_dir: &CoordinateDir,
         pos: &JkVector,
         n: usize,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
@@ -117,7 +119,7 @@ impl ElementGridConvolutionNeighbors {
             )));
         }
 
-        let this_start_radial_line = target_chunk.get_chunk_coords().get_num_radial_lines();
+        let this_start_radial_line = target_chunk.get_chunk_coords().get_start_radial_line();
 
         match self.chunk_idxs.bottom {
             // If there is no layer below you, error out
@@ -128,10 +130,18 @@ impl ElementGridConvolutionNeighbors {
             // If there is a full layer below you, just return the index of the new coordinate
             // Dont allow yourself to go to the layer below that
             BottomNeighborIdxs::FullLayerBelow { .. } => {
-                let new_coords = JkVector {
+                let mut new_coords = JkVector {
                     j: pos.j + b_concentric_circles - n,
-                    k: (pos.k + this_start_radial_line) / 2,
+                    k: pos.k + this_start_radial_line,
                 };
+                let b_radial_chunks = coord_dir.get_layer_num_radial_chunks(
+                    target_chunk.get_chunk_coords().get_layer_num() - 1,
+                );
+                let this_radial_chunks = coord_dir
+                    .get_layer_num_radial_chunks(target_chunk.get_chunk_coords().get_layer_num());
+                if b_radial_chunks != this_radial_chunks {
+                    new_coords.k /= 2;
+                }
                 Ok(ConvolutionIdx(
                     new_coords,
                     ConvolutionIdentifier::Bottom(BottomNeighborIdentifier::FullLayerBelow),
@@ -637,12 +647,17 @@ mod tests {
                     let chunk_pos2 = element_dir
                         .get_coordinate_dir()
                         .cell_idx_to_chunk_idx(IjkVector::new($pos2.0, $pos2.1, $pos2.2));
-                    let package = element_dir
+                    let mut package = element_dir
                         .package_coordinate_neighbors(chunk_pos1.0)
                         .unwrap();
                     let chunk = element_dir.get_chunk_by_chunk_ijk(chunk_pos1.0);
                     let should_eq_pos2 = package
-                        .get_below_idx_from_center(chunk, &chunk_pos1.1, 1)
+                        .get_below_idx_from_center(
+                            chunk,
+                            element_dir.get_coordinate_dir(),
+                            &chunk_pos1.1,
+                            1,
+                        )
                         .unwrap();
                     let should_eq_chunk2 = match package.get_chunk(should_eq_pos2.1) {
                         Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
@@ -651,8 +666,17 @@ mod tests {
                         }
                         Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
                     };
+                    // Test the mut version too
+                    let should_eq_chunk2_mut = match package.get_chunk_mut(should_eq_pos2.1) {
+                        Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
+                        Err(GetChunkErr::ReturnsVector) => {
+                            panic!("Should not return a vector")
+                        }
+                        Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+                    };
                     assert_eq!(chunk_pos2.1, should_eq_pos2.0);
                     assert_eq!(chunk_pos2.0, should_eq_chunk2);
+                    assert_eq!(chunk_pos2.0, should_eq_chunk2_mut);
                 }
             };
         }
@@ -661,6 +685,36 @@ mod tests {
             test_get_below_idx_from_center_i2_j2_k1,
             (2, 2, 1),
             (2, 1, 1)
+        );
+
+        test_get_below_idx_from_center!(
+            test_get_below_idx_from_center_i2_j0_k8,
+            (2, 0, 8),
+            (1, 2, 4)
+        );
+
+        test_get_below_idx_from_center!(
+            test_get_below_idx_from_center_i3_j0_k10,
+            (3, 0, 10),
+            (2, 5, 5)
+        );
+
+        test_get_below_idx_from_center!(
+            test_get_below_idx_from_center_i6_j0_k180,
+            (6, 0, 180),
+            (5, 47, 90)
+        );
+
+        test_get_below_idx_from_center!(
+            test_get_below_idx_from_center_i7_j0_k355,
+            (7, 0, 355),
+            (6, 95, 355 / 2)
+        );
+
+        test_get_below_idx_from_center!(
+            test_get_below_idx_from_center_i7_j0_k420,
+            (7, 0, 420),
+            (6, 95, 210)
         );
     }
 }

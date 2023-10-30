@@ -651,7 +651,7 @@ impl ElementGridDir {
             let mut chunk = self.chunks[target.i]
                 .replace(target.to_jk_vector(), None)
                 .expect("Should not have been replaced already.");
-            chunk.process(&mut conv, current_time);
+            chunk.process(self.get_coordinate_dir(), &mut conv, current_time);
             // Unpackage the convolution
             self.unpackage_convolution(chunk, conv);
         }
@@ -668,7 +668,7 @@ impl ElementGridDir {
             .par_iter_mut()
             .zip(target_chunks.par_iter_mut())
             .for_each(|(convolution, target_chunk)| {
-                target_chunk.process(convolution, current_time);
+                target_chunk.process(self.get_coordinate_dir(), convolution, current_time);
             });
         self.unpackage_convolutions(convolutions, target_chunks);
     }

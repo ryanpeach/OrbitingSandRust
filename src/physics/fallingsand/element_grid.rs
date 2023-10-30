@@ -7,6 +7,7 @@ use crate::physics::util::clock::Clock;
 
 use super::convolution::behaviors::ElementGridConvolutionNeighbors;
 
+use super::coordinates::coordinate_directory::CoordinateDir;
 use super::coordinates::core_coords::CoreChunkCoords;
 use super::elements::vacuum::Vacuum;
 use super::util::grid::{Grid, GridOutOfBoundsError};
@@ -126,6 +127,7 @@ impl ElementGrid {
     #[allow(clippy::mem_replace_with_default)]
     pub fn process(
         &mut self,
+        coord_dir: &CoordinateDir,
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) {
@@ -148,7 +150,8 @@ impl ElementGrid {
 
                 // You have to send self and element_grid_conv_neigh my reference instead of packaging them together in an object
                 // because you are borrowing both. Without using a lifetime you can't package a borrow.
-                let res = element.process(pos, self, element_grid_conv_neigh, current_time);
+                let res =
+                    element.process(pos, coord_dir, self, element_grid_conv_neigh, current_time);
 
                 // The reason we return options instead of passing the element to process by value (letting it put itself back) is twofold
                 // The first is this prevents the common programming error where the author forgets that the element
