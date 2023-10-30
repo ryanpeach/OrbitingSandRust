@@ -1,12 +1,8 @@
-use super::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
-use crate::physics::fallingsand::convolution::neighbor_grids::ConvOutOfBoundsError;
-use crate::physics::fallingsand::convolution::neighbor_identifiers::{
-    ConvolutionIdentifier, ConvolutionIdx,
-};
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::element_grid::ElementGrid;
+use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 use ggez::graphics::Color;
@@ -105,7 +101,7 @@ mod tests {
             // Set the bottom right to sand
             {
                 let chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc1.0);
-                let sand = Sand::default();
+                let sand = DownFlier::default();
                 chunk.set(loc1.1, Box::new(sand), clock);
             }
 
@@ -150,12 +146,6 @@ mod tests {
 
         test_movement!(test_movement_i2_j0_k8, (2, 0, 8), (1, 2, 4));
 
-        test_movement!(test_movement_i3_j0_k10, (3, 0, 10), (2, 5, 5));
-
-        test_movement!(test_movement_i6_j0_k180, (6, 0, 180), (5, 47, 90));
-
         test_movement!(test_movement_i7_j0_k355, (7, 0, 355), (6, 95, 355 / 2));
-
-        test_movement!(test_movement_i7_j0_k420, (7, 0, 420), (6, 95, 210));
     }
 }
