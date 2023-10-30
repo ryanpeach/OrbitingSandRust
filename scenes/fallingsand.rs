@@ -13,12 +13,14 @@ use mint::{Point2, Vector2};
 use orbiting_sand::gui::camera_window::CameraWindow;
 use orbiting_sand::gui::cursor_tooltip::CursorTooltip;
 use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
+use orbiting_sand::physics::fallingsand::elements::element::Element;
 use orbiting_sand::physics::fallingsand::elements::sand::Sand;
 
 use orbiting_sand::nodes::camera::cam::Camera;
 use orbiting_sand::nodes::celestial::Celestial;
 
 use orbiting_sand::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
+use orbiting_sand::physics::fallingsand::elements::vacuum::Vacuum;
 use orbiting_sand::physics::util::clock::Clock;
 use orbiting_sand::physics::util::vectors::RelXyPoint;
 
@@ -43,13 +45,13 @@ impl MainState {
         // Create the celestial
         let coordinate_dir = CoordinateDirBuilder::new()
             .cell_radius(1.0)
-            .num_layers(8)
-            .first_num_radial_lines(6)
+            .num_layers(10)
+            .first_num_radial_lines(12)
             .second_num_concentric_circles(3)
             .build();
-        // let fill0: &dyn Element = &Vacuum::default();
-        // let fill1: &dyn Element = &Sand::default();
-        let element_grid_dir = ElementGridDir::new_empty(coordinate_dir);
+        let fill0: &dyn Element = &Vacuum::default();
+        let fill1: &dyn Element = &Sand::default();
+        let element_grid_dir = ElementGridDir::new_checkerboard(coordinate_dir, fill0, fill1);
         println!("Num elements: {}", element_grid_dir.get_total_num_cells());
         let celestial = Celestial::new(element_grid_dir);
 

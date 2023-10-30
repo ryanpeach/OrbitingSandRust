@@ -130,7 +130,6 @@ impl ElementGridConvolutionNeighbors {
             // If there is a full layer below you, just return the index of the new coordinate
             // Dont allow yourself to go to the layer below that
             BottomNeighborIdxs::FullLayerBelow { .. } => {
-                println!("Full layer below");
                 let new_coords = JkVector {
                     j: pos.j + b_concentric_circles - n,
                     k: (pos.k + this_start_radial_line) / 2,
@@ -141,7 +140,6 @@ impl ElementGridConvolutionNeighbors {
                 ))
             }
             BottomNeighborIdxs::LayerTransition { .. } => {
-                println!("Layer transition: {:?}", self.chunk_idxs.bottom);
                 let mut new_coords = JkVector {
                     j: pos.j + b_concentric_circles - n,
                     k: pos.k / 2,
@@ -160,7 +158,6 @@ impl ElementGridConvolutionNeighbors {
                 ))
             }
             BottomNeighborIdxs::Normal { .. } => {
-                println!("Normal");
                 let mut new_coords = JkVector {
                     j: pos.j + b_concentric_circles - n,
                     k: pos.k,
