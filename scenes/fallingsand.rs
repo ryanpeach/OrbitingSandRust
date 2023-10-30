@@ -13,9 +13,7 @@ use mint::{Point2, Vector2};
 use orbiting_sand::gui::camera_window::CameraWindow;
 use orbiting_sand::gui::cursor_tooltip::CursorTooltip;
 use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
-use orbiting_sand::physics::fallingsand::elements::element::Element;
 use orbiting_sand::physics::fallingsand::elements::sand::Sand;
-use orbiting_sand::physics::fallingsand::elements::vacuum::Vacuum;
 
 use orbiting_sand::nodes::camera::cam::Camera;
 use orbiting_sand::nodes::celestial::Celestial;
@@ -37,6 +35,7 @@ struct MainState {
     cursor_tooltip: CursorTooltip,
     camera_window: CameraWindow,
     current_time: Clock,
+    mouse_down: bool,
 }
 
 impl MainState {
@@ -48,9 +47,9 @@ impl MainState {
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
             .build();
-        let fill0: &dyn Element = &Vacuum::default();
-        let fill1: &dyn Element = &Sand::default();
-        let element_grid_dir = ElementGridDir::new_checkerboard(coordinate_dir, fill0, fill1);
+        // let fill0: &dyn Element = &Vacuum::default();
+        // let fill1: &dyn Element = &Sand::default();
+        let element_grid_dir = ElementGridDir::new_empty(coordinate_dir);
         println!("Num elements: {}", element_grid_dir.get_total_num_cells());
         let celestial = Celestial::new(element_grid_dir);
 
@@ -63,7 +62,24 @@ impl MainState {
             cursor_tooltip: CursorTooltip::new(ctx),
             camera_window: CameraWindow::new(ctx),
             current_time: Clock::new(),
+            mouse_down: false,
         })
+    }
+
+    fn set_element(&mut self, pos: Point2<f32>) {
+        let coordinate_dir = self.celestial.get_element_dir().get_coordinate_dir();
+        let coords = {
+            let world_coord = self.camera.screen_to_world_coords(pos);
+            match coordinate_dir.rel_pos_to_cell_idx(RelXyPoint(world_coord.into())) {
+                Ok(coords) => coords,
+                Err(coords) => coords,
+            }
+        };
+        self.celestial.get_element_dir_mut().set_element(
+            coords,
+            Box::<Sand>::default(),
+            self.current_time,
+        );
     }
 }
 
@@ -160,8 +176,10 @@ impl EventHandler<ggez::GameError> for MainState {
         _dx: f32,
         _dy: f32,
     ) -> Result<(), ggez::GameError> {
-        println!("Mouse pos: ({}, {})", x, y);
         self.cursor_tooltip.set_pos(Point2 { x, y }, &self.camera);
+        if self.mouse_down {
+            self.set_element(Point2 { x, y });
+        }
         Ok(())
     }
 
@@ -169,22 +187,21 @@ impl EventHandler<ggez::GameError> for MainState {
         &mut self,
         _ctx: &mut Context,
         _button: event::MouseButton,
-        x: f32,
-        y: f32,
+        _x: f32,
+        _y: f32,
     ) -> Result<(), ggez::GameError> {
-        let coordinate_dir = self.celestial.get_element_dir().get_coordinate_dir();
-        let coords = {
-            let world_coord = self.camera.screen_to_world_coords(Point2 { x, y });
-            match coordinate_dir.rel_pos_to_cell_idx(RelXyPoint(world_coord.into())) {
-                Ok(coords) => coords,
-                Err(coords) => coords,
-            }
-        };
-        self.celestial.get_element_dir_mut().set_element(
-            coords,
-            Box::<Sand>::default(),
-            self.current_time,
-        );
+        self.mouse_down = true;
+        Ok(())
+    }
+
+    fn mouse_button_up_event(
+        &mut self,
+        _ctx: &mut Context,
+        _button: event::MouseButton,
+        _x: f32,
+        _y: f32,
+    ) -> Result<(), ggez::GameError> {
+        self.mouse_down = false;
         Ok(())
     }
 }

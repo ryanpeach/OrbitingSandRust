@@ -2,6 +2,7 @@ use hashbrown::HashMap;
 
 use crate::physics::{
     fallingsand::{
+        coordinates::coordinate_directory::CoordinateDir,
         element_grid::ElementGrid,
         elements::element::Element,
         util::{
@@ -97,47 +98,90 @@ impl ElementGridConvolutionNeighbors {
     pub fn get_below_idx_from_center(
         &self,
         target_chunk: &ElementGrid,
+        _coord_dir: &CoordinateDir,
         pos: &JkVector,
         n: usize,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
+        // Handle naive case where you don't change your chunk
+        if pos.j >= n {
+            return Ok(ConvolutionIdx(
+                JkVector::new(pos.j - n, pos.k),
+                ConvolutionIdentifier::Center,
+            ));
+        }
+
+        // Handle error cases where you go beyond the chunk below you
         let b_concentric_circles = self.grids.bottom.get_num_concentric_circles();
-        let (new_j, new_k) = if pos.j >= n {
-            (pos.j - n, pos.k)
-        } else if pos.j as isize - n as isize + b_concentric_circles as isize >= 0 {
-            (pos.j + b_concentric_circles - n, pos.k / 2)
-        } else {
+        if (pos.j as isize - n as isize + b_concentric_circles as isize) < 0 {
             return Err(ConvOutOfBoundsError(ConvolutionIdx(
                 JkVector { j: pos.j, k: pos.k },
                 ConvolutionIdentifier::Center,
             )));
-        };
+        }
 
-        let new_coords = JkVector { j: new_j, k: new_k };
+        let this_start_radial_line = target_chunk.get_chunk_coords().get_start_radial_line();
 
-        let conv_id = match self.chunk_idxs.bottom {
-            BottomNeighborIdxs::BottomOfGrid if pos.j == 0 => Err(ConvOutOfBoundsError(
-                ConvolutionIdx(new_coords, ConvolutionIdentifier::Center),
-            )),
-            BottomNeighborIdxs::FullLayerBelow { .. } => Ok(ConvolutionIdentifier::Bottom(
-                BottomNeighborIdentifier::FullLayerBelow,
-            )),
+        match self.chunk_idxs.bottom {
+            // If there is no layer below you, error out
+            BottomNeighborIdxs::BottomOfGrid => Err(ConvOutOfBoundsError(ConvolutionIdx(
+                JkVector { j: pos.j, k: pos.k },
+                ConvolutionIdentifier::Center,
+            ))),
+            // If there is a full layer below you, just return the index of the new coordinate
+            // Dont allow yourself to go to the layer below that
+            BottomNeighborIdxs::FullLayerBelow { .. } => {
+                println!("Full layer below");
+                let new_coords = JkVector {
+                    j: pos.j + b_concentric_circles - n,
+                    k: (pos.k + this_start_radial_line) / 2,
+                };
+                Ok(ConvolutionIdx(
+                    new_coords,
+                    ConvolutionIdentifier::Bottom(BottomNeighborIdentifier::FullLayerBelow),
+                ))
+            }
             BottomNeighborIdxs::LayerTransition { .. } => {
+                println!("Layer transition: {:?}", self.chunk_idxs.bottom);
+                let mut new_coords = JkVector {
+                    j: pos.j + b_concentric_circles - n,
+                    k: pos.k / 2,
+                };
                 let transition = if target_chunk.get_chunk_coords().get_chunk_idx().k % 2 == 0 {
                     BottomNeighborIdentifierLayerTransition::BottomLeft
                 } else {
+                    new_coords.k += self.grids.bottom.get_num_radial_lines() / 2;
                     BottomNeighborIdentifierLayerTransition::BottomRight
                 };
-                Ok(ConvolutionIdentifier::Bottom(
-                    BottomNeighborIdentifier::LayerTransition(transition),
+                Ok(ConvolutionIdx(
+                    new_coords,
+                    ConvolutionIdentifier::Bottom(BottomNeighborIdentifier::LayerTransition(
+                        transition,
+                    )),
                 ))
             }
-            BottomNeighborIdxs::Normal { .. } => Ok(ConvolutionIdentifier::Bottom(
-                BottomNeighborIdentifier::Normal(BottomNeighborIdentifierNormal::Bottom),
-            )),
-            _ => return Ok(ConvolutionIdx(new_coords, ConvolutionIdentifier::Center)),
-        }?;
-
-        Ok(ConvolutionIdx(new_coords, conv_id))
+            BottomNeighborIdxs::Normal { .. } => {
+                println!("Normal");
+                let mut new_coords = JkVector {
+                    j: pos.j + b_concentric_circles - n,
+                    k: pos.k,
+                };
+                // Sometimes a "Normal" bottom index is actually on a different layer
+                // just with the same number of radial chunks
+                // If there are the same number of radial lines (not a layer transition) we dont
+                // need to divide k by 2
+                let this_radial_lines = target_chunk.get_chunk_coords().get_num_radial_lines();
+                let b_radial_lines = self.grids.bottom.get_num_radial_lines();
+                if this_radial_lines != b_radial_lines {
+                    new_coords.k = pos.k / 2;
+                }
+                Ok(ConvolutionIdx(
+                    new_coords,
+                    ConvolutionIdentifier::Bottom(BottomNeighborIdentifier::Normal(
+                        BottomNeighborIdentifierNormal::Bottom,
+                    )),
+                ))
+            }
+        }
     }
 
     /// Positive k is left, counter clockwise
@@ -203,8 +247,10 @@ impl ElementGridConvolutionNeighbors {
     }
 }
 
+#[derive(Debug)]
 pub enum GetChunkErr {
     ReturnsVector,
+    CenterChunk,
 }
 
 /// Getter and setter methods
@@ -366,7 +412,7 @@ impl ElementGridConvolutionNeighbors {
                     }
                 },
             },
-            ConvolutionIdentifier::Center => panic!("Tried to get the center chunk"),
+            ConvolutionIdentifier::Center => Err(GetChunkErr::CenterChunk),
         }
     }
 
@@ -515,7 +561,7 @@ impl ElementGridConvolutionNeighbors {
                     }
                 },
             },
-            ConvolutionIdentifier::Center => panic!("Tried to get the center chunk"),
+            ConvolutionIdentifier::Center => Err(GetChunkErr::CenterChunk),
         }
     }
 
@@ -536,6 +582,9 @@ impl ElementGridConvolutionNeighbors {
                 },
                 Err(GetChunkErr::ReturnsVector) => {
                     unimplemented!("This is fairly easy to implement but not yet needed.")
+                }
+                Err(GetChunkErr::CenterChunk) => {
+                    unreachable!("This should never happen because we are checking for it in the match idx.1 statement")
                 }
             },
         }
@@ -561,7 +610,116 @@ impl ElementGridConvolutionNeighbors {
                 Err(GetChunkErr::ReturnsVector) => {
                     unimplemented!("This is fairly easy to implement but not yet needed.")
                 }
+                Err(GetChunkErr::CenterChunk) => {
+                    unreachable!("This should never happen because we are checking for it in the match idx.1 statement")
+                }
             },
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::physics::fallingsand::{
+        coordinates::coordinate_directory::CoordinateDirBuilder, element_directory::ElementGridDir,
+    };
+
+    /// The default element grid directory for testing
+    fn get_element_grid_dir() -> ElementGridDir {
+        let coordinate_dir = CoordinateDirBuilder::new()
+            .cell_radius(1.0)
+            .num_layers(10)
+            .first_num_radial_lines(6)
+            .second_num_concentric_circles(3)
+            .max_cells(64 * 64)
+            .build();
+        ElementGridDir::new_empty(coordinate_dir)
+    }
+
+    mod get_below_idx_from_center {
+        use super::*;
+        use crate::physics::fallingsand::util::vectors::IjkVector;
+
+        macro_rules! test_get_below_idx_from_center {
+            ($name:ident, $pos1:expr, $pos2:expr) => {
+                #[test]
+                fn $name() {
+                    let mut element_dir = get_element_grid_dir();
+                    let chunk_pos1 = element_dir
+                        .get_coordinate_dir()
+                        .cell_idx_to_chunk_idx(IjkVector::new($pos1.0, $pos1.1, $pos1.2));
+                    let chunk_pos2 = element_dir
+                        .get_coordinate_dir()
+                        .cell_idx_to_chunk_idx(IjkVector::new($pos2.0, $pos2.1, $pos2.2));
+                    let mut package = element_dir
+                        .package_coordinate_neighbors(chunk_pos1.0)
+                        .unwrap();
+                    let chunk = element_dir.get_chunk_by_chunk_ijk(chunk_pos1.0);
+                    let should_eq_pos2 = package
+                        .get_below_idx_from_center(
+                            chunk,
+                            element_dir.get_coordinate_dir(),
+                            &chunk_pos1.1,
+                            1,
+                        )
+                        .unwrap();
+                    let should_eq_chunk2 = match package.get_chunk(should_eq_pos2.1) {
+                        Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
+                        Err(GetChunkErr::ReturnsVector) => {
+                            panic!("Should not return a vector")
+                        }
+                        Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+                    };
+                    // Test the mut version too
+                    let should_eq_chunk2_mut = match package.get_chunk_mut(should_eq_pos2.1) {
+                        Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
+                        Err(GetChunkErr::ReturnsVector) => {
+                            panic!("Should not return a vector")
+                        }
+                        Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+                    };
+                    assert_eq!(chunk_pos2.1, should_eq_pos2.0);
+                    assert_eq!(chunk_pos2.0, should_eq_chunk2);
+                    assert_eq!(chunk_pos2.0, should_eq_chunk2_mut);
+                }
+            };
+        }
+
+        test_get_below_idx_from_center!(
+            test_get_below_idx_from_center_i2_j2_k1,
+            (2, 2, 1),
+            (2, 1, 1)
+        );
+
+        test_get_below_idx_from_center!(
+            test_get_below_idx_from_center_i2_j0_k8,
+            (2, 0, 8),
+            (1, 2, 4)
+        );
+
+        test_get_below_idx_from_center!(
+            test_get_below_idx_from_center_i3_j0_k10,
+            (3, 0, 10),
+            (2, 5, 5)
+        );
+
+        test_get_below_idx_from_center!(
+            test_get_below_idx_from_center_i6_j0_k180,
+            (6, 0, 180),
+            (5, 47, 90)
+        );
+
+        test_get_below_idx_from_center!(
+            test_get_below_idx_from_center_i7_j0_k355,
+            (7, 0, 355),
+            (6, 95, 355 / 2)
+        );
+
+        test_get_below_idx_from_center!(
+            test_get_below_idx_from_center_i7_j0_k420,
+            (7, 0, 420),
+            (6, 95, 210)
+        );
     }
 }

@@ -1,6 +1,7 @@
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::convolution::neighbor_identifiers::ConvolutionIdx;
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
+use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::element_grid::ElementGrid;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
@@ -32,6 +33,7 @@ pub trait Element: Send + Sync {
     fn process(
         &mut self,
         pos: JkVector,
+        coord_dir: &CoordinateDir,
         target_chunk: &mut ElementGrid,
         element_grid_conv: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
@@ -44,7 +46,6 @@ pub trait Element: Send + Sync {
     /// as such this function will panic if pos1 is invalid
     fn try_swap_me(
         &self,
-        _pos0: JkVector,
         pos1: ConvolutionIdx,
         target_chunk: &mut ElementGrid,
         element_grid_conv: &mut ElementGridConvolutionNeighbors,

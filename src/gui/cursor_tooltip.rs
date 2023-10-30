@@ -1,6 +1,6 @@
 use ggegui::{egui, Gui};
 use ggez::{
-    graphics::{Canvas, DrawParam, Drawable},
+    graphics::{Canvas, DrawParam},
     mint::Point2,
     Context,
 };
@@ -35,7 +35,7 @@ impl CursorTooltip {
             }
         };
         let chunk_coords = coordinate_dir.cell_idx_to_chunk_idx(coords);
-        egui::Window::new("Title").show(&gui_ctx, |ui| {
+        egui::Window::new("Cursor Tooltip").show(&gui_ctx, |ui| {
             ui.label(format!("zoom: {:?}", camera.get_zoom()));
             ui.label(format!(
                 "IjkCoord: ({}, {}, {})",
@@ -44,6 +44,10 @@ impl CursorTooltip {
             ui.label(format!(
                 "ChunkIjkCoord: ({}, {}, {})",
                 chunk_coords.0.i, chunk_coords.0.j, chunk_coords.0.k
+            ));
+            ui.label(format!(
+                "JkCoord: ({}, {})",
+                chunk_coords.1.j, chunk_coords.1.k
             ));
             ui.label(format!(
                 "Type: {:?}",
@@ -59,7 +63,6 @@ impl CursorTooltip {
     }
 
     pub fn draw(&self, canvas: &mut Canvas) {
-        self.gui
-            .draw(canvas, DrawParam::default().dest(self.screen_coords));
+        canvas.draw(&self.gui, DrawParam::default().dest(self.screen_coords));
     }
 }

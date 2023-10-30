@@ -5,6 +5,7 @@ use crate::physics::fallingsand::convolution::neighbor_identifiers::{
     ConvolutionIdentifier, ConvolutionIdx,
 };
 use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
+use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::element_grid::ElementGrid;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
@@ -13,10 +14,11 @@ use ggez::graphics::Color;
 pub fn get_bottom_left(
     conv: &ElementGridConvolutionNeighbors,
     target_grid: &ElementGrid,
+    coord_dir: &CoordinateDir,
     pos: &JkVector,
     n: usize,
 ) -> Result<(ConvolutionIdx, Box<dyn Element>), ConvOutOfBoundsError> {
-    let idx = conv.get_below_idx_from_center(target_grid, pos, n)?;
+    let idx = conv.get_below_idx_from_center(target_grid, coord_dir, pos, n)?;
     match idx.1 {
         ConvolutionIdentifier::Bottom(bottom_id) => {
             let new_idx = conv.get_left_right_idx_from_bottom(&idx.0, bottom_id, 1)?;
@@ -33,10 +35,11 @@ pub fn get_bottom_left(
 pub fn get_bottom_right(
     conv: &ElementGridConvolutionNeighbors,
     target_grid: &ElementGrid,
+    coord_dir: &CoordinateDir,
     pos: &JkVector,
     n: usize,
 ) -> Result<(ConvolutionIdx, Box<dyn Element>), ConvOutOfBoundsError> {
-    let idx = conv.get_below_idx_from_center(target_grid, pos, n)?;
+    let idx = conv.get_below_idx_from_center(target_grid, coord_dir, pos, n)?;
     match idx.1 {
         ConvolutionIdentifier::Bottom(bottom_id) => {
             let new_idx = conv.get_left_right_idx_from_bottom(&idx.0, bottom_id, -1)?;
@@ -70,24 +73,22 @@ impl Element for Sand {
     fn process(
         &mut self,
         pos: JkVector,
+        coord_dir: &CoordinateDir,
         target_chunk: &mut ElementGrid,
         element_grid_conv: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) -> ElementTakeOptions {
         // Doing this as a way to make sure I set last_processed AFTER I've done all the processing
         let out: ElementTakeOptions = {
-            let below = element_grid_conv.get_below_idx_from_center(target_chunk, &pos, 1);
+            let below =
+                element_grid_conv.get_below_idx_from_center(target_chunk, coord_dir, &pos, 1);
             match below {
                 Ok(idx) => {
                     if let Ok(element) = element_grid_conv.get(target_chunk, idx) {
                         match element.get_type() {
-                            ElementType::Vacuum => self.try_swap_me(
-                                pos,
-                                idx,
-                                target_chunk,
-                                element_grid_conv,
-                                current_time,
-                            ),
+                            ElementType::Vacuum => {
+                                self.try_swap_me(idx, target_chunk, element_grid_conv, current_time)
+                            }
                             _ => ElementTakeOptions::PutBack,
                         }
                     } else {
@@ -171,47 +172,22 @@ mod tests {
             }
         }
 
-        fn assert_movement_down_one_chunk(
-            this_cell_coord: IjkVector,
-            mut element_grid_dir: ElementGridDir,
-        ) {
-            let below_chunk_coord = ChunkIjkVector::new(this_cell_coord.i - 1, 0, 0);
-            let loc1 = element_grid_dir
-                .get_coordinate_dir()
-                .cell_idx_to_chunk_idx(this_cell_coord);
-            let loc2 = {
-                let below_chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(below_chunk_coord);
-                let below_chunk_nb_concentric_circles =
-                    below_chunk.get_chunk_coords().get_num_concentric_circles();
-                let below_cell_coord = IjkVector::new(
-                    this_cell_coord.i - 1,
-                    below_chunk_nb_concentric_circles - 1,
-                    this_cell_coord.k / 2,
-                );
-                element_grid_dir
-                    .get_coordinate_dir()
-                    .cell_idx_to_chunk_idx(below_cell_coord)
-            };
-
-            assert_movement(element_grid_dir, loc1, loc2);
-        }
-
-        macro_rules! test_error_case {
-            ($name:ident, $i:expr) => {
+        macro_rules! test_movement {
+            ($name:ident, $pos1:expr, $pos2:expr) => {
                 #[test]
                 fn $name() {
                     let element_grid_dir = get_element_grid_dir();
-                    assert_movement_down_one_chunk(IjkVector::new($i, 0, 0), element_grid_dir);
+                    let pos1 = element_grid_dir
+                        .get_coordinate_dir()
+                        .cell_idx_to_chunk_idx(IjkVector::new($pos1.0, $pos1.1, $pos1.2));
+                    let pos2 = element_grid_dir
+                        .get_coordinate_dir()
+                        .cell_idx_to_chunk_idx(IjkVector::new($pos2.0, $pos2.1, $pos2.2));
+                    assert_movement(element_grid_dir, pos1, pos2);
                 }
             };
         }
 
-        // Usage:
-        test_error_case!(test_error_case_at_i6, 6);
-        test_error_case!(test_error_case_at_i5, 5);
-        test_error_case!(test_error_case_at_i4, 4);
-        test_error_case!(test_error_case_at_i3, 3);
-        test_error_case!(test_error_case_at_i2, 2);
-        test_error_case!(test_error_case_at_i1, 1);
+        test_movement!(test_movement_i2_j2_k1, (2, 2, 1), (2, 1, 1));
     }
 }
