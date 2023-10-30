@@ -1,4 +1,7 @@
-use ggegui::{egui, Gui};
+use ggegui::{
+    egui::{self, Ui},
+    Gui,
+};
 use ggez::Context;
 use mint::{Point2, Vector2};
 
@@ -22,7 +25,7 @@ impl CameraWindow {
         // let pwd = std::env::current_dir().unwrap();
         // let pwdstr = pwd.to_str().unwrap();
         Self {
-            draw_coords: Point2 { x: 1000.0, y: 0.0 },
+            draw_coords: Point2 { x: 0.0, y: 0.0 },
             outline: false,
             wireframe: false,
             queue_save: true,
@@ -58,11 +61,11 @@ impl CameraWindow {
 }
 
 impl GuiTrait for CameraWindow {
-    fn get_screen_coords(&self) -> Point2<f32> {
+    fn get_offset(&self) -> Point2<f32> {
         self.draw_coords
     }
 
-    fn set_screen_coords(&mut self, screen_coords: Point2<f32>) {
+    fn set_offset(&mut self, screen_coords: Point2<f32>) {
         self.draw_coords = screen_coords;
     }
 
@@ -74,19 +77,25 @@ impl GuiTrait for CameraWindow {
         &mut self.gui
     }
 
-    fn window(&mut self, gui_ctx: &mut ggegui::GuiContext) {
-        egui::Window::new("Camera").show(gui_ctx, |ui| {
-            ui.label(format!("zoom: {:?}", self.camera_zoom));
-            ui.label(format!("FPS: {}", self.fps));
-            // Set a radiomode for "DrawMode"
-            ui.separator();
-            ui.checkbox(&mut self.outline, "Outline");
-            ui.checkbox(&mut self.wireframe, "Wireframe");
-            // Create a save button and a path selector
-            ui.separator();
-            if ui.button("Save").clicked() {
-                self.queue_save = true;
-            }
-        });
+    fn get_alignment(&self) -> egui::Align2 {
+        egui::Align2::LEFT_TOP
+    }
+
+    fn get_title(&self) -> &str {
+        "Camera"
+    }
+
+    fn window(&mut self, ui: &mut Ui) {
+        ui.label(format!("zoom: {:?}", self.camera_zoom));
+        ui.label(format!("FPS: {}", self.fps));
+        // Set a radiomode for "DrawMode"
+        ui.separator();
+        ui.checkbox(&mut self.outline, "Outline");
+        ui.checkbox(&mut self.wireframe, "Wireframe");
+        // Create a save button and a path selector
+        ui.separator();
+        if ui.button("Save").clicked() {
+            self.queue_save = true;
+        }
     }
 }

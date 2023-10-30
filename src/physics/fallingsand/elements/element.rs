@@ -7,6 +7,10 @@ use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 use ggez::graphics::Color;
 
+use super::fliers::down::DownFlier;
+use super::sand::Sand;
+use super::vacuum::Vacuum;
+
 /// What to do after process is called on the elementgrid
 /// The element grid takes the element out of the grid so that it can't
 /// self reference in the process operation for thread safety.
@@ -24,9 +28,16 @@ pub enum ElementType {
     Vacuum,
     Sand,
     DownFlier,
-    UpFlier,
-    LeftFlier,
-    RightFlier,
+}
+
+impl ElementType {
+    pub fn get_element(&self) -> Box<dyn Element> {
+        match self {
+            ElementType::Vacuum => Box::<Vacuum>::default(),
+            ElementType::Sand => Box::<Sand>::default(),
+            ElementType::DownFlier => Box::<DownFlier>::default(),
+        }
+    }
 }
 
 pub trait Element: Send + Sync {
