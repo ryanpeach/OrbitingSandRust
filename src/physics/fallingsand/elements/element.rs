@@ -23,6 +23,10 @@ pub enum ElementTakeOptions {
 pub enum ElementType {
     Vacuum,
     Sand,
+    DownFlier,
+    UpFlier,
+    LeftFlier,
+    RightFlier,
 }
 
 pub trait Element: Send + Sync {
