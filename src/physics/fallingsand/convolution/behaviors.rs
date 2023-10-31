@@ -288,11 +288,11 @@ impl ElementGridConvolutionNeighbors {
                 ))
             }
             (Some(left_chunk_idx), None) => {
-                let left_chunk = self
-                    .get_chunk_by_chunk_ijk(*left_chunk_idx, target_chunk)
-                    .expect("Left chunk not found");
                 let temp_new_k: isize = pos.k as isize + rk;
                 if temp_new_k >= target_chunk.get_chunk_coords().get_num_radial_lines() as isize {
+                    let left_chunk = self
+                        .get_chunk_by_chunk_ijk(*left_chunk_idx, target_chunk)
+                        .expect("Left chunk not found");
                     // Now we are in the left chunk
                     let new_k = modulo(
                         temp_new_k,
@@ -319,12 +319,12 @@ impl ElementGridConvolutionNeighbors {
                 }
             }
             (None, Some(right_chunk_idx)) => {
-                let right_chunk = self
-                    .get_chunk_by_chunk_ijk(*right_chunk_idx, target_chunk)
-                    .expect("Right chunk not found");
                 let temp_new_k: isize = pos.k as isize + rk;
                 if temp_new_k < 0 {
                     // Now we are in the right chunk
+                    let right_chunk = self
+                        .get_chunk_by_chunk_ijk(*right_chunk_idx, target_chunk)
+                        .expect("Right chunk not found");
                     let new_k = modulo(
                         temp_new_k,
                         right_chunk
@@ -350,15 +350,12 @@ impl ElementGridConvolutionNeighbors {
                 }
             }
             (Some(left_chunk_idx), Some(right_chunk_idx)) => {
-                let left_chunk = self
-                    .get_chunk_by_chunk_ijk(*left_chunk_idx, target_chunk)
-                    .expect("Left chunk not found");
-                let right_chunk = self
-                    .get_chunk_by_chunk_ijk(*right_chunk_idx, target_chunk)
-                    .expect("Right chunk not found");
                 let temp_new_k: isize = pos.k as isize + rk;
                 if temp_new_k >= target_chunk.get_chunk_coords().get_num_radial_lines() as isize {
                     // Now we are in the left chunk
+                    let left_chunk = self
+                        .get_chunk_by_chunk_ijk(*left_chunk_idx, target_chunk)
+                        .expect("Left chunk not found");
                     let new_k = modulo(
                         temp_new_k,
                         left_chunk
@@ -373,6 +370,9 @@ impl ElementGridConvolutionNeighbors {
                     ))
                 } else if temp_new_k < 0 {
                     // Now we are in the right chunk
+                    let right_chunk = self
+                        .get_chunk_by_chunk_ijk(*right_chunk_idx, target_chunk)
+                        .expect("Right chunk not found");
                     let new_k = modulo(
                         temp_new_k,
                         right_chunk
