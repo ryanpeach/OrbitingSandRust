@@ -275,7 +275,7 @@ impl ElementGridConvolutionNeighbors {
             .find(|chunk_idx| chunk_idx.k == this_chunk_idx.k + 1);
         let right_chunk: Option<&ChunkIjkVector> = chunk_idxs
             .iter()
-            .find(|chunk_idx| chunk_idx.k == this_chunk_idx.k - 1);
+            .find(|chunk_idx| chunk_idx.k as isize == this_chunk_idx.k as isize - 1);
         match (left_chunk, right_chunk) {
             (None, None) => {
                 let new_k = modulo(
