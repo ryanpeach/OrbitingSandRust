@@ -76,7 +76,6 @@ pub trait Element: Send + Sync {
 
 #[cfg(test)]
 mod tests {
-    use ggegui::egui::epaint::ahash::{HashSet, HashSetExt};
     use ggez::graphics::Color;
     use strum::IntoEnumIterator;
 
