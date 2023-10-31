@@ -13,25 +13,28 @@ pub enum LeftRightNeighborIdentifier {
     LR(LeftRightNeighborIdentifierLR),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default, EnumIter)]
 pub enum TopNeighborIdentifierNormal {
     TopLeft,
+    #[default]
     Top,
     TopRight,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default, EnumIter)]
 pub enum TopNeighborIdentifierLayerTransition {
     TopLeft,
     Top1,
+    #[default]
     Top0,
     TopRight,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default, EnumIter)]
 pub enum TopNeighborIdentifier {
     Normal(TopNeighborIdentifierNormal),
     LayerTransition(TopNeighborIdentifierLayerTransition),
+    #[default]
     SingleChunkLayerAbove,
     MultiChunkLayerAbove(usize),
 }

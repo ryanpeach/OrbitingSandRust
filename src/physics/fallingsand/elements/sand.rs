@@ -20,7 +20,7 @@ pub fn get_bottom_left(
     let idx = conv.get_below_idx_from_center(target_grid, coord_dir, pos, n)?;
     match idx.1 {
         ConvolutionIdentifier::Bottom(bottom_id) => {
-            let new_idx = conv.get_left_right_idx_from_bottom(&idx.0, bottom_id, 1)?;
+            let new_idx = conv.get_left_right_idx_from_bottom_center(&idx.0, bottom_id, 1)?;
             Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
         }
         ConvolutionIdentifier::Center => {
@@ -41,7 +41,7 @@ pub fn get_bottom_right(
     let idx = conv.get_below_idx_from_center(target_grid, coord_dir, pos, n)?;
     match idx.1 {
         ConvolutionIdentifier::Bottom(bottom_id) => {
-            let new_idx = conv.get_left_right_idx_from_bottom(&idx.0, bottom_id, -1)?;
+            let new_idx = conv.get_left_right_idx_from_bottom_center(&idx.0, bottom_id, -1)?;
             Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
         }
         ConvolutionIdentifier::Center => {
