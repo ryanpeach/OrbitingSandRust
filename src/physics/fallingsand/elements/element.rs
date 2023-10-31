@@ -8,6 +8,8 @@ use ggez::graphics::Color;
 use strum_macros::EnumIter;
 
 use super::fliers::down::DownFlier;
+use super::fliers::left::LeftFlier;
+use super::fliers::right::RightFlier;
 use super::sand::Sand;
 use super::vacuum::Vacuum;
 
@@ -28,6 +30,8 @@ pub enum ElementType {
     Vacuum,
     Sand,
     DownFlier,
+    LeftFlier,
+    RightFlier,
 }
 
 impl ElementType {
@@ -36,6 +40,8 @@ impl ElementType {
             ElementType::Vacuum => Box::<Vacuum>::default(),
             ElementType::Sand => Box::<Sand>::default(),
             ElementType::DownFlier => Box::<DownFlier>::default(),
+            ElementType::LeftFlier => Box::<LeftFlier>::default(),
+            ElementType::RightFlier => Box::<RightFlier>::default(),
         }
     }
 }

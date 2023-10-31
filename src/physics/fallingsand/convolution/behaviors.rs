@@ -400,6 +400,8 @@ impl ElementGridConvolutionNeighbors {
         }
     }
 
+    /// rk positive is left, counter clockwise
+    /// rk negative is right, clockwise
     pub fn get_left_right_idx_from_center(
         &self,
         target_chunk: &ElementGrid,
@@ -411,6 +413,8 @@ impl ElementGridConvolutionNeighbors {
         self.get_left_right_idx_from_vec(pos, target_chunk, left_right_chunk_idxs, rk)
     }
 
+    /// rk positive is left, counter clockwise
+    /// rk negative is right, clockwise
     pub fn get_left_right_idx_from_bottom_center(
         &self,
         target_chunk: &ElementGrid,
@@ -422,6 +426,8 @@ impl ElementGridConvolutionNeighbors {
         self.get_left_right_idx_from_vec(pos, target_chunk, bottom_chunk_idxs, rk)
     }
 
+    /// rk positive is left, counter clockwise
+    /// rk negative is right, clockwise
     pub fn get_left_right_idx_from_top_center(
         &self,
         target_chunk: &ElementGrid,
