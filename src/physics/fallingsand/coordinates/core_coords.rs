@@ -15,7 +15,7 @@ use super::chunk_coords::VertexMode;
 /// Making this num_radial_lines the only variable layer to layer
 #[derive(Debug, Clone, Copy)]
 pub struct CoreChunkCoords {
-    radius: f32,
+    width: f32,
     num_radial_lines: usize,
 }
 
@@ -26,7 +26,7 @@ pub struct CoreChunkCoords {
 impl Default for CoreChunkCoords {
     fn default() -> Self {
         Self {
-            radius: 1.0,
+            width: 1.0,
             num_radial_lines: 6,
         }
     }
@@ -35,7 +35,7 @@ impl Default for CoreChunkCoords {
 impl CoreChunkCoords {
     pub fn new(radius: f32, num_radial_lines: usize) -> Self {
         Self {
-            radius,
+            width: radius,
             num_radial_lines,
         }
     }
@@ -50,8 +50,8 @@ impl CoreChunkCoords {
             let angle1 = i as f32 * 2.0 * PI / self.num_radial_lines as f32;
             let angle2 = (i + 1) as f32 * 2.0 * PI / self.num_radial_lines as f32;
             let pos0 = Vec2::new(0.0, 0.0);
-            let pos1 = Vec2::new(self.radius * angle1.cos(), self.radius * angle1.sin());
-            let pos2 = Vec2::new(self.radius * angle2.cos(), self.radius * angle2.sin());
+            let pos1 = Vec2::new(self.width * angle1.cos(), self.width * angle1.sin());
+            let pos2 = Vec2::new(self.width * angle2.cos(), self.width * angle2.sin());
             vertices.push(pos0);
             vertices.push(pos1);
             vertices.push(pos2);
@@ -67,7 +67,7 @@ impl CoreChunkCoords {
         // Outer vertices
         for i in 0..=self.num_radial_lines {
             let angle1 = i as f32 * 2.0 * PI / self.num_radial_lines as f32;
-            let pos = Vec2::new(self.radius * angle1.cos(), self.radius * angle1.sin());
+            let pos = Vec2::new(self.width * angle1.cos(), self.width * angle1.sin());
             vertices.push(pos);
         }
 
@@ -137,8 +137,8 @@ impl ChunkCoords for CoreChunkCoords {
     fn get_uvs(&self, _mode: VertexMode) -> Vec<Vec2> {
         self.get_uvs()
     }
-    fn get_cell_radius(&self) -> f32 {
-        self.radius
+    fn get_cell_width(&self) -> f32 {
+        self.width
     }
     fn get_start_radius(&self) -> f32 {
         0.0
@@ -150,7 +150,7 @@ impl ChunkCoords for CoreChunkCoords {
         ChunkIjkVector::ZERO
     }
     fn get_end_radius(&self) -> f32 {
-        self.radius
+        self.width
     }
     fn get_num_radial_lines(&self) -> usize {
         self.num_radial_lines
@@ -162,7 +162,7 @@ impl ChunkCoords for CoreChunkCoords {
         0.0
     }
     fn get_end_radial_theta(&self) -> f32 {
-        2.0 * PI * self.radius
+        2.0 * PI * self.width
     }
     fn get_start_concentric_circle_absolute(&self) -> usize {
         0
@@ -183,12 +183,7 @@ impl ChunkCoords for CoreChunkCoords {
         0
     }
     fn get_bounding_box(&self) -> Rect {
-        Rect::new(
-            -self.radius,
-            -self.radius,
-            self.radius * 2.0,
-            self.radius * 2.0,
-        )
+        Rect::new(-self.width, -self.width, self.width * 2.0, self.width * 2.0)
     }
 }
 

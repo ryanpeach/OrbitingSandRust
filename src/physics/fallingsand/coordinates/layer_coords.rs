@@ -13,7 +13,7 @@ use super::chunk_coords::VertexMode;
 /// It doesn't split itself in either the radial or concentric directions.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct PartialLayerChunkCoords {
-    cell_radius: f32,
+    width: f32,
     chunk_idx: ChunkIjkVector,
     start_concentric_circle_layer_relative: usize,
     start_concentric_circle_absolute: usize,
@@ -118,7 +118,7 @@ impl PartialLayerChunkCoordsBuilder {
         debug_assert_ne!(self.layer_num_radial_lines, 0);
         debug_assert_ne!(self.end_radial_line, 0);
         PartialLayerChunkCoords {
-            cell_radius: self.cell_radius,
+            width: self.cell_radius,
             start_concentric_circle_layer_relative: self.start_concentric_circle_layer_relative,
             start_concentric_circle_absolute: self.start_concentric_circle_absolute,
             start_radial_line: self.start_radial_line,
@@ -339,14 +339,14 @@ impl ChunkCoords for PartialLayerChunkCoords {
     fn get_uvs(&self, mode: VertexMode) -> Vec<Vec2> {
         self.get_uv_vertexes(mode)
     }
-    fn get_cell_radius(&self) -> f32 {
-        self.cell_radius
+    fn get_cell_width(&self) -> f32 {
+        self.width
     }
     fn get_start_radius(&self) -> f32 {
-        self.start_concentric_circle_absolute as f32 * self.cell_radius
+        self.start_concentric_circle_absolute as f32 * self.width
     }
     fn get_end_radius(&self) -> f32 {
-        self.get_start_radius() + self.cell_radius * (self.num_concentric_circles as f32)
+        self.get_start_radius() + self.width * (self.num_concentric_circles as f32)
     }
     fn get_num_radial_lines(&self) -> usize {
         self.end_radial_line - self.start_radial_line
@@ -414,7 +414,7 @@ mod tests {
         use super::*;
 
         const FIRST_LAYER: PartialLayerChunkCoords = PartialLayerChunkCoords {
-            cell_radius: 1.0,
+            width: 1.0,
             num_concentric_circles: 2,
             chunk_idx: ChunkIjkVector { i: 1, j: 0, k: 0 },
             start_concentric_circle_layer_relative: 0,
@@ -683,7 +683,7 @@ mod tests {
         use super::*;
 
         const FIRST_LAYER_PARTIAL: PartialLayerChunkCoords = PartialLayerChunkCoords {
-            cell_radius: 1.0,
+            width: 1.0,
             num_concentric_circles: 1,
             chunk_idx: ChunkIjkVector { i: 1, j: 0, k: 0 },
             start_concentric_circle_layer_relative: 1,

@@ -5,12 +5,13 @@ use ggegui::{
 use ggez::Context;
 use mint::{Point2, Vector2};
 
-use crate::nodes::{camera::cam::Camera, celestial::Celestial};
+use crate::nodes::{brush::Brush, camera::cam::Camera, celestial::Celestial};
 
-use super::gui_trait::GuiTrait;
+use super::gui_trait::WindowTrait;
 
 pub struct CameraWindow {
     draw_coords: Point2<f32>,
+    brush_size: f32,
     outline: bool,
     wireframe: bool,
     queue_save: bool,
@@ -29,6 +30,7 @@ impl CameraWindow {
             outline: false,
             wireframe: false,
             queue_save: true,
+            brush_size: 1.0,
             fps: 0.0,
             camera_zoom: Vector2 { x: 1.0, y: 1.0 },
             path: "".to_owned(),
@@ -36,9 +38,10 @@ impl CameraWindow {
         }
     }
 
-    pub fn update(&mut self, ctx: &mut Context, camera: &Camera) {
+    pub fn update(&mut self, ctx: &mut Context, camera: &Camera, brush: &Brush) {
         self.fps = ctx.time.fps();
         self.camera_zoom = camera.get_zoom();
+        self.brush_size = brush.get_radius();
     }
 
     pub fn get_outline(&self) -> bool {
@@ -60,7 +63,7 @@ impl CameraWindow {
     }
 }
 
-impl GuiTrait for CameraWindow {
+impl WindowTrait for CameraWindow {
     fn get_offset(&self) -> Point2<f32> {
         self.draw_coords
     }
@@ -86,7 +89,8 @@ impl GuiTrait for CameraWindow {
     }
 
     fn window(&mut self, ui: &mut Ui) {
-        ui.label(format!("zoom: {:?}", self.camera_zoom));
+        ui.label(format!("Brush Size: {}", self.brush_size));
+        ui.label(format!("Zoom: {:?}", self.camera_zoom));
         ui.label(format!("FPS: {}", self.fps));
         // Set a radiomode for "DrawMode"
         ui.separator();

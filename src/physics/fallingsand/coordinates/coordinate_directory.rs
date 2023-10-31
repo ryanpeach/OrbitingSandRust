@@ -579,8 +579,8 @@ impl CoordinateDir {
         total_size
     }
     /// Cell radius is constant for all chunks
-    pub fn get_cell_radius(&self) -> f32 {
-        self.core_chunk.get_cell_radius()
+    pub fn get_cell_width(&self) -> f32 {
+        self.core_chunk.get_cell_width()
     }
     /// The number of layers in the circle
     pub fn get_num_layers(&self) -> usize {
@@ -1045,7 +1045,7 @@ mod tests {
                 let j = 0;
                 for k in 0..coordinate_dir.get_core_chunk().get_num_radial_lines() {
                     // This radius and theta should define the midpoint of each cell
-                    let radius = coordinate_dir.get_cell_radius() / 2.0;
+                    let radius = coordinate_dir.get_cell_width() / 2.0;
                     let theta = -2.0 * PI
                         / coordinate_dir.get_core_chunk().get_num_radial_lines() as f32
                         * (k as f32 + 0.5);
