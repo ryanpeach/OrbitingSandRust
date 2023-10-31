@@ -1,3 +1,5 @@
+use strum_macros::EnumIter;
+
 use crate::physics::fallingsand::util::vectors::JkVector;
 
 #[derive(Debug, Clone, Copy)]
@@ -34,23 +36,26 @@ pub enum TopNeighborIdentifier {
     MultiChunkLayerAbove(usize),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default, EnumIter)]
 pub enum BottomNeighborIdentifierNormal {
     BottomLeft,
+    #[default]
     Bottom,
     BottomRight,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default, EnumIter)]
 pub enum BottomNeighborIdentifierLayerTransition {
+    #[default]
     BottomLeft,
     BottomRight,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default, EnumIter)]
 pub enum BottomNeighborIdentifier {
     Normal(BottomNeighborIdentifierNormal),
     LayerTransition(BottomNeighborIdentifierLayerTransition),
+    #[default]
     FullLayerBelow,
 }
 

@@ -719,4 +719,152 @@ mod tests {
             (6, 95, 210)
         );
     }
+
+    mod get_left_right_idx_from_center {
+        use super::*;
+        use crate::physics::fallingsand::util::vectors::IjkVector;
+
+        macro_rules! test_get_left_right_idx_from_center {
+            ($name:ident, $pos1:expr, $n:expr, $pos2:expr) => {
+                #[test]
+                fn $name() {
+                    let mut element_dir = get_element_grid_dir();
+                    let chunk_pos1 = element_dir
+                        .get_coordinate_dir()
+                        .cell_idx_to_chunk_idx(IjkVector::new($pos1.0, $pos1.1, $pos1.2));
+                    let chunk_pos2 = element_dir
+                        .get_coordinate_dir()
+                        .cell_idx_to_chunk_idx(IjkVector::new($pos2.0, $pos2.1, $pos2.2));
+                    let mut package = element_dir
+                        .package_coordinate_neighbors(chunk_pos1.0)
+                        .unwrap();
+                    let chunk = element_dir.get_chunk_by_chunk_ijk(chunk_pos1.0);
+                    let should_eq_pos2 = package
+                        .get_left_right_idx_from_center(chunk, &chunk_pos1.1, $n)
+                        .unwrap();
+                    let should_eq_chunk2 = match package.get_chunk(should_eq_pos2.1) {
+                        Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
+                        Err(GetChunkErr::ReturnsVector) => {
+                            panic!("Should not return a vector")
+                        }
+                        Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+                    };
+                    // Test the mut version too
+                    let should_eq_chunk2_mut = match package.get_chunk_mut(should_eq_pos2.1) {
+                        Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
+                        Err(GetChunkErr::ReturnsVector) => {
+                            panic!("Should not return a vector")
+                        }
+                        Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+                    };
+                    assert_eq!(chunk_pos2.1, should_eq_pos2.0);
+                    assert_eq!(chunk_pos2.0, should_eq_chunk2);
+                    assert_eq!(chunk_pos2.0, should_eq_chunk2_mut);
+                }
+            };
+        }
+
+        test_get_left_right_idx_from_center!(
+            test_get_left_right_idx_from_center_i2_j2_k0_left,
+            (2, 2, 0),
+            1,
+            (2, 2, 1)
+        );
+
+        test_get_left_right_idx_from_center!(
+            test_get_left_right_idx_from_center_i2_j2_k0_right,
+            (2, 2, 0),
+            -1,
+            (2, 2, 23)
+        );
+
+        test_get_left_right_idx_from_center!(
+            test_get_left_right_idx_from_center_i7_j2_k0_left,
+            (7, 2, 0),
+            1,
+            (7, 2, 1)
+        );
+
+        test_get_left_right_idx_from_center!(
+            test_get_left_right_idx_from_center_i7_j2_k0_right,
+            (7, 2, 0),
+            -1,
+            (7, 2, 1535)
+        );
+    }
+
+    mod get_left_right_idx_from_bottom {
+        use super::*;
+        use crate::physics::fallingsand::util::vectors::IjkVector;
+        use strum::IntoEnumIterator;
+
+        macro_rules! test_get_left_right_idx_from_bottom {
+            ($name:ident, $pos1:expr, $n:expr, $pos2:expr) => {
+                #[test]
+                fn $name() {
+                    let mut element_dir = get_element_grid_dir();
+                    let chunk_pos1 = element_dir
+                        .get_coordinate_dir()
+                        .cell_idx_to_chunk_idx(IjkVector::new($pos1.0, $pos1.1, $pos1.2));
+                    let chunk_pos2 = element_dir
+                        .get_coordinate_dir()
+                        .cell_idx_to_chunk_idx(IjkVector::new($pos2.0, $pos2.1, $pos2.2));
+                    let mut package = element_dir
+                        .package_coordinate_neighbors(chunk_pos1.0)
+                        .unwrap();
+                    for chunk_id in BottomNeighborIdentifier::iter() {
+                        let should_eq_pos2 = package
+                            .get_left_right_idx_from_bottom(&chunk_pos1.1, chunk_id, $n)
+                            .unwrap();
+                        let should_eq_chunk2 = match package.get_chunk(should_eq_pos2.1) {
+                            Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
+                            Err(GetChunkErr::ReturnsVector) => {
+                                panic!("Should not return a vector")
+                            }
+                            Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+                        };
+                        // Test the mut version too
+                        let should_eq_chunk2_mut = match package.get_chunk_mut(should_eq_pos2.1) {
+                            Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
+                            Err(GetChunkErr::ReturnsVector) => {
+                                panic!("Should not return a vector")
+                            }
+                            Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+                        };
+                        assert_eq!(chunk_pos2.1, should_eq_pos2.0);
+                        assert_eq!(chunk_pos2.0, should_eq_chunk2);
+                        assert_eq!(chunk_pos2.0, should_eq_chunk2_mut);
+                    }
+                }
+            };
+        }
+
+        test_get_left_right_idx_from_bottom!(
+            test_get_left_right_idx_from_bottom_i2_j2_k0_left,
+            (2, 2, 0),
+            1,
+            (2, 2, 1)
+        );
+
+        test_get_left_right_idx_from_bottom!(
+            test_get_left_right_idx_from_bottom_i2_j2_k0_right,
+            (2, 2, 0),
+            -1,
+            (2, 2, 23)
+        );
+
+        test_get_left_right_idx_from_bottom!(
+            test_get_left_right_idx_from_bottom_i7_j2_k0_left,
+            (7, 2, 0),
+            1,
+            (7, 2, 1)
+        );
+
+        test_get_left_right_idx_from_bottom!(
+            test_get_left_right_idx_from_bottom_i7_j2_k0_right,
+            (7, 2, 0),
+            -1,
+            (7, 2, 1535)
+        );
+    }
 }
