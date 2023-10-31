@@ -186,9 +186,7 @@ impl ElementGrid {
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {
                 let element = self.grid.get(JkVector { j, k });
-                let color = element
-                    .get_color(JkVector { j, k }, self.get_chunk_coords())
-                    .to_rgba();
+                let color = element.get_color().to_rgba();
                 out.push(color.0);
                 out.push(color.1);
                 out.push(color.2);

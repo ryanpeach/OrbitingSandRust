@@ -4,7 +4,6 @@ use crate::physics::fallingsand::convolution::neighbor_grids::ConvOutOfBoundsErr
 use crate::physics::fallingsand::convolution::neighbor_identifiers::{
     ConvolutionIdentifier, ConvolutionIdx,
 };
-use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::element_grid::ElementGrid;
 use crate::physics::fallingsand::util::vectors::JkVector;
@@ -67,7 +66,7 @@ impl Element for Sand {
         self.last_processed
     }
     #[allow(clippy::borrowed_box)]
-    fn get_color(&self, _pos: JkVector, _chunk_coords: &Box<dyn ChunkCoords>) -> Color {
+    fn get_color(&self) -> Color {
         Color::YELLOW
     }
     fn process(
