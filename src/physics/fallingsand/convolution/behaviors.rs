@@ -265,138 +265,78 @@ impl ElementGridConvolutionNeighbors {
     fn get_left_right_idx_from_vec(
         &self,
         pos: &JkVector,
+        coord_dir: &CoordinateDir,
         target_chunk: &ElementGrid,
         chunk_idxs: Vec<ChunkIjkVector>,
         rk: isize,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
         let this_chunk_idx = target_chunk.get_chunk_coords().get_chunk_idx();
-        let left_chunk: Option<&ChunkIjkVector> = chunk_idxs
-            .iter()
-            .find(|chunk_idx| chunk_idx.k == this_chunk_idx.k + 1);
-        let right_chunk: Option<&ChunkIjkVector> = chunk_idxs
-            .iter()
-            .find(|chunk_idx| chunk_idx.k as isize == this_chunk_idx.k as isize - 1);
-        match (left_chunk, right_chunk) {
-            (None, None) => {
-                let new_k = modulo(
-                    pos.k as isize + rk,
-                    target_chunk.get_chunk_coords().get_num_radial_lines(),
-                );
-                Ok(ConvolutionIdx(
-                    JkVector { j: pos.j, k: new_k },
-                    ConvolutionIdentifier::Center,
-                ))
-            }
-            (Some(left_chunk_idx), None) => {
-                let temp_new_k: isize = pos.k as isize + rk;
-                if temp_new_k >= target_chunk.get_chunk_coords().get_num_radial_lines() as isize {
-                    let left_chunk = self
-                        .get_chunk_by_chunk_ijk(*left_chunk_idx, target_chunk)
-                        .expect("Left chunk not found");
-                    // Now we are in the left chunk
-                    let new_k = modulo(
-                        temp_new_k,
-                        left_chunk
-                            .0
-                            .expect("There is no way this is the center chunk")
-                            .get_chunk_coords()
-                            .get_num_radial_lines(),
-                    );
-                    Ok(ConvolutionIdx(
-                        JkVector { j: pos.j, k: new_k },
-                        left_chunk.1,
-                    ))
-                } else {
-                    // We are still in the center chunk
-                    let new_k = modulo(
-                        temp_new_k,
-                        target_chunk.get_chunk_coords().get_num_radial_lines(),
-                    );
-                    Ok(ConvolutionIdx(
-                        JkVector { j: pos.j, k: new_k },
-                        ConvolutionIdentifier::Center,
-                    ))
-                }
-            }
-            (None, Some(right_chunk_idx)) => {
-                let temp_new_k: isize = pos.k as isize + rk;
-                if temp_new_k < 0 {
-                    // Now we are in the right chunk
-                    let right_chunk = self
-                        .get_chunk_by_chunk_ijk(*right_chunk_idx, target_chunk)
-                        .expect("Right chunk not found");
-                    let new_k = modulo(
-                        temp_new_k,
-                        right_chunk
-                            .0
-                            .expect("There is no way this is the center chunk")
-                            .get_chunk_coords()
-                            .get_num_radial_lines(),
-                    );
-                    Ok(ConvolutionIdx(
-                        JkVector { j: pos.j, k: new_k },
-                        right_chunk.1,
-                    ))
-                } else {
-                    // We are still in the center chunk
-                    let new_k = modulo(
-                        temp_new_k,
-                        target_chunk.get_chunk_coords().get_num_radial_lines(),
-                    );
-                    Ok(ConvolutionIdx(
-                        JkVector { j: pos.j, k: new_k },
-                        ConvolutionIdentifier::Center,
-                    ))
-                }
-            }
-            (Some(left_chunk_idx), Some(right_chunk_idx)) => {
-                let temp_new_k: isize = pos.k as isize + rk;
-                if temp_new_k >= target_chunk.get_chunk_coords().get_num_radial_lines() as isize {
-                    // Now we are in the left chunk
-                    let left_chunk = self
-                        .get_chunk_by_chunk_ijk(*left_chunk_idx, target_chunk)
-                        .expect("Left chunk not found");
-                    let new_k = modulo(
-                        temp_new_k,
-                        left_chunk
-                            .0
-                            .expect("There is no way this is the center chunk")
-                            .get_chunk_coords()
-                            .get_num_radial_lines(),
-                    );
-                    Ok(ConvolutionIdx(
-                        JkVector { j: pos.j, k: new_k },
-                        left_chunk.1,
-                    ))
-                } else if temp_new_k < 0 {
-                    // Now we are in the right chunk
-                    let right_chunk = self
-                        .get_chunk_by_chunk_ijk(*right_chunk_idx, target_chunk)
-                        .expect("Right chunk not found");
-                    let new_k = modulo(
-                        temp_new_k,
-                        right_chunk
-                            .0
-                            .expect("There is no way this is the center chunk")
-                            .get_chunk_coords()
-                            .get_num_radial_lines(),
-                    );
-                    Ok(ConvolutionIdx(
-                        JkVector { j: pos.j, k: new_k },
-                        right_chunk.1,
-                    ))
-                } else {
-                    // We are still in the center chunk
-                    let new_k = modulo(
-                        temp_new_k,
-                        target_chunk.get_chunk_coords().get_num_radial_lines(),
-                    );
-                    Ok(ConvolutionIdx(
-                        JkVector { j: pos.j, k: new_k },
-                        ConvolutionIdentifier::Center,
-                    ))
-                }
-            }
+        let num_k_chunks = coord_dir
+            .get_layer_num_radial_chunks(target_chunk.get_chunk_coords().get_chunk_idx().i);
+        let temp_new_k = pos.k as isize + rk;
+        if temp_new_k >= 0
+            && temp_new_k < target_chunk.get_chunk_coords().get_num_radial_lines() as isize
+        {
+            // We are still in the center chunk
+            let new_k = modulo(
+                temp_new_k,
+                target_chunk.get_chunk_coords().get_num_radial_lines(),
+            );
+            Ok(ConvolutionIdx(
+                JkVector { j: pos.j, k: new_k },
+                ConvolutionIdentifier::Center,
+            ))
+        } else if num_k_chunks == 1 {
+            // There is only one chunk in the layer, so we can't go left or right
+            Err(ConvOutOfBoundsError(ConvolutionIdx(
+                JkVector { j: pos.j, k: pos.k },
+                ConvolutionIdentifier::Center,
+            )))
+        } else if temp_new_k >= target_chunk.get_chunk_coords().get_num_radial_lines() as isize {
+            let left_chunk_idx = chunk_idxs
+                .iter()
+                .find(|chunk_idx| {
+                    chunk_idx.k == modulo(this_chunk_idx.k as isize + 1, num_k_chunks)
+                })
+                .expect("Left chunk not found");
+            let left_chunk = self
+                .get_chunk_by_chunk_ijk(*left_chunk_idx, target_chunk)
+                .expect("Left chunk not found");
+            let new_k = modulo(
+                temp_new_k,
+                left_chunk
+                    .0
+                    .expect("There is no way this is the center chunk")
+                    .get_chunk_coords()
+                    .get_num_radial_lines(),
+            );
+            Ok(ConvolutionIdx(
+                JkVector { j: pos.j, k: new_k },
+                left_chunk.1,
+            ))
+        } else {
+            let right_chunk_idx = chunk_idxs
+                .iter()
+                .find(|chunk_idx| {
+                    chunk_idx.k == modulo(this_chunk_idx.k as isize - 1, num_k_chunks)
+                })
+                .expect("Right chunk not found");
+            let right_chunk = self
+                .get_chunk_by_chunk_ijk(*right_chunk_idx, target_chunk)
+                .expect("Right chunk not found");
+
+            let new_k = modulo(
+                temp_new_k,
+                right_chunk
+                    .0
+                    .expect("There is no way this is the center chunk")
+                    .get_chunk_coords()
+                    .get_num_radial_lines(),
+            );
+            Ok(ConvolutionIdx(
+                JkVector { j: pos.j, k: new_k },
+                right_chunk.1,
+            ))
         }
     }
 
@@ -405,12 +345,13 @@ impl ElementGridConvolutionNeighbors {
     pub fn get_left_right_idx_from_center(
         &self,
         target_chunk: &ElementGrid,
+        coord_dir: &CoordinateDir,
         pos: &JkVector,
         rk: isize,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
         let left_right_chunk_idxs: Vec<ChunkIjkVector> =
             self.chunk_idxs.left_right.iter().collect();
-        self.get_left_right_idx_from_vec(pos, target_chunk, left_right_chunk_idxs, rk)
+        self.get_left_right_idx_from_vec(pos, coord_dir, target_chunk, left_right_chunk_idxs, rk)
     }
 
     /// rk positive is left, counter clockwise
@@ -418,12 +359,13 @@ impl ElementGridConvolutionNeighbors {
     pub fn get_left_right_idx_from_bottom_center(
         &self,
         target_chunk: &ElementGrid,
+        coord_dir: &CoordinateDir,
         pos: &JkVector,
         _chunk_id: BottomNeighborIdentifier,
         rk: isize,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
         let bottom_chunk_idxs: Vec<ChunkIjkVector> = self.chunk_idxs.bottom.iter().collect();
-        self.get_left_right_idx_from_vec(pos, target_chunk, bottom_chunk_idxs, rk)
+        self.get_left_right_idx_from_vec(pos, coord_dir, target_chunk, bottom_chunk_idxs, rk)
     }
 
     /// rk positive is left, counter clockwise
@@ -431,12 +373,13 @@ impl ElementGridConvolutionNeighbors {
     pub fn get_left_right_idx_from_top_center(
         &self,
         target_chunk: &ElementGrid,
+        coord_dir: &CoordinateDir,
         pos: &JkVector,
         _chunk_id: TopNeighborIdentifier,
         rk: isize,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
         let top_chunk_idxs: Vec<ChunkIjkVector> = self.chunk_idxs.top.iter().collect();
-        self.get_left_right_idx_from_vec(pos, target_chunk, top_chunk_idxs, rk)
+        self.get_left_right_idx_from_vec(pos, coord_dir, target_chunk, top_chunk_idxs, rk)
     }
 }
 
@@ -936,7 +879,12 @@ mod tests {
                         .unwrap();
                     let chunk = element_dir.get_chunk_by_chunk_ijk(chunk_pos1.0);
                     let should_eq_pos2 = package
-                        .get_left_right_idx_from_center(chunk, &chunk_pos1.1, $n)
+                        .get_left_right_idx_from_center(
+                            chunk,
+                            element_dir.get_coordinate_dir(),
+                            &chunk_pos1.1,
+                            $n,
+                        )
                         .unwrap();
                     let should_eq_chunk2 = match package.get_chunk(should_eq_pos2.1) {
                         Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
@@ -1013,6 +961,7 @@ mod tests {
                         let should_eq_pos2 = package
                             .get_left_right_idx_from_bottom_center(
                                 chunk,
+                                element_dir.get_coordinate_dir(),
                                 &chunk_pos1.1,
                                 chunk_id,
                                 $n,
@@ -1092,7 +1041,13 @@ mod tests {
                     for chunk_id in TopNeighborIdentifier::iter() {
                         let chunk = element_dir.get_chunk_by_chunk_ijk(chunk_pos1.0);
                         let should_eq_pos2 = package
-                            .get_left_right_idx_from_top_center(chunk, &chunk_pos1.1, chunk_id, $n)
+                            .get_left_right_idx_from_top_center(
+                                chunk,
+                                element_dir.get_coordinate_dir(),
+                                &chunk_pos1.1,
+                                chunk_id,
+                                $n,
+                            )
                             .unwrap();
                         let should_eq_chunk2 = match package.get_chunk(should_eq_pos2.1) {
                             Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),

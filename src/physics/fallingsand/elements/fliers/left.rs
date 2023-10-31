@@ -26,14 +26,15 @@ impl Element for LeftFlier {
     fn process(
         &mut self,
         pos: JkVector,
-        _coord_dir: &CoordinateDir,
+        coord_dir: &CoordinateDir,
         target_chunk: &mut ElementGrid,
         element_grid_conv: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) -> ElementTakeOptions {
         // Doing this as a way to make sure I set last_processed AFTER I've done all the processing
         let out: ElementTakeOptions = {
-            let left = element_grid_conv.get_left_right_idx_from_center(target_chunk, &pos, 1);
+            let left =
+                element_grid_conv.get_left_right_idx_from_center(target_chunk, coord_dir, &pos, 1);
             match left {
                 Ok(idx) => {
                     if let Ok(element) = element_grid_conv.get(target_chunk, idx) {
