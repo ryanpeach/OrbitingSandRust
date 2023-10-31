@@ -2,7 +2,6 @@ use ggez::graphics::Color;
 
 use super::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
-use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::element_grid::ElementGrid;
 use crate::physics::fallingsand::util::vectors::JkVector;
@@ -22,7 +21,7 @@ impl Element for Vacuum {
         self.last_processed
     }
     #[allow(clippy::borrowed_box)]
-    fn get_color(&self, _pos: JkVector, _chunk_coords: &Box<dyn ChunkCoords>) -> Color {
+    fn get_color(&self) -> Color {
         Color::BLACK
     }
     fn process(

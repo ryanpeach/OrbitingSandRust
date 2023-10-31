@@ -1,11 +1,11 @@
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::convolution::neighbor_identifiers::ConvolutionIdx;
-use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::element_grid::ElementGrid;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 use ggez::graphics::Color;
+use strum_macros::EnumIter;
 
 use super::fliers::down::DownFlier;
 use super::sand::Sand;
@@ -23,7 +23,7 @@ pub enum ElementTakeOptions {
 }
 
 /// Useful for match statements
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter)]
 pub enum ElementType {
     Vacuum,
     Sand,
@@ -44,7 +44,7 @@ pub trait Element: Send + Sync {
     fn get_type(&self) -> ElementType;
     fn get_last_processed(&self) -> Clock;
     #[allow(clippy::borrowed_box)]
-    fn get_color(&self, pos: JkVector, chunk_coords: &Box<dyn ChunkCoords>) -> Color;
+    fn get_color(&self) -> Color;
     fn process(
         &mut self,
         pos: JkVector,
@@ -70,6 +70,30 @@ pub trait Element: Send + Sync {
         match prev {
             Ok(prev) => ElementTakeOptions::ReplaceWith(prev),
             Err(_) => panic!("Tried to swap with an invalid position"),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use ggegui::egui::epaint::ahash::{HashSet, HashSetExt};
+    use ggez::graphics::Color;
+    use strum::IntoEnumIterator;
+
+    use super::ElementType;
+
+    #[test]
+    fn test_all_elements_have_different_color() {
+        let mut colors = Vec::<Color>::new();
+        for element_type in ElementType::iter() {
+            let color = element_type.get_element().get_color();
+            assert!(
+                !colors.contains(&color),
+                "Color {:?} of element {:?} is not unique",
+                color,
+                element_type
+            );
+            colors.push(color);
         }
     }
 }
