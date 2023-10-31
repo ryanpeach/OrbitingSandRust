@@ -5,10 +5,7 @@ use ggegui::{
 use ggez::Context;
 use mint::{Point2, Vector2};
 
-use crate::{
-    gui::brush::Brush,
-    nodes::{camera::cam::Camera, celestial::Celestial},
-};
+use crate::nodes::{brush::Brush, camera::cam::Camera, celestial::Celestial};
 
 use super::gui_trait::WindowTrait;
 

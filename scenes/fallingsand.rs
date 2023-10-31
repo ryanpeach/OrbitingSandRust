@@ -10,11 +10,11 @@ use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
 use mint::{Point2, Vector2};
-use orbiting_sand::gui::brush::Brush;
 use orbiting_sand::gui::windows::camera_window::CameraWindow;
 use orbiting_sand::gui::windows::cursor_tooltip::CursorTooltip;
 use orbiting_sand::gui::windows::element_picker::ElementPicker;
 use orbiting_sand::gui::windows::gui_trait::WindowTrait;
+use orbiting_sand::nodes::brush::Brush;
 use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
 use orbiting_sand::physics::fallingsand::elements::element::Element;
 use orbiting_sand::physics::fallingsand::elements::sand::Sand;
@@ -25,7 +25,6 @@ use orbiting_sand::nodes::celestial::Celestial;
 use orbiting_sand::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
 use orbiting_sand::physics::fallingsand::elements::vacuum::Vacuum;
 use orbiting_sand::physics::util::clock::Clock;
-use orbiting_sand::physics::util::vectors::RelXyPoint;
 
 // =================
 // Helper methods
@@ -74,22 +73,6 @@ impl MainState {
             current_time: Clock::new(),
             mouse_down: false,
         })
-    }
-
-    fn set_element(&mut self, pos: Point2<f32>) {
-        let coordinate_dir = self.celestial.get_element_dir().get_coordinate_dir();
-        let coords = {
-            let world_coord = self.camera.screen_to_world_coords(pos);
-            match coordinate_dir.rel_pos_to_cell_idx(RelXyPoint(world_coord.into())) {
-                Ok(coords) => coords,
-                Err(coords) => coords,
-            }
-        };
-        self.celestial.get_element_dir_mut().set_element(
-            coords,
-            self.element_picker.get_selection().get_element(),
-            self.current_time,
-        );
     }
 }
 
@@ -198,7 +181,8 @@ impl EventHandler<ggez::GameError> for MainState {
         self.brush
             .set_position(self.camera.screen_to_world_coords(position));
         if self.mouse_down {
-            self.set_element(position);
+            self.brush
+                .apply(&mut self.celestial, &self.element_picker, self.current_time)
         }
         Ok(())
     }

@@ -12,6 +12,7 @@ use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::util::clock::Clock;
 
 use super::camera::cam::Camera;
+use super::node_trait::NodeTrait;
 
 /// Acts as a cache for a radial mesh's meshes and textures
 pub struct Celestial {
@@ -137,5 +138,11 @@ impl Celestial {
             out.push(Grid::new(layer.get_width(), layer.get_height(), vec_out));
         }
         out
+    }
+}
+
+impl NodeTrait for Celestial {
+    fn get_world_coord(&self) -> mint::Point2<f32> {
+        mint::Point2 { x: 0.0, y: 0.0 }
     }
 }

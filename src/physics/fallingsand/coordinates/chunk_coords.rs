@@ -40,7 +40,7 @@ pub trait ChunkCoords: Send + Sync {
     fn get_bounding_box(&self) -> Rect;
     fn get_layer_num(&self) -> usize;
     fn get_chunk_idx(&self) -> ChunkIjkVector;
-    fn get_cell_radius(&self) -> f32;
+    fn get_cell_width(&self) -> f32;
     fn get_start_radius(&self) -> f32;
     fn get_end_radius(&self) -> f32;
     /// This gets the theta (degrees around) of the first drawn radial line
@@ -307,7 +307,7 @@ mod tests {
         let j = 0;
         for k in 0..coordinate_dir.get_core_chunk().get_num_radial_lines() {
             // This radius and theta should define the midpoint of each cell
-            let radius = coordinate_dir.get_cell_radius() / 2.0;
+            let radius = coordinate_dir.get_cell_width() / 2.0;
             let theta = -2.0 * PI / coordinate_dir.get_core_chunk().get_num_radial_lines() as f32
                 * (k as f32 + 0.5);
             let xycoord = RelXyPoint(Vec2 {

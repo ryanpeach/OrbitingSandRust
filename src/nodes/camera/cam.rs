@@ -5,6 +5,8 @@ use ggez::{
     Context,
 };
 
+use crate::nodes::node_trait::NodeTrait;
+
 use super::transform::Transform;
 
 #[derive(Debug, Clone, Copy)]
@@ -195,5 +197,11 @@ impl Camera {
 impl From<Camera> for DrawParam {
     fn from(value: Camera) -> Self {
         DrawParam::default().transform(value.to_matrix())
+    }
+}
+
+impl NodeTrait for Camera {
+    fn get_world_coord(&self) -> Point2<f32> {
+        self.position
     }
 }
