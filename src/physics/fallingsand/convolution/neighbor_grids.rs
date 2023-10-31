@@ -54,6 +54,30 @@ impl LeftRightNeighborGrids {
             LeftRightNeighborIdxs::SingleChunkLayer => LeftRightNeighborGrids::SingleChunkLayer,
         }
     }
+
+    pub fn get_chunk_by_chunk_ijk(
+        &self,
+        idx: ChunkIjkVector,
+    ) -> Option<(&ElementGrid, LeftRightNeighborIdentifier)> {
+        match self {
+            LeftRightNeighborGrids::LR { l, r } => {
+                if l.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        l,
+                        LeftRightNeighborIdentifier::LR(LeftRightNeighborIdentifierLR::Left),
+                    ))
+                } else if r.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        r,
+                        LeftRightNeighborIdentifier::LR(LeftRightNeighborIdentifierLR::Right),
+                    ))
+                } else {
+                    None
+                }
+            }
+            LeftRightNeighborGrids::SingleChunkLayer => None,
+        }
+    }
 }
 
 pub enum TopNeighborGrids {
@@ -302,6 +326,83 @@ impl TopNeighborGrids {
         }
     }
 
+    pub fn get_chunk_by_chunk_ijk(
+        &self,
+        idx: ChunkIjkVector,
+    ) -> Option<(&ElementGrid, TopNeighborIdentifier)> {
+        match self {
+            TopNeighborGrids::Normal { tl, t, tr } => {
+                if tl.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        tl,
+                        TopNeighborIdentifier::Normal(TopNeighborIdentifierNormal::TopLeft),
+                    ))
+                } else if t.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        t,
+                        TopNeighborIdentifier::Normal(TopNeighborIdentifierNormal::Top),
+                    ))
+                } else if tr.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        tr,
+                        TopNeighborIdentifier::Normal(TopNeighborIdentifierNormal::TopRight),
+                    ))
+                } else {
+                    None
+                }
+            }
+            TopNeighborGrids::LayerTransition { tl, t1, t0, tr } => {
+                if tl.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        tl,
+                        TopNeighborIdentifier::LayerTransition(
+                            TopNeighborIdentifierLayerTransition::TopLeft,
+                        ),
+                    ))
+                } else if t1.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        t1,
+                        TopNeighborIdentifier::LayerTransition(
+                            TopNeighborIdentifierLayerTransition::Top1,
+                        ),
+                    ))
+                } else if t0.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        t0,
+                        TopNeighborIdentifier::LayerTransition(
+                            TopNeighborIdentifierLayerTransition::Top0,
+                        ),
+                    ))
+                } else if tr.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        tr,
+                        TopNeighborIdentifier::LayerTransition(
+                            TopNeighborIdentifierLayerTransition::TopRight,
+                        ),
+                    ))
+                } else {
+                    None
+                }
+            }
+            TopNeighborGrids::SingleChunkLayerAbove { t } => {
+                if t.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((t, TopNeighborIdentifier::SingleChunkLayerAbove))
+                } else {
+                    None
+                }
+            }
+            TopNeighborGrids::MultiChunkLayerAbove { chunks } => {
+                for (i, chunk) in chunks.iter().enumerate() {
+                    if chunk.get_chunk_coords().get_chunk_idx() == idx {
+                        return Some((chunk, TopNeighborIdentifier::MultiChunkLayerAbove(i)));
+                    }
+                }
+                None
+            }
+            TopNeighborGrids::TopOfGrid => None,
+        }
+    }
+
     pub fn get_num_concentric_circles(&self) -> usize {
         match self {
             TopNeighborGrids::Normal { tl: _, t, tr: _ } => {
@@ -406,6 +507,65 @@ impl BottomNeighborGrids {
                 b: grids.remove(b).unwrap(),
             },
             BottomNeighborIdxs::BottomOfGrid => BottomNeighborGrids::BottomOfGrid,
+        }
+    }
+
+    pub fn get_chunk_by_chunk_ijk(
+        &self,
+        idx: ChunkIjkVector,
+    ) -> Option<(&ElementGrid, BottomNeighborIdentifier)> {
+        match self {
+            BottomNeighborGrids::Normal { bl, b, br } => {
+                if bl.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        bl,
+                        BottomNeighborIdentifier::Normal(
+                            BottomNeighborIdentifierNormal::BottomLeft,
+                        ),
+                    ))
+                } else if b.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        b,
+                        BottomNeighborIdentifier::Normal(BottomNeighborIdentifierNormal::Bottom),
+                    ))
+                } else if br.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        br,
+                        BottomNeighborIdentifier::Normal(
+                            BottomNeighborIdentifierNormal::BottomRight,
+                        ),
+                    ))
+                } else {
+                    None
+                }
+            }
+            BottomNeighborGrids::LayerTransition { bl, br } => {
+                if bl.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        bl,
+                        BottomNeighborIdentifier::LayerTransition(
+                            BottomNeighborIdentifierLayerTransition::BottomLeft,
+                        ),
+                    ))
+                } else if br.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        br,
+                        BottomNeighborIdentifier::LayerTransition(
+                            BottomNeighborIdentifierLayerTransition::BottomRight,
+                        ),
+                    ))
+                } else {
+                    None
+                }
+            }
+            BottomNeighborGrids::FullLayerBelow { b } => {
+                if b.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((b, BottomNeighborIdentifier::FullLayerBelow))
+                } else {
+                    None
+                }
+            }
+            BottomNeighborGrids::BottomOfGrid => None,
         }
     }
 
