@@ -10,10 +10,11 @@ use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
 use mint::{Point2, Vector2};
-use orbiting_sand::gui::camera_window::CameraWindow;
-use orbiting_sand::gui::cursor_tooltip::CursorTooltip;
-use orbiting_sand::gui::element_picker::ElementPicker;
-use orbiting_sand::gui::gui_trait::GuiTrait;
+use orbiting_sand::gui::windows::camera_window::CameraWindow;
+use orbiting_sand::gui::windows::cursor_tooltip::CursorTooltip;
+use orbiting_sand::gui::windows::element_picker::ElementPicker;
+use orbiting_sand::gui::windows::gui_trait::WindowTrait;
+use orbiting_sand::nodes::brush::Brush;
 use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
 use orbiting_sand::physics::fallingsand::elements::element::Element;
 use orbiting_sand::physics::fallingsand::elements::sand::Sand;
@@ -24,7 +25,6 @@ use orbiting_sand::nodes::celestial::Celestial;
 use orbiting_sand::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
 use orbiting_sand::physics::fallingsand::elements::vacuum::Vacuum;
 use orbiting_sand::physics::util::clock::Clock;
-use orbiting_sand::physics::util::vectors::RelXyPoint;
 
 // =================
 // Helper methods
@@ -39,6 +39,7 @@ struct MainState {
     cursor_tooltip: CursorTooltip,
     camera_window: CameraWindow,
     element_picker: ElementPicker,
+    brush: Brush,
     current_time: Clock,
     mouse_down: bool,
 }
@@ -68,32 +69,17 @@ impl MainState {
             cursor_tooltip: CursorTooltip::new(ctx, &camera),
             camera_window: CameraWindow::new(ctx),
             element_picker: ElementPicker::new(ctx),
+            brush: Brush::new(),
             current_time: Clock::new(),
             mouse_down: false,
         })
-    }
-
-    fn set_element(&mut self, pos: Point2<f32>) {
-        let coordinate_dir = self.celestial.get_element_dir().get_coordinate_dir();
-        let coords = {
-            let world_coord = self.camera.screen_to_world_coords(pos);
-            match coordinate_dir.rel_pos_to_cell_idx(RelXyPoint(world_coord.into())) {
-                Ok(coords) => coords,
-                Err(coords) => coords,
-            }
-        };
-        self.celestial.get_element_dir_mut().set_element(
-            coords,
-            self.element_picker.get_selection().get_element(),
-            self.current_time,
-        );
     }
 }
 
 impl EventHandler<ggez::GameError> for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         // Update the gui
-        self.camera_window.update(ctx, &self.camera);
+        self.camera_window.update(ctx, &self.camera, &self.brush);
         self.cursor_tooltip.update(&self.camera, &self.celestial);
 
         // Save the celestial if requested
@@ -126,6 +112,7 @@ impl EventHandler<ggez::GameError> for MainState {
         self.camera_window.draw(ctx, &mut canvas);
         self.cursor_tooltip.draw(ctx, &mut canvas);
         self.element_picker.draw(ctx, &mut canvas);
+        self.brush.draw(ctx, &mut canvas, self.camera);
 
         let _ = canvas.finish(ctx);
         Ok(())
@@ -139,16 +126,22 @@ impl EventHandler<ggez::GameError> for MainState {
     ) -> GameResult {
         match input.keycode {
             Some(KeyCode::W) => {
-                self.camera.move_by_screen_coords(Point2 { x: 0., y: 1. });
+                self.camera.move_by_screen_coords(Point2 { x: 0., y: 10. });
             }
             Some(KeyCode::A) => {
-                self.camera.move_by_screen_coords(Point2 { x: 1., y: 0. });
+                self.camera.move_by_screen_coords(Point2 { x: 10., y: 0. });
             }
             Some(KeyCode::S) => {
-                self.camera.move_by_screen_coords(Point2 { x: 0., y: -1. });
+                self.camera.move_by_screen_coords(Point2 { x: 0., y: -10. });
             }
             Some(KeyCode::D) => {
-                self.camera.move_by_screen_coords(Point2 { x: -1., y: 0. });
+                self.camera.move_by_screen_coords(Point2 { x: -10., y: 0. });
+            }
+            Some(KeyCode::Equals) => {
+                self.brush.mult_radius(2.0);
+            }
+            Some(KeyCode::Minus) => {
+                self.brush.mult_radius(0.5);
             }
             // Some(KeyCode::Q) => {
             //     self.camera.RotateLeft();
@@ -183,9 +176,13 @@ impl EventHandler<ggez::GameError> for MainState {
         _dx: f32,
         _dy: f32,
     ) -> Result<(), ggez::GameError> {
-        self.cursor_tooltip.set_offset(Point2 { x, y });
+        let position = Point2 { x, y };
+        self.cursor_tooltip.set_offset(position);
+        self.brush
+            .set_position(self.camera.screen_to_world_coords(position));
         if self.mouse_down {
-            self.set_element(Point2 { x, y });
+            self.brush
+                .apply(&mut self.celestial, &self.element_picker, self.current_time)
         }
         Ok(())
     }

@@ -16,7 +16,7 @@ use crate::{
     },
 };
 
-use super::gui_trait::GuiTrait;
+use super::gui_trait::WindowTrait;
 
 pub struct CursorTooltip {
     world_coords: Point2<f32>,
@@ -61,7 +61,7 @@ impl CursorTooltip {
     }
 }
 
-impl GuiTrait for CursorTooltip {
+impl WindowTrait for CursorTooltip {
     fn get_offset(&self) -> Point2<f32> {
         self.screen_coords
     }

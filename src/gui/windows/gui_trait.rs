@@ -6,7 +6,7 @@ use ggez::graphics::{Canvas, DrawParam};
 use mint::Point2;
 
 /// A convienience trait for gui objects to make certain functionality common and consistent
-pub trait GuiTrait {
+pub trait WindowTrait {
     // Getters and setters
     fn get_offset(&self) -> Point2<f32>;
     fn set_offset(&mut self, screen_coords: Point2<f32>);
