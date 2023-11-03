@@ -143,6 +143,12 @@ mod tests {
 
         test_movement!(test_movement_i2_j0_k8, (2, 0, 8), (1, 2, 4));
 
+        test_movement!(test_movement_i3_j0_k10, (3, 0, 10), (2, 5, 5));
+
+        test_movement!(test_movement_i6_j0_k180, (6, 0, 180), (5, 47, 90));
+
         test_movement!(test_movement_i7_j0_k355, (7, 0, 355), (6, 95, 355 / 2));
+
+        test_movement!(test_movement_i7_j0_k420, (7, 0, 420), (6, 95, 210));
     }
 }
