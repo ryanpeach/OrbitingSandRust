@@ -17,6 +17,9 @@ use super::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 
 use rayon::prelude::*;
 
+/// The number of frames it takes to fully process the directory
+const FRAMES_PER_FULL_PROCESS: usize = 9;
+
 /// Useful for indicating at compile time that an iterable should be ran in parallel
 #[derive(Clone, Default)]
 struct Parallel<T>(T);
@@ -606,7 +609,7 @@ impl ElementGridDir {
         self.process_count += 1;
 
         // Check for errors and unlock all chunks every 9 iterations
-        if self.process_count % 9 == 0 {
+        if self.process_count % FRAMES_PER_FULL_PROCESS == 0 {
             debug_assert_eq!(
                 self.get_unprocessed_chunk_idxs().len(),
                 0,
@@ -614,6 +617,13 @@ impl ElementGridDir {
                 self.get_unprocessed_chunk_idxs()
             );
             self.unlock_all_chunks();
+        }
+    }
+
+    /// Run process FRAMES_PER_FULL_PROCESS times
+    pub fn process_full(&mut self, current_time: Clock) {
+        for _ in 0..FRAMES_PER_FULL_PROCESS {
+            self.process(current_time);
         }
     }
 
