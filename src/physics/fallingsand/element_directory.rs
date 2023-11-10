@@ -617,6 +617,12 @@ impl ElementGridDir {
         }
     }
 
+    pub fn process_full(&mut self, current_time: Clock) {
+        for _ in 0..9 {
+            self.process(current_time);
+        }
+    }
+
     /// Gets the textures of the targets updated in the last call to process
     pub fn get_updated_target_textures(&self) -> HashMap<ChunkIjkVector, RawImage> {
         // You should call this function only AFTER calling process

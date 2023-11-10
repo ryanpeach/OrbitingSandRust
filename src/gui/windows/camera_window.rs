@@ -9,6 +9,20 @@ use crate::nodes::{brush::Brush, camera::cam::Camera, celestial::Celestial};
 
 use super::gui_trait::WindowTrait;
 
+#[derive(Debug, Clone, Copy)]
+pub enum PlayPauseMode {
+    Play,
+    Step,
+    MicroStep,
+    Pause,
+}
+
+pub enum YesNoFullStep {
+    Yes,
+    No,
+    FullStep,
+}
+
 pub struct CameraWindow {
     draw_coords: Point2<f32>,
     brush_size: f32,
@@ -16,6 +30,7 @@ pub struct CameraWindow {
     wireframe: bool,
     queue_save: bool,
     fps: f64,
+    play_pause: PlayPauseMode,
     camera_zoom: Vector2<f32>,
     path: String,
     gui: Gui,
@@ -32,6 +47,7 @@ impl CameraWindow {
             queue_save: true,
             brush_size: 1.0,
             fps: 0.0,
+            play_pause: PlayPauseMode::Play,
             camera_zoom: Vector2 { x: 1.0, y: 1.0 },
             path: "".to_owned(),
             gui: Gui::new(ctx),
@@ -50,6 +66,26 @@ impl CameraWindow {
 
     pub fn get_wireframe(&self) -> bool {
         self.wireframe
+    }
+
+    pub fn get_play_pause(&self) -> PlayPauseMode {
+        self.play_pause
+    }
+
+    pub fn set_play_pause(&mut self, play_pause: PlayPauseMode) {
+        self.play_pause = play_pause;
+    }
+
+    pub fn should_i_process(&mut self) -> YesNoFullStep {
+        match self.play_pause {
+            PlayPauseMode::Play => YesNoFullStep::Yes,
+            PlayPauseMode::Pause => YesNoFullStep::No,
+            PlayPauseMode::MicroStep => {
+                self.play_pause = PlayPauseMode::Pause;
+                YesNoFullStep::No
+            }
+            PlayPauseMode::Step => YesNoFullStep::FullStep,
+        }
     }
 
     pub fn save_optionally(&mut self, ctx: &mut Context, celestial: &Celestial) {
@@ -96,6 +132,26 @@ impl WindowTrait for CameraWindow {
         ui.separator();
         ui.checkbox(&mut self.outline, "Outline");
         ui.checkbox(&mut self.wireframe, "Wireframe");
+        // Play Step MicroStep Pause
+        ui.separator();
+        ui.horizontal(|ui| {
+            if ui.button("Play").clicked() {
+                println!("Play Button Clicked");
+                self.play_pause = PlayPauseMode::Play;
+            }
+            if ui.button("Step").clicked() {
+                println!("Step Button Clicked");
+                self.play_pause = PlayPauseMode::Step;
+            }
+            if ui.button("MicroStep").clicked() {
+                println!("MicroStep Button Clicked");
+                self.play_pause = PlayPauseMode::MicroStep;
+            }
+            if ui.button("Pause").clicked() {
+                println!("Pause Button Clicked");
+                self.play_pause = PlayPauseMode::Pause;
+            }
+        });
         // Create a save button and a path selector
         ui.separator();
         if ui.button("Save").clicked() {
