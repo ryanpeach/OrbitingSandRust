@@ -10,7 +10,7 @@ use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
 
 use mint::{Point2, Vector2};
-use orbiting_sand::gui::windows::camera_window::CameraWindow;
+use orbiting_sand::gui::windows::camera_window::{CameraWindow, YesNoFullStep};
 use orbiting_sand::gui::windows::cursor_tooltip::CursorTooltip;
 use orbiting_sand::gui::windows::element_picker::ElementPicker;
 use orbiting_sand::gui::windows::gui_trait::WindowTrait;
@@ -49,7 +49,7 @@ impl MainState {
         // Create the celestial
         let coordinate_dir = CoordinateDirBuilder::new()
             .cell_radius(1.0)
-            .num_layers(9)
+            .num_layers(7)
             .first_num_radial_lines(12)
             .second_num_concentric_circles(3)
             .max_cells(128 * 128)
@@ -90,7 +90,11 @@ impl EventHandler<ggez::GameError> for MainState {
         self.current_time.update(delta_time);
 
         // Process the celestial
-        self.celestial.process(self.current_time);
+        match self.camera_window.should_i_process() {
+            YesNoFullStep::Yes => self.celestial.process(self.current_time),
+            YesNoFullStep::FullStep => self.celestial.process_full(self.current_time),
+            YesNoFullStep::No => {}
+        }
 
         Ok(())
     }
