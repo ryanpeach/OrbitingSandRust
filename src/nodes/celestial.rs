@@ -82,6 +82,12 @@ impl Celestial {
         // self.all_textures = self.element_grid_dir.get_textures();
     }
 
+    pub fn process_full(&mut self, current_time: Clock) {
+        self.element_grid_dir.process_full(current_time);
+        self.all_textures
+            .extend(self.element_grid_dir.get_updated_target_textures());
+    }
+
     /// Draw the textures
     pub fn draw(&self, ctx: &mut Context, canvas: &mut Canvas, camera: Camera) {
         // Draw planets
