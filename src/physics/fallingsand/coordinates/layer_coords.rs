@@ -114,7 +114,6 @@ impl PartialLayerChunkCoordsBuilder {
         debug_assert!(self.end_radial_line > self.start_radial_line);
         debug_assert!(self.end_radial_line <= self.layer_num_radial_lines);
         debug_assert_ne!(self.num_concentric_circles, 0);
-        debug_assert_ne!(self.start_concentric_circle_absolute, 0);
         debug_assert_ne!(self.layer_num_radial_lines, 0);
         debug_assert_ne!(self.end_radial_line, 0);
         PartialLayerChunkCoords {

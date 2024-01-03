@@ -8,7 +8,7 @@ use crate::physics::util::clock::Clock;
 use super::convolution::behaviors::ElementGridConvolutionNeighbors;
 
 use super::coordinates::coordinate_directory::CoordinateDir;
-use super::coordinates::core_coords::CoreChunkCoords;
+use super::coordinates::layer_coords::PartialLayerChunkCoords;
 use super::elements::vacuum::Vacuum;
 use super::util::grid::{Grid, GridOutOfBoundsError};
 use super::util::image::RawImage;
@@ -29,7 +29,7 @@ pub struct ElementGrid {
 /// Useful for borrowing the grid to have a default value of one
 impl Default for ElementGrid {
     fn default() -> Self {
-        Self::new_empty(Box::<CoreChunkCoords>::default())
+        Self::new_empty(Box::<PartialLayerChunkCoords>::default())
     }
 }
 
