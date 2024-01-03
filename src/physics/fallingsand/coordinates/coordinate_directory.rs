@@ -37,6 +37,9 @@ pub struct CoordinateDirBuilder {
     num_layers: usize,
     first_num_radial_lines: usize,
     second_num_concentric_circles: usize,
+    first_num_radial_chunks: usize,
+    max_radial_lines_per_chunk: usize,
+    max_concentric_circles_per_chunk: usize,
     max_cells: usize,
 }
 
@@ -55,6 +58,9 @@ impl CoordinateDirBuilder {
             cell_radius: 1.0,
             num_layers: 1,
             first_num_radial_lines: 6,
+            first_num_radial_chunks: 3,
+            max_radial_lines_per_chunk: 128,
+            max_concentric_circles_per_chunk: 128,
             second_num_concentric_circles: 2,
             max_cells: 64 * 64,
         }
@@ -69,12 +75,22 @@ impl CoordinateDirBuilder {
         self.num_layers = num_layers;
         self
     }
+
     /// The number of radial lines in the core.
     /// Each future layer has 2x the number of radial lines as the previous layer.
     pub fn first_num_radial_lines(mut self, first_num_radial_lines: usize) -> Self {
         self.first_num_radial_lines = first_num_radial_lines;
         self
     }
+
+    /// The number of radial chunks in the core.
+    /// The core doesn't really have chunks, but you can imagine them as
+    /// starting in the core. The second layer has the same number of chunks as the first layer.
+    pub fn first_num_radial_chunks(mut self, first_num_radial_chunks: usize) -> Self {
+        self.first_num_radial_chunks = first_num_radial_chunks;
+        self
+    }
+
     /// The number of concentric circles in the second layer.
     /// Each future layer has 2x the number of concentric circles as the previous layer.
     /// The reason we define the second layer separately is because the core always has 1
@@ -87,6 +103,19 @@ impl CoordinateDirBuilder {
         self.second_num_concentric_circles = second_num_concentric_circles;
         self
     }
+
+    /// If the number of radial lines in a chunk exceeds this number, the chunks radially will double in the next layer
+    pub fn max_radial_lines_per_chunk(mut self, max_radial_lines_per_chunk: usize) -> Self {
+        self.max_radial_lines_per_chunk = max_radial_lines_per_chunk;
+        self
+    }
+
+    /// If the number of concentric circles in a chunk exceeds this number, the chunks concentrically will double in the next layer
+    pub fn max_concentric_circles_per_chunk(mut self, max_concentric_circles_per_chunk: usize) -> Self {
+        self.max_concentric_circles_per_chunk = max_concentric_circles_per_chunk;
+        self
+    }
+
     /// The max number of cells a chunk is allowed to have
     /// If this number is reached, chunks split in half vertically and horizontally
     pub fn max_cells(mut self, max_cells: usize) -> Self {
@@ -98,6 +127,8 @@ impl CoordinateDirBuilder {
     /// and the other parameters of the builder.
     pub fn build(self) -> CoordinateDir {
         debug_assert_ne!(self.num_layers, 0);
+        debug_assert!(self.max_radial_lines_per_chunk > self.first_num_radial_lines, "max_radial_lines_per_chunk must be greater than first_num_radial_lines, got {} and {}", self.max_radial_lines_per_chunk, self.first_num_radial_lines);
+
         let core_chunk = CoreChunkCoords::new(self.cell_radius, self.first_num_radial_lines);
         let mut partial_chunks: Vec<Grid<PartialLayerChunkCoords>> = Vec::new();
 
@@ -107,95 +138,8 @@ impl CoordinateDirBuilder {
         let mut start_concentric_circle_absolute = 1;
         let mut layer_num = 1;
         let mut total_concentric_circle_chunks = 1;
-
-        // Handle the first few layers
-        loop {
-            if layer_num >= self.num_layers {
-                break;
-            }
-            let next_layer = PartialLayerChunkCoordsBuilder::new()
-                .cell_radius(self.cell_radius)
-                .layer_num_radial_lines(layer_num_radial_lines)
-                .num_concentric_circles(num_concentric_circles)
-                .start_concentric_circle_absolute(start_concentric_circle_absolute)
-                .start_concentric_circle_layer_relative(0)
-                .start_radial_line(0)
-                .end_radial_line(layer_num_radial_lines)
-                .chunk_idx(ChunkIjkVector {
-                    i: layer_num,
-                    j: 0,
-                    k: 0,
-                })
-                .build();
-            debug_assert!(next_layer.total_size() <= self.max_cells);
-            partial_chunks.push(Grid::new(1, 1, vec![next_layer]));
-
-            // Modify the variables
-            start_concentric_circle_absolute += num_concentric_circles;
-            layer_num_radial_lines *= 2;
-            num_concentric_circles *= 2;
-            layer_num += 1;
-            total_concentric_circle_chunks += 1;
-
-            // At self.max_cells, break
-            if (layer_num_radial_lines * num_concentric_circles) > self.max_cells {
-                break;
-            }
-        }
-
-        // Handle the second set of layers, which just subdivide around the grid
-        let mut num_radial_chunks = 6;
-        loop {
-            if layer_num >= self.num_layers {
-                break;
-            }
-
-            // TODO: Check this
-            let mut layer_partial_chunks = Vec::with_capacity(num_radial_chunks);
-            for k in 0..num_radial_chunks {
-                let next_layer = PartialLayerChunkCoordsBuilder::new()
-                    .cell_radius(self.cell_radius)
-                    .layer_num_radial_lines(layer_num_radial_lines)
-                    .chunk_idx(ChunkIjkVector {
-                        i: layer_num,
-                        j: 0,
-                        k,
-                    })
-                    .num_concentric_circles(num_concentric_circles)
-                    .start_concentric_circle_absolute(start_concentric_circle_absolute)
-                    .start_concentric_circle_layer_relative(0)
-                    .start_radial_line(k * (layer_num_radial_lines / num_radial_chunks))
-                    .end_radial_line((k + 1) * (layer_num_radial_lines / num_radial_chunks))
-                    .build();
-                debug_assert!(next_layer.total_size() <= self.max_cells);
-                debug_assert!(layer_num_radial_lines % num_radial_chunks == 0);
-                layer_partial_chunks.push(next_layer);
-            }
-            partial_chunks.push(Grid::new(num_radial_chunks, 1, layer_partial_chunks));
-
-            // Modify the variables
-            start_concentric_circle_absolute += num_concentric_circles;
-            layer_num_radial_lines *= 2;
-            num_concentric_circles *= 2;
-            layer_num += 1;
-            total_concentric_circle_chunks += 1;
-
-            // If our width would become smaller than our height, break
-            if layer_num_radial_lines / (num_radial_chunks * 2) < num_concentric_circles {
-                break;
-            }
-
-            // At self.max_cells, multiply the number of radial chunks by 4
-            if (layer_num_radial_lines / num_radial_chunks * num_concentric_circles)
-                > self.max_cells
-            {
-                num_radial_chunks *= 2;
-            }
-        }
-
-        // Handle the third set of layers, which just subdivide both around the grid and up/down the grid
-        let mut num_concentric_chunks = 3;
-        // num_radial_chunks *= 2;
+        let mut num_radial_chunks = self.first_num_radial_chunks;
+        let mut num_concentric_chunks = 1;
         loop {
             if layer_num >= self.num_layers {
                 break;
@@ -234,12 +178,16 @@ impl CoordinateDirBuilder {
             layer_num += 1;
             total_concentric_circle_chunks += num_concentric_chunks;
 
-            // At self.max_cells, multiply the number of concentric chunks and radial chunks by 2
-            if (layer_num_radial_lines / num_radial_chunks * num_concentric_circles
-                / num_concentric_chunks)
-                > self.max_cells
-            {
+            if layer_num_radial_lines > self.max_radial_lines_per_chunk {
                 num_radial_chunks *= 2;
+            }
+            // After layer 2, make 3 concentric circle chunks
+            // This way num_concentric_circles is always a multiple of 3 for multithreading purposes
+            if layer_num == 3 {
+                num_concentric_chunks *= 3;
+            }
+            // After layer 3, go back to doubling, and only if we are over the max
+            else if layer_num > 3 && num_concentric_circles > self.max_concentric_circles_per_chunk {
                 num_concentric_chunks *= 2;
             }
         }

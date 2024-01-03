@@ -52,7 +52,9 @@ impl MainState {
             .num_layers(7)
             .first_num_radial_lines(12)
             .second_num_concentric_circles(3)
-            .max_cells(128 * 128)
+            .first_num_radial_chunks(3)
+            .max_radial_lines_per_chunk(128)
+            .max_concentric_circles_per_chunk(128)
             .build();
         let fill0: &dyn Element = &Vacuum::default();
         let fill1: &dyn Element = &Sand::default();
@@ -91,9 +93,10 @@ impl EventHandler<ggez::GameError> for MainState {
 
         // Process the celestial
         match self.camera_window.should_i_process() {
-            YesNoFullStep::Yes => self.celestial.process(self.current_time),
-            YesNoFullStep::FullStep => self.celestial.process_full(self.current_time),
-            YesNoFullStep::No => {}
+            // YesNoFullStep::Yes => self.celestial.process(self.current_time),
+            // YesNoFullStep::FullStep => self.celestial.process_full(self.current_time),
+            YesNoFullStep::No => {},
+            _ => {}
         }
 
         Ok(())
