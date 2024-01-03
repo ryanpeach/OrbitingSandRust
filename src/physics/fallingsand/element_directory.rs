@@ -311,23 +311,6 @@ impl ElementGridDir {
             }
         };
 
-        // There is a special case where you go from a single chunk layer to a multi chunk layer, where
-        // all of the next chunks layers are above you
-        if coord.i != top_layer && radial_lines(coord.i) == 1 && radial_lines(coord.i + 1) != 1 {
-            let next_layer = coord.i + 1;
-            let next_layer_radial_lines = radial_lines(next_layer);
-            let mut out = Vec::new();
-            for k in 0..next_layer_radial_lines {
-                let next_layer_chunk = ChunkIjkVector {
-                    i: next_layer,
-                    j: 0,
-                    k,
-                };
-                out.push(next_layer_chunk);
-            }
-            return TopNeighborIdxs::MultiChunkLayerAbove { chunks: out };
-        }
-
         // Default neighbors (assuming you are in the middle of stuff, not on a layer boundary)
         let default_neighbors = TopNeighborIdxs::Normal {
             tl: make_vector(coord.i, coord.j + 1, k_isize + 1),
@@ -346,11 +329,6 @@ impl ElementGridDir {
                     t1: make_vector(i + 1, 0, k_isize * 2 + 1),
                     t0: make_vector(i + 1, 0, k_isize * 2),
                     tr: make_vector(i + 1, 0, k_isize * 2 - 1),
-                }
-            }
-            (i, j) if j == top_chunk_in_layer && radial_lines(i + 1) == 1 => {
-                TopNeighborIdxs::SingleChunkLayerAbove {
-                    t: make_vector(i + 1, 0, 0),
                 }
             }
             (i, j) if j == top_chunk_in_layer && radial_lines(i) == radial_lines(i + 1) => {
@@ -406,11 +384,6 @@ impl ElementGridDir {
         match (coord.i, coord.j, coord.k) {
             (i, j, _) if i == bottom_layer && j == bottom_chunk_in_layer => {
                 BottomNeighborIdxs::BottomOfGrid
-            }
-            (i, j, _) if j == bottom_chunk_in_layer && radial_chunks(i - 1) == 1 => {
-                BottomNeighborIdxs::FullLayerBelow {
-                    b: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), 0),
-                }
             }
             // If going down a layer but you are not at the bottom
             (i, j, k)
