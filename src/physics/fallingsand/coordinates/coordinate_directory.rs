@@ -143,13 +143,16 @@ impl CoordinateDirBuilder {
         let mut total_concentric_circle_chunks = 0;
         let mut num_radial_chunks = self.first_num_radial_chunks;
         let mut num_concentric_chunks = 1;
-        let mut core_chunks =
-                Grid::new_empty(num_radial_chunks, num_concentric_chunks);
+        let mut core_chunks = Grid::new_empty(num_radial_chunks, num_concentric_chunks);
         for k in 0..num_radial_chunks {
             let next_layer = PartialLayerChunkCoordsBuilder::new()
                 .cell_radius(self.cell_radius)
                 .layer_num_radial_lines(layer_num_radial_lines)
-                .chunk_idx(ChunkIjkVector { i: layer_num, j: 0, k })
+                .chunk_idx(ChunkIjkVector {
+                    i: layer_num,
+                    j: 0,
+                    k,
+                })
                 .num_concentric_circles(num_concentric_circles)
                 .start_concentric_circle_absolute(start_concentric_circle_absolute)
                 .start_concentric_circle_layer_relative(0)
@@ -513,7 +516,7 @@ impl CoordinateDir {
     }
     /// Get the core chunk coordinates, useful for getting its shape
     pub fn get_core_chunk(&self) -> &PartialLayerChunkCoords {
-        &self.partial_chunks[0].get(JkVector::ZERO)
+        self.partial_chunks[0].get(JkVector::ZERO)
     }
     /// Useful for getting all the partial chunks, useful for getting their shapes
     pub fn get_partial_chunks(&self, _layer_num: usize) -> &Vec<Grid<PartialLayerChunkCoords>> {

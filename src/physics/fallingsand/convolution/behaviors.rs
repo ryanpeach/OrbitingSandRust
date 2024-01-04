@@ -119,8 +119,6 @@ impl ElementGridConvolutionNeighbors {
             )));
         }
 
-        let this_start_radial_line = target_chunk.get_chunk_coords().get_start_radial_line();
-
         match self.chunk_idxs.bottom {
             // If there is no layer below you, error out
             BottomNeighborIdxs::BottomOfGrid => Err(ConvOutOfBoundsError(ConvolutionIdx(

@@ -93,10 +93,9 @@ impl EventHandler<ggez::GameError> for MainState {
 
         // Process the celestial
         match self.camera_window.should_i_process() {
-            // YesNoFullStep::Yes => self.celestial.process(self.current_time),
-            // YesNoFullStep::FullStep => self.celestial.process_full(self.current_time),
+            YesNoFullStep::Yes => self.celestial.process(self.current_time),
+            YesNoFullStep::FullStep => self.celestial.process_full(self.current_time),
             YesNoFullStep::No => {}
-            _ => {}
         }
 
         Ok(())
