@@ -1,7 +1,7 @@
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::convolution::neighbor_identifiers::ConvolutionIdx;
-use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDir;
-use crate::physics::fallingsand::element_grid::ElementGrid;
+use crate::physics::fallingsand::data::element_grid::ElementGrid;
+use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 use ggez::graphics::Color;

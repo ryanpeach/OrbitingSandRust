@@ -1,4 +1,4 @@
-use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
+use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use ggez::glam::Vec2;
 use ggez::graphics::{Color, Rect};

@@ -1,17 +1,17 @@
 use ggez::graphics::Rect;
 
-use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions};
+use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 
-use super::convolution::behaviors::ElementGridConvolutionNeighbors;
+use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
 
-use super::coordinates::coordinate_directory::CoordinateDir;
-use super::coordinates::core_coords::CoreChunkCoords;
-use super::elements::vacuum::Vacuum;
-use super::util::grid::{Grid, GridOutOfBoundsError};
-use super::util::image::RawImage;
+use super::super::elements::vacuum::Vacuum;
+use super::super::mesh::coordinate_directory::CoordinateDir;
+use super::super::mesh::core_coords::CoreChunkCoords;
+use super::super::util::grid::{Grid, GridOutOfBoundsError};
+use super::super::util::image::RawImage;
 
 /// An element grid is a 2D grid of elements tied to a chunk
 pub struct ElementGrid {

@@ -15,15 +15,15 @@ use orbiting_sand::gui::windows::cursor_tooltip::CursorTooltip;
 use orbiting_sand::gui::windows::element_picker::ElementPicker;
 use orbiting_sand::gui::windows::gui_trait::WindowTrait;
 use orbiting_sand::nodes::brush::Brush;
-use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
+use orbiting_sand::physics::fallingsand::data::element_directory::ElementGridDir;
 use orbiting_sand::physics::fallingsand::elements::element::Element;
 use orbiting_sand::physics::fallingsand::elements::sand::Sand;
 
 use orbiting_sand::nodes::camera::cam::Camera;
 use orbiting_sand::nodes::celestial::Celestial;
 
-use orbiting_sand::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
 use orbiting_sand::physics::fallingsand::elements::vacuum::Vacuum;
+use orbiting_sand::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
 use orbiting_sand::physics::util::clock::Clock;
 
 // =================
