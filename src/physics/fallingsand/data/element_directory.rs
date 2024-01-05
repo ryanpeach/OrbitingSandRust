@@ -37,7 +37,7 @@ struct ProcessTargets {
 }
 
 /// This calculates the convolution targets you would get by standard iteration over
-/// 3x3 convolution kernels. It excludes known edge cases, like the bottom of a layer.
+/// 3x3 convolution kernels. It excludes known edge cases, like the bottom of a layer where there is a reduction in radial chunks.
 /// Run this over 0..9 frame_nb to get the targets for each frame
 fn calculate_ith_standard_convolution_targets(
     coords: CoordinateDir,
@@ -105,9 +105,8 @@ fn calculate_ith_standard_convolution_targets(
     Parallel(out)
 }
 
-/// This calculates the targets for the edge case where a bunch of chunk's bottom neighbor is one
-/// large shared chunk. In this case we still need to maintain a j step of 3, but we need to
-/// process all k's sequentially.
+/// This really only calculates the core now
+/// TODO: Maybe consider removing this
 fn calculate_ith_has_single_bottom_neighbor_targets(
     coords: CoordinateDir,
     frame_nb: usize,
@@ -147,10 +146,10 @@ fn calculate_ith_has_single_bottom_neighbor_targets(
     Sequential(out)
 }
 
-/// This calculates the targets for the edge case where a bunch of chunk's bottom neighbor is one
-/// large shared chunk. In this case we still need to maintain a j step of 3, but we need to
+/// This calculates the targets for the edge case where the bottom layer has a different number of radial chunks than this layer.
+/// In this case we still need to maintain a j step of 3, but we need to
 /// process all k's sequentially.
-fn calculate_ith_has_multi_bottom_neighbor_targets(
+fn calculate_ith_has_different_k_bottom_neighbor_targets(
     coords: CoordinateDir,
     frame_nb: usize,
 ) -> Parallel<HashSet<ChunkIjkVector>> {
@@ -212,7 +211,7 @@ fn pregen_process_targets(coords: &CoordinateDir) -> ProcessTargets {
         has_single_bottom_neighbor[i] =
             calculate_ith_has_single_bottom_neighbor_targets(coords.clone(), i);
         has_multi_bottom_neighbor[i] =
-            calculate_ith_has_multi_bottom_neighbor_targets(coords.clone(), i);
+            calculate_ith_has_different_k_bottom_neighbor_targets(coords.clone(), i);
     }
     ProcessTargets {
         standard_convolution,
