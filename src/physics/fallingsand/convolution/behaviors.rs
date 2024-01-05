@@ -119,26 +119,12 @@ impl ElementGridConvolutionNeighbors {
             )));
         }
 
-        let this_start_radial_line = target_chunk.get_chunk_coords().get_start_radial_line();
-
         match self.chunk_idxs.bottom {
             // If there is no layer below you, error out
             BottomNeighborIdxs::BottomOfGrid => Err(ConvOutOfBoundsError(ConvolutionIdx(
                 JkVector { j: pos.j, k: pos.k },
                 ConvolutionIdentifier::Center,
             ))),
-            // If there is a full layer below you, just return the index of the new coordinate
-            // Dont allow yourself to go to the layer below that
-            BottomNeighborIdxs::FullLayerBelow { .. } => {
-                let new_coords = JkVector {
-                    j: pos.j + b_concentric_circles - n,
-                    k: (pos.k + this_start_radial_line) / 2,
-                };
-                Ok(ConvolutionIdx(
-                    new_coords,
-                    ConvolutionIdentifier::Bottom(BottomNeighborIdentifier::FullLayerBelow),
-                ))
-            }
             BottomNeighborIdxs::LayerTransition { .. } => {
                 let mut new_coords = JkVector {
                     j: pos.j + b_concentric_circles - n,
@@ -246,7 +232,6 @@ impl ElementGridConvolutionNeighbors {
 
 #[derive(Debug)]
 pub enum GetChunkErr {
-    ReturnsVector,
     CenterChunk,
 }
 
@@ -322,20 +307,6 @@ impl ElementGridConvolutionNeighbors {
                         }
                     }
                 }
-                TopNeighborIdentifier::SingleChunkLayerAbove { .. } => {
-                    if let TopNeighborGrids::SingleChunkLayerAbove { t, .. } = &mut self.grids.top {
-                        Ok(t)
-                    } else {
-                        panic!("Tried to get t chunk that doesn't exist")
-                    }
-                }
-                TopNeighborIdentifier::MultiChunkLayerAbove { .. } => {
-                    if let TopNeighborGrids::MultiChunkLayerAbove { .. } = &mut self.grids.top {
-                        Err(GetChunkErr::ReturnsVector)
-                    } else {
-                        panic!("Tried to get t chunk that doesn't exist")
-                    }
-                }
             },
             ConvolutionIdentifier::Bottom(bottom_id) => match bottom_id {
                 BottomNeighborIdentifier::Normal(normal_id) => match normal_id {
@@ -381,13 +352,6 @@ impl ElementGridConvolutionNeighbors {
                                 panic!("Tried to get br chunk that doesn't exist")
                             }
                         }
-                    }
-                }
-                BottomNeighborIdentifier::FullLayerBelow { .. } => {
-                    if let BottomNeighborGrids::FullLayerBelow { b, .. } = &mut self.grids.bottom {
-                        Ok(b)
-                    } else {
-                        panic!("Tried to get b chunk that doesn't exist")
                     }
                 }
             },
@@ -471,20 +435,6 @@ impl ElementGridConvolutionNeighbors {
                         }
                     }
                 }
-                TopNeighborIdentifier::SingleChunkLayerAbove { .. } => {
-                    if let TopNeighborGrids::SingleChunkLayerAbove { t, .. } = &self.grids.top {
-                        Ok(t)
-                    } else {
-                        panic!("Tried to get t chunk that doesn't exist")
-                    }
-                }
-                TopNeighborIdentifier::MultiChunkLayerAbove { .. } => {
-                    if let TopNeighborGrids::MultiChunkLayerAbove { .. } = &self.grids.top {
-                        Err(GetChunkErr::ReturnsVector)
-                    } else {
-                        panic!("Tried to get t chunk that doesn't exist")
-                    }
-                }
             },
             ConvolutionIdentifier::Bottom(bottom_id) => match bottom_id {
                 BottomNeighborIdentifier::Normal(normal_id) => match normal_id {
@@ -532,13 +482,6 @@ impl ElementGridConvolutionNeighbors {
                         }
                     }
                 }
-                BottomNeighborIdentifier::FullLayerBelow { .. } => {
-                    if let BottomNeighborGrids::FullLayerBelow { b, .. } = &self.grids.bottom {
-                        Ok(b)
-                    } else {
-                        panic!("Tried to get b chunk that doesn't exist")
-                    }
-                }
             },
             ConvolutionIdentifier::LeftRight(left_right_id) => match left_right_id {
                 LeftRightNeighborIdentifier::LR(lr_id) => match lr_id {
@@ -577,9 +520,6 @@ impl ElementGridConvolutionNeighbors {
                     Ok(element) => Ok(element.box_clone()),
                     Err(_) => Err(ConvOutOfBoundsError(idx)),
                 },
-                Err(GetChunkErr::ReturnsVector) => {
-                    unimplemented!("This is fairly easy to implement but not yet needed.")
-                }
                 Err(GetChunkErr::CenterChunk) => {
                     unreachable!("This should never happen because we are checking for it in the match idx.1 statement")
                 }
@@ -604,9 +544,6 @@ impl ElementGridConvolutionNeighbors {
                     let out = chunk.replace(idx.0, element, current_time);
                     Ok(out)
                 }
-                Err(GetChunkErr::ReturnsVector) => {
-                    unimplemented!("This is fairly easy to implement but not yet needed.")
-                }
                 Err(GetChunkErr::CenterChunk) => {
                     unreachable!("This should never happen because we are checking for it in the match idx.1 statement")
                 }
@@ -629,7 +566,8 @@ mod tests {
             .num_layers(10)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
-            .max_cells(64 * 64)
+            .max_concentric_circles_per_chunk(64)
+            .max_radial_lines_per_chunk(64)
             .build();
         ElementGridDir::new_empty(coordinate_dir)
     }
@@ -663,17 +601,11 @@ mod tests {
                         .unwrap();
                     let should_eq_chunk2 = match package.get_chunk(should_eq_pos2.1) {
                         Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
-                        Err(GetChunkErr::ReturnsVector) => {
-                            panic!("Should not return a vector")
-                        }
                         Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
                     };
                     // Test the mut version too
                     let should_eq_chunk2_mut = match package.get_chunk_mut(should_eq_pos2.1) {
                         Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
-                        Err(GetChunkErr::ReturnsVector) => {
-                            panic!("Should not return a vector")
-                        }
                         Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
                     };
                     assert_eq!(chunk_pos2.1, should_eq_pos2.0);

@@ -54,12 +54,6 @@ pub enum TopNeighborIdxs {
         t0: ChunkIjkVector,
         tr: ChunkIjkVector,
     },
-    SingleChunkLayerAbove {
-        t: ChunkIjkVector,
-    },
-    MultiChunkLayerAbove {
-        chunks: Vec<ChunkIjkVector>,
-    },
     TopOfGrid,
 }
 
@@ -92,21 +86,6 @@ impl Iterator for TopNeighborIdxsIter {
                     _ => None,
                 }
             }
-            Some(TopNeighborIdxs::SingleChunkLayerAbove { t }) => {
-                self.index += 1;
-                match self.index {
-                    1 => Some(*t),
-                    _ => None,
-                }
-            }
-            Some(TopNeighborIdxs::MultiChunkLayerAbove { chunks }) => {
-                if self.index < chunks.len() {
-                    self.index += 1;
-                    Some(chunks[self.index - 1])
-                } else {
-                    None
-                }
-            }
             Some(TopNeighborIdxs::TopOfGrid) => None,
             None => None,
         }
@@ -132,9 +111,6 @@ pub enum BottomNeighborIdxs {
     LayerTransition {
         bl: ChunkIjkVector,
         br: ChunkIjkVector,
-    },
-    FullLayerBelow {
-        b: ChunkIjkVector,
     },
     BottomOfGrid,
 }
@@ -163,13 +139,6 @@ impl Iterator for BottomNeighborIdxsIter {
                 match self.index {
                     1 => Some(bl),
                     2 => Some(br),
-                    _ => None,
-                }
-            }
-            Some(BottomNeighborIdxs::FullLayerBelow { b }) => {
-                self.index += 1;
-                match self.index {
-                    1 => Some(b),
                     _ => None,
                 }
             }

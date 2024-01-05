@@ -75,7 +75,8 @@ mod tests {
             .num_layers(10)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
-            .max_cells(64 * 64)
+            .max_concentric_circles_per_chunk(64)
+            .max_radial_lines_per_chunk(64)
             .build();
         ElementGridDir::new_empty(coordinate_dir)
     }
@@ -142,9 +143,5 @@ mod tests {
         }
 
         test_movement!(test_movement_i2_j2_k1, (2, 2, 1), (2, 1, 1));
-
-        test_movement!(test_movement_i2_j0_k8, (2, 0, 8), (1, 2, 4));
-
-        test_movement!(test_movement_i7_j0_k355, (7, 0, 355), (6, 95, 355 / 2));
     }
 }

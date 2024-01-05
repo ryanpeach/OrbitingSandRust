@@ -129,18 +129,6 @@ impl TopNeighborGrids {
                     tr: grids.remove(tr).unwrap(),
                 }
             }
-            TopNeighborIdxs::SingleChunkLayerAbove { t } => {
-                TopNeighborGrids::SingleChunkLayerAbove {
-                    t: grids.remove(t).unwrap(),
-                }
-            }
-            TopNeighborIdxs::MultiChunkLayerAbove { chunks } => {
-                let mut vec = Vec::new();
-                for chunk in chunks {
-                    vec.push(grids.remove(chunk).unwrap());
-                }
-                TopNeighborGrids::MultiChunkLayerAbove { chunks: vec }
-            }
             TopNeighborIdxs::TopOfGrid => TopNeighborGrids::TopOfGrid,
         }
     }
@@ -273,32 +261,6 @@ impl TopNeighborGrids {
                     }
                 }
             }
-            TopNeighborIdentifier::SingleChunkLayerAbove => {
-                if let TopNeighborGrids::SingleChunkLayerAbove { t } = &self {
-                    match t.checked_get(idx) {
-                        Ok(element) => Ok(element),
-                        Err(_) => Err(ConvOutOfBoundsError(ConvolutionIdx(
-                            idx,
-                            ConvolutionIdentifier::Top(top_neighbor_id),
-                        ))),
-                    }
-                } else {
-                    panic!("The identifier said the index was from a single chunk layer above neighbor, but the top neighbor grids were not single chunk layer above")
-                }
-            }
-            TopNeighborIdentifier::MultiChunkLayerAbove(chunk_idx) => {
-                if let TopNeighborGrids::MultiChunkLayerAbove { chunks } = &self {
-                    match chunks.get(chunk_idx) {
-                        Some(chunk) => match chunk.checked_get(idx) {
-                            Ok(element) => Ok(element),
-                            Err(_) => Err(ConvOutOfBoundsError(ConvolutionIdx(idx, ConvolutionIdentifier::Top(top_neighbor_id)))),
-                        },
-                        None => panic!("The identifier said the index was from a multi chunk layer above neighbor, but the top neighbor grids were not multi chunk layer above"),
-                    }
-                } else {
-                    panic!("The identifier said the index was from a multi chunk layer above neighbor, but the top neighbor grids were not multi chunk layer above")
-                }
-            }
         }
     }
 
@@ -402,9 +364,6 @@ impl BottomNeighborGrids {
                     br: grids.remove(br).unwrap(),
                 }
             }
-            BottomNeighborIdxs::FullLayerBelow { b } => BottomNeighborGrids::FullLayerBelow {
-                b: grids.remove(b).unwrap(),
-            },
             BottomNeighborIdxs::BottomOfGrid => BottomNeighborGrids::BottomOfGrid,
         }
     }
