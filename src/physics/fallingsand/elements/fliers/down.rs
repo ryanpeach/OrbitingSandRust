@@ -143,6 +143,5 @@ mod tests {
         }
 
         test_movement!(test_movement_i2_j2_k1, (2, 2, 1), (2, 1, 1));
-
     }
 }

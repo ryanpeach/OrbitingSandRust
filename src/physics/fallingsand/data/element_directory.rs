@@ -943,7 +943,6 @@ mod tests {
                 assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 1 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 23 }));
             }
-
         }
     }
 

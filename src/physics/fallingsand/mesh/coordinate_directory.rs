@@ -866,14 +866,13 @@ mod tests {
                 let i = 0;
                 let j = 0;
                 let core_chunks = coordinate_dir.get_core_chunks();
-                let num_radial_lines = core_chunks.get_width()*core_chunks.get(JkVector::ZERO).get_num_radial_lines();
+                let num_radial_lines = core_chunks.get_width()
+                    * core_chunks.get(JkVector::ZERO).get_num_radial_lines();
                 for k in 0..num_radial_lines {
                     let chunk_k = k / core_chunks.get(JkVector::ZERO).get_num_radial_lines();
                     // This radius and theta should define the midpoint of each cell
                     let radius = coordinate_dir.get_cell_width() / 2.0;
-                    let theta = -2.0 * PI
-                        / num_radial_lines as f32
-                        * (k as f32 + 0.5);
+                    let theta = -2.0 * PI / num_radial_lines as f32 * (k as f32 + 0.5);
                     let xycoord = RelXyPoint(Vec2 {
                         x: radius * theta.cos(),
                         y: radius * theta.sin(),
@@ -891,10 +890,17 @@ mod tests {
 
                     // now test that the chunks own rel_pos_to_cell_idx returns the same thing
                     let chunk = coordinate_dir.cell_idx_to_chunk_idx(cell_idx).0;
-                    assert_eq!(chunk, ChunkIjkVector { i: 0, j: 0, k: chunk_k });
+                    assert_eq!(
+                        chunk,
+                        ChunkIjkVector {
+                            i: 0,
+                            j: 0,
+                            k: chunk_k
+                        }
+                    );
                     let chunk_cell_idx = coordinate_dir
                         .get_core_chunks()
-                        .get(JkVector{j: 0, k: chunk_k})
+                        .get(JkVector { j: 0, k: chunk_k })
                         .rel_pos_to_cell_idx(xycoord)
                         .unwrap();
                     assert_eq!(chunk_cell_idx, cell_idx);
@@ -947,13 +953,27 @@ mod tests {
                 let i = 0;
                 let j = 0;
                 let core_chunks = coordinate_dir.get_core_chunks();
-                let num_radial_lines = core_chunks.get_width()*core_chunks.get(JkVector::ZERO).get_num_radial_lines();
+                let num_radial_lines = core_chunks.get_width()
+                    * core_chunks.get(JkVector::ZERO).get_num_radial_lines();
                 for k in 0..num_radial_lines {
                     // This radius and theta should define the midpoint of each cell
                     let coord = IjkVector { i, j, k };
                     let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
-                    assert_eq!(chunk_idx.0, ChunkIjkVector { i: 0, j: 0, k: k / core_chunks.get(JkVector::ZERO).get_num_radial_lines() });
-                    assert_eq!(chunk_idx.1, JkVector { j: 0, k: k % core_chunks.get(JkVector::ZERO).get_num_radial_lines()});
+                    assert_eq!(
+                        chunk_idx.0,
+                        ChunkIjkVector {
+                            i: 0,
+                            j: 0,
+                            k: k / core_chunks.get(JkVector::ZERO).get_num_radial_lines()
+                        }
+                    );
+                    assert_eq!(
+                        chunk_idx.1,
+                        JkVector {
+                            j: 0,
+                            k: k % core_chunks.get(JkVector::ZERO).get_num_radial_lines()
+                        }
+                    );
                 }
 
                 // Test the rest
@@ -1045,7 +1065,10 @@ mod tests {
         assert_eq!(coordinate_dir.get_chunk_start_radius(layer1), 1.0);
         assert_eq!(coordinate_dir.get_chunk_end_radius(layer1), 4.0);
         assert_eq!(coordinate_dir.get_chunk_start_radial_theta(layer1), 0.0);
-        assert_eq!(coordinate_dir.get_chunk_end_radial_theta(layer1), 2.0 * PI / 3.0);
+        assert_eq!(
+            coordinate_dir.get_chunk_end_radial_theta(layer1),
+            2.0 * PI / 3.0
+        );
 
         // Layer 2
         let layer2 = ChunkIjkVector { i: 2, j: 0, k: 0 };
@@ -1056,7 +1079,10 @@ mod tests {
         assert_eq!(coordinate_dir.get_chunk_start_radius(layer2), 4.0);
         assert_eq!(coordinate_dir.get_chunk_end_radius(layer2), 10.0);
         assert_eq!(coordinate_dir.get_chunk_start_radial_theta(layer2), 0.0);
-        assert_eq!(coordinate_dir.get_chunk_end_radial_theta(layer2), 2.0 * PI / 3.0);
+        assert_eq!(
+            coordinate_dir.get_chunk_end_radial_theta(layer2),
+            2.0 * PI / 3.0
+        );
 
         // Layer 3
         let layer3 = ChunkIjkVector { i: 3, j: 0, k: 0 };
@@ -1067,7 +1093,10 @@ mod tests {
         assert_eq!(coordinate_dir.get_chunk_start_radius(layer3), 10.0);
         assert_eq!(coordinate_dir.get_chunk_end_radius(layer3), 14.0);
         assert_eq!(coordinate_dir.get_chunk_start_radial_theta(layer3), 0.0);
-        assert_eq!(coordinate_dir.get_chunk_end_radial_theta(layer3), 2.0 * PI / 3.0);
+        assert_eq!(
+            coordinate_dir.get_chunk_end_radial_theta(layer3),
+            2.0 * PI / 3.0
+        );
 
         // Layer 4
         let layer4 = ChunkIjkVector { i: 4, j: 0, k: 0 };
@@ -1078,7 +1107,10 @@ mod tests {
         assert_eq!(coordinate_dir.get_chunk_start_radius(layer4), 22.0);
         assert_eq!(coordinate_dir.get_chunk_end_radius(layer4), 30.0);
         assert_eq!(coordinate_dir.get_chunk_start_radial_theta(layer4), 0.0);
-        assert_eq!(coordinate_dir.get_chunk_end_radial_theta(layer4), 2.0 * PI / 6.0);
+        assert_eq!(
+            coordinate_dir.get_chunk_end_radial_theta(layer4),
+            2.0 * PI / 6.0
+        );
 
         // Layer 5
         let layer5 = ChunkIjkVector { i: 5, j: 0, k: 0 };

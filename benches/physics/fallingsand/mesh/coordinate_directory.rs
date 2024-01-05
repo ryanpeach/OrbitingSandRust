@@ -1,7 +1,10 @@
 use criterion::{black_box, criterion_group, Criterion};
 use ggez::glam::Vec2;
 use orbiting_sand::physics::{
-    fallingsand::{mesh::coordinate_directory::{CoordinateDir, CoordinateDirBuilder}, util::vectors::JkVector},
+    fallingsand::{
+        mesh::coordinate_directory::{CoordinateDir, CoordinateDirBuilder},
+        util::vectors::JkVector,
+    },
     util::vectors::RelXyPoint,
 };
 
@@ -11,11 +14,18 @@ fn get_rel_pos_to_cell_idx_input_coords(coordinate_dir: &CoordinateDir) -> Vec<R
     let mut out = Vec::new();
 
     // Test the core
-    for k in 0..coordinate_dir.get_core_chunks().get(JkVector::ZERO).get_num_radial_lines() {
+    for k in 0..coordinate_dir
+        .get_core_chunks()
+        .get(JkVector::ZERO)
+        .get_num_radial_lines()
+    {
         // This radius and theta should define the midpoint of each cell
         let radius = coordinate_dir.get_cell_width() / 2.0;
         let theta = 2.0 * std::f32::consts::PI
-            / coordinate_dir.get_core_chunks().get(JkVector::ZERO).get_num_radial_lines() as f32
+            / coordinate_dir
+                .get_core_chunks()
+                .get(JkVector::ZERO)
+                .get_num_radial_lines() as f32
             * (k as f32 + 0.5);
         let xycoord = RelXyPoint(Vec2 {
             x: radius * theta.cos(),
