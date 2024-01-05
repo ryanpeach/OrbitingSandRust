@@ -3,7 +3,7 @@ use std::fmt;
 use hashbrown::HashMap;
 
 use crate::physics::fallingsand::{
-    element_grid::ElementGrid,
+    data::element_grid::ElementGrid,
     elements::element::Element,
     util::vectors::{ChunkIjkVector, JkVector},
 };

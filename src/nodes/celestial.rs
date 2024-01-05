@@ -3,7 +3,7 @@ use hashbrown::HashMap;
 use ggez::graphics::{Canvas, Mesh, Rect};
 use ggez::Context;
 
-use crate::physics::fallingsand::element_directory::ElementGridDir;
+use crate::physics::fallingsand::data::element_directory::ElementGridDir;
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
 use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::image::RawImage;

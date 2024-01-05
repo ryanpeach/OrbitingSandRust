@@ -287,7 +287,7 @@ pub trait ChunkCoords: Send + Sync {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
+    use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
     use crate::physics::fallingsand::util::vectors::IjkVector;
 
     /// Iterate around the circle in every direction, targetting each cells midpoint, and make sure

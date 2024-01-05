@@ -1,6 +1,6 @@
 use criterion::{black_box, criterion_group, Criterion};
-use orbiting_sand::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
-use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
+use orbiting_sand::physics::fallingsand::data::element_directory::ElementGridDir;
+use orbiting_sand::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
 use orbiting_sand::physics::fallingsand::util::enums::MeshDrawMode;
 use orbiting_sand::physics::fallingsand::util::mesh::OwnedMeshData;
 

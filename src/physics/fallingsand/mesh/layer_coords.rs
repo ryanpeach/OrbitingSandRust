@@ -1,4 +1,4 @@
-use crate::physics::fallingsand::coordinates::chunk_coords::ChunkCoords;
+use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::functions::interpolate_points;
 use crate::physics::fallingsand::util::image::RawImage;
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;

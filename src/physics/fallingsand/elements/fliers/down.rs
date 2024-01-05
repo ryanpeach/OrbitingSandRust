@@ -1,7 +1,7 @@
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
-use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDir;
-use crate::physics::fallingsand::element_grid::ElementGrid;
+use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
+use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 use ggez::graphics::Color;
@@ -63,7 +63,7 @@ impl Element for DownFlier {
 #[cfg(test)]
 mod tests {
     use crate::physics::fallingsand::{
-        coordinates::coordinate_directory::CoordinateDirBuilder, element_directory::ElementGridDir,
+        data::element_directory::ElementGridDir, mesh::coordinate_directory::CoordinateDirBuilder,
     };
 
     use super::*;

@@ -110,9 +110,9 @@ impl OwnedMeshData {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
-    use crate::physics::fallingsand::element_directory::ElementGridDir;
+    use crate::physics::fallingsand::data::element_directory::ElementGridDir;
     use crate::physics::fallingsand::elements::{element::Element, sand::Sand, vacuum::Vacuum};
+    use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
     use crate::physics::fallingsand::util::enums::MeshDrawMode;
 
     /// The default element grid directory for testing
