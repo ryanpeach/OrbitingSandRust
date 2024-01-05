@@ -804,39 +804,39 @@ mod tests {
 
             // Core
             assert_eq!(element_grid_dir.chunks[0].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[0].get_width(), 1);
+            assert_eq!(element_grid_dir.chunks[0].get_width(), 3);
 
             // Layer 1
             assert_eq!(element_grid_dir.chunks[1].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[1].get_width(), 1);
+            assert_eq!(element_grid_dir.chunks[1].get_width(), 3);
 
             // Layer 2
             assert_eq!(element_grid_dir.chunks[2].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[2].get_width(), 1);
+            assert_eq!(element_grid_dir.chunks[2].get_width(), 3);
 
             // Layer 3
-            assert_eq!(element_grid_dir.chunks[3].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[3].get_width(), 1);
+            assert_eq!(element_grid_dir.chunks[3].get_height(), 3);
+            assert_eq!(element_grid_dir.chunks[3].get_width(), 3);
 
             // Layer 4
-            assert_eq!(element_grid_dir.chunks[4].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[4].get_width(), 1);
+            assert_eq!(element_grid_dir.chunks[4].get_height(), 3);
+            assert_eq!(element_grid_dir.chunks[4].get_width(), 6);
 
             // Layer 5
-            assert_eq!(element_grid_dir.chunks[5].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[5].get_width(), 6);
+            assert_eq!(element_grid_dir.chunks[5].get_height(), 3);
+            assert_eq!(element_grid_dir.chunks[5].get_width(), 12);
 
             // Layer 6
-            assert_eq!(element_grid_dir.chunks[6].get_height(), 3);
-            assert_eq!(element_grid_dir.chunks[6].get_width(), 6);
+            assert_eq!(element_grid_dir.chunks[6].get_height(), 6);
+            assert_eq!(element_grid_dir.chunks[6].get_width(), 24);
 
             // Layer 7
-            assert_eq!(element_grid_dir.chunks[7].get_height(), 6);
-            assert_eq!(element_grid_dir.chunks[7].get_width(), 12);
+            assert_eq!(element_grid_dir.chunks[7].get_height(), 12);
+            assert_eq!(element_grid_dir.chunks[7].get_width(), 48);
 
             // Layer 8
-            assert_eq!(element_grid_dir.chunks[8].get_height(), 12);
-            assert_eq!(element_grid_dir.chunks[8].get_width(), 24);
+            assert_eq!(element_grid_dir.chunks[8].get_height(), 24);
+            assert_eq!(element_grid_dir.chunks[8].get_width(), 96);
         }
 
         #[test]
@@ -844,182 +844,106 @@ mod tests {
             let element_grid_dir = get_element_grid_dir();
 
             // Core
+            // Has no chunks below it
             {
                 let coord = ChunkIjkVector { i: 0, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.iter().count(), 1, "{:?}", neighbors);
+                assert_eq!(neighbors.iter().count(), 5, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 1, j: 0, k: 0 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 1, j: 0, k: 1 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 1, j: 0, k: 2 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 0, j: 0, k: 1 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 0, j: 0, k: 2 }));
             }
 
             // Layer 1
             {
                 let coord = ChunkIjkVector { i: 1, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.iter().count(), 2, "{:?}", neighbors);
+                assert_eq!(neighbors.iter().count(), 8, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 2, j: 0, k: 0 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 2, j: 0, k: 1 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 2, j: 0, k: 2 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 1, j: 0, k: 1 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 1, j: 0, k: 2 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 0, j: 0, k: 0 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 0, j: 0, k: 1 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 0, j: 0, k: 2 }));
             }
 
             // Layer 2
             {
                 let coord = ChunkIjkVector { i: 2, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.iter().count(), 2, "{:?}", neighbors);
+                assert_eq!(neighbors.iter().count(), 8, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 0, k: 0 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 0, k: 1 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 0, k: 2 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 2, j: 0, k: 1 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 2, j: 0, k: 2 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 1, j: 0, k: 0 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 1, j: 0, k: 1 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 1, j: 0, k: 2 }));
             }
 
             // Layer 3
             {
                 let coord = ChunkIjkVector { i: 3, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.iter().count(), 2, "{:?}", neighbors);
-                assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 0, k: 0 }));
+                assert_eq!(neighbors.iter().count(), 8, "{:?}", neighbors);
+                assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 1, k: 0 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 1, k: 1 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 1, k: 2 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 0, k: 1 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 0, k: 2 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 2, j: 0, k: 0 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 2, j: 0, k: 1 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 2, j: 0, k: 2 }));
             }
 
             // Layer 4
-            // This is the first special one, because it is the first layer with more than one chunk
-            // It will have 6 chunks above it and one below it
+            // This is the first special one, because it is the first layer with fewer chunks below it
             {
                 let coord = ChunkIjkVector { i: 4, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
                 assert_eq!(neighbors.iter().count(), 7, "{:?}", neighbors);
-                assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 0, k: 0 }));
-                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 0 }));
-                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 1 }));
-                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 2 }));
-                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 3 }));
-                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 4 }));
-                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 5 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 1, k: 1 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 1, k: 0 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 1, k: 5 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 0, k: 1 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 0, k: 5 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 2, k: 0 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 2, k: 2 }));
             }
 
             // Layer 5,
-            // This one splits radially, so it will have left and right neighbors
-            // The neighbor below it still just has one chunk, so one bottom neighbor
-            // The neighbor above it will have a tl, t, and tr
             {
                 let coord = ChunkIjkVector { i: 5, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.iter().count(), 6, "{:?}", neighbors);
-                assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 0, k: 0 }));
+                assert_eq!(neighbors.iter().count(), 7, "{:?}", neighbors);
+                assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 2, k: 5 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 2, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 1 }));
-                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 5 }));
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 0 }));
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 1 }));
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 5 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 11 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 1, k: 0 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 1, k: 1 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 1, k: 11 }));
             }
 
             // Layer 6
-            // This is the first layer that splits concentrically
-            // It skips splitting radially just one time, so the layer below has the same
             {
                 let coord = ChunkIjkVector { i: 6, j: 0, k: 0 };
                 let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.iter().count(), 8, "{:?}", neighbors);
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 0 })); // t
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 1 })); // tl
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 5 })); // tr
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 1 })); // l
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 5 })); // r
-                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 1 })); // bl
-                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 0 })); // b
-                assert!(
-                    neighbors.contains(&ChunkIjkVector { i: 5, j: 0, k: 5 }),
-                    "{:?}",
-                    neighbors
-                ); // br
-            }
-
-            // Now go to a normal square
-            {
-                let coord = ChunkIjkVector { i: 6, j: 1, k: 0 };
-                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.iter().count(), 8, "{:?}", neighbors);
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 0 })); // t
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 1 })); // tl
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 5 })); // tr
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 1 })); // l
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 5 })); // r
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 1 })); // bl
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 0 })); // b
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 5 }));
-                // br
-            }
-
-            // Now go to the top of the layer
-            // Because there is a doubling above this layer, then this has 2 top layers
-            {
-                let coord = ChunkIjkVector { i: 6, j: 2, k: 0 };
-                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.iter().count(), 9, "{:?}", neighbors);
-                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 2 })); // tl
-                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 1 })); // t0
-                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 0 })); // t1
-                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 11 })); // tr
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 1 })); // l
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 5 })); // r
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 1 })); // bl
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 0 })); // b
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 5 }));
-                // br
-            }
-
-            // Layer 7
-            // This is the first layer that splits concentrically and radially
-            {
-                let coord = ChunkIjkVector { i: 7, j: 0, k: 0 };
-                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
                 assert_eq!(neighbors.iter().count(), 7, "{:?}", neighbors);
-                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 0 })); // t
-                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 1 })); // tl
-                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 11 })); // tr
-                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 1 })); // l
-                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 11 })); // r
-                assert!(
-                    neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 0 }),
-                    "{:?}",
-                    neighbors
-                ); // bl
-                assert!(
-                    neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 5 }),
-                    "{:?}",
-                    neighbors
-                ); // br
+                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 2, k: 11 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 2, k: 0 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 1 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 0, k: 23 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 0 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 1 }));
+                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 1, k: 23 }));
             }
 
-            // Go k+1 to test how going down left and right changes every other step
-            // Because the one below you will "extend" more rightward or more leftward, so there
-            // isnt really a bottom and whether its more leftward or rightward depends on which
-            // side of it you are on
-            {
-                let coord = ChunkIjkVector { i: 7, j: 0, k: 1 };
-                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert_eq!(neighbors.iter().count(), 7, "{:?}", neighbors);
-                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 1 })); // t
-                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 2 })); // tl
-                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 1, k: 0 })); // tr
-                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 2 })); // l
-                assert!(neighbors.contains(&ChunkIjkVector { i: 7, j: 0, k: 0 })); // r
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 1 })); // bl
-                assert!(neighbors.contains(&ChunkIjkVector { i: 6, j: 2, k: 0 }));
-                // br
-            }
-
-            // Test the very last layer that it doesn't have anything above it
-            {
-                let coord = ChunkIjkVector {
-                    i: element_grid_dir.get_coordinate_dir().get_num_layers() - 1,
-                    j: 0,
-                    k: 0,
-                };
-                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
-                assert!(!neighbors.contains(&ChunkIjkVector {
-                    i: element_grid_dir.get_coordinate_dir().get_num_layers() - 1,
-                    j: 0,
-                    k: 0
-                }));
-            }
         }
     }
 
@@ -1034,39 +958,39 @@ mod tests {
 
             // Core
             assert_eq!(element_grid_dir.chunks[0].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[0].get_width(), 1);
+            assert_eq!(element_grid_dir.chunks[0].get_width(), 3);
 
             // Layer 1
             assert_eq!(element_grid_dir.chunks[1].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[1].get_width(), 1);
+            assert_eq!(element_grid_dir.chunks[1].get_width(), 3);
 
             // Layer 2
             assert_eq!(element_grid_dir.chunks[2].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[2].get_width(), 1);
+            assert_eq!(element_grid_dir.chunks[2].get_width(), 3);
 
             // Layer 3
-            assert_eq!(element_grid_dir.chunks[3].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[3].get_width(), 1);
+            assert_eq!(element_grid_dir.chunks[3].get_height(), 3);
+            assert_eq!(element_grid_dir.chunks[3].get_width(), 3);
 
             // Layer 4
-            assert_eq!(element_grid_dir.chunks[4].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[4].get_width(), 1);
+            assert_eq!(element_grid_dir.chunks[4].get_height(), 3);
+            assert_eq!(element_grid_dir.chunks[4].get_width(), 6);
 
             // Layer 5
-            assert_eq!(element_grid_dir.chunks[5].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[5].get_width(), 6);
+            assert_eq!(element_grid_dir.chunks[5].get_height(), 3);
+            assert_eq!(element_grid_dir.chunks[5].get_width(), 12);
 
             // Layer 6
-            assert_eq!(element_grid_dir.chunks[6].get_height(), 3);
-            assert_eq!(element_grid_dir.chunks[6].get_width(), 6);
+            assert_eq!(element_grid_dir.chunks[6].get_height(), 6);
+            assert_eq!(element_grid_dir.chunks[6].get_width(), 24);
 
             // Layer 7
-            assert_eq!(element_grid_dir.chunks[7].get_height(), 6);
-            assert_eq!(element_grid_dir.chunks[7].get_width(), 12);
+            assert_eq!(element_grid_dir.chunks[7].get_height(), 12);
+            assert_eq!(element_grid_dir.chunks[7].get_width(), 48);
 
             // Layer 8
-            assert_eq!(element_grid_dir.chunks[8].get_height(), 12);
-            assert_eq!(element_grid_dir.chunks[8].get_width(), 24);
+            assert_eq!(element_grid_dir.chunks[8].get_height(), 24);
+            assert_eq!(element_grid_dir.chunks[8].get_width(), 96);
         }
 
         fn get_next_targets(this: &mut ElementGridDir) -> HashSet<ChunkIjkVector> {
@@ -1203,7 +1127,7 @@ mod tests {
             // For every j step by 3 we should
             assert!(all_targets_1.contains(&ChunkIjkVector { i: 0, j: 0, k: 0 }));
             assert!(all_targets_1.contains(&ChunkIjkVector { i: 3, j: 0, k: 0 }));
-            assert!(all_targets_1.contains(&ChunkIjkVector { i: 6, j: 0, k: 0 }));
+            assert!(all_targets_1.contains(&ChunkIjkVector { i: 6, j: 3, k: 0 }));
             // assert!(all_targets_1.contains(&ChunkIjkVector { i: 7, j: 0, k: 0 }));
             assert!(all_targets_1.contains(&ChunkIjkVector { i: 7, j: 3, k: 0 }));
             // assert!(all_targets_1.contains(&ChunkIjkVector { i: 8, j: 0, k: 0 }));
@@ -1248,21 +1172,21 @@ mod tests {
             // Same as first test
             assert!(all_targets_1.contains(&ChunkIjkVector { i: 0, j: 0, k: 0 }));
             assert!(all_targets_1.contains(&ChunkIjkVector { i: 3, j: 0, k: 0 }));
-            assert!(all_targets_1.contains(&ChunkIjkVector { i: 6, j: 0, k: 0 }));
-            assert!(all_targets_1.contains(&ChunkIjkVector { i: 6, j: 0, k: 3 }));
+            assert!(all_targets_1.contains(&ChunkIjkVector { i: 6, j: 3, k: 0 }));
+            assert!(all_targets_1.contains(&ChunkIjkVector { i: 6, j: 3, k: 3 }));
 
             let all_targets_2 = get_next_targets(&mut element_grid_dir);
 
             // Layers that only have one chunk should not repeat
             assert!(!all_targets_2.contains(&ChunkIjkVector { i: 0, j: 0, k: 0 }));
             assert!(!all_targets_2.contains(&ChunkIjkVector { i: 3, j: 0, k: 0 }));
-            assert!(all_targets_2.contains(&ChunkIjkVector { i: 6, j: 0, k: 1 }));
-            assert!(all_targets_2.contains(&ChunkIjkVector { i: 6, j: 0, k: 4 }));
+            assert!(all_targets_2.contains(&ChunkIjkVector { i: 6, j: 3, k: 1 }));
+            assert!(all_targets_2.contains(&ChunkIjkVector { i: 6, j: 3, k: 4 }));
 
             let all_targets_3 = get_next_targets(&mut element_grid_dir);
 
-            assert!(all_targets_3.contains(&ChunkIjkVector { i: 6, j: 0, k: 2 }));
-            assert!(all_targets_3.contains(&ChunkIjkVector { i: 6, j: 0, k: 5 }));
+            assert!(all_targets_3.contains(&ChunkIjkVector { i: 6, j: 3, k: 2 }));
+            assert!(all_targets_3.contains(&ChunkIjkVector { i: 6, j: 3, k: 5 }));
         }
     }
 }

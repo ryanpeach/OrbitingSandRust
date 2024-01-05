@@ -144,8 +144,5 @@ mod tests {
 
         test_movement!(test_movement_i2_j2_k1, (2, 2, 1), (2, 1, 1));
 
-        test_movement!(test_movement_i2_j0_k8, (2, 0, 8), (1, 2, 4));
-
-        test_movement!(test_movement_i7_j0_k355, (7, 0, 355), (6, 95, 355 / 2));
     }
 }

@@ -498,15 +498,15 @@ impl CoordinateDir {
     }
     /// Cell radius is constant for all chunks
     pub fn get_cell_width(&self) -> f32 {
-        self.get_core_chunk().get_cell_width()
+        self.get_core_chunks().get(JkVector::ZERO).get_cell_width()
     }
     /// The number of layers in the circle
     pub fn get_num_layers(&self) -> usize {
         self.partial_chunks.len()
     }
     /// Get the core chunk coordinates, useful for getting its shape
-    pub fn get_core_chunk(&self) -> &ChunkCoords {
-        self.partial_chunks[0].get(JkVector::ZERO)
+    pub fn get_core_chunks(&self) -> &Grid<ChunkCoords> {
+        &self.partial_chunks[0]
     }
     /// Useful for getting all the partial chunks, useful for getting their shapes
     pub fn get_partial_chunks(&self, _layer_num: usize) -> &Vec<Grid<ChunkCoords>> {
@@ -709,45 +709,45 @@ mod tests {
             let coord_dir = default_coordinate_dir();
             // Core
             assert_eq!(coord_dir.get_layer_num_concentric_chunks(0), 1);
-            assert_eq!(coord_dir.get_layer_num_radial_chunks(0), 1);
+            assert_eq!(coord_dir.get_layer_num_radial_chunks(0), 3);
 
             // Layer 1
             assert_eq!(coord_dir.get_layer_num_concentric_chunks(1), 1);
-            assert_eq!(coord_dir.get_layer_num_radial_chunks(1), 1);
+            assert_eq!(coord_dir.get_layer_num_radial_chunks(1), 3);
 
             // Layer 2
             assert_eq!(coord_dir.get_layer_num_concentric_chunks(2), 1);
-            assert_eq!(coord_dir.get_layer_num_radial_chunks(2), 1);
+            assert_eq!(coord_dir.get_layer_num_radial_chunks(2), 3);
 
             // Layer 3
-            assert_eq!(coord_dir.get_layer_num_concentric_chunks(3), 1);
-            assert_eq!(coord_dir.get_layer_num_radial_chunks(3), 1);
+            assert_eq!(coord_dir.get_layer_num_concentric_chunks(3), 3);
+            assert_eq!(coord_dir.get_layer_num_radial_chunks(3), 3);
 
             // Layer 4
-            assert_eq!(coord_dir.get_layer_num_concentric_chunks(4), 1);
-            assert_eq!(coord_dir.get_layer_num_radial_chunks(4), 1);
+            assert_eq!(coord_dir.get_layer_num_concentric_chunks(4), 3);
+            assert_eq!(coord_dir.get_layer_num_radial_chunks(4), 6);
 
             // Layer 5
-            assert_eq!(coord_dir.get_layer_num_concentric_chunks(5), 1);
-            assert_eq!(coord_dir.get_layer_num_radial_chunks(5), 6);
+            assert_eq!(coord_dir.get_layer_num_concentric_chunks(5), 3);
+            assert_eq!(coord_dir.get_layer_num_radial_chunks(5), 12);
 
             // Layer 6
-            assert_eq!(coord_dir.get_layer_num_concentric_chunks(6), 3);
-            assert_eq!(coord_dir.get_layer_num_radial_chunks(6), 6);
+            assert_eq!(coord_dir.get_layer_num_concentric_chunks(6), 6);
+            assert_eq!(coord_dir.get_layer_num_radial_chunks(6), 24);
 
             // Layer 7
-            assert_eq!(coord_dir.get_layer_num_concentric_chunks(7), 6);
-            assert_eq!(coord_dir.get_layer_num_radial_chunks(7), 12);
+            assert_eq!(coord_dir.get_layer_num_concentric_chunks(7), 12);
+            assert_eq!(coord_dir.get_layer_num_radial_chunks(7), 48);
 
             // Layer 8
-            assert_eq!(coord_dir.get_layer_num_concentric_chunks(8), 12);
-            assert_eq!(coord_dir.get_layer_num_radial_chunks(8), 24);
+            assert_eq!(coord_dir.get_layer_num_concentric_chunks(8), 24);
+            assert_eq!(coord_dir.get_layer_num_radial_chunks(8), 96);
         }
 
         #[test]
         fn test_get_total_number_chunks_in_concentric_circle_dimension() {
             let coord_dir = default_coordinate_dir();
-            assert_eq!(coord_dir.get_total_number_concentric_chunks(), 27);
+            assert_eq!(coord_dir.get_total_number_concentric_chunks(), 54);
         }
 
         #[test]
@@ -781,139 +781,67 @@ mod tests {
                 coord_dir
                     .get_layer_and_chunk_num_from_absolute_concentric_chunk(4)
                     .unwrap(),
-                (4, 0)
+                (3, 1)
             );
             assert_eq!(
                 coord_dir
                     .get_layer_and_chunk_num_from_absolute_concentric_chunk(5)
                     .unwrap(),
-                (5, 0)
+                (3, 2)
             );
             assert_eq!(
                 coord_dir
                     .get_layer_and_chunk_num_from_absolute_concentric_chunk(6)
                     .unwrap(),
-                (6, 0)
+                (4, 0)
             );
             assert_eq!(
                 coord_dir
                     .get_layer_and_chunk_num_from_absolute_concentric_chunk(7)
                     .unwrap(),
-                (6, 1)
+                (4, 1)
             );
             assert_eq!(
                 coord_dir
                     .get_layer_and_chunk_num_from_absolute_concentric_chunk(8)
                     .unwrap(),
-                (6, 2)
+                (4, 2)
             );
             assert_eq!(
                 coord_dir
                     .get_layer_and_chunk_num_from_absolute_concentric_chunk(9)
                     .unwrap(),
-                (7, 0)
+                (5, 0)
             );
             assert_eq!(
                 coord_dir
                     .get_layer_and_chunk_num_from_absolute_concentric_chunk(10)
                     .unwrap(),
-                (7, 1)
+                (5, 1)
             );
             assert_eq!(
                 coord_dir
                     .get_layer_and_chunk_num_from_absolute_concentric_chunk(11)
                     .unwrap(),
-                (7, 2)
+                (5, 2)
             );
             assert_eq!(
                 coord_dir
                     .get_layer_and_chunk_num_from_absolute_concentric_chunk(12)
                     .unwrap(),
-                (7, 3)
+                (6, 0)
             );
             assert_eq!(
                 coord_dir
                     .get_layer_and_chunk_num_from_absolute_concentric_chunk(13)
                     .unwrap(),
-                (7, 4)
+                (6, 1)
             );
             assert_eq!(
                 coord_dir
                     .get_layer_and_chunk_num_from_absolute_concentric_chunk(14)
                     .unwrap(),
-                (7, 5)
-            );
-            assert_eq!(
-                coord_dir
-                    .get_layer_and_chunk_num_from_absolute_concentric_chunk(15)
-                    .unwrap(),
-                (8, 0)
-            );
-            assert_eq!(
-                coord_dir
-                    .get_layer_and_chunk_num_from_absolute_concentric_chunk(16)
-                    .unwrap(),
-                (8, 1)
-            );
-            assert_eq!(
-                coord_dir
-                    .get_layer_and_chunk_num_from_absolute_concentric_chunk(17)
-                    .unwrap(),
-                (8, 2)
-            );
-            assert_eq!(
-                coord_dir
-                    .get_layer_and_chunk_num_from_absolute_concentric_chunk(18)
-                    .unwrap(),
-                (8, 3)
-            );
-            assert_eq!(
-                coord_dir
-                    .get_layer_and_chunk_num_from_absolute_concentric_chunk(19)
-                    .unwrap(),
-                (8, 4)
-            );
-            assert_eq!(
-                coord_dir
-                    .get_layer_and_chunk_num_from_absolute_concentric_chunk(20)
-                    .unwrap(),
-                (8, 5)
-            );
-            assert_eq!(
-                coord_dir
-                    .get_layer_and_chunk_num_from_absolute_concentric_chunk(21)
-                    .unwrap(),
-                (8, 6)
-            );
-            assert_eq!(
-                coord_dir
-                    .get_layer_and_chunk_num_from_absolute_concentric_chunk(22)
-                    .unwrap(),
-                (8, 7)
-            );
-            assert_eq!(
-                coord_dir
-                    .get_layer_and_chunk_num_from_absolute_concentric_chunk(23)
-                    .unwrap(),
-                (8, 8)
-            );
-            assert_eq!(
-                coord_dir
-                    .get_layer_and_chunk_num_from_absolute_concentric_chunk(24)
-                    .unwrap(),
-                (8, 9)
-            );
-            assert_eq!(
-                coord_dir
-                    .get_layer_and_chunk_num_from_absolute_concentric_chunk(25)
-                    .unwrap(),
-                (8, 10)
-            );
-            assert_eq!(
-                coord_dir
-                    .get_layer_and_chunk_num_from_absolute_concentric_chunk(26)
-                    .unwrap(),
-                (8, 11)
+                (6, 2)
             );
         }
     }
@@ -937,11 +865,14 @@ mod tests {
                 // Test the core
                 let i = 0;
                 let j = 0;
-                for k in 0..coordinate_dir.get_core_chunk().get_num_radial_lines() {
+                let core_chunks = coordinate_dir.get_core_chunks();
+                let num_radial_lines = core_chunks.get_width()*core_chunks.get(JkVector::ZERO).get_num_radial_lines();
+                for k in 0..num_radial_lines {
+                    let chunk_k = k / core_chunks.get(JkVector::ZERO).get_num_radial_lines();
                     // This radius and theta should define the midpoint of each cell
                     let radius = coordinate_dir.get_cell_width() / 2.0;
                     let theta = -2.0 * PI
-                        / coordinate_dir.get_core_chunk().get_num_radial_lines() as f32
+                        / num_radial_lines as f32
                         * (k as f32 + 0.5);
                     let xycoord = RelXyPoint(Vec2 {
                         x: radius * theta.cos(),
@@ -960,9 +891,10 @@ mod tests {
 
                     // now test that the chunks own rel_pos_to_cell_idx returns the same thing
                     let chunk = coordinate_dir.cell_idx_to_chunk_idx(cell_idx).0;
-                    assert_eq!(chunk, ChunkIjkVector { i: 0, j: 0, k: 0 });
+                    assert_eq!(chunk, ChunkIjkVector { i: 0, j: 0, k: chunk_k });
                     let chunk_cell_idx = coordinate_dir
-                        .get_core_chunk()
+                        .get_core_chunks()
+                        .get(JkVector{j: 0, k: chunk_k})
                         .rel_pos_to_cell_idx(xycoord)
                         .unwrap();
                     assert_eq!(chunk_cell_idx, cell_idx);
@@ -1014,12 +946,14 @@ mod tests {
                 // Test the core
                 let i = 0;
                 let j = 0;
-                for k in 0..coordinate_dir.get_core_chunk().get_num_radial_lines() {
+                let core_chunks = coordinate_dir.get_core_chunks();
+                let num_radial_lines = core_chunks.get_width()*core_chunks.get(JkVector::ZERO).get_num_radial_lines();
+                for k in 0..num_radial_lines {
                     // This radius and theta should define the midpoint of each cell
                     let coord = IjkVector { i, j, k };
                     let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
-                    assert_eq!(chunk_idx.0, ChunkIjkVector { i: 0, j: 0, k: 0 },);
-                    assert_eq!(chunk_idx.1, JkVector { j: 0, k });
+                    assert_eq!(chunk_idx.0, ChunkIjkVector { i: 0, j: 0, k: k / core_chunks.get(JkVector::ZERO).get_num_radial_lines() });
+                    assert_eq!(chunk_idx.1, JkVector { j: 0, k: k % core_chunks.get(JkVector::ZERO).get_num_radial_lines()});
                 }
 
                 // Test the rest
@@ -1076,7 +1010,7 @@ mod tests {
         // Test that the first chunk is 1x6
         assert_eq!(
             coordinate_dir.get_chunk_num_radial_lines(ChunkIjkVector::ZERO),
-            6
+            2
         );
         assert_eq!(
             coordinate_dir.get_chunk_num_concentric_circles(ChunkIjkVector::ZERO),
@@ -1097,13 +1031,13 @@ mod tests {
         );
         assert_eq!(
             coordinate_dir.get_chunk_end_radial_theta(ChunkIjkVector::ZERO),
-            2.0 * PI
+            2.0 * PI / 3.0
         );
 
         // Layer 1
         let layer1 = ChunkIjkVector { i: 1, j: 0, k: 0 };
         // Test that the next chunk is 3x12
-        assert_eq!(coordinate_dir.get_chunk_num_radial_lines(layer1), 12);
+        assert_eq!(coordinate_dir.get_chunk_num_radial_lines(layer1), 4);
         assert_eq!(coordinate_dir.get_chunk_num_concentric_circles(layer1), 3);
         // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 1 x 4 x 0 x 2pi
         // 1 comes from the previous layer's end_radius
@@ -1111,54 +1045,54 @@ mod tests {
         assert_eq!(coordinate_dir.get_chunk_start_radius(layer1), 1.0);
         assert_eq!(coordinate_dir.get_chunk_end_radius(layer1), 4.0);
         assert_eq!(coordinate_dir.get_chunk_start_radial_theta(layer1), 0.0);
-        assert_eq!(coordinate_dir.get_chunk_end_radial_theta(layer1), 2.0 * PI);
+        assert_eq!(coordinate_dir.get_chunk_end_radial_theta(layer1), 2.0 * PI / 3.0);
 
         // Layer 2
         let layer2 = ChunkIjkVector { i: 2, j: 0, k: 0 };
         // Test that the next chunk is 6x24
-        assert_eq!(coordinate_dir.get_chunk_num_radial_lines(layer2), 24);
+        assert_eq!(coordinate_dir.get_chunk_num_radial_lines(layer2), 8);
         assert_eq!(coordinate_dir.get_chunk_num_concentric_circles(layer2), 6);
         // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 4 x 10 x 0 x 2pi
         assert_eq!(coordinate_dir.get_chunk_start_radius(layer2), 4.0);
         assert_eq!(coordinate_dir.get_chunk_end_radius(layer2), 10.0);
         assert_eq!(coordinate_dir.get_chunk_start_radial_theta(layer2), 0.0);
-        assert_eq!(coordinate_dir.get_chunk_end_radial_theta(layer2), 2.0 * PI);
+        assert_eq!(coordinate_dir.get_chunk_end_radial_theta(layer2), 2.0 * PI / 3.0);
 
         // Layer 3
         let layer3 = ChunkIjkVector { i: 3, j: 0, k: 0 };
         // Test that the next chunk is 12x48
-        assert_eq!(coordinate_dir.get_chunk_num_radial_lines(layer3), 48);
-        assert_eq!(coordinate_dir.get_chunk_num_concentric_circles(layer3), 12);
+        assert_eq!(coordinate_dir.get_chunk_num_radial_lines(layer3), 16);
+        assert_eq!(coordinate_dir.get_chunk_num_concentric_circles(layer3), 4);
         // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 10 x 22 x 0 x 2pi
         assert_eq!(coordinate_dir.get_chunk_start_radius(layer3), 10.0);
-        assert_eq!(coordinate_dir.get_chunk_end_radius(layer3), 22.0);
+        assert_eq!(coordinate_dir.get_chunk_end_radius(layer3), 14.0);
         assert_eq!(coordinate_dir.get_chunk_start_radial_theta(layer3), 0.0);
-        assert_eq!(coordinate_dir.get_chunk_end_radial_theta(layer3), 2.0 * PI);
+        assert_eq!(coordinate_dir.get_chunk_end_radial_theta(layer3), 2.0 * PI / 3.0);
 
         // Layer 4
         let layer4 = ChunkIjkVector { i: 4, j: 0, k: 0 };
         //  Test that the next chunk is 24x96
-        assert_eq!(coordinate_dir.get_chunk_num_radial_lines(layer4), 96);
-        assert_eq!(coordinate_dir.get_chunk_num_concentric_circles(layer4), 24);
+        assert_eq!(coordinate_dir.get_chunk_num_radial_lines(layer4), 16);
+        assert_eq!(coordinate_dir.get_chunk_num_concentric_circles(layer4), 8);
         // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 22 x 46 x 0 x 2pi
         assert_eq!(coordinate_dir.get_chunk_start_radius(layer4), 22.0);
-        assert_eq!(coordinate_dir.get_chunk_end_radius(layer4), 46.0);
+        assert_eq!(coordinate_dir.get_chunk_end_radius(layer4), 30.0);
         assert_eq!(coordinate_dir.get_chunk_start_radial_theta(layer4), 0.0);
-        assert_eq!(coordinate_dir.get_chunk_end_radial_theta(layer4), 2.0 * PI);
+        assert_eq!(coordinate_dir.get_chunk_end_radial_theta(layer4), 2.0 * PI / 6.0);
 
         // Layer 5
         let layer5 = ChunkIjkVector { i: 5, j: 0, k: 0 };
         // Test that the next chunk is 48x192
         // This divided in to 6
-        assert_eq!(coordinate_dir.get_chunk_num_radial_lines(layer5), 192 / 6);
-        assert_eq!(coordinate_dir.get_chunk_num_concentric_circles(layer5), 48);
+        assert_eq!(coordinate_dir.get_chunk_num_radial_lines(layer5), 16);
+        assert_eq!(coordinate_dir.get_chunk_num_concentric_circles(layer5), 16);
         // The start_radius x end_radius x start_radial_theta x end_radial_theta should be 46 x 94 x 0 x 2pi
         assert_eq!(coordinate_dir.get_chunk_start_radius(layer5), 46.0);
-        assert_eq!(coordinate_dir.get_chunk_end_radius(layer5), 94.0);
+        assert_eq!(coordinate_dir.get_chunk_end_radius(layer5), 62.0);
         assert_eq!(coordinate_dir.get_chunk_start_radial_theta(layer5), 0.0);
         assert_approx_eq!(
             coordinate_dir.get_chunk_end_radial_theta(layer5),
-            2.0 * PI / 6.0
+            2.0 * PI / 12.0
         );
 
         // // Layer 6
