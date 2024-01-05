@@ -4,8 +4,8 @@ use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use crate::physics::util::vectors::RelXyPoint;
 
-use super::chunk_coords::{ChunkCoords, VertexMode};
-use super::layer_coords::{PartialLayerChunkCoords, PartialLayerChunkCoordsBuilder};
+use super::layer_coords::PartialLayerChunkCoordsBuilder;
+use super::layer_coords::{PartialLayerChunkCoords, VertexMode};
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use ggez::glam::Vec2;
@@ -344,8 +344,8 @@ impl CoordinateDir {
  * chunk index
  * ========================================= */
 impl CoordinateDir {
-    pub fn get_chunk_at_idx(&self, chunk_idx: ChunkIjkVector) -> Box<dyn ChunkCoords> {
-        Box::new(*self.partial_chunks[chunk_idx.i].get(chunk_idx.to_jk_vector()))
+    pub fn get_chunk_at_idx(&self, chunk_idx: ChunkIjkVector) -> PartialLayerChunkCoords {
+        *self.partial_chunks[chunk_idx.i].get(chunk_idx.to_jk_vector())
     }
     pub fn get_chunk_bounding_box(&self, chunk_idx: ChunkIjkVector) -> Rect {
         self.partial_chunks[chunk_idx.i]

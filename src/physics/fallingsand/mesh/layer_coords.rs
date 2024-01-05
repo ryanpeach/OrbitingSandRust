@@ -1,13 +1,21 @@
-use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::functions::interpolate_points;
 use crate::physics::fallingsand::util::image::RawImage;
-use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
+use crate::physics::fallingsand::util::mesh::OwnedMeshData;
+use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
+use crate::physics::util::vectors::RelXyPoint;
 use ggez::glam::Vec2;
-use ggez::graphics::{Color, Rect};
+use ggez::graphics::{Color, MeshBuilder, Rect, Vertex};
 
 use std::f32::consts::PI;
 
-use super::chunk_coords::VertexMode;
+/// The optimal way of drawing the vertexes is just to draw the radial lines.
+/// Because the texture will map along the column perfectly.
+/// However, if you want to see the whole grid you can use the grid vertexes.
+#[derive(Debug, Clone, Copy)]
+pub enum VertexMode {
+    Lines,
+    Grid,
+}
 
 /// This is a chunk that represents a "full" layer.
 /// It doesn't split itself in either the radial or concentric directions.
@@ -130,7 +138,7 @@ impl PartialLayerChunkCoordsBuilder {
 }
 
 impl PartialLayerChunkCoords {
-    fn get_vertexes(&self, mode: VertexMode) -> Vec<Vec2> {
+    pub fn get_positions(&self, mode: VertexMode) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
         let start_concentric = self.start_concentric_circle_layer_relative;
@@ -176,7 +184,7 @@ impl PartialLayerChunkCoords {
     }
 
     /// Similar to get_circle_vertexes, but the j index just iterates on the 0th and last element
-    fn get_outline(&self) -> Vec<Vec2> {
+    pub fn get_outline(&self) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
         let start_concentric = self.start_concentric_circle_layer_relative;
@@ -223,7 +231,7 @@ impl PartialLayerChunkCoords {
     }
 
     /// Gets the min and max positions in raw x, y of the chunk
-    fn get_bounding_box(&self) -> Rect {
+    pub fn get_bounding_box(&self) -> Rect {
         let outline = self.get_outline();
         let all_x = outline.iter().map(|v| v.x);
         let all_y = outline.iter().map(|v| v.y);
@@ -239,7 +247,7 @@ impl PartialLayerChunkCoords {
     /// If you set skip to 1, you will get the full resolution
     /// If you set skip to 2, you will get half the resolution
     /// ...
-    fn get_uv_vertexes(&self, mode: VertexMode) -> Vec<Vec2> {
+    pub fn get_uvs(&self, mode: VertexMode) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
         let concentric_range = match mode {
@@ -260,7 +268,7 @@ impl PartialLayerChunkCoords {
         vertexes
     }
 
-    fn get_indices(&self, mode: VertexMode) -> Vec<u32> {
+    pub fn get_indices(&self, mode: VertexMode) -> Vec<u32> {
         let j_count = match mode {
             VertexMode::Lines => 2,
             VertexMode::Grid => self.get_num_concentric_circles() + 1,
@@ -325,74 +333,398 @@ impl PartialLayerChunkCoords {
     }
 }
 
-impl ChunkCoords for PartialLayerChunkCoords {
-    fn get_outline(&self) -> Vec<Vec2> {
-        self.get_outline()
+impl PartialLayerChunkCoords {
+    pub fn total_size(&self) -> usize {
+        self.get_num_radial_lines() * self.get_num_concentric_circles()
     }
-    fn get_positions(&self, mode: VertexMode) -> Vec<Vec2> {
-        self.get_vertexes(mode)
-    }
-    fn get_indices(&self, mode: VertexMode) -> Vec<u32> {
-        self.get_indices(mode)
-    }
-    fn get_uvs(&self, mode: VertexMode) -> Vec<Vec2> {
-        self.get_uv_vertexes(mode)
-    }
-    fn get_cell_width(&self) -> f32 {
+    pub fn get_cell_width(&self) -> f32 {
         self.width
     }
-    fn get_start_radius(&self) -> f32 {
+    pub fn get_start_radius(&self) -> f32 {
         self.start_concentric_circle_absolute as f32 * self.width
     }
-    fn get_end_radius(&self) -> f32 {
+    pub fn get_end_radius(&self) -> f32 {
         self.get_start_radius() + self.width * (self.num_concentric_circles as f32)
     }
-    fn get_num_radial_lines(&self) -> usize {
+    pub fn get_num_radial_lines(&self) -> usize {
         self.end_radial_line - self.start_radial_line
     }
-    fn get_num_concentric_circles(&self) -> usize {
+    pub fn get_num_concentric_circles(&self) -> usize {
         self.num_concentric_circles
     }
-    fn get_end_radial_theta(&self) -> f32 {
+    pub fn get_end_radial_theta(&self) -> f32 {
         let diff = (2.0 * PI) / self.layer_num_radial_lines as f32;
         self.end_radial_line as f32 * diff
     }
-    fn get_start_radial_theta(&self) -> f32 {
+    pub fn get_start_radial_theta(&self) -> f32 {
         let diff = (2.0 * PI) / self.layer_num_radial_lines as f32;
         self.start_radial_line as f32 * diff
     }
-    fn get_start_concentric_circle_layer_relative(&self) -> usize {
+    pub fn get_start_concentric_circle_layer_relative(&self) -> usize {
         self.start_concentric_circle_layer_relative
     }
-    fn get_start_concentric_circle_absolute(&self) -> usize {
+    pub fn get_start_concentric_circle_absolute(&self) -> usize {
         self.start_concentric_circle_absolute
     }
-    fn get_end_concentric_circle_absolute(&self) -> usize {
+    pub fn get_end_concentric_circle_absolute(&self) -> usize {
         self.start_concentric_circle_absolute + self.num_concentric_circles
     }
-    fn get_end_concentric_circle_layer_relative(&self) -> usize {
+    pub fn get_end_concentric_circle_layer_relative(&self) -> usize {
         self.start_concentric_circle_layer_relative + self.num_concentric_circles
     }
-    fn get_end_radial_line(&self) -> usize {
+    pub fn get_end_radial_line(&self) -> usize {
         self.end_radial_line
     }
-    fn get_start_radial_line(&self) -> usize {
+    pub fn get_start_radial_line(&self) -> usize {
         self.start_radial_line
     }
-    fn get_layer_num(&self) -> usize {
+    pub fn get_layer_num(&self) -> usize {
         self.chunk_idx.i
     }
-    fn get_chunk_idx(&self) -> ChunkIjkVector {
+    pub fn get_chunk_idx(&self) -> ChunkIjkVector {
         self.chunk_idx
     }
-    fn get_bounding_box(&self) -> Rect {
-        self.get_bounding_box()
+
+    /* Positions in the chunk */
+    /// Checks to see if an absolute position around the circle is in the chunk
+    pub fn contains(&self, idx: IjkVector) -> bool {
+        idx.i == self.get_layer_num()
+            && idx.j >= self.get_start_radial_line()
+            && idx.j < self.get_end_radial_line()
+            && idx.k >= self.get_start_concentric_circle_absolute()
+            && idx.k < self.get_end_concentric_circle_absolute()
+    }
+    /// Converts a coordinate from anywhere on the circle, assuming it is in the chunk
+    /// to a coordinate inside the grid of this chunk
+    pub fn get_internal_coord_from_external_coord(&self, external_coord: IjkVector) -> JkVector {
+        debug_assert!(self.contains(external_coord));
+        JkVector {
+            j: external_coord.j - self.get_start_radial_line(),
+            k: external_coord.k - self.get_start_concentric_circle_absolute(),
+        }
+    }
+    /// Converts a coordinate from inside this chunk to a coordinate on the circle
+    pub fn get_external_coord_from_internal_coord(&self, internal_coord: JkVector) -> IjkVector {
+        debug_assert!(internal_coord.j < self.get_num_radial_lines());
+        debug_assert!(internal_coord.k < self.get_num_concentric_circles());
+        IjkVector {
+            i: self.get_layer_num(),
+            j: internal_coord.j + self.get_start_radial_line(),
+            k: internal_coord.k + self.get_start_concentric_circle_absolute(),
+        }
+    }
+
+    /* Convienience Functions */
+    pub fn get_vertices(&self, mode: VertexMode) -> Vec<Vertex> {
+        let positions = self.get_positions(mode);
+        let uvs = self.get_uvs(mode);
+        let vertexes: Vec<Vertex> = positions
+            .iter()
+            .zip(uvs.iter())
+            .map(|(p, uv)| Vertex {
+                position: [p.x, p.y],
+                uv: [uv.x, uv.y],
+                color: [1.0, 1.0, 1.0, 1.0],
+            })
+            .collect();
+        vertexes
+    }
+    pub fn calc_chunk_outline(&self) -> OwnedMeshData {
+        let mut mb = MeshBuilder::new();
+        let outline = self.get_outline();
+        let _ = mb.line(&outline, 1.0, Color::RED);
+        let meshdata = mb.build();
+        OwnedMeshData {
+            vertices: meshdata.vertices.to_owned(),
+            indices: meshdata.indices.to_owned(),
+            uv_bounds: Rect::new(
+                self.get_start_radial_line() as f32,
+                self.get_start_concentric_circle_absolute() as f32,
+                self.get_end_radial_line() as f32 - self.get_start_radial_line() as f32,
+                self.get_end_concentric_circle_absolute() as f32
+                    - self.get_start_concentric_circle_absolute() as f32,
+            ),
+        }
+    }
+    pub fn calc_chunk_meshdata(&self) -> OwnedMeshData {
+        let indices = self.get_indices(VertexMode::Lines);
+        let vertices: Vec<Vertex> = self.get_vertices(VertexMode::Lines);
+        OwnedMeshData {
+            vertices,
+            indices,
+            uv_bounds: Rect::new(
+                self.get_start_radial_line() as f32,
+                self.get_start_concentric_circle_absolute() as f32,
+                self.get_end_radial_line() as f32 - self.get_start_radial_line() as f32,
+                self.get_end_concentric_circle_absolute() as f32
+                    - self.get_start_concentric_circle_absolute() as f32,
+            ),
+        }
+    }
+    pub fn calc_chunk_triangle_wireframe(&self) -> OwnedMeshData {
+        let mut mb = MeshBuilder::new();
+        let indices = self.get_indices(VertexMode::Grid);
+        let vertices: Vec<Vertex> = self.get_vertices(VertexMode::Grid);
+        for i in (0..indices.len()).step_by(3) {
+            let i1: usize = indices[i] as usize;
+            let i2 = indices[i + 1] as usize;
+            let i3 = indices[i + 2] as usize;
+
+            let p1 = vertices[i1].position;
+            let p2 = vertices[i2].position;
+            let p3 = vertices[i3].position;
+
+            let _ = mb.line(&[p1, p2, p3, p1], 0.1, Color::WHITE).unwrap();
+        }
+        let meshdata = mb.build();
+        OwnedMeshData {
+            vertices: meshdata.vertices.to_owned(),
+            indices: meshdata.indices.to_owned(),
+            uv_bounds: Rect::new(
+                self.get_start_radial_line() as f32,
+                self.get_start_concentric_circle_absolute() as f32,
+                self.get_end_radial_line() as f32 - self.get_start_radial_line() as f32,
+                self.get_end_concentric_circle_absolute() as f32
+                    - self.get_start_concentric_circle_absolute() as f32,
+            ),
+        }
+    }
+
+    /// Converts a position relative to the origin of the circle to a cell index
+    /// Returns an Err if the position is not on the circle
+    pub fn rel_pos_to_cell_idx(&self, xy_coord: RelXyPoint) -> Result<IjkVector, String> {
+        let norm_vertex_coord = (xy_coord.0.x * xy_coord.0.x + xy_coord.0.y * xy_coord.0.y).sqrt();
+        let start_concentric_circle = self.get_start_concentric_circle_layer_relative();
+        let end_concentric_circle = self.get_end_concentric_circle_layer_relative();
+        let starting_r = self.get_start_radius();
+        let ending_r = self.get_end_radius();
+        let num_concentric_circles = self.get_num_concentric_circles();
+        let num_radial_lines = self.get_num_radial_lines();
+        let start_radial_line = self.get_start_radial_line();
+        let end_radial_line = self.get_end_radial_line();
+        let start_radial_theta = self.get_start_radial_theta();
+        let end_radial_theta = self.get_end_radial_theta();
+
+        // Get the concentric circle we are on
+        let circle_separation_distance = (ending_r - starting_r) / num_concentric_circles as f32;
+
+        // Calculate 'j' directly without the while loop
+        let j_rel =
+            ((norm_vertex_coord - starting_r) / circle_separation_distance).floor() as usize;
+        let j = j_rel.min(end_concentric_circle - 1) + start_concentric_circle;
+
+        // Get the radial line to the left of the vertex
+        let angle = (xy_coord.0.y.atan2(xy_coord.0.x) + -2.0 * PI) % (2.0 * PI);
+        let theta = -(end_radial_theta - start_radial_theta) / num_radial_lines as f32;
+
+        // Calculate 'k' directly without the while loop
+        let k_rel = (angle / theta).floor() as usize;
+        let k = k_rel.min(end_radial_line - 1);
+
+        // Check to see if the vertex is in the chunk
+        if j < start_concentric_circle && j >= end_concentric_circle {
+            return Err(format!(
+                "Vertex j {:?} is not in chunk {:?}. start_concentric_circle: {}, end_concentric_circle: {}",
+                xy_coord,
+                self.get_chunk_idx(),
+                start_concentric_circle,
+                end_concentric_circle,
+            ));
+        }
+        if k < start_radial_line && k >= end_radial_line {
+            return Err(format!(
+                "Vertex k {:?} is not in chunk {:?}. start_radial_line: {}, end_radial_line: {}",
+                xy_coord,
+                self.get_chunk_idx(),
+                start_radial_line,
+                end_radial_line,
+            ));
+        }
+        Ok(IjkVector {
+            i: self.get_layer_num(),
+            j,
+            k,
+        })
+    }
+
+    /// Convert a cell coordinate "on the circle" to a position "on the chunk"
+    /// Return an Err if this is not on the chunk
+    pub fn absolute_cell_idx_to_in_chunk_cell_idx(
+        &self,
+        cell_idx: IjkVector,
+    ) -> Result<JkVector, String> {
+        if cell_idx.i != self.get_layer_num() {
+            return Err(format!(
+                "Cell index i {:?} is not in chunk {:?}",
+                cell_idx,
+                self.get_chunk_idx()
+            ));
+        }
+        let start_radial_line = self.get_start_radial_line();
+        let end_radial_line = self.get_end_radial_line();
+        let start_concentric_circle = self.get_start_concentric_circle_layer_relative();
+        let end_concentric_circle = self.get_end_concentric_circle_layer_relative();
+        if cell_idx.j < start_concentric_circle || cell_idx.j >= end_concentric_circle {
+            return Err(format!(
+                "Cell index j {:?} is not in chunk {:?}. start_concentric_circle: {}, end_concentric_circle: {}",
+                cell_idx,
+                self.get_chunk_idx(),
+                start_concentric_circle,
+                end_concentric_circle,
+            ));
+        }
+        if cell_idx.k < start_radial_line || cell_idx.k >= end_radial_line {
+            return Err(format!(
+                "Cell index k {:?} is not in chunk {:?}. start_radial_line: {}, end_radial_line: {}",
+                cell_idx,
+                self.get_chunk_idx(),
+                start_radial_line,
+                end_radial_line,
+            ));
+        }
+        Ok(JkVector {
+            j: cell_idx.j - start_concentric_circle,
+            k: cell_idx.k - start_radial_line,
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
+    use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
+    use crate::physics::util::vectors::RelXyPoint;
+
+    /// Iterate around the circle in every direction, targetting each cells midpoint, and make sure
+    /// the cell index is correct returned by rel_pos_to_cell_idx
+    #[test]
+    fn test_rel_pos_to_cell_idx() {
+        let coordinate_dir = CoordinateDirBuilder::new()
+            .cell_radius(1.0)
+            .num_layers(8)
+            .first_num_radial_lines(6)
+            .second_num_concentric_circles(3)
+            .max_concentric_circles_per_chunk(64)
+            .max_radial_lines_per_chunk(64)
+            .build();
+
+        // Test the core
+        let i = 0;
+        let j = 0;
+        for k in 0..coordinate_dir.get_core_chunk().get_num_radial_lines() {
+            // This radius and theta should define the midpoint of each cell
+            let radius = coordinate_dir.get_cell_width() / 2.0;
+            let theta = -2.0 * PI / coordinate_dir.get_core_chunk().get_num_radial_lines() as f32
+                * (k as f32 + 0.5);
+            let xycoord = RelXyPoint(Vec2 {
+                x: radius * theta.cos(),
+                y: radius * theta.sin(),
+            });
+            let cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
+            let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(cell_idx);
+            let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx.0);
+            assert_eq!(
+                chunk.rel_pos_to_cell_idx(xycoord).unwrap(),
+                IjkVector { i, j, k },
+                "k: {}, radius: {}, theta: {}, xycoord: {:?}",
+                k,
+                radius,
+                theta,
+                xycoord
+            );
+        }
+
+        // Test the rest
+        for i in 1..coordinate_dir.get_num_layers() {
+            let num_concentric_circles = coordinate_dir.get_layer_num_concentric_circles(i);
+            let num_radial_lines = coordinate_dir.get_layer_num_radial_lines(i);
+            for j in 0..num_concentric_circles {
+                for k in 0..num_radial_lines {
+                    // This radius and theta should define the midpoint of each cell
+                    let radius = coordinate_dir.get_layer_start_radius(i)
+                        + (coordinate_dir.get_layer_end_radius(i)
+                            - coordinate_dir.get_layer_start_radius(i))
+                            / num_concentric_circles as f32
+                            * (j as f32 + 0.5);
+                    let theta = -2.0 * PI / num_radial_lines as f32 * (k as f32 + 0.5);
+                    let xycoord = RelXyPoint(Vec2 {
+                        x: radius * theta.cos(),
+                        y: radius * theta.sin(),
+                    });
+                    let cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
+                    let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(cell_idx);
+                    let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx.0);
+                    assert_eq!(
+                        chunk.rel_pos_to_cell_idx(xycoord).unwrap(),
+                        IjkVector { i, j, k }
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_cell_idx_to_chunk_idx() {
+        let coordinate_dir = CoordinateDirBuilder::new()
+            .cell_radius(1.0)
+            .num_layers(8)
+            .first_num_radial_lines(6)
+            .second_num_concentric_circles(3)
+            .max_concentric_circles_per_chunk(64)
+            .max_radial_lines_per_chunk(64)
+            .build();
+
+        // Test the core
+        let i = 0;
+        let j = 0;
+        for k in 0..coordinate_dir.get_core_chunk().get_num_radial_lines() {
+            // This radius and theta should define the midpoint of each cell
+            let coord = IjkVector { i, j, k };
+            let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
+            let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx.0);
+            assert_eq!(
+                chunk.absolute_cell_idx_to_in_chunk_cell_idx(coord),
+                Ok(coord.to_jk_vector())
+            );
+        }
+
+        // Test the rest
+        for i in 1..coordinate_dir.get_num_layers() {
+            let num_concentric_chunks = coordinate_dir.get_layer_num_concentric_chunks(i);
+            let num_radial_chunks = coordinate_dir.get_layer_num_radial_chunks(i);
+            let mut total_concentric_circles = 0;
+            for cj in 0..num_concentric_chunks {
+                let mut total_radial_lines = 0;
+                let chunk_layer_num_concentric_circles = coordinate_dir
+                    .get_chunk_num_concentric_circles(ChunkIjkVector { i, j: cj, k: 0 });
+                for ck in 0..num_radial_chunks {
+                    let chunk_num_radial_lines = coordinate_dir
+                        .get_chunk_num_radial_lines(ChunkIjkVector { i, j: cj, k: ck });
+                    for j in total_concentric_circles
+                        ..total_concentric_circles + chunk_layer_num_concentric_circles
+                    {
+                        for k in total_radial_lines..total_radial_lines + chunk_num_radial_lines {
+                            let absolute_coord = IjkVector { i, j, k };
+                            let in_chunk_coord = JkVector {
+                                j: j - total_concentric_circles,
+                                k: k - total_radial_lines,
+                            };
+                            let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(absolute_coord);
+                            // assert_eq!(chunk_idx, ChunkIjkVector { i, j: cj, k: ck });
+                            let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx.0);
+                            assert_eq!(
+                                chunk.absolute_cell_idx_to_in_chunk_cell_idx(absolute_coord),
+                                Ok(in_chunk_coord)
+                            );
+                        }
+                    }
+                    total_radial_lines += chunk_num_radial_lines;
+                }
+                total_concentric_circles += chunk_layer_num_concentric_circles;
+            }
+        }
+    }
 
     fn vec2_approx_eq(a: Vec2, b: Vec2, epsilon: f32) -> bool {
         (a.x - b.x).abs() < epsilon && (a.y - b.y).abs() < epsilon
@@ -577,7 +909,7 @@ mod tests {
 
         #[test]
         fn test_first_layer_uv() {
-            let uvs = FIRST_LAYER.get_uv_vertexes(VertexMode::Lines);
+            let uvs = FIRST_LAYER.get_uvs(VertexMode::Lines);
             assert_eq!(uvs.len(), 13 * 2);
 
             // Test first layer
@@ -805,7 +1137,7 @@ mod tests {
 
         #[test]
         fn test_first_layer_uv_partial() {
-            let uvs = FIRST_LAYER_PARTIAL.get_uv_vertexes(VertexMode::Lines);
+            let uvs = FIRST_LAYER_PARTIAL.get_uvs(VertexMode::Lines);
             assert_eq!(uvs.len(), 14);
 
             // Middle layer

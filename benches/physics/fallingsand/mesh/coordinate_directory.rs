@@ -1,10 +1,7 @@
 use criterion::{black_box, criterion_group, Criterion};
 use ggez::glam::Vec2;
 use orbiting_sand::physics::{
-    fallingsand::mesh::{
-        chunk_coords::ChunkCoords,
-        coordinate_directory::{CoordinateDir, CoordinateDirBuilder},
-    },
+    fallingsand::mesh::coordinate_directory::{CoordinateDir, CoordinateDirBuilder},
     util::vectors::RelXyPoint,
 };
 
