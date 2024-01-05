@@ -35,7 +35,6 @@ pub struct CoordinateDirBuilder {
     first_num_radial_chunks: usize,
     max_radial_lines_per_chunk: usize,
     max_concentric_circles_per_chunk: usize,
-    max_cells: usize,
 }
 
 impl Default for CoordinateDirBuilder {
@@ -57,7 +56,6 @@ impl CoordinateDirBuilder {
             max_radial_lines_per_chunk: 128,
             max_concentric_circles_per_chunk: 128,
             second_num_concentric_circles: 2,
-            max_cells: 64 * 64,
         }
     }
     /// The radius of each cell in the circle
@@ -114,12 +112,6 @@ impl CoordinateDirBuilder {
         self
     }
 
-    /// The max number of cells a chunk is allowed to have
-    /// If this number is reached, chunks split in half vertically and horizontally
-    pub fn max_cells(mut self, max_cells: usize) -> Self {
-        self.max_cells = max_cells;
-        self
-    }
     /// builds a CoordinateDir by iterating over the number of layers
     /// and dynamically allocating chunks to each layer based on max_cells
     /// and the other parameters of the builder.
