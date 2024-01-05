@@ -20,7 +20,7 @@ pub enum VertexMode {
 /// This is a chunk that represents a "full" layer.
 /// It doesn't split itself in either the radial or concentric directions.
 #[derive(Debug, Clone, Copy, Default)]
-pub struct PartialLayerChunkCoords {
+pub struct ChunkCoords {
     width: f32,
     chunk_idx: ChunkIjkVector,
     start_concentric_circle_layer_relative: usize,
@@ -118,13 +118,13 @@ impl PartialLayerChunkCoordsBuilder {
         self
     }
 
-    pub fn build(self) -> PartialLayerChunkCoords {
+    pub fn build(self) -> ChunkCoords {
         debug_assert!(self.end_radial_line > self.start_radial_line);
         debug_assert!(self.end_radial_line <= self.layer_num_radial_lines);
         debug_assert_ne!(self.num_concentric_circles, 0);
         debug_assert_ne!(self.layer_num_radial_lines, 0);
         debug_assert_ne!(self.end_radial_line, 0);
-        PartialLayerChunkCoords {
+        ChunkCoords {
             width: self.cell_radius,
             start_concentric_circle_layer_relative: self.start_concentric_circle_layer_relative,
             start_concentric_circle_absolute: self.start_concentric_circle_absolute,
@@ -137,7 +137,7 @@ impl PartialLayerChunkCoordsBuilder {
     }
 }
 
-impl PartialLayerChunkCoords {
+impl ChunkCoords {
     pub fn get_positions(&self, mode: VertexMode) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
@@ -333,7 +333,7 @@ impl PartialLayerChunkCoords {
     }
 }
 
-impl PartialLayerChunkCoords {
+impl ChunkCoords {
     pub fn total_size(&self) -> usize {
         self.get_num_radial_lines() * self.get_num_concentric_circles()
     }
@@ -744,7 +744,7 @@ mod tests {
     mod full_layer {
         use super::*;
 
-        const FIRST_LAYER: PartialLayerChunkCoords = PartialLayerChunkCoords {
+        const FIRST_LAYER: ChunkCoords = ChunkCoords {
             width: 1.0,
             num_concentric_circles: 2,
             chunk_idx: ChunkIjkVector { i: 1, j: 0, k: 0 },
@@ -1013,7 +1013,7 @@ mod tests {
     mod partial_layer {
         use super::*;
 
-        const FIRST_LAYER_PARTIAL: PartialLayerChunkCoords = PartialLayerChunkCoords {
+        const FIRST_LAYER_PARTIAL: ChunkCoords = ChunkCoords {
             width: 1.0,
             num_concentric_circles: 1,
             chunk_idx: ChunkIjkVector { i: 1, j: 0, k: 0 },

@@ -4,8 +4,8 @@ use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use crate::physics::util::vectors::RelXyPoint;
 
-use super::layer_coords::PartialLayerChunkCoordsBuilder;
-use super::layer_coords::{PartialLayerChunkCoords, VertexMode};
+use super::chunk_coords::PartialLayerChunkCoordsBuilder;
+use super::chunk_coords::{ChunkCoords, VertexMode};
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use ggez::glam::Vec2;
@@ -20,7 +20,7 @@ pub struct CoordinateDir {
     /// Layers on top of the core
     /// Every index in the vec represents a layer
     /// The Grid then represents the chunks in that layer
-    partial_chunks: Vec<Grid<PartialLayerChunkCoords>>,
+    partial_chunks: Vec<Grid<ChunkCoords>>,
 }
 
 /// A builder for CoordinateDir
@@ -125,7 +125,7 @@ impl CoordinateDirBuilder {
         );
 
         // These will be all the chunks
-        let mut partial_chunks: Vec<Grid<PartialLayerChunkCoords>> = Vec::new();
+        let mut partial_chunks: Vec<Grid<ChunkCoords>> = Vec::new();
 
         // Create the core
         let mut layer_num_radial_lines = self.first_num_radial_lines;
@@ -344,7 +344,7 @@ impl CoordinateDir {
  * chunk index
  * ========================================= */
 impl CoordinateDir {
-    pub fn get_chunk_at_idx(&self, chunk_idx: ChunkIjkVector) -> PartialLayerChunkCoords {
+    pub fn get_chunk_at_idx(&self, chunk_idx: ChunkIjkVector) -> ChunkCoords {
         *self.partial_chunks[chunk_idx.i].get(chunk_idx.to_jk_vector())
     }
     pub fn get_chunk_bounding_box(&self, chunk_idx: ChunkIjkVector) -> Rect {
@@ -505,11 +505,11 @@ impl CoordinateDir {
         self.partial_chunks.len()
     }
     /// Get the core chunk coordinates, useful for getting its shape
-    pub fn get_core_chunk(&self) -> &PartialLayerChunkCoords {
+    pub fn get_core_chunk(&self) -> &ChunkCoords {
         self.partial_chunks[0].get(JkVector::ZERO)
     }
     /// Useful for getting all the partial chunks, useful for getting their shapes
-    pub fn get_partial_chunks(&self, _layer_num: usize) -> &Vec<Grid<PartialLayerChunkCoords>> {
+    pub fn get_partial_chunks(&self, _layer_num: usize) -> &Vec<Grid<ChunkCoords>> {
         &self.partial_chunks
     }
     /// The number of concentric circles in a given layer

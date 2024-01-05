@@ -1,7 +1,7 @@
 use ggez::graphics::Rect;
 
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions};
-use crate::physics::fallingsand::mesh::layer_coords::PartialLayerChunkCoords;
+use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 
@@ -15,7 +15,7 @@ use super::super::util::image::RawImage;
 /// An element grid is a 2D grid of elements tied to a chunk
 pub struct ElementGrid {
     grid: Grid<Box<dyn Element>>,
-    coords: PartialLayerChunkCoords,
+    coords: ChunkCoords,
 
     /// This deals with a lock during convolution
     already_processed: bool,
@@ -28,20 +28,20 @@ pub struct ElementGrid {
 /// Useful for borrowing the grid to have a default value of one
 impl Default for ElementGrid {
     fn default() -> Self {
-        Self::new_empty(PartialLayerChunkCoords::default())
+        Self::new_empty(ChunkCoords::default())
     }
 }
 
 /* Initialization */
 impl ElementGrid {
     /// Creates a new element grid with the given chunk coords and fills it with vacuum
-    pub fn new_empty(chunk_coords: PartialLayerChunkCoords) -> Self {
+    pub fn new_empty(chunk_coords: ChunkCoords) -> Self {
         let fill: &dyn Element = &Vacuum::default();
         ElementGrid::new_filled(chunk_coords, fill)
     }
 
     /// Creates a new element grid with the given chunk coords and fills it with the given element
-    pub fn new_filled(chunk_coords: PartialLayerChunkCoords, fill: &dyn Element) -> Self {
+    pub fn new_filled(chunk_coords: ChunkCoords, fill: &dyn Element) -> Self {
         let mut grid: Vec<Box<dyn Element>> = Vec::with_capacity(
             chunk_coords.get_num_radial_lines() * chunk_coords.get_num_concentric_circles(),
         );
@@ -85,7 +85,7 @@ impl ElementGrid {
         self.last_set
     }
     #[allow(clippy::borrowed_box)]
-    pub fn get_chunk_coords(&self) -> &PartialLayerChunkCoords {
+    pub fn get_chunk_coords(&self) -> &ChunkCoords {
         &self.coords
     }
     pub fn get_grid(&self) -> &Grid<Box<dyn Element>> {
