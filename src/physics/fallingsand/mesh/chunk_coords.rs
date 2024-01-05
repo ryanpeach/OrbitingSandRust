@@ -299,7 +299,8 @@ mod tests {
             .num_layers(8)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
-            .max_cells(64 * 64) // 24x24
+            .max_concentric_circles_per_chunk(64)
+            .max_radial_lines_per_chunk(64)
             .build();
 
         // Test the core
@@ -364,7 +365,8 @@ mod tests {
             .num_layers(8)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
-            .max_cells(64 * 64) // 24x24
+            .max_concentric_circles_per_chunk(64)
+            .max_radial_lines_per_chunk(64)
             .build();
 
         // Test the core
