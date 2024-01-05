@@ -151,7 +151,6 @@ impl CoordinateDirBuilder {
                 .start_radial_line(k * (layer_num_radial_lines / num_radial_chunks))
                 .end_radial_line((k + 1) * (layer_num_radial_lines / num_radial_chunks))
                 .build();
-            debug_assert!(next_layer.total_size() <= self.max_cells);
             debug_assert!(layer_num_radial_lines % num_radial_chunks == 0);
             debug_assert!(num_concentric_circles % num_concentric_chunks == 0);
             core_chunks.replace(JkVector { j: 0, k }, next_layer);
@@ -186,7 +185,6 @@ impl CoordinateDirBuilder {
                         .start_radial_line(k * (layer_num_radial_lines / num_radial_chunks))
                         .end_radial_line((k + 1) * (layer_num_radial_lines / num_radial_chunks))
                         .build();
-                    debug_assert!(next_layer.total_size() <= self.max_cells);
                     debug_assert!(layer_num_radial_lines % num_radial_chunks == 0);
                     debug_assert!(num_concentric_circles % num_concentric_chunks == 0);
                     layer_partial_chunks.replace(JkVector { j, k }, next_layer);

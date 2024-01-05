@@ -2,18 +2,18 @@ use hashbrown::{HashMap, HashSet};
 
 use crate::physics::util::clock::Clock;
 
-use super::convolution::behaviors::ElementGridConvolutionNeighbors;
+use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
 
-use super::convolution::neighbor_indexes::{
+use super::super::convolution::neighbor_indexes::{
     BottomNeighborIdxs, ElementGridConvolutionNeighborIdxs, LeftRightNeighborIdxs, TopNeighborIdxs,
 };
-use super::coordinates::coordinate_directory::CoordinateDir;
+use super::super::elements::element::Element;
+use super::super::mesh::coordinate_directory::CoordinateDir;
+use super::super::util::functions::modulo;
+use super::super::util::grid::Grid;
+use super::super::util::image::RawImage;
+use super::super::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use super::element_grid::ElementGrid;
-use super::elements::element::Element;
-use super::util::functions::modulo;
-use super::util::grid::Grid;
-use super::util::image::RawImage;
-use super::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 
 use rayon::prelude::*;
 
@@ -776,7 +776,7 @@ impl ElementGridDir {
 
 #[cfg(test)]
 mod tests {
-    use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
+    use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
 
     use super::*;
 

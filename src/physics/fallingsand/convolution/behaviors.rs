@@ -2,9 +2,9 @@ use hashbrown::HashMap;
 
 use crate::physics::{
     fallingsand::{
-        coordinates::coordinate_directory::CoordinateDir,
-        element_grid::ElementGrid,
+        data::element_grid::ElementGrid,
         elements::element::Element,
+        mesh::coordinate_directory::CoordinateDir,
         util::{
             functions::modulo,
             vectors::{ChunkIjkVector, JkVector},
@@ -556,7 +556,7 @@ impl ElementGridConvolutionNeighbors {
 mod tests {
     use super::*;
     use crate::physics::fallingsand::{
-        coordinates::coordinate_directory::CoordinateDirBuilder, element_directory::ElementGridDir,
+        data::element_directory::ElementGridDir, mesh::coordinate_directory::CoordinateDirBuilder,
     };
 
     /// The default element grid directory for testing
