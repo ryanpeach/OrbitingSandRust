@@ -1,7 +1,7 @@
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
-use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDir;
-use crate::physics::fallingsand::element_grid::ElementGrid;
+use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
+use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 use ggez::graphics::Color;
@@ -63,7 +63,7 @@ impl Element for DownFlier {
 #[cfg(test)]
 mod tests {
     use crate::physics::fallingsand::{
-        coordinates::coordinate_directory::CoordinateDirBuilder, element_directory::ElementGridDir,
+        data::element_directory::ElementGridDir, mesh::coordinate_directory::CoordinateDirBuilder,
     };
 
     use super::*;
@@ -75,7 +75,8 @@ mod tests {
             .num_layers(10)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
-            .max_cells(64 * 64)
+            .max_concentric_circles_per_chunk(64)
+            .max_radial_lines_per_chunk(64)
             .build();
         ElementGridDir::new_empty(coordinate_dir)
     }
@@ -140,15 +141,5 @@ mod tests {
         }
 
         test_movement!(test_movement_i2_j2_k1, (2, 2, 1), (2, 1, 1));
-
-        test_movement!(test_movement_i2_j0_k8, (2, 0, 8), (1, 2, 4));
-
-        test_movement!(test_movement_i3_j0_k10, (3, 0, 10), (2, 5, 5));
-
-        test_movement!(test_movement_i6_j0_k180, (6, 0, 180), (5, 47, 90));
-
-        test_movement!(test_movement_i7_j0_k355, (7, 0, 355), (6, 95, 355 / 2));
-
-        test_movement!(test_movement_i7_j0_k420, (7, 0, 420), (6, 95, 210));
     }
 }

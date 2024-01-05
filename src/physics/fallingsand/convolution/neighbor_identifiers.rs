@@ -30,13 +30,10 @@ pub enum TopNeighborIdentifierLayerTransition {
     TopRight,
 }
 
-#[derive(Debug, Clone, Copy, Default, EnumIter)]
+#[derive(Debug, Clone, Copy, EnumIter)]
 pub enum TopNeighborIdentifier {
     Normal(TopNeighborIdentifierNormal),
     LayerTransition(TopNeighborIdentifierLayerTransition),
-    #[default]
-    SingleChunkLayerAbove,
-    MultiChunkLayerAbove(usize),
 }
 
 #[derive(Debug, Clone, Copy, Default, EnumIter)]
@@ -54,12 +51,10 @@ pub enum BottomNeighborIdentifierLayerTransition {
     BottomRight,
 }
 
-#[derive(Debug, Clone, Copy, Default, EnumIter)]
+#[derive(Debug, Clone, Copy, EnumIter)]
 pub enum BottomNeighborIdentifier {
     Normal(BottomNeighborIdentifierNormal),
     LayerTransition(BottomNeighborIdentifierLayerTransition),
-    #[default]
-    FullLayerBelow,
 }
 
 #[derive(Debug, Clone, Copy)]

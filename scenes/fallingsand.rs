@@ -15,12 +15,12 @@ use orbiting_sand::gui::windows::cursor_tooltip::CursorTooltip;
 use orbiting_sand::gui::windows::element_picker::ElementPicker;
 use orbiting_sand::gui::windows::gui_trait::WindowTrait;
 use orbiting_sand::nodes::brush::Brush;
-use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
+use orbiting_sand::physics::fallingsand::data::element_directory::ElementGridDir;
 
 use orbiting_sand::nodes::camera::cam::Camera;
 use orbiting_sand::nodes::celestial::Celestial;
 
-use orbiting_sand::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
+use orbiting_sand::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
 use orbiting_sand::physics::util::clock::Clock;
 
 // =================
@@ -49,7 +49,9 @@ impl MainState {
             .num_layers(7)
             .first_num_radial_lines(12)
             .second_num_concentric_circles(3)
-            .max_cells(128 * 128)
+            .first_num_radial_chunks(3)
+            .max_radial_lines_per_chunk(128)
+            .max_concentric_circles_per_chunk(128)
             .build();
         // let fill0: &dyn Element = &Vacuum::default();
         // let fill1: &dyn Element = &Sand::default();

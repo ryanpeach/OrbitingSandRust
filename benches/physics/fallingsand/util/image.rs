@@ -1,6 +1,6 @@
 use criterion::{black_box, criterion_group, Criterion};
-use orbiting_sand::physics::fallingsand::coordinates::coordinate_directory::CoordinateDirBuilder;
-use orbiting_sand::physics::fallingsand::element_directory::ElementGridDir;
+use orbiting_sand::physics::fallingsand::data::element_directory::ElementGridDir;
+use orbiting_sand::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
 use orbiting_sand::physics::fallingsand::util::enums::MeshDrawMode;
 use orbiting_sand::physics::fallingsand::util::image::RawImage;
 use orbiting_sand::physics::fallingsand::util::mesh::OwnedMeshData;
@@ -12,7 +12,8 @@ fn get_element_grid_dir() -> ElementGridDir {
         .num_layers(11)
         .first_num_radial_lines(6)
         .second_num_concentric_circles(3)
-        .max_cells(64 * 64)
+        .max_concentric_circles_per_chunk(64)
+        .max_radial_lines_per_chunk(64)
         .build();
     ElementGridDir::new_empty(coordinate_dir)
 }

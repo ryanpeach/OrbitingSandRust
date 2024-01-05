@@ -4,8 +4,8 @@ use crate::physics::fallingsand::convolution::neighbor_grids::ConvOutOfBoundsErr
 use crate::physics::fallingsand::convolution::neighbor_identifiers::{
     ConvolutionIdentifier, ConvolutionIdx,
 };
-use crate::physics::fallingsand::coordinates::coordinate_directory::CoordinateDir;
-use crate::physics::fallingsand::element_grid::ElementGrid;
+use crate::physics::fallingsand::data::element_grid::ElementGrid;
+use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 use ggez::graphics::Color;
@@ -122,7 +122,7 @@ impl Element for Sand {
 #[cfg(test)]
 mod tests {
     use crate::physics::fallingsand::{
-        coordinates::coordinate_directory::CoordinateDirBuilder, element_directory::ElementGridDir,
+        data::element_directory::ElementGridDir, mesh::coordinate_directory::CoordinateDirBuilder,
     };
 
     use super::*;
@@ -134,7 +134,8 @@ mod tests {
             .num_layers(10)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
-            .max_cells(64 * 64)
+            .max_concentric_circles_per_chunk(64)
+            .max_radial_lines_per_chunk(64)
             .build();
         ElementGridDir::new_empty(coordinate_dir)
     }

@@ -3,7 +3,7 @@ use std::fmt;
 use hashbrown::HashMap;
 
 use crate::physics::fallingsand::{
-    element_grid::ElementGrid,
+    data::element_grid::ElementGrid,
     elements::element::Element,
     util::vectors::{ChunkIjkVector, JkVector},
 };
@@ -92,12 +92,6 @@ pub enum TopNeighborGrids {
         t0: ElementGrid,
         tr: ElementGrid,
     },
-    SingleChunkLayerAbove {
-        t: ElementGrid,
-    },
-    MultiChunkLayerAbove {
-        chunks: Vec<ElementGrid>,
-    },
     TopOfGrid,
 }
 
@@ -117,18 +111,6 @@ impl TopNeighborGrids {
                 map.insert(t1.get_chunk_coords().get_chunk_idx(), t1);
                 map.insert(t0.get_chunk_coords().get_chunk_idx(), t0);
                 map.insert(tr.get_chunk_coords().get_chunk_idx(), tr);
-                map
-            }
-            TopNeighborGrids::SingleChunkLayerAbove { t } => {
-                let mut map = HashMap::new();
-                map.insert(t.get_chunk_coords().get_chunk_idx(), t);
-                map
-            }
-            TopNeighborGrids::MultiChunkLayerAbove { chunks } => {
-                let mut map = HashMap::new();
-                for chunk in chunks {
-                    map.insert(chunk.get_chunk_coords().get_chunk_idx(), chunk);
-                }
                 map
             }
             TopNeighborGrids::TopOfGrid => HashMap::new(),
@@ -152,18 +134,6 @@ impl TopNeighborGrids {
                     t0: grids.remove(t0).unwrap(),
                     tr: grids.remove(tr).unwrap(),
                 }
-            }
-            TopNeighborIdxs::SingleChunkLayerAbove { t } => {
-                TopNeighborGrids::SingleChunkLayerAbove {
-                    t: grids.remove(t).unwrap(),
-                }
-            }
-            TopNeighborIdxs::MultiChunkLayerAbove { chunks } => {
-                let mut vec = Vec::new();
-                for chunk in chunks {
-                    vec.push(grids.remove(chunk).unwrap());
-                }
-                TopNeighborGrids::MultiChunkLayerAbove { chunks: vec }
             }
             TopNeighborIdxs::TopOfGrid => TopNeighborGrids::TopOfGrid,
         }
@@ -297,32 +267,6 @@ impl TopNeighborGrids {
                     }
                 }
             }
-            TopNeighborIdentifier::SingleChunkLayerAbove => {
-                if let TopNeighborGrids::SingleChunkLayerAbove { t } = &self {
-                    match t.checked_get(idx) {
-                        Ok(element) => Ok(element),
-                        Err(_) => Err(ConvOutOfBoundsError(ConvolutionIdx(
-                            idx,
-                            ConvolutionIdentifier::Top(top_neighbor_id),
-                        ))),
-                    }
-                } else {
-                    panic!("The identifier said the index was from a single chunk layer above neighbor, but the top neighbor grids were not single chunk layer above")
-                }
-            }
-            TopNeighborIdentifier::MultiChunkLayerAbove(chunk_idx) => {
-                if let TopNeighborGrids::MultiChunkLayerAbove { chunks } = &self {
-                    match chunks.get(chunk_idx) {
-                        Some(chunk) => match chunk.checked_get(idx) {
-                            Ok(element) => Ok(element),
-                            Err(_) => Err(ConvOutOfBoundsError(ConvolutionIdx(idx, ConvolutionIdentifier::Top(top_neighbor_id)))),
-                        },
-                        None => panic!("The identifier said the index was from a multi chunk layer above neighbor, but the top neighbor grids were not multi chunk layer above"),
-                    }
-                } else {
-                    panic!("The identifier said the index was from a multi chunk layer above neighbor, but the top neighbor grids were not multi chunk layer above")
-                }
-            }
         }
     }
 
@@ -384,21 +328,6 @@ impl TopNeighborGrids {
                     None
                 }
             }
-            TopNeighborGrids::SingleChunkLayerAbove { t } => {
-                if t.get_chunk_coords().get_chunk_idx() == idx {
-                    Some((t, TopNeighborIdentifier::SingleChunkLayerAbove))
-                } else {
-                    None
-                }
-            }
-            TopNeighborGrids::MultiChunkLayerAbove { chunks } => {
-                for (i, chunk) in chunks.iter().enumerate() {
-                    if chunk.get_chunk_coords().get_chunk_idx() == idx {
-                        return Some((chunk, TopNeighborIdentifier::MultiChunkLayerAbove(i)));
-                    }
-                }
-                None
-            }
             TopNeighborGrids::TopOfGrid => None,
         }
     }
@@ -414,12 +343,6 @@ impl TopNeighborGrids {
                 t0: _,
                 tr: _,
             } => tl.get_chunk_coords().get_num_concentric_circles(),
-            TopNeighborGrids::SingleChunkLayerAbove { t } => {
-                t.get_chunk_coords().get_num_concentric_circles()
-            }
-            TopNeighborGrids::MultiChunkLayerAbove { chunks } => {
-                chunks[0].get_chunk_coords().get_num_concentric_circles()
-            }
             TopNeighborGrids::TopOfGrid => 0,
         }
     }
@@ -435,12 +358,6 @@ impl TopNeighborGrids {
                 t0: _,
                 tr: _,
             } => tl.get_chunk_coords().get_num_radial_lines(),
-            TopNeighborGrids::SingleChunkLayerAbove { t } => {
-                t.get_chunk_coords().get_num_radial_lines()
-            }
-            TopNeighborGrids::MultiChunkLayerAbove { chunks } => {
-                chunks[0].get_chunk_coords().get_num_radial_lines()
-            }
             TopNeighborGrids::TopOfGrid => 0,
         }
     }
@@ -455,9 +372,6 @@ pub enum BottomNeighborGrids {
     LayerTransition {
         bl: ElementGrid,
         br: ElementGrid,
-    },
-    FullLayerBelow {
-        b: ElementGrid,
     },
     BottomOfGrid,
 }
@@ -476,11 +390,6 @@ impl BottomNeighborGrids {
                 let mut map = HashMap::new();
                 map.insert(bl.get_chunk_coords().get_chunk_idx(), bl);
                 map.insert(br.get_chunk_coords().get_chunk_idx(), br);
-                map
-            }
-            BottomNeighborGrids::FullLayerBelow { b } => {
-                let mut map = HashMap::new();
-                map.insert(b.get_chunk_coords().get_chunk_idx(), b);
                 map
             }
             BottomNeighborGrids::BottomOfGrid => HashMap::new(),
@@ -503,9 +412,6 @@ impl BottomNeighborGrids {
                     br: grids.remove(br).unwrap(),
                 }
             }
-            BottomNeighborIdxs::FullLayerBelow { b } => BottomNeighborGrids::FullLayerBelow {
-                b: grids.remove(b).unwrap(),
-            },
             BottomNeighborIdxs::BottomOfGrid => BottomNeighborGrids::BottomOfGrid,
         }
     }
@@ -558,13 +464,6 @@ impl BottomNeighborGrids {
                     None
                 }
             }
-            BottomNeighborGrids::FullLayerBelow { b } => {
-                if b.get_chunk_coords().get_chunk_idx() == idx {
-                    Some((b, BottomNeighborIdentifier::FullLayerBelow))
-                } else {
-                    None
-                }
-            }
             BottomNeighborGrids::BottomOfGrid => None,
         }
     }
@@ -577,9 +476,6 @@ impl BottomNeighborGrids {
             BottomNeighborGrids::LayerTransition { bl, br: _ } => {
                 bl.get_chunk_coords().get_num_radial_lines()
             }
-            BottomNeighborGrids::FullLayerBelow { b } => {
-                b.get_chunk_coords().get_num_radial_lines()
-            }
             BottomNeighborGrids::BottomOfGrid => 0,
         }
     }
@@ -591,9 +487,6 @@ impl BottomNeighborGrids {
             }
             BottomNeighborGrids::LayerTransition { bl, br: _ } => {
                 bl.get_chunk_coords().get_num_concentric_circles()
-            }
-            BottomNeighborGrids::FullLayerBelow { b } => {
-                b.get_chunk_coords().get_num_concentric_circles()
             }
             BottomNeighborGrids::BottomOfGrid => 0,
         }
