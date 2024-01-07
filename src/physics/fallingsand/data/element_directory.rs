@@ -600,6 +600,7 @@ impl ElementGridDir {
     }
 
     /// Process a single chunk and its neighbors, mostly used for unit testing
+    /// Also single threaded so should be good for debugging and tracing
     pub fn process_single_chunk(&mut self, current_time: Clock, coord: ChunkIjkVector) {
         let mut conv = self
             .package_coordinate_neighbors(coord)
