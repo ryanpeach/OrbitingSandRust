@@ -108,7 +108,7 @@ mod tests {
 
             // Now process one frame
             clock.update(Duration::from_millis(100));
-            element_grid_dir.process_full(clock);
+            element_grid_dir.process_single_chunk(clock, loc1.0);
 
             // Now check that this chunk location no longer has sand
             {

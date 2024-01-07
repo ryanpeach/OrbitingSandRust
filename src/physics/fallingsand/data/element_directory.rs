@@ -599,6 +599,19 @@ impl ElementGridDir {
         }
     }
 
+    /// Process a single chunk and its neighbors, mostly used for unit testing
+    pub fn process_single_chunk(&mut self, current_time: Clock, coord: ChunkIjkVector) {
+        let mut conv = self
+            .package_coordinate_neighbors(coord)
+            .expect("In runtime, this should never fail.");
+        let mut chunk = self.chunks[coord.i]
+            .replace(coord.to_jk_vector(), None)
+            .expect("Should not have been replaced already.");
+        chunk.process(self.get_coordinate_dir(), &mut conv, current_time);
+        // Unpackage the convolution
+        self.unpackage_convolution(chunk, conv);
+    }
+
     /// Gets the textures of the targets updated in the last call to process
     pub fn get_updated_target_textures(&self) -> HashMap<ChunkIjkVector, RawImage> {
         // You should call this function only AFTER calling process

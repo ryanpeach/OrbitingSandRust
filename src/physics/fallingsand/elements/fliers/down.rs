@@ -106,7 +106,7 @@ mod tests {
 
             // Now process one frame
             clock.update(Duration::from_millis(100));
-            element_grid_dir.process_full(clock);
+            element_grid_dir.process_single_chunk(clock, loc1.0);
 
             // Now check that this chunk location no longer has sand
             {
@@ -163,18 +163,16 @@ mod tests {
             (6, 95, 355 / 2)
         );
 
-        // This is an edge case, it moves down twice when it is at the bottom of the chunk
         test_movement!(
             test_movement_i3_j0_k10,
             (3, 0, 10),
-            (2, 4, 5)
+            (2, 5, 5)
         );
 
-        // This is an edge case, it moves down twice when it is at the bottom of the chunk
         test_movement!(
             test_movement_i7_j0_k420,
             (7, 0, 420),
-            (6, 94, 210)
+            (6, 95, 210)
         );
 
     }
