@@ -3,14 +3,9 @@ use strum_macros::EnumIter;
 use crate::physics::fallingsand::util::vectors::JkVector;
 
 #[derive(Debug, Clone, Copy)]
-pub enum LeftRightNeighborIdentifierLR {
-    Left,
-    Right,
-}
-
-#[derive(Debug, Clone, Copy)]
 pub enum LeftRightNeighborIdentifier {
-    LR(LeftRightNeighborIdentifierLR),
+    Left,
+    Right
 }
 
 #[derive(Debug, Clone, Copy, Default, EnumIter)]
@@ -59,7 +54,7 @@ pub enum BottomNeighborIdentifier {
 
 #[derive(Debug, Clone, Copy)]
 pub enum ConvolutionIdentifier {
-    LeftRight(LeftRightNeighborIdentifier),
+    LR(LeftRightNeighborIdentifier),
     Top(TopNeighborIdentifier),
     Bottom(BottomNeighborIdentifier),
     Center,

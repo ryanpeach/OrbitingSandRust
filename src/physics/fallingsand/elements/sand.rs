@@ -1,69 +1,65 @@
 use super::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
-use crate::physics::fallingsand::convolution::neighbor_grids::ConvOutOfBoundsError;
-use crate::physics::fallingsand::convolution::neighbor_identifiers::{
-    ConvolutionIdentifier, ConvolutionIdx,
-};
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 use ggez::graphics::Color;
 
-pub fn get_bottom_left(
-    conv: &ElementGridConvolutionNeighbors,
-    target_grid: &ElementGrid,
-    coord_dir: &CoordinateDir,
-    pos: &JkVector,
-    n: usize,
-) -> Result<(ConvolutionIdx, Box<dyn Element>), ConvOutOfBoundsError> {
-    let idx = conv.get_below_idx_from_center(target_grid, coord_dir, pos, n)?;
-    match idx.1 {
-        ConvolutionIdentifier::Bottom(bottom_id) => {
-            let new_idx = conv.get_left_right_idx_from_bottom_center(
-                target_grid,
-                coord_dir,
-                &idx.0,
-                bottom_id,
-                1,
-            )?;
-            Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
-        }
-        ConvolutionIdentifier::Center => {
-            let new_idx = conv.get_left_right_idx_from_center(target_grid, coord_dir, &idx.0, 1)?;
-            Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
-        }
-        _ => panic!("get_below_idx_from_center returned an invalid index"),
-    }
-}
+// pub fn get_bottom_left(
+//     conv: &ElementGridConvolutionNeighbors,
+//     target_grid: &ElementGrid,
+//     coord_dir: &CoordinateDir,
+//     pos: &JkVector,
+//     n: usize,
+// ) -> Result<(ConvolutionIdx, Box<dyn Element>), ConvOutOfBoundsError> {
+//     let idx = conv.get_below_idx_from_center(target_grid, coord_dir, pos, n)?;
+//     match idx.1 {
+//         ConvolutionIdentifier::Bottom(bottom_id) => {
+//             let new_idx = conv.get_left_right_idx_from_bottom_center(
+//                 target_grid,
+//                 coord_dir,
+//                 &idx.0,
+//                 bottom_id,
+//                 1,
+//             )?;
+//             Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
+//         }
+//         ConvolutionIdentifier::Center => {
+//             let new_idx = conv.get_left_right_idx_from_center(target_grid, coord_dir, &idx.0, 1)?;
+//             Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
+//         }
+//         _ => panic!("get_below_idx_from_center returned an invalid index"),
+//     }
+// }
 
-pub fn get_bottom_right(
-    conv: &ElementGridConvolutionNeighbors,
-    target_grid: &ElementGrid,
-    coord_dir: &CoordinateDir,
-    pos: &JkVector,
-    n: usize,
-) -> Result<(ConvolutionIdx, Box<dyn Element>), ConvOutOfBoundsError> {
-    let idx = conv.get_below_idx_from_center(target_grid, coord_dir, pos, n)?;
-    match idx.1 {
-        ConvolutionIdentifier::Bottom(bottom_id) => {
-            let new_idx = conv.get_left_right_idx_from_bottom_center(
-                target_grid,
-                coord_dir,
-                &idx.0,
-                bottom_id,
-                -1,
-            )?;
-            Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
-        }
-        ConvolutionIdentifier::Center => {
-            let new_idx =
-                conv.get_left_right_idx_from_center(target_grid, coord_dir, &idx.0, -1)?;
-            Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
-        }
-        _ => panic!("get_below_idx_from_center returned an invalid index"),
-    }
-}
+// pub fn get_bottom_right(
+//     conv: &ElementGridConvolutionNeighbors,
+//     target_grid: &ElementGrid,
+//     coord_dir: &CoordinateDir,
+//     pos: &JkVector,
+//     n: usize,
+// ) -> Result<(ConvolutionIdx, Box<dyn Element>), ConvOutOfBoundsError> {
+//     let idx = conv.get_below_idx_from_center(target_grid, coord_dir, pos, n)?;
+//     match idx.1 {
+//         ConvolutionIdentifier::Bottom(bottom_id) => {
+//             let new_idx = conv.get_left_right_idx_from_bottom_center(
+//                 target_grid,
+//                 coord_dir,
+//                 &idx.0,
+//                 bottom_id,
+//                 -1,
+//             )?;
+//             Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
+//         }
+//         ConvolutionIdentifier::Center => {
+//             let new_idx =
+//                 conv.get_left_right_idx_from_center(target_grid, coord_dir, &idx.0, -1)?;
+//             Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
+//         }
+//         _ => panic!("get_below_idx_from_center returned an invalid index"),
+//     }
+// }
 
 /// Literally nothing
 #[derive(Default, Copy, Clone, Debug)]

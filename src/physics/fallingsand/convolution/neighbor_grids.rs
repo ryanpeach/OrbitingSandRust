@@ -64,12 +64,12 @@ impl LeftRightNeighborGrids {
                 if l.get_chunk_coords().get_chunk_idx() == idx {
                     Some((
                         l,
-                        LeftRightNeighborIdentifier::LR(LeftRightNeighborIdentifierLR::Left),
+                        LeftRightNeighborIdentifier::Left,
                     ))
                 } else if r.get_chunk_coords().get_chunk_idx() == idx {
                     Some((
                         r,
-                        LeftRightNeighborIdentifier::LR(LeftRightNeighborIdentifierLR::Right),
+                        LeftRightNeighborIdentifier::Right,
                     ))
                 } else {
                     None

@@ -21,7 +21,7 @@ use super::{
     neighbor_identifiers::{
         BottomNeighborIdentifier, BottomNeighborIdentifierLayerTransition,
         BottomNeighborIdentifierNormal, ConvolutionIdentifier, ConvolutionIdx,
-        LeftRightNeighborIdentifier, LeftRightNeighborIdentifierLR, TopNeighborIdentifier,
+        LeftRightNeighborIdentifier, TopNeighborIdentifier,
         TopNeighborIdentifierLayerTransition, TopNeighborIdentifierNormal,
     },
     neighbor_indexes::{
@@ -167,61 +167,9 @@ impl ElementGridConvolutionNeighbors {
         }
     }
 
-    // /// Positive k is left, counter clockwise
-    // /// Negative k is right, clockwise
-    // pub fn get_left_right_idx_from_center(
-    //     &self,
-    //     target_chunk: &ElementGrid,
-    //     pos: &JkVector,
-    //     rk: isize,
-    // ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
-    //     // In the left right direction, unlike up down, every chunk has the same number of radial lines
-    //     let radial_lines = target_chunk.get_chunk_coords().get_num_radial_lines();
-
-    //     // You should not be doing any loops that might make you re-target yourself
-    //     if rk.abs() >= radial_lines as isize {
-    //         return Err(ConvOutOfBoundsError(ConvolutionIdx(
-    //             JkVector {
-    //                 j: pos.j,
-    //                 k: modulo(pos.k as isize + rk, radial_lines),
-    //             },
-    //             ConvolutionIdentifier::Center,
-    //         )));
-    //     }
-
-    //     let new_k = modulo(pos.k as isize + rk, radial_lines);
-    //     match self.chunk_idxs.left_right {
-    //         LeftRightNeighborIdxs::SingleChunkLayer => {
-    //             let new_coords = JkVector { j: pos.j, k: new_k };
-    //             Ok(ConvolutionIdx(new_coords, ConvolutionIdentifier::Center))
-    //         }
-    //         LeftRightNeighborIdxs::LR { .. } => {
-    //             if pos.k as isize + rk >= radial_lines as isize {
-    //                 Ok(ConvolutionIdx(
-    //                     JkVector { j: pos.j, k: new_k },
-    //                     ConvolutionIdentifier::LeftRight(LeftRightNeighborIdentifier::LR(
-    //                         LeftRightNeighborIdentifierLR::Left,
-    //                     )),
-    //                 ))
-    //             } else if pos.k as isize + rk < 0 {
-    //                 Ok(ConvolutionIdx(
-    //                     JkVector { j: pos.j, k: new_k },
-    //                     ConvolutionIdentifier::LeftRight(LeftRightNeighborIdentifier::LR(
-    //                         LeftRightNeighborIdentifierLR::Right,
-    //                     )),
-    //                 ))
-    //             } else {
-    //                 Ok(ConvolutionIdx(
-    //                     JkVector { j: pos.j, k: new_k },
-    //                     ConvolutionIdentifier::Center,
-    //                 ))
-    //             }
-    //         }
-    //     }
-    // }
-
     /// Does not return the target_chunk in the case of the center chunk. Unwrap if you dont think this is possible.
     /// Otherwise check if none and just use the target_chunk when its None.
+    /// Might be a bit slower than the other methods because it involves a lot of match statements
     fn get_chunk_by_chunk_ijk(
         &self,
         idx: ChunkIjkVector,
@@ -244,129 +192,52 @@ impl ElementGridConvolutionNeighbors {
             self.grids
                 .left_right
                 .get_chunk_by_chunk_ijk(idx)
-                .map(|(chunk, id)| (Some(chunk), ConvolutionIdentifier::LeftRight(id)))
+                .map(|(chunk, id)| (Some(chunk), ConvolutionIdentifier::LR(id)))
         }
     }
 
-    fn get_left_right_idx_from_vec(
-        &self,
-        pos: &JkVector,
-        coord_dir: &CoordinateDir,
-        target_chunk: &ElementGrid,
-        chunk_idxs: Vec<ChunkIjkVector>,
-        rk: isize,
-    ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
-        let this_chunk_idx = target_chunk.get_chunk_coords().get_chunk_idx();
-        let num_k_chunks = coord_dir
-            .get_layer_num_radial_chunks(target_chunk.get_chunk_coords().get_chunk_idx().i);
-        let temp_new_k = pos.k as isize + rk;
-        if temp_new_k >= 0
-            && temp_new_k < target_chunk.get_chunk_coords().get_num_radial_lines() as isize
-        {
-            // We are still in the center chunk
-            let new_k = modulo(
-                temp_new_k,
-                target_chunk.get_chunk_coords().get_num_radial_lines(),
-            );
-            Ok(ConvolutionIdx(
-                JkVector { j: pos.j, k: new_k },
-                ConvolutionIdentifier::Center,
-            ))
-        } else if num_k_chunks == 1 {
-            // There is only one chunk in the layer, so we can't go left or right
-            Err(ConvOutOfBoundsError(ConvolutionIdx(
-                JkVector { j: pos.j, k: pos.k },
-                ConvolutionIdentifier::Center,
-            )))
-        } else if temp_new_k >= target_chunk.get_chunk_coords().get_num_radial_lines() as isize {
-            let left_chunk_idx = chunk_idxs
-                .iter()
-                .find(|chunk_idx| {
-                    chunk_idx.k == modulo(this_chunk_idx.k as isize + 1, num_k_chunks)
-                })
-                .expect("Left chunk not found");
-            let left_chunk = self
-                .get_chunk_by_chunk_ijk(*left_chunk_idx, target_chunk)
-                .expect("Left chunk not found");
-            let new_k = modulo(
-                temp_new_k,
-                left_chunk
-                    .0
-                    .expect("There is no way this is the center chunk")
-                    .get_chunk_coords()
-                    .get_num_radial_lines(),
-            );
-            Ok(ConvolutionIdx(
-                JkVector { j: pos.j, k: new_k },
-                left_chunk.1,
-            ))
-        } else {
-            let right_chunk_idx = chunk_idxs
-                .iter()
-                .find(|chunk_idx| {
-                    chunk_idx.k == modulo(this_chunk_idx.k as isize - 1, num_k_chunks)
-                })
-                .expect("Right chunk not found");
-            let right_chunk = self
-                .get_chunk_by_chunk_ijk(*right_chunk_idx, target_chunk)
-                .expect("Right chunk not found");
-
-            let new_k = modulo(
-                temp_new_k,
-                right_chunk
-                    .0
-                    .expect("There is no way this is the center chunk")
-                    .get_chunk_coords()
-                    .get_num_radial_lines(),
-            );
-            Ok(ConvolutionIdx(
-                JkVector { j: pos.j, k: new_k },
-                right_chunk.1,
-            ))
-        }
-    }
-
-    /// rk positive is left, counter clockwise
-    /// rk negative is right, clockwise
+    /// Positive k is left, counter clockwise
+    /// Negative k is right, clockwise
     pub fn get_left_right_idx_from_center(
         &self,
         target_chunk: &ElementGrid,
-        coord_dir: &CoordinateDir,
         pos: &JkVector,
         rk: isize,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
-        let left_right_chunk_idxs: Vec<ChunkIjkVector> =
-            self.chunk_idxs.left_right.iter().collect();
-        self.get_left_right_idx_from_vec(pos, coord_dir, target_chunk, left_right_chunk_idxs, rk)
+        // In the left right direction, unlike up down, every chunk has the same number of radial lines
+        let radial_lines = target_chunk.get_chunk_coords().get_num_radial_lines();
+
+        // You should not be doing any loops that might make you re-target yourself
+        if rk.abs() >= radial_lines as isize {
+            return Err(ConvOutOfBoundsError(ConvolutionIdx(
+                JkVector {
+                    j: pos.j,
+                    k: modulo(pos.k as isize + rk, radial_lines),
+                },
+                ConvolutionIdentifier::Center,
+            )));
+        }
+
+        let new_k = modulo(pos.k as isize + rk, radial_lines);
+
+        if pos.k as isize + rk >= radial_lines as isize {
+            Ok(ConvolutionIdx(
+                JkVector { j: pos.j, k: new_k },
+                ConvolutionIdentifier::LR(LeftRightNeighborIdentifier::Left),
+            ))
+        } else if pos.k as isize + rk < 0 {
+            Ok(ConvolutionIdx(
+                JkVector { j: pos.j, k: new_k },
+                ConvolutionIdentifier::LR(LeftRightNeighborIdentifier::Right),
+            ))
+        } else {
+            Ok(ConvolutionIdx(
+                JkVector { j: pos.j, k: new_k },
+                ConvolutionIdentifier::Center,
+            ))
+        }
     }
 
-    /// rk positive is left, counter clockwise
-    /// rk negative is right, clockwise
-    pub fn get_left_right_idx_from_bottom_center(
-        &self,
-        target_chunk: &ElementGrid,
-        coord_dir: &CoordinateDir,
-        pos: &JkVector,
-        _chunk_id: BottomNeighborIdentifier,
-        rk: isize,
-    ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
-        let bottom_chunk_idxs: Vec<ChunkIjkVector> = self.chunk_idxs.bottom.iter().collect();
-        self.get_left_right_idx_from_vec(pos, coord_dir, target_chunk, bottom_chunk_idxs, rk)
-    }
-
-    /// rk positive is left, counter clockwise
-    /// rk negative is right, clockwise
-    pub fn get_left_right_idx_from_top_center(
-        &self,
-        target_chunk: &ElementGrid,
-        coord_dir: &CoordinateDir,
-        pos: &JkVector,
-        _chunk_id: TopNeighborIdentifier,
-        rk: isize,
-    ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
-        let top_chunk_idxs: Vec<ChunkIjkVector> = self.chunk_idxs.top.iter().collect();
-        self.get_left_right_idx_from_vec(pos, coord_dir, target_chunk, top_chunk_idxs, rk)
-    }
 }
 
 #[derive(Debug)]
@@ -494,23 +365,21 @@ impl ElementGridConvolutionNeighbors {
                     }
                 }
             },
-            ConvolutionIdentifier::LeftRight(left_right_id) => match left_right_id {
-                LeftRightNeighborIdentifier::LR(lr_id) => match lr_id {
-                    LeftRightNeighborIdentifierLR::Left { .. } => {
-                        if let LeftRightNeighborGrids::LR { l, .. } = &mut self.grids.left_right {
-                            Ok(l)
-                        } else {
-                            panic!("Tried to get l chunk that doesn't exist")
-                        }
+            ConvolutionIdentifier::LR(lr_id) => match lr_id {
+                LeftRightNeighborIdentifier::Left { .. } => {
+                    if let LeftRightNeighborGrids::LR { l, .. } = &mut self.grids.left_right {
+                        Ok(l)
+                    } else {
+                        panic!("Tried to get l chunk that doesn't exist")
                     }
-                    LeftRightNeighborIdentifierLR::Right { .. } => {
-                        if let LeftRightNeighborGrids::LR { r, .. } = &mut self.grids.left_right {
-                            Ok(r)
-                        } else {
-                            panic!("Tried to get r chunk that doesn't exist")
-                        }
+                }
+                LeftRightNeighborIdentifier::Right { .. } => {
+                    if let LeftRightNeighborGrids::LR { r, .. } = &mut self.grids.left_right {
+                        Ok(r)
+                    } else {
+                        panic!("Tried to get r chunk that doesn't exist")
                     }
-                },
+                }
             },
             ConvolutionIdentifier::Center => Err(GetChunkErr::CenterChunk),
         }
@@ -622,23 +491,21 @@ impl ElementGridConvolutionNeighbors {
                     }
                 }
             },
-            ConvolutionIdentifier::LeftRight(left_right_id) => match left_right_id {
-                LeftRightNeighborIdentifier::LR(lr_id) => match lr_id {
-                    LeftRightNeighborIdentifierLR::Left { .. } => {
-                        if let LeftRightNeighborGrids::LR { l, .. } = &self.grids.left_right {
-                            Ok(l)
-                        } else {
-                            panic!("Tried to get l chunk that doesn't exist")
-                        }
+            ConvolutionIdentifier::LR(lr_id) => match lr_id {
+                LeftRightNeighborIdentifier::Left { .. } => {
+                    if let LeftRightNeighborGrids::LR { l, .. } = &self.grids.left_right {
+                        Ok(l)
+                    } else {
+                        panic!("Tried to get l chunk that doesn't exist")
                     }
-                    LeftRightNeighborIdentifierLR::Right { .. } => {
-                        if let LeftRightNeighborGrids::LR { r, .. } = &self.grids.left_right {
-                            Ok(r)
-                        } else {
-                            panic!("Tried to get r chunk that doesn't exist")
-                        }
+                }
+                LeftRightNeighborIdentifier::Right { .. } => {
+                    if let LeftRightNeighborGrids::LR { r, .. } = &self.grids.left_right {
+                        Ok(r)
+                    } else {
+                        panic!("Tried to get r chunk that doesn't exist")
                     }
-                },
+                }
             },
             ConvolutionIdentifier::Center => Err(GetChunkErr::CenterChunk),
         }
@@ -698,58 +565,64 @@ mod tests {
         data::element_directory::ElementGridDir, mesh::coordinate_directory::CoordinateDirBuilder,
     };
 
-    /// The default element grid directory for testing
-    fn get_element_grid_dir() -> ElementGridDir {
-        let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(1.0)
-            .num_layers(10)
-            .first_num_radial_lines(6)
-            .second_num_concentric_circles(3)
-            .max_concentric_circles_per_chunk(64)
-            .max_radial_lines_per_chunk(64)
-            .build();
-        ElementGridDir::new_empty(coordinate_dir)
-    }
-
     mod get_below_idx_from_center {
         use super::*;
         use crate::physics::fallingsand::util::vectors::IjkVector;
+
+        /// The default element grid directory for testing
+        fn get_element_grid_dir() -> ElementGridDir {
+            let coordinate_dir = CoordinateDirBuilder::new()
+                .cell_radius(1.0)
+                .num_layers(10)
+                .first_num_radial_lines(6)
+                .second_num_concentric_circles(3)
+                .max_concentric_circles_per_chunk(128)
+                .max_radial_lines_per_chunk(128)
+                .build();
+            ElementGridDir::new_empty(coordinate_dir)
+        }
+
+        fn _test_get_below_idx_from_center(pos1: IjkVector, pos2: IjkVector) {
+            let mut element_dir = get_element_grid_dir();
+            let chunk_pos1 = element_dir
+                .get_coordinate_dir()
+                .cell_idx_to_chunk_idx(pos1);
+            let chunk_pos2 = element_dir
+                .get_coordinate_dir()
+                .cell_idx_to_chunk_idx(pos2);
+            let mut package = element_dir
+                .package_coordinate_neighbors(chunk_pos1.0)
+                .unwrap();
+            let chunk = element_dir.get_chunk_by_chunk_ijk(chunk_pos1.0);
+            let should_eq_pos2 = package
+                .get_below_idx_from_center(
+                    chunk,
+                    element_dir.get_coordinate_dir(),
+                    &chunk_pos1.1,
+                    1,
+                )
+                .unwrap();
+            assert_eq!(chunk_pos2.1, should_eq_pos2.0, "The position is incorrect");
+
+            // Check that the get_chunk method also works
+            let should_eq_chunk2 = match package.get_chunk(should_eq_pos2.1) {
+                Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
+                Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+            };
+            // Test the mut version too
+            let should_eq_chunk2_mut = match package.get_chunk_mut(should_eq_pos2.1) {
+                Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
+                Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+            };
+            assert_eq!(chunk_pos2.0, should_eq_chunk2, "get_chunk is not working");
+            assert_eq!(chunk_pos2.0, should_eq_chunk2_mut, "get_chunk_mut is not working");
+        }
 
         macro_rules! test_get_below_idx_from_center {
             ($name:ident, $pos1:expr, $pos2:expr) => {
                 #[test]
                 fn $name() {
-                    let mut element_dir = get_element_grid_dir();
-                    let chunk_pos1 = element_dir
-                        .get_coordinate_dir()
-                        .cell_idx_to_chunk_idx(IjkVector::new($pos1.0, $pos1.1, $pos1.2));
-                    let chunk_pos2 = element_dir
-                        .get_coordinate_dir()
-                        .cell_idx_to_chunk_idx(IjkVector::new($pos2.0, $pos2.1, $pos2.2));
-                    let mut package = element_dir
-                        .package_coordinate_neighbors(chunk_pos1.0)
-                        .unwrap();
-                    let chunk = element_dir.get_chunk_by_chunk_ijk(chunk_pos1.0);
-                    let should_eq_pos2 = package
-                        .get_below_idx_from_center(
-                            chunk,
-                            element_dir.get_coordinate_dir(),
-                            &chunk_pos1.1,
-                            1,
-                        )
-                        .unwrap();
-                    let should_eq_chunk2 = match package.get_chunk(should_eq_pos2.1) {
-                        Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
-                        Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
-                    };
-                    // Test the mut version too
-                    let should_eq_chunk2_mut = match package.get_chunk_mut(should_eq_pos2.1) {
-                        Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
-                        Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
-                    };
-                    assert_eq!(chunk_pos2.1, should_eq_pos2.0);
-                    assert_eq!(chunk_pos2.0, should_eq_chunk2);
-                    assert_eq!(chunk_pos2.0, should_eq_chunk2_mut);
+                    _test_get_below_idx_from_center(IjkVector::new($pos1.0, $pos1.1, $pos1.2), IjkVector::new($pos2.0, $pos2.1, $pos2.2));
                 }
             };
         }
@@ -795,223 +668,113 @@ mod tests {
         use super::*;
         use crate::physics::fallingsand::util::vectors::IjkVector;
 
+        /// The default element grid directory for testing
+        fn get_element_grid_dir() -> ElementGridDir {
+            let coordinate_dir = CoordinateDirBuilder::new()
+            .cell_radius(1.0)
+            .num_layers(7)
+            .first_num_radial_lines(12)
+            .second_num_concentric_circles(3)
+            .first_num_radial_chunks(3)
+            .max_radial_lines_per_chunk(128)
+            .max_concentric_circles_per_chunk(128)
+            .build();
+            ElementGridDir::new_empty(coordinate_dir)
+        }
+
+        fn _test_get_left_right_idx_from_center(pos1: IjkVector, n: isize, pos2: IjkVector) {
+            let mut element_dir = get_element_grid_dir();
+            let chunk_pos1 = element_dir
+                .get_coordinate_dir()
+                .cell_idx_to_chunk_idx(pos1);
+            let chunk_pos2 = element_dir
+                .get_coordinate_dir()
+                .cell_idx_to_chunk_idx(pos2);
+            let mut package = element_dir
+                .package_coordinate_neighbors(chunk_pos1.0)
+                .unwrap();
+            let chunk = element_dir.get_chunk_by_chunk_ijk(chunk_pos1.0);
+            let should_eq_pos2 = package
+                .get_left_right_idx_from_center(
+                    chunk,
+                    &chunk_pos1.1,
+                    n,
+                )
+                .unwrap();
+            assert_eq!(chunk_pos2.1, should_eq_pos2.0, "The position is incorrect");
+
+            // Check that the get_chunk method also works
+            let should_eq_chunk2 = match package.get_chunk(should_eq_pos2.1) {
+                Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
+                Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+            };
+            // Test the mut version too
+            let should_eq_chunk2_mut = match package.get_chunk_mut(should_eq_pos2.1) {
+                Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
+                Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+            };
+            assert_eq!(chunk_pos2.0, should_eq_chunk2, "get_chunk is not working");
+            assert_eq!(chunk_pos2.0, should_eq_chunk2_mut, "get_chunk_mut is not working");
+        }
+
         macro_rules! test_get_left_right_idx_from_center {
             ($name:ident, $pos1:expr, $n:expr, $pos2:expr) => {
                 #[test]
                 fn $name() {
-                    let mut element_dir = get_element_grid_dir();
-                    let chunk_pos1 = element_dir
-                        .get_coordinate_dir()
-                        .cell_idx_to_chunk_idx(IjkVector::new($pos1.0, $pos1.1, $pos1.2));
-                    let chunk_pos2 = element_dir
-                        .get_coordinate_dir()
-                        .cell_idx_to_chunk_idx(IjkVector::new($pos2.0, $pos2.1, $pos2.2));
-                    let mut package = element_dir
-                        .package_coordinate_neighbors(chunk_pos1.0)
-                        .unwrap();
-                    let chunk = element_dir.get_chunk_by_chunk_ijk(chunk_pos1.0);
-                    let should_eq_pos2 = package
-                        .get_left_right_idx_from_center(
-                            chunk,
-                            element_dir.get_coordinate_dir(),
-                            &chunk_pos1.1,
-                            $n,
-                        )
-                        .unwrap();
-                    let should_eq_chunk2 = match package.get_chunk(should_eq_pos2.1) {
-                        Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
-                        Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
-                    };
-                    // Test the mut version too
-                    let should_eq_chunk2_mut = match package.get_chunk_mut(should_eq_pos2.1) {
-                        Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
-                        Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
-                    };
-                    assert_eq!(chunk_pos2.1, should_eq_pos2.0);
-                    assert_eq!(chunk_pos2.0, should_eq_chunk2);
-                    assert_eq!(chunk_pos2.0, should_eq_chunk2_mut);
+                    _test_get_left_right_idx_from_center(IjkVector::new($pos1.0, $pos1.1, $pos1.2), $n, IjkVector::new($pos2.0, $pos2.1, $pos2.2))
                 }
             };
         }
 
         test_get_left_right_idx_from_center!(
-            test_get_left_right_idx_from_center_i2_j2_k0_left,
-            (2, 2, 0),
-            1,
-            (2, 2, 1)
+            test_get_left_right_idx_from_center_i2_j0_k32_right,
+            (2, 0, 32),
+            -1,
+            (2, 0, 31)
         );
 
         test_get_left_right_idx_from_center!(
-            test_get_left_right_idx_from_center_i2_j2_k0_right,
-            (2, 2, 0),
-            -1,
-            (2, 2, 23)
+            test_get_left_right_idx_from_center_i2_j0_k31_left,
+            (2, 0, 31),
+            1,
+            (2, 0, 32)
         );
 
         test_get_left_right_idx_from_center!(
-            test_get_left_right_idx_from_center_i7_j2_k0_left,
-            (7, 2, 0),
+            test_get_left_right_idx_from_center_i2_j0_k47_left,
+            (2, 0, 47),
             1,
-            (7, 2, 1)
+            (2, 0, 0)
         );
 
         test_get_left_right_idx_from_center!(
-            test_get_left_right_idx_from_center_i7_j2_k0_right,
-            (7, 2, 0),
+            test_get_left_right_idx_from_center_i2_j0_k0_right,
+            (2, 0, 0),
             -1,
-            (7, 2, 1535)
+            (2, 0, 47)
         );
+
+        test_get_left_right_idx_from_center!(
+            test_get_left_right_idx_from_center_i2_j0_k1_left,
+            (2, 0, 1),
+            1,
+            (2, 0, 2)
+        );
+
+        test_get_left_right_idx_from_center!(
+            test_get_left_right_idx_from_center_i2_j0_k1_right,
+            (2, 0, 1),
+            -1,
+            (2, 0, 0)
+        );
+
+        test_get_left_right_idx_from_center!(
+            test_get_left_right_idx_from_center_i5_j21_k383_right,
+            (5, 21, 0),
+            -1,
+            (5, 21, 383)
+        );
+
     }
 
-    mod get_left_right_idx_from_bottom {
-        use super::*;
-        use crate::physics::fallingsand::util::vectors::IjkVector;
-        use strum::IntoEnumIterator;
-
-        macro_rules! test_get_left_right_idx_from_bottom {
-            ($name:ident, $pos1:expr, $n:expr, $pos2:expr) => {
-                #[test]
-                fn $name() {
-                    let mut element_dir = get_element_grid_dir();
-                    let chunk_pos1 = element_dir
-                        .get_coordinate_dir()
-                        .cell_idx_to_chunk_idx(IjkVector::new($pos1.0, $pos1.1, $pos1.2));
-                    let chunk_pos2 = element_dir
-                        .get_coordinate_dir()
-                        .cell_idx_to_chunk_idx(IjkVector::new($pos2.0, $pos2.1, $pos2.2));
-                    let mut package = element_dir
-                        .package_coordinate_neighbors(chunk_pos1.0)
-                        .unwrap();
-                    for chunk_id in BottomNeighborIdentifier::iter() {
-                        let chunk = element_dir.get_chunk_by_chunk_ijk(chunk_pos1.0);
-                        let should_eq_pos2 = package
-                            .get_left_right_idx_from_bottom_center(
-                                chunk,
-                                element_dir.get_coordinate_dir(),
-                                &chunk_pos1.1,
-                                chunk_id,
-                                $n,
-                            )
-                            .unwrap();
-                        let should_eq_chunk2 = match package.get_chunk(should_eq_pos2.1) {
-                            Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
-                            Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
-                        };
-                        // Test the mut version too
-                        let should_eq_chunk2_mut = match package.get_chunk_mut(should_eq_pos2.1) {
-                            Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
-                            Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
-                        };
-                        assert_eq!(chunk_pos2.1, should_eq_pos2.0);
-                        assert_eq!(chunk_pos2.0, should_eq_chunk2);
-                        assert_eq!(chunk_pos2.0, should_eq_chunk2_mut);
-                    }
-                }
-            };
-        }
-
-        test_get_left_right_idx_from_bottom!(
-            test_get_left_right_idx_from_bottom_i2_j2_k0_left,
-            (2, 2, 0),
-            1,
-            (2, 2, 1)
-        );
-
-        test_get_left_right_idx_from_bottom!(
-            test_get_left_right_idx_from_bottom_i2_j2_k0_right,
-            (2, 2, 0),
-            -1,
-            (2, 2, 23)
-        );
-
-        test_get_left_right_idx_from_bottom!(
-            test_get_left_right_idx_from_bottom_i7_j2_k0_left,
-            (7, 2, 0),
-            1,
-            (7, 2, 1)
-        );
-
-        test_get_left_right_idx_from_bottom!(
-            test_get_left_right_idx_from_bottom_i7_j2_k0_right,
-            (7, 2, 0),
-            -1,
-            (7, 2, 1535)
-        );
-    }
-
-    mod get_left_right_idx_from_top {
-        use super::*;
-        use crate::physics::fallingsand::util::vectors::IjkVector;
-        use strum::IntoEnumIterator;
-
-        macro_rules! test_get_left_right_idx_from_top {
-            ($name:ident, $pos1:expr, $n:expr, $pos2:expr) => {
-                #[test]
-                fn $name() {
-                    let mut element_dir = get_element_grid_dir();
-                    let chunk_pos1 = element_dir
-                        .get_coordinate_dir()
-                        .cell_idx_to_chunk_idx(IjkVector::new($pos1.0, $pos1.1, $pos1.2));
-                    let chunk_pos2 = element_dir
-                        .get_coordinate_dir()
-                        .cell_idx_to_chunk_idx(IjkVector::new($pos2.0, $pos2.1, $pos2.2));
-                    let mut package = element_dir
-                        .package_coordinate_neighbors(chunk_pos1.0)
-                        .unwrap();
-                    for chunk_id in TopNeighborIdentifier::iter() {
-                        let chunk = element_dir.get_chunk_by_chunk_ijk(chunk_pos1.0);
-                        let should_eq_pos2 = package
-                            .get_left_right_idx_from_top_center(
-                                chunk,
-                                element_dir.get_coordinate_dir(),
-                                &chunk_pos1.1,
-                                chunk_id,
-                                $n,
-                            )
-                            .unwrap();
-                        let should_eq_chunk2 = match package.get_chunk(should_eq_pos2.1) {
-                            Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
-                            Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
-                        };
-                        // Test the mut version too
-                        let should_eq_chunk2_mut = match package.get_chunk_mut(should_eq_pos2.1) {
-                            Ok(chunk) => chunk.get_chunk_coords().get_chunk_idx(),
-                            Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
-                        };
-                        assert_eq!(chunk_pos2.1, should_eq_pos2.0);
-                        assert_eq!(chunk_pos2.0, should_eq_chunk2);
-                        assert_eq!(chunk_pos2.0, should_eq_chunk2_mut);
-                    }
-                }
-            };
-        }
-
-        test_get_left_right_idx_from_top!(
-            test_get_left_right_idx_from_top_i2_j2_k0_left,
-            (2, 2, 0),
-            1,
-            (2, 2, 1)
-        );
-
-        test_get_left_right_idx_from_top!(
-            test_get_left_right_idx_from_top_i2_j2_k0_right,
-            (2, 2, 0),
-            -1,
-            (2, 2, 23)
-        );
-
-        test_get_left_right_idx_from_top!(
-            test_get_left_right_idx_from_top_i7_j2_k0_left,
-            (7, 2, 0),
-            1,
-            (7, 2, 1)
-        );
-
-        test_get_left_right_idx_from_top!(
-            test_get_left_right_idx_from_top_i7_j2_k0_right,
-            (7, 2, 0),
-            -1,
-            (7, 2, 1535)
-        );
-    }
 }
