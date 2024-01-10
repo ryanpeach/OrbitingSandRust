@@ -20,11 +20,14 @@ impl Element for Vacuum {
     fn get_last_processed(&self) -> Clock {
         self.last_processed
     }
+    fn _set_last_processed(&mut self, current_time: Clock) {
+        self.last_processed = current_time;
+    }
     #[allow(clippy::borrowed_box)]
     fn get_color(&self) -> Color {
         Color::BLACK
     }
-    fn process(
+    fn _process(
         &mut self,
         _pos: JkVector,
         _coord_dir: &CoordinateDir,

@@ -19,11 +19,14 @@ impl Element for LeftFlier {
     fn get_last_processed(&self) -> Clock {
         self.last_processed
     }
+    fn _set_last_processed(&mut self, current_time: Clock) {
+        self.last_processed = current_time;
+    }
     #[allow(clippy::borrowed_box)]
     fn get_color(&self) -> Color {
         Color::from_rgb(254, 254, 254)
     }
-    fn process(
+    fn _process(
         &mut self,
         pos: JkVector,
         _coord_dir: &CoordinateDir,
@@ -119,9 +122,9 @@ mod tests {
 
             // Now check that the chunk below has sand
             {
-                let below_chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc2.0);
-                let below_location_type = below_chunk.get(loc2.1).get_type();
-                assert_eq!(below_location_type, ElementType::LeftFlier, "New location {:?} does not have a leftflier", loc2);
+                let left_chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc2.0);
+                let left_location_type = left_chunk.get(loc2.1).get_type();
+                assert_eq!(left_location_type, ElementType::LeftFlier, "New location {:?} does not have a leftflier", loc2);
             }
         }
 

@@ -353,13 +353,13 @@ impl ElementGridDir {
         let left = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
-            k: modulo(coord.k as isize - 1, num_radial_chunks),
+            k: modulo(coord.k as isize + 1, num_radial_chunks),
         };
         debug_assert_ne!(left, coord);
         let right = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
-            k: modulo(coord.k as isize + 1, num_radial_chunks),
+            k: modulo(coord.k as isize - 1, num_radial_chunks),
         };
         debug_assert_ne!(right, coord);
         debug_assert_ne!(left, right);

@@ -147,6 +147,11 @@ impl ElementGrid {
                     Box::<Vacuum>::default(),
                 );
 
+                // Check that the element hasn't already been processed this frame
+                if element.get_last_processed().get_current_frame() == current_time.get_current_frame() {
+                    continue;
+                }
+
                 // You have to send self and element_grid_conv_neigh my reference instead of packaging them together in an object
                 // because you are borrowing both. Without using a lifetime you can't package a borrow.
                 let res =

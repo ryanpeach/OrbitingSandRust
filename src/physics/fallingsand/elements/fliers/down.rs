@@ -19,11 +19,14 @@ impl Element for DownFlier {
     fn get_last_processed(&self) -> Clock {
         self.last_processed
     }
+    fn _set_last_processed(&mut self, current_time: Clock) {
+        self.last_processed = current_time;
+    }
     #[allow(clippy::borrowed_box)]
     fn get_color(&self) -> Color {
         Color::from_rgb(255, 255, 255)
     }
-    fn process(
+    fn _process(
         &mut self,
         pos: JkVector,
         coord_dir: &CoordinateDir,

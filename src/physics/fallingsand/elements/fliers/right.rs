@@ -19,11 +19,14 @@ impl Element for RightFlier {
     fn get_last_processed(&self) -> Clock {
         self.last_processed
     }
+    fn _set_last_processed(&mut self, current_time: Clock) {
+        self.last_processed = current_time;
+    }
     #[allow(clippy::borrowed_box)]
     fn get_color(&self) -> Color {
         Color::from_rgb(253, 253, 253)
     }
-    fn process(
+    fn _process(
         &mut self,
         pos: JkVector,
         _coord_dir: &CoordinateDir,

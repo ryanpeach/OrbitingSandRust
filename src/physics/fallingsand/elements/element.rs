@@ -58,11 +58,14 @@ pub trait Element: Send + Sync {
         target_chunk: &mut ElementGrid,
         element_grid_conv: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
-    ) -> ElementTakeOptions;
+    ) -> ElementTakeOptions {
+        let out = self._process(pos, coord_dir, target_chunk, element_grid_conv, current_time);
+        self._set_last_processed(current_time);
+        out
+    }
     fn box_clone(&self) -> Box<dyn Element>;
 
-    /// Tries to swap the element with the element at pos1
-    /// pos0 should be the position of the element that is being processed
+    /// Instructs the loop to swap the element with the element at pos1
     /// you should have already checked to see if pos1 is valid, most likely it comes from another function
     /// as such this function will panic if pos1 is invalid
     fn try_swap_me(
@@ -72,12 +75,31 @@ pub trait Element: Send + Sync {
         element_grid_conv: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) -> ElementTakeOptions {
-        let prev = element_grid_conv.replace(target_chunk, pos1, self.box_clone(), current_time);
+        let mut clone = self.box_clone();
+        // Its important we set the last processed time to the current time
+        // here because self wont yet have been updated by the process function
+        clone._set_last_processed(current_time);
+        let prev = element_grid_conv.replace(target_chunk, pos1, clone, current_time);
         match prev {
-            Ok(prev) => ElementTakeOptions::ReplaceWith(prev),
+            Ok(prev) => {
+                ElementTakeOptions::ReplaceWith(prev)
+            },
             Err(_) => panic!("Tried to swap with an invalid position"),
         }
     }
+
+    // Private elements
+    // TODO: Figure out how to make these private
+    //       Until then rely on pythonic naming convention
+    fn _process(
+        &mut self,
+        pos: JkVector,
+        coord_dir: &CoordinateDir,
+        target_chunk: &mut ElementGrid,
+        element_grid_conv: &mut ElementGridConvolutionNeighbors,
+        current_time: Clock,
+    ) -> ElementTakeOptions;
+    fn _set_last_processed(&mut self, current_time: Clock);
 }
 
 #[cfg(test)]
