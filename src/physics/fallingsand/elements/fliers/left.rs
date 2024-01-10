@@ -1,6 +1,8 @@
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
-use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
+use crate::physics::fallingsand::elements::element::{
+    Element, ElementTakeOptions, ElementType, StateOfMatter,
+};
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
@@ -22,7 +24,9 @@ impl Element for LeftFlier {
     fn _set_last_processed(&mut self, current_time: Clock) {
         self.last_processed = current_time;
     }
-    #[allow(clippy::borrowed_box)]
+    fn get_state_of_matter(&self) -> StateOfMatter {
+        StateOfMatter::Solid
+    }
     fn get_color(&self) -> Color {
         Color::from_rgb(254, 254, 254)
     }
@@ -40,8 +44,8 @@ impl Element for LeftFlier {
             match left {
                 Ok(idx) => {
                     if let Ok(element) = element_grid_conv.get(target_chunk, idx) {
-                        match element.get_type() {
-                            ElementType::Vacuum => {
+                        match element.get_state_of_matter() {
+                            StateOfMatter::Empty => {
                                 self.try_swap_me(idx, target_chunk, element_grid_conv, current_time)
                             }
                             _ => ElementTakeOptions::PutBack,

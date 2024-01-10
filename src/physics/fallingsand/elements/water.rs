@@ -1,4 +1,4 @@
-use super::element::{Element, ElementTakeOptions, ElementType};
+use super::element::{Element, ElementTakeOptions, ElementType, StateOfMatter};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
@@ -23,7 +23,9 @@ impl Element for Water {
     fn _set_last_processed(&mut self, current_time: Clock) {
         self.last_processed = current_time;
     }
-    #[allow(clippy::borrowed_box)]
+    fn get_state_of_matter(&self) -> StateOfMatter {
+        StateOfMatter::Liquid
+    }
     fn get_color(&self) -> Color {
         Color::BLUE
     }
@@ -51,7 +53,7 @@ impl Element for Water {
         // If it is, swap with one of them randomly
         match element {
             Ok(element) => {
-                if element.get_type() == ElementType::Vacuum {
+                if element.get_state_of_matter() == StateOfMatter::Empty {
                     self.try_swap_me(
                         below.unwrap(),
                         target_chunk,
@@ -81,7 +83,7 @@ impl Element for Water {
                     let rand_bool = rng.gen_bool(0.5);
                     match (element_l, element_r, rand_bool) {
                         (Ok(element_l), Ok(_), false) => {
-                            if element_l.get_type() == ElementType::Vacuum {
+                            if element_l.get_state_of_matter() == StateOfMatter::Empty {
                                 self.try_swap_me(
                                     new_idx_l.unwrap(),
                                     target_chunk,
@@ -93,7 +95,7 @@ impl Element for Water {
                             }
                         }
                         (Ok(_), Ok(element_r), true) => {
-                            if element_r.get_type() == ElementType::Vacuum {
+                            if element_r.get_state_of_matter() == StateOfMatter::Empty {
                                 self.try_swap_me(
                                     new_idx_r.unwrap(),
                                     target_chunk,
@@ -105,7 +107,7 @@ impl Element for Water {
                             }
                         }
                         (Ok(element_l), Err(_), _) => {
-                            if element_l.get_type() == ElementType::Vacuum {
+                            if element_l.get_state_of_matter() == StateOfMatter::Empty {
                                 self.try_swap_me(
                                     new_idx_l.unwrap(),
                                     target_chunk,
@@ -117,7 +119,7 @@ impl Element for Water {
                             }
                         }
                         (Err(_), Ok(element_r), _) => {
-                            if element_r.get_type() == ElementType::Vacuum {
+                            if element_r.get_state_of_matter() == StateOfMatter::Empty {
                                 self.try_swap_me(
                                     new_idx_r.unwrap(),
                                     target_chunk,
