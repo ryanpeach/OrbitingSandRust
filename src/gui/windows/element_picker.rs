@@ -82,5 +82,6 @@ impl WindowTrait for ElementPicker {
         ui.radio_value(&mut self.current_selection, ElementType::Vacuum, "Vacuum");
         ui.radio_value(&mut self.current_selection, ElementType::Sand, "Sand");
         ui.radio_value(&mut self.current_selection, ElementType::Stone, "Stone");
+        ui.radio_value(&mut self.current_selection, ElementType::Water, "Water");
     }
 }

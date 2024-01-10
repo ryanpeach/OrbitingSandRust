@@ -13,6 +13,7 @@ use super::fliers::right::RightFlier;
 use super::sand::Sand;
 use super::stone::Stone;
 use super::vacuum::Vacuum;
+use super::water::Water;
 
 /// What to do after process is called on the elementgrid
 /// The element grid takes the element out of the grid so that it can't
@@ -31,6 +32,7 @@ pub enum ElementType {
     Vacuum,
     Sand,
     Stone,
+    Water,
     DownFlier,
     LeftFlier,
     RightFlier,
@@ -45,6 +47,7 @@ impl ElementType {
             ElementType::LeftFlier => Box::<LeftFlier>::default(),
             ElementType::RightFlier => Box::<RightFlier>::default(),
             ElementType::Stone => Box::<Stone>::default(),
+            ElementType::Water => Box::<Water>::default(),
         }
     }
 }
