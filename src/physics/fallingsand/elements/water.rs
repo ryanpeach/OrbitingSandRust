@@ -53,7 +53,7 @@ impl Element for Water {
         // If it is, swap with one of them randomly
         match element {
             Ok(element) => {
-                if element.get_state_of_matter() == StateOfMatter::Empty {
+                if element.get_state_of_matter() <= StateOfMatter::Gas {
                     self.try_swap_me(
                         below.unwrap(),
                         target_chunk,
@@ -83,7 +83,7 @@ impl Element for Water {
                     let rand_bool = rng.gen_bool(0.5);
                     match (element_l, element_r, rand_bool) {
                         (Ok(element_l), Ok(_), false) => {
-                            if element_l.get_state_of_matter() == StateOfMatter::Empty {
+                            if element_l.get_state_of_matter() <= StateOfMatter::Gas {
                                 self.try_swap_me(
                                     new_idx_l.unwrap(),
                                     target_chunk,
@@ -95,7 +95,7 @@ impl Element for Water {
                             }
                         }
                         (Ok(_), Ok(element_r), true) => {
-                            if element_r.get_state_of_matter() == StateOfMatter::Empty {
+                            if element_r.get_state_of_matter() <= StateOfMatter::Gas {
                                 self.try_swap_me(
                                     new_idx_r.unwrap(),
                                     target_chunk,
@@ -107,7 +107,7 @@ impl Element for Water {
                             }
                         }
                         (Ok(element_l), Err(_), _) => {
-                            if element_l.get_state_of_matter() == StateOfMatter::Empty {
+                            if element_l.get_state_of_matter() <= StateOfMatter::Gas {
                                 self.try_swap_me(
                                     new_idx_l.unwrap(),
                                     target_chunk,
@@ -119,7 +119,7 @@ impl Element for Water {
                             }
                         }
                         (Err(_), Ok(element_r), _) => {
-                            if element_r.get_state_of_matter() == StateOfMatter::Empty {
+                            if element_r.get_state_of_matter() <= StateOfMatter::Gas {
                                 self.try_swap_me(
                                     new_idx_r.unwrap(),
                                     target_chunk,

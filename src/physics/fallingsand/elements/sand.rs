@@ -51,7 +51,7 @@ impl Element for Sand {
                         let element = element_grid_conv.get(target_chunk, idx);
                         match element {
                             Ok(element) => {
-                                if element.get_state_of_matter() == StateOfMatter::Empty {
+                                if element.get_state_of_matter() <= StateOfMatter::Liquid {
                                     self.try_swap_me(
                                         idx,
                                         target_chunk,
@@ -86,7 +86,7 @@ impl Element for Sand {
                                     match (element_l, element_r, rand_bool) {
                                         (Ok(element_l), Ok(_), false) => {
                                             if element_l.get_state_of_matter()
-                                                == StateOfMatter::Empty
+                                                <= StateOfMatter::Liquid
                                             {
                                                 self.try_swap_me(
                                                     new_idx_l.unwrap(),
@@ -100,7 +100,7 @@ impl Element for Sand {
                                         }
                                         (Ok(_), Ok(element_r), true) => {
                                             if element_r.get_state_of_matter()
-                                                == StateOfMatter::Empty
+                                                <= StateOfMatter::Liquid
                                             {
                                                 self.try_swap_me(
                                                     new_idx_r.unwrap(),
@@ -114,7 +114,7 @@ impl Element for Sand {
                                         }
                                         (Ok(element_l), Err(_), _) => {
                                             if element_l.get_state_of_matter()
-                                                == StateOfMatter::Empty
+                                                <= StateOfMatter::Liquid
                                             {
                                                 self.try_swap_me(
                                                     new_idx_l.unwrap(),
@@ -128,7 +128,7 @@ impl Element for Sand {
                                         }
                                         (Err(_), Ok(element_r), _) => {
                                             if element_r.get_state_of_matter()
-                                                == StateOfMatter::Empty
+                                                <= StateOfMatter::Liquid
                                             {
                                                 self.try_swap_me(
                                                     new_idx_r.unwrap(),
@@ -152,7 +152,7 @@ impl Element for Sand {
                         let element = element_grid_conv.get(target_chunk, idx);
                         match element {
                             Ok(element) => {
-                                if element.get_state_of_matter() == StateOfMatter::Empty {
+                                if element.get_state_of_matter() <= StateOfMatter::Liquid {
                                     self.try_swap_me(
                                         idx,
                                         target_chunk,
