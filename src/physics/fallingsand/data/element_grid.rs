@@ -148,7 +148,9 @@ impl ElementGrid {
                 );
 
                 // Check that the element hasn't already been processed this frame
-                if element.get_last_processed().get_current_frame() == current_time.get_current_frame() {
+                if element.get_last_processed().get_current_frame()
+                    == current_time.get_current_frame()
+                {
                     continue;
                 }
 

@@ -624,8 +624,18 @@ impl CoordinateDir {
         let chunk_layer_num_radial_lines = self.get_layer_chunk_num_radial_lines(cell_idx.i);
         let cj = cell_idx.j / chunk_layer_num_concentric_circles;
         let ck = cell_idx.k / chunk_layer_num_radial_lines;
-        debug_assert!(cj < self.get_layer_num_concentric_chunks(cell_idx.i), "{} >= {}", cj, self.get_layer_num_concentric_chunks(cell_idx.i));
-        debug_assert!(ck < self.get_layer_num_radial_chunks(cell_idx.i), "{} >= {}", ck, self.get_layer_num_radial_chunks(cell_idx.i));
+        debug_assert!(
+            cj < self.get_layer_num_concentric_chunks(cell_idx.i),
+            "{} >= {}",
+            cj,
+            self.get_layer_num_concentric_chunks(cell_idx.i)
+        );
+        debug_assert!(
+            ck < self.get_layer_num_radial_chunks(cell_idx.i),
+            "{} >= {}",
+            ck,
+            self.get_layer_num_radial_chunks(cell_idx.i)
+        );
         (
             ChunkIjkVector {
                 i: cell_idx.i,

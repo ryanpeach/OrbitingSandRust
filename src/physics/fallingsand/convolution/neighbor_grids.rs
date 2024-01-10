@@ -62,15 +62,9 @@ impl LeftRightNeighborGrids {
         match self {
             LeftRightNeighborGrids::LR { l, r } => {
                 if l.get_chunk_coords().get_chunk_idx() == idx {
-                    Some((
-                        l,
-                        LeftRightNeighborIdentifier::Left,
-                    ))
+                    Some((l, LeftRightNeighborIdentifier::Left))
                 } else if r.get_chunk_coords().get_chunk_idx() == idx {
-                    Some((
-                        r,
-                        LeftRightNeighborIdentifier::Right,
-                    ))
+                    Some((r, LeftRightNeighborIdentifier::Right))
                 } else {
                     None
                 }

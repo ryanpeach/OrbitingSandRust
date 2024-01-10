@@ -1,7 +1,7 @@
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
-use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
+use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 use ggez::graphics::Color;
@@ -36,8 +36,7 @@ impl Element for LeftFlier {
     ) -> ElementTakeOptions {
         // Doing this as a way to make sure I set last_processed AFTER I've done all the processing
         let out: ElementTakeOptions = {
-            let left =
-                element_grid_conv.get_left_right_idx_from_center(target_chunk, &pos, 1);
+            let left = element_grid_conv.get_left_right_idx_from_center(target_chunk, &pos, 1);
             match left {
                 Ok(idx) => {
                     if let Ok(element) = element_grid_conv.get(target_chunk, idx) {
@@ -62,7 +61,6 @@ impl Element for LeftFlier {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use crate::physics::fallingsand::{
@@ -74,14 +72,14 @@ mod tests {
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {
         let coordinate_dir = CoordinateDirBuilder::new()
-        .cell_radius(1.0)
-        .num_layers(7)
-        .first_num_radial_lines(12)
-        .second_num_concentric_circles(3)
-        .first_num_radial_chunks(3)
-        .max_radial_lines_per_chunk(128)
-        .max_concentric_circles_per_chunk(128)
-        .build();
+            .cell_radius(1.0)
+            .num_layers(7)
+            .first_num_radial_lines(12)
+            .second_num_concentric_circles(3)
+            .first_num_radial_chunks(3)
+            .max_radial_lines_per_chunk(128)
+            .max_concentric_circles_per_chunk(128)
+            .build();
         ElementGridDir::new_empty(coordinate_dir)
     }
 
@@ -117,14 +115,24 @@ mod tests {
             {
                 let chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc1.0);
                 let previous_location_type = chunk.get(loc1.1).get_type();
-                assert_ne!(previous_location_type, ElementType::LeftFlier, "Previous location {:?} still has a leftflier", loc1);
+                assert_ne!(
+                    previous_location_type,
+                    ElementType::LeftFlier,
+                    "Previous location {:?} still has a leftflier",
+                    loc1
+                );
             }
 
             // Now check that the chunk below has sand
             {
                 let left_chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc2.0);
                 let left_location_type = left_chunk.get(loc2.1).get_type();
-                assert_eq!(left_location_type, ElementType::LeftFlier, "New location {:?} does not have a leftflier", loc2);
+                assert_eq!(
+                    left_location_type,
+                    ElementType::LeftFlier,
+                    "New location {:?} does not have a leftflier",
+                    loc2
+                );
             }
         }
 
@@ -144,23 +152,10 @@ mod tests {
             };
         }
 
-        test_movement!(
-            test_movement_i2_j0_k31_left,
-            (2, 0, 31),
-            (2, 0, 32)
-        );
+        test_movement!(test_movement_i2_j0_k31_left, (2, 0, 31), (2, 0, 32));
 
-        test_movement!(
-            test_movement_i2_j0_k47_left,
-            (2, 0, 47),
-            (2, 0, 0)
-        );
+        test_movement!(test_movement_i2_j0_k47_left, (2, 0, 47), (2, 0, 0));
 
-        test_movement!(
-            test_movement_i2_j0_k1_left,
-            (2, 0, 1),
-            (2, 0, 2)
-        );
-
+        test_movement!(test_movement_i2_j0_k1_left, (2, 0, 1), (2, 0, 2));
     }
 }

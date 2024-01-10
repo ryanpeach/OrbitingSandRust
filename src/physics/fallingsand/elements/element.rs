@@ -59,7 +59,13 @@ pub trait Element: Send + Sync {
         element_grid_conv: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) -> ElementTakeOptions {
-        let out = self._process(pos, coord_dir, target_chunk, element_grid_conv, current_time);
+        let out = self._process(
+            pos,
+            coord_dir,
+            target_chunk,
+            element_grid_conv,
+            current_time,
+        );
         self._set_last_processed(current_time);
         out
     }
@@ -81,9 +87,7 @@ pub trait Element: Send + Sync {
         clone._set_last_processed(current_time);
         let prev = element_grid_conv.replace(target_chunk, pos1, clone, current_time);
         match prev {
-            Ok(prev) => {
-                ElementTakeOptions::ReplaceWith(prev)
-            },
+            Ok(prev) => ElementTakeOptions::ReplaceWith(prev),
             Err(_) => panic!("Tried to swap with an invalid position"),
         }
     }

@@ -5,7 +5,7 @@ use crate::physics::fallingsand::util::vectors::JkVector;
 #[derive(Debug, Clone, Copy)]
 pub enum LeftRightNeighborIdentifier {
     Left,
-    Right
+    Right,
 }
 
 #[derive(Debug, Clone, Copy, Default, EnumIter)]
