@@ -54,6 +54,24 @@ impl LeftRightNeighborGrids {
             LeftRightNeighborIdxs::SingleChunkLayer => LeftRightNeighborGrids::SingleChunkLayer,
         }
     }
+
+    pub fn get_chunk_by_chunk_ijk(
+        &self,
+        idx: ChunkIjkVector,
+    ) -> Option<(&ElementGrid, LeftRightNeighborIdentifier)> {
+        match self {
+            LeftRightNeighborGrids::LR { l, r } => {
+                if l.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((l, LeftRightNeighborIdentifier::Left))
+                } else if r.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((r, LeftRightNeighborIdentifier::Right))
+                } else {
+                    None
+                }
+            }
+            LeftRightNeighborGrids::SingleChunkLayer => None,
+        }
+    }
 }
 
 pub enum TopNeighborGrids {
@@ -67,12 +85,6 @@ pub enum TopNeighborGrids {
         t1: ElementGrid,
         t0: ElementGrid,
         tr: ElementGrid,
-    },
-    SingleChunkLayerAbove {
-        t: ElementGrid,
-    },
-    MultiChunkLayerAbove {
-        chunks: Vec<ElementGrid>,
     },
     TopOfGrid,
 }
@@ -93,18 +105,6 @@ impl TopNeighborGrids {
                 map.insert(t1.get_chunk_coords().get_chunk_idx(), t1);
                 map.insert(t0.get_chunk_coords().get_chunk_idx(), t0);
                 map.insert(tr.get_chunk_coords().get_chunk_idx(), tr);
-                map
-            }
-            TopNeighborGrids::SingleChunkLayerAbove { t } => {
-                let mut map = HashMap::new();
-                map.insert(t.get_chunk_coords().get_chunk_idx(), t);
-                map
-            }
-            TopNeighborGrids::MultiChunkLayerAbove { chunks } => {
-                let mut map = HashMap::new();
-                for chunk in chunks {
-                    map.insert(chunk.get_chunk_coords().get_chunk_idx(), chunk);
-                }
                 map
             }
             TopNeighborGrids::TopOfGrid => HashMap::new(),
@@ -264,6 +264,68 @@ impl TopNeighborGrids {
         }
     }
 
+    pub fn get_chunk_by_chunk_ijk(
+        &self,
+        idx: ChunkIjkVector,
+    ) -> Option<(&ElementGrid, TopNeighborIdentifier)> {
+        match self {
+            TopNeighborGrids::Normal { tl, t, tr } => {
+                if tl.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        tl,
+                        TopNeighborIdentifier::Normal(TopNeighborIdentifierNormal::TopLeft),
+                    ))
+                } else if t.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        t,
+                        TopNeighborIdentifier::Normal(TopNeighborIdentifierNormal::Top),
+                    ))
+                } else if tr.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        tr,
+                        TopNeighborIdentifier::Normal(TopNeighborIdentifierNormal::TopRight),
+                    ))
+                } else {
+                    None
+                }
+            }
+            TopNeighborGrids::LayerTransition { tl, t1, t0, tr } => {
+                if tl.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        tl,
+                        TopNeighborIdentifier::LayerTransition(
+                            TopNeighborIdentifierLayerTransition::TopLeft,
+                        ),
+                    ))
+                } else if t1.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        t1,
+                        TopNeighborIdentifier::LayerTransition(
+                            TopNeighborIdentifierLayerTransition::Top1,
+                        ),
+                    ))
+                } else if t0.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        t0,
+                        TopNeighborIdentifier::LayerTransition(
+                            TopNeighborIdentifierLayerTransition::Top0,
+                        ),
+                    ))
+                } else if tr.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        tr,
+                        TopNeighborIdentifier::LayerTransition(
+                            TopNeighborIdentifierLayerTransition::TopRight,
+                        ),
+                    ))
+                } else {
+                    None
+                }
+            }
+            TopNeighborGrids::TopOfGrid => None,
+        }
+    }
+
     pub fn get_num_concentric_circles(&self) -> usize {
         match self {
             TopNeighborGrids::Normal { tl: _, t, tr: _ } => {
@@ -275,12 +337,6 @@ impl TopNeighborGrids {
                 t0: _,
                 tr: _,
             } => tl.get_chunk_coords().get_num_concentric_circles(),
-            TopNeighborGrids::SingleChunkLayerAbove { t } => {
-                t.get_chunk_coords().get_num_concentric_circles()
-            }
-            TopNeighborGrids::MultiChunkLayerAbove { chunks } => {
-                chunks[0].get_chunk_coords().get_num_concentric_circles()
-            }
             TopNeighborGrids::TopOfGrid => 0,
         }
     }
@@ -296,12 +352,6 @@ impl TopNeighborGrids {
                 t0: _,
                 tr: _,
             } => tl.get_chunk_coords().get_num_radial_lines(),
-            TopNeighborGrids::SingleChunkLayerAbove { t } => {
-                t.get_chunk_coords().get_num_radial_lines()
-            }
-            TopNeighborGrids::MultiChunkLayerAbove { chunks } => {
-                chunks[0].get_chunk_coords().get_num_radial_lines()
-            }
             TopNeighborGrids::TopOfGrid => 0,
         }
     }
@@ -316,9 +366,6 @@ pub enum BottomNeighborGrids {
     LayerTransition {
         bl: ElementGrid,
         br: ElementGrid,
-    },
-    FullLayerBelow {
-        b: ElementGrid,
     },
     BottomOfGrid,
 }
@@ -337,11 +384,6 @@ impl BottomNeighborGrids {
                 let mut map = HashMap::new();
                 map.insert(bl.get_chunk_coords().get_chunk_idx(), bl);
                 map.insert(br.get_chunk_coords().get_chunk_idx(), br);
-                map
-            }
-            BottomNeighborGrids::FullLayerBelow { b } => {
-                let mut map = HashMap::new();
-                map.insert(b.get_chunk_coords().get_chunk_idx(), b);
                 map
             }
             BottomNeighborGrids::BottomOfGrid => HashMap::new(),
@@ -368,6 +410,58 @@ impl BottomNeighborGrids {
         }
     }
 
+    pub fn get_chunk_by_chunk_ijk(
+        &self,
+        idx: ChunkIjkVector,
+    ) -> Option<(&ElementGrid, BottomNeighborIdentifier)> {
+        match self {
+            BottomNeighborGrids::Normal { bl, b, br } => {
+                if bl.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        bl,
+                        BottomNeighborIdentifier::Normal(
+                            BottomNeighborIdentifierNormal::BottomLeft,
+                        ),
+                    ))
+                } else if b.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        b,
+                        BottomNeighborIdentifier::Normal(BottomNeighborIdentifierNormal::Bottom),
+                    ))
+                } else if br.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        br,
+                        BottomNeighborIdentifier::Normal(
+                            BottomNeighborIdentifierNormal::BottomRight,
+                        ),
+                    ))
+                } else {
+                    None
+                }
+            }
+            BottomNeighborGrids::LayerTransition { bl, br } => {
+                if bl.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        bl,
+                        BottomNeighborIdentifier::LayerTransition(
+                            BottomNeighborIdentifierLayerTransition::BottomLeft,
+                        ),
+                    ))
+                } else if br.get_chunk_coords().get_chunk_idx() == idx {
+                    Some((
+                        br,
+                        BottomNeighborIdentifier::LayerTransition(
+                            BottomNeighborIdentifierLayerTransition::BottomRight,
+                        ),
+                    ))
+                } else {
+                    None
+                }
+            }
+            BottomNeighborGrids::BottomOfGrid => None,
+        }
+    }
+
     pub fn get_num_radial_lines(&self) -> usize {
         match self {
             BottomNeighborGrids::Normal { bl: _, b, br: _ } => {
@@ -375,9 +469,6 @@ impl BottomNeighborGrids {
             }
             BottomNeighborGrids::LayerTransition { bl, br: _ } => {
                 bl.get_chunk_coords().get_num_radial_lines()
-            }
-            BottomNeighborGrids::FullLayerBelow { b } => {
-                b.get_chunk_coords().get_num_radial_lines()
             }
             BottomNeighborGrids::BottomOfGrid => 0,
         }
@@ -390,9 +481,6 @@ impl BottomNeighborGrids {
             }
             BottomNeighborGrids::LayerTransition { bl, br: _ } => {
                 bl.get_chunk_coords().get_num_concentric_circles()
-            }
-            BottomNeighborGrids::FullLayerBelow { b } => {
-                b.get_chunk_coords().get_num_concentric_circles()
             }
             BottomNeighborGrids::BottomOfGrid => 0,
         }

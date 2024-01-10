@@ -16,13 +16,10 @@ use orbiting_sand::gui::windows::element_picker::ElementPicker;
 use orbiting_sand::gui::windows::gui_trait::WindowTrait;
 use orbiting_sand::nodes::brush::Brush;
 use orbiting_sand::physics::fallingsand::data::element_directory::ElementGridDir;
-use orbiting_sand::physics::fallingsand::elements::element::Element;
-use orbiting_sand::physics::fallingsand::elements::sand::Sand;
 
 use orbiting_sand::nodes::camera::cam::Camera;
 use orbiting_sand::nodes::celestial::Celestial;
 
-use orbiting_sand::physics::fallingsand::elements::vacuum::Vacuum;
 use orbiting_sand::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
 use orbiting_sand::physics::util::clock::Clock;
 
@@ -56,9 +53,9 @@ impl MainState {
             .max_radial_lines_per_chunk(128)
             .max_concentric_circles_per_chunk(128)
             .build();
-        let fill0: &dyn Element = &Vacuum::default();
-        let fill1: &dyn Element = &Sand::default();
-        let element_grid_dir = ElementGridDir::new_checkerboard(coordinate_dir, fill0, fill1);
+        // let fill0: &dyn Element = &Vacuum::default();
+        // let fill1: &dyn Element = &Sand::default();
+        let element_grid_dir = ElementGridDir::new_empty(coordinate_dir);
         println!("Num elements: {}", element_grid_dir.get_total_num_cells());
         let celestial = Celestial::new(element_grid_dir);
 

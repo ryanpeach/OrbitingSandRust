@@ -17,6 +17,9 @@ use super::element_grid::ElementGrid;
 
 use rayon::prelude::*;
 
+/// The number of frames it takes to fully process the directory
+const FRAMES_PER_FULL_PROCESS: usize = 9;
+
 /// Useful for indicating at compile time that an iterable should be ran in parallel
 #[derive(Clone, Default)]
 struct Parallel<T>(T);
@@ -350,13 +353,13 @@ impl ElementGridDir {
         let left = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
-            k: modulo(coord.k as isize - 1, num_radial_chunks),
+            k: modulo(coord.k as isize + 1, num_radial_chunks),
         };
         debug_assert_ne!(left, coord);
         let right = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
-            k: modulo(coord.k as isize + 1, num_radial_chunks),
+            k: modulo(coord.k as isize - 1, num_radial_chunks),
         };
         debug_assert_ne!(right, coord);
         debug_assert_ne!(left, right);
@@ -578,7 +581,7 @@ impl ElementGridDir {
         self.process_count += 1;
 
         // Check for errors and unlock all chunks every 9 iterations
-        if self.process_count % 9 == 0 {
+        if self.process_count % FRAMES_PER_FULL_PROCESS == 0 {
             debug_assert_eq!(
                 self.get_unprocessed_chunk_idxs().len(),
                 0,
@@ -589,10 +592,25 @@ impl ElementGridDir {
         }
     }
 
+    /// Run process FRAMES_PER_FULL_PROCESS times
     pub fn process_full(&mut self, current_time: Clock) {
-        for _ in 0..9 {
+        for _ in 0..FRAMES_PER_FULL_PROCESS {
             self.process(current_time);
         }
+    }
+
+    /// Process a single chunk and its neighbors, mostly used for unit testing
+    /// Also single threaded so should be good for debugging and tracing
+    pub fn process_single_chunk(&mut self, current_time: Clock, coord: ChunkIjkVector) {
+        let mut conv = self
+            .package_coordinate_neighbors(coord)
+            .expect("In runtime, this should never fail.");
+        let mut chunk = self.chunks[coord.i]
+            .replace(coord.to_jk_vector(), None)
+            .expect("Should not have been replaced already.");
+        chunk.process(self.get_coordinate_dir(), &mut conv, current_time);
+        // Unpackage the convolution
+        self.unpackage_convolution(chunk, conv);
     }
 
     /// Gets the textures of the targets updated in the last call to process

@@ -1,51 +1,52 @@
+use strum_macros::EnumIter;
+
 use crate::physics::fallingsand::util::vectors::JkVector;
 
 #[derive(Debug, Clone, Copy)]
-pub enum LeftRightNeighborIdentifierLR {
+pub enum LeftRightNeighborIdentifier {
     Left,
     Right,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum LeftRightNeighborIdentifier {
-    LR(LeftRightNeighborIdentifierLR),
-}
-
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default, EnumIter)]
 pub enum TopNeighborIdentifierNormal {
     TopLeft,
+    #[default]
     Top,
     TopRight,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default, EnumIter)]
 pub enum TopNeighborIdentifierLayerTransition {
     TopLeft,
     Top1,
+    #[default]
     Top0,
     TopRight,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, EnumIter)]
 pub enum TopNeighborIdentifier {
     Normal(TopNeighborIdentifierNormal),
     LayerTransition(TopNeighborIdentifierLayerTransition),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default, EnumIter)]
 pub enum BottomNeighborIdentifierNormal {
     BottomLeft,
+    #[default]
     Bottom,
     BottomRight,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default, EnumIter)]
 pub enum BottomNeighborIdentifierLayerTransition {
+    #[default]
     BottomLeft,
     BottomRight,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, EnumIter)]
 pub enum BottomNeighborIdentifier {
     Normal(BottomNeighborIdentifierNormal),
     LayerTransition(BottomNeighborIdentifierLayerTransition),
@@ -53,7 +54,7 @@ pub enum BottomNeighborIdentifier {
 
 #[derive(Debug, Clone, Copy)]
 pub enum ConvolutionIdentifier {
-    LeftRight(LeftRightNeighborIdentifier),
+    LR(LeftRightNeighborIdentifier),
     Top(TopNeighborIdentifier),
     Bottom(BottomNeighborIdentifier),
     Center,

@@ -67,6 +67,16 @@ impl WindowTrait for ElementPicker {
             ElementType::DownFlier,
             "DownFlier",
         );
+        ui.radio_value(
+            &mut self.current_selection,
+            ElementType::LeftFlier,
+            "LeftFlier",
+        );
+        ui.radio_value(
+            &mut self.current_selection,
+            ElementType::RightFlier,
+            "RightFlier",
+        );
         ui.separator();
         ui.label("Elements");
         ui.radio_value(&mut self.current_selection, ElementType::Vacuum, "Vacuum");

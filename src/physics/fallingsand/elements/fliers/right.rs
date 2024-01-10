@@ -1,75 +1,20 @@
-use super::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
+use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 use ggez::graphics::Color;
 
-// pub fn get_bottom_left(
-//     conv: &ElementGridConvolutionNeighbors,
-//     target_grid: &ElementGrid,
-//     coord_dir: &CoordinateDir,
-//     pos: &JkVector,
-//     n: usize,
-// ) -> Result<(ConvolutionIdx, Box<dyn Element>), ConvOutOfBoundsError> {
-//     let idx = conv.get_below_idx_from_center(target_grid, coord_dir, pos, n)?;
-//     match idx.1 {
-//         ConvolutionIdentifier::Bottom(bottom_id) => {
-//             let new_idx = conv.get_left_right_idx_from_bottom_center(
-//                 target_grid,
-//                 coord_dir,
-//                 &idx.0,
-//                 bottom_id,
-//                 1,
-//             )?;
-//             Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
-//         }
-//         ConvolutionIdentifier::Center => {
-//             let new_idx = conv.get_left_right_idx_from_center(target_grid, coord_dir, &idx.0, 1)?;
-//             Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
-//         }
-//         _ => panic!("get_below_idx_from_center returned an invalid index"),
-//     }
-// }
-
-// pub fn get_bottom_right(
-//     conv: &ElementGridConvolutionNeighbors,
-//     target_grid: &ElementGrid,
-//     coord_dir: &CoordinateDir,
-//     pos: &JkVector,
-//     n: usize,
-// ) -> Result<(ConvolutionIdx, Box<dyn Element>), ConvOutOfBoundsError> {
-//     let idx = conv.get_below_idx_from_center(target_grid, coord_dir, pos, n)?;
-//     match idx.1 {
-//         ConvolutionIdentifier::Bottom(bottom_id) => {
-//             let new_idx = conv.get_left_right_idx_from_bottom_center(
-//                 target_grid,
-//                 coord_dir,
-//                 &idx.0,
-//                 bottom_id,
-//                 -1,
-//             )?;
-//             Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
-//         }
-//         ConvolutionIdentifier::Center => {
-//             let new_idx =
-//                 conv.get_left_right_idx_from_center(target_grid, coord_dir, &idx.0, -1)?;
-//             Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
-//         }
-//         _ => panic!("get_below_idx_from_center returned an invalid index"),
-//     }
-// }
-
 /// Literally nothing
 #[derive(Default, Copy, Clone, Debug)]
-pub struct Sand {
+pub struct RightFlier {
     last_processed: Clock,
 }
 
-impl Element for Sand {
+impl Element for RightFlier {
     fn get_type(&self) -> ElementType {
-        ElementType::Sand
+        ElementType::RightFlier
     }
     fn get_last_processed(&self) -> Clock {
         self.last_processed
@@ -79,21 +24,20 @@ impl Element for Sand {
     }
     #[allow(clippy::borrowed_box)]
     fn get_color(&self) -> Color {
-        Color::YELLOW
+        Color::from_rgb(253, 253, 253)
     }
     fn _process(
         &mut self,
         pos: JkVector,
-        coord_dir: &CoordinateDir,
+        _coord_dir: &CoordinateDir,
         target_chunk: &mut ElementGrid,
         element_grid_conv: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) -> ElementTakeOptions {
         // Doing this as a way to make sure I set last_processed AFTER I've done all the processing
         let out: ElementTakeOptions = {
-            let below =
-                element_grid_conv.get_below_idx_from_center(target_chunk, coord_dir, &pos, 1);
-            match below {
+            let right = element_grid_conv.get_left_right_idx_from_center(target_chunk, &pos, -1);
+            match right {
                 Ok(idx) => {
                     if let Ok(element) = element_grid_conv.get(target_chunk, idx) {
                         match element.get_type() {
@@ -117,7 +61,6 @@ impl Element for Sand {
     }
 }
 
-// 6, 0, 0
 #[cfg(test)]
 mod tests {
     use crate::physics::fallingsand::{
@@ -130,17 +73,18 @@ mod tests {
     fn get_element_grid_dir() -> ElementGridDir {
         let coordinate_dir = CoordinateDirBuilder::new()
             .cell_radius(1.0)
-            .num_layers(10)
-            .first_num_radial_lines(6)
+            .num_layers(7)
+            .first_num_radial_lines(12)
             .second_num_concentric_circles(3)
-            .max_concentric_circles_per_chunk(64)
-            .max_radial_lines_per_chunk(64)
+            .first_num_radial_chunks(3)
+            .max_radial_lines_per_chunk(128)
+            .max_concentric_circles_per_chunk(128)
             .build();
         ElementGridDir::new_empty(coordinate_dir)
     }
 
     /// Simple tests for testing that the sand falls down
-    mod falls_down {
+    mod moves {
         use std::time::Duration;
 
         use super::*;
@@ -159,26 +103,36 @@ mod tests {
             // Set the bottom right to sand
             {
                 let chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc1.0);
-                let sand = Sand::default();
+                let sand = RightFlier::default();
                 chunk.set(loc1.1, Box::new(sand), clock);
             }
 
             // Now process one frame
             clock.update(Duration::from_millis(100));
-            element_grid_dir.process_full(clock);
+            element_grid_dir.process_single_chunk(clock, loc1.0);
 
             // Now check that this chunk location no longer has sand
             {
                 let chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc1.0);
                 let previous_location_type = chunk.get(loc1.1).get_type();
-                assert_ne!(previous_location_type, ElementType::Sand);
+                assert_ne!(
+                    previous_location_type,
+                    ElementType::RightFlier,
+                    "Previous location {:?} still has a RightFlier",
+                    loc1
+                );
             }
 
             // Now check that the chunk below has sand
             {
                 let below_chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc2.0);
                 let below_location_type = below_chunk.get(loc2.1).get_type();
-                assert_eq!(below_location_type, ElementType::Sand);
+                assert_eq!(
+                    below_location_type,
+                    ElementType::RightFlier,
+                    "New location {:?} does not have a RightFlier",
+                    loc2
+                );
             }
         }
 
@@ -198,6 +152,10 @@ mod tests {
             };
         }
 
-        test_movement!(test_movement_i2_j2_k1, (2, 2, 1), (2, 1, 1));
+        test_movement!(test_movement_i2_j0_k32_right, (2, 0, 32), (2, 0, 31));
+
+        test_movement!(test_movement_i2_j0_k0_right, (2, 0, 0), (2, 0, 47));
+
+        test_movement!(test_movement_i2_j0_k1_right, (2, 0, 1), (2, 0, 0));
     }
 }

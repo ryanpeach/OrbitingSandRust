@@ -19,11 +19,14 @@ impl Element for DownFlier {
     fn get_last_processed(&self) -> Clock {
         self.last_processed
     }
+    fn _set_last_processed(&mut self, current_time: Clock) {
+        self.last_processed = current_time;
+    }
     #[allow(clippy::borrowed_box)]
     fn get_color(&self) -> Color {
         Color::from_rgb(255, 255, 255)
     }
-    fn process(
+    fn _process(
         &mut self,
         pos: JkVector,
         coord_dir: &CoordinateDir,
@@ -59,7 +62,6 @@ impl Element for DownFlier {
     }
 }
 
-// 6, 0, 0
 #[cfg(test)]
 mod tests {
     use crate::physics::fallingsand::{
@@ -75,8 +77,8 @@ mod tests {
             .num_layers(10)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
-            .max_concentric_circles_per_chunk(64)
-            .max_radial_lines_per_chunk(64)
+            .max_concentric_circles_per_chunk(128)
+            .max_radial_lines_per_chunk(128)
             .build();
         ElementGridDir::new_empty(coordinate_dir)
     }
@@ -106,23 +108,31 @@ mod tests {
             }
 
             // Now process one frame
-            for _ in 0..9 {
-                clock.update(Duration::from_millis(100));
-                element_grid_dir.process(clock);
-            }
+            clock.update(Duration::from_millis(100));
+            element_grid_dir.process_single_chunk(clock, loc1.0);
 
             // Now check that this chunk location no longer has sand
             {
                 let chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc1.0);
                 let previous_location_type = chunk.get(loc1.1).get_type();
-                assert_ne!(previous_location_type, ElementType::DownFlier);
+                assert_ne!(
+                    previous_location_type,
+                    ElementType::DownFlier,
+                    "Previous location {:?} still has a downflier",
+                    loc1
+                );
             }
 
             // Now check that the chunk below has sand
             {
                 let below_chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc2.0);
                 let below_location_type = below_chunk.get(loc2.1).get_type();
-                assert_eq!(below_location_type, ElementType::DownFlier);
+                assert_eq!(
+                    below_location_type,
+                    ElementType::DownFlier,
+                    "New location {:?} does not have a downflier",
+                    loc2
+                );
             }
         }
 
@@ -143,5 +153,15 @@ mod tests {
         }
 
         test_movement!(test_movement_i2_j2_k1, (2, 2, 1), (2, 1, 1));
+
+        test_movement!(test_movement_i2_j0_k8, (2, 0, 8), (1, 2, 4));
+
+        test_movement!(test_movement_i6_j0_k180, (6, 0, 180), (5, 47, 90));
+
+        test_movement!(test_movement_i7_j0_k355, (7, 0, 355), (6, 95, 355 / 2));
+
+        test_movement!(test_movement_i3_j0_k10, (3, 0, 10), (2, 5, 5));
+
+        test_movement!(test_movement_i7_j0_k420, (7, 0, 420), (6, 95, 210));
     }
 }
