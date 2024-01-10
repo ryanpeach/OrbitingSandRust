@@ -11,6 +11,7 @@ use super::fliers::down::DownFlier;
 use super::fliers::left::LeftFlier;
 use super::fliers::right::RightFlier;
 use super::sand::Sand;
+use super::stone::Stone;
 use super::vacuum::Vacuum;
 
 /// What to do after process is called on the elementgrid
@@ -29,6 +30,7 @@ pub enum ElementTakeOptions {
 pub enum ElementType {
     Vacuum,
     Sand,
+    Stone,
     DownFlier,
     LeftFlier,
     RightFlier,
@@ -42,6 +44,7 @@ impl ElementType {
             ElementType::DownFlier => Box::<DownFlier>::default(),
             ElementType::LeftFlier => Box::<LeftFlier>::default(),
             ElementType::RightFlier => Box::<RightFlier>::default(),
+            ElementType::Stone => Box::<Stone>::default(),
         }
     }
 }
