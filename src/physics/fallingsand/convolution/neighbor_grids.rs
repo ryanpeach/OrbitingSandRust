@@ -11,7 +11,7 @@ use crate::physics::fallingsand::{
 use super::{neighbor_identifiers::*, neighbor_indexes::*};
 
 /// Defines when the user has simply exceeded the bounds of the convolution
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct ConvOutOfBoundsError(pub ConvolutionIdx);
 impl fmt::Display for ConvOutOfBoundsError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
