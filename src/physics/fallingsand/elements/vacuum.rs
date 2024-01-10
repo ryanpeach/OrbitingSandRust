@@ -35,7 +35,6 @@ impl Element for Vacuum {
         _element_grid_conv: &mut ElementGridConvolutionNeighbors,
         _current_time: Clock,
     ) -> ElementTakeOptions {
-        self.last_processed = _current_time;
         ElementTakeOptions::PutBack
     }
     fn box_clone(&self) -> Box<dyn Element> {

@@ -54,7 +54,6 @@ impl Element for DownFlier {
                 Err(_) => ElementTakeOptions::PutBack,
             }
         };
-        self.last_processed = current_time;
         out
     }
     fn box_clone(&self) -> Box<dyn Element> {

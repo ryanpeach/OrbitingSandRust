@@ -170,8 +170,9 @@ impl Element for Sand {
                     }
                     Err(_) => ElementTakeOptions::PutBack,
                 }
-            };
-        self.last_processed = current_time;
+                Err(_) => ElementTakeOptions::PutBack,
+            }
+        };
         out
     }
     fn box_clone(&self) -> Box<dyn Element> {
