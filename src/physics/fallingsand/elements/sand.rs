@@ -1,65 +1,12 @@
 use super::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
+use crate::physics::fallingsand::convolution::neighbor_identifiers::ConvolutionIdentifier;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 use ggez::graphics::Color;
-
-// pub fn get_bottom_left(
-//     conv: &ElementGridConvolutionNeighbors,
-//     target_grid: &ElementGrid,
-//     coord_dir: &CoordinateDir,
-//     pos: &JkVector,
-//     n: usize,
-// ) -> Result<(ConvolutionIdx, Box<dyn Element>), ConvOutOfBoundsError> {
-//     let idx = conv.get_below_idx_from_center(target_grid, coord_dir, pos, n)?;
-//     match idx.1 {
-//         ConvolutionIdentifier::Bottom(bottom_id) => {
-//             let new_idx = conv.get_left_right_idx_from_bottom_center(
-//                 target_grid,
-//                 coord_dir,
-//                 &idx.0,
-//                 bottom_id,
-//                 1,
-//             )?;
-//             Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
-//         }
-//         ConvolutionIdentifier::Center => {
-//             let new_idx = conv.get_left_right_idx_from_center(target_grid, coord_dir, &idx.0, 1)?;
-//             Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
-//         }
-//         _ => panic!("get_below_idx_from_center returned an invalid index"),
-//     }
-// }
-
-// pub fn get_bottom_right(
-//     conv: &ElementGridConvolutionNeighbors,
-//     target_grid: &ElementGrid,
-//     coord_dir: &CoordinateDir,
-//     pos: &JkVector,
-//     n: usize,
-// ) -> Result<(ConvolutionIdx, Box<dyn Element>), ConvOutOfBoundsError> {
-//     let idx = conv.get_below_idx_from_center(target_grid, coord_dir, pos, n)?;
-//     match idx.1 {
-//         ConvolutionIdentifier::Bottom(bottom_id) => {
-//             let new_idx = conv.get_left_right_idx_from_bottom_center(
-//                 target_grid,
-//                 coord_dir,
-//                 &idx.0,
-//                 bottom_id,
-//                 -1,
-//             )?;
-//             Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
-//         }
-//         ConvolutionIdentifier::Center => {
-//             let new_idx =
-//                 conv.get_left_right_idx_from_center(target_grid, coord_dir, &idx.0, -1)?;
-//             Ok((new_idx, conv.get(target_grid, new_idx)?.box_clone()))
-//         }
-//         _ => panic!("get_below_idx_from_center returned an invalid index"),
-//     }
-// }
+use rand::Rng;
 
 /// Literally nothing
 #[derive(Default, Copy, Clone, Debug)]
@@ -90,25 +37,140 @@ impl Element for Sand {
         current_time: Clock,
     ) -> ElementTakeOptions {
         // Doing this as a way to make sure I set last_processed AFTER I've done all the processing
-        let out: ElementTakeOptions = {
-            let below =
-                element_grid_conv.get_below_idx_from_center(target_chunk, coord_dir, &pos, 1);
-            match below {
-                Ok(idx) => {
-                    if let Ok(element) = element_grid_conv.get(target_chunk, idx) {
-                        match element.get_type() {
-                            ElementType::Vacuum => {
-                                self.try_swap_me(idx, target_chunk, element_grid_conv, current_time)
+        let out: ElementTakeOptions =
+            {
+                // Go down one cell
+                let below =
+                    element_grid_conv.get_below_idx_from_center(target_chunk, coord_dir, &pos, 1);
+                match below {
+                    Ok(idx) => {
+                        match idx.1 {
+                            // If we are still in the center chunk, first check if below is vacuum
+                            // If it is, swap with it
+                            // Otherwise check if left or right is vacuum
+                            // If it is, swap with one of them randomly
+                            ConvolutionIdentifier::Center => {
+                                let element = element_grid_conv.get(target_chunk, idx);
+                                match element {
+                                    Ok(element) => {
+                                        if element.get_type() == ElementType::Vacuum {
+                                            self.try_swap_me(
+                                                idx,
+                                                target_chunk,
+                                                element_grid_conv,
+                                                current_time,
+                                            )
+                                        } else {
+                                            let new_idx_l = element_grid_conv
+                                                .get_left_right_idx_from_center(
+                                                    target_chunk,
+                                                    &idx.0,
+                                                    1,
+                                                );
+                                            let new_idx_r = element_grid_conv
+                                                .get_left_right_idx_from_center(
+                                                    target_chunk,
+                                                    &idx.0,
+                                                    -1,
+                                                );
+                                            let element_l = {
+                                                match new_idx_l {
+                                                    Ok(new_idx_l) => element_grid_conv
+                                                        .get(target_chunk, new_idx_l),
+                                                    Err(err) => Err(err),
+                                                }
+                                            };
+                                            let element_r = {
+                                                match new_idx_r {
+                                                    Ok(new_idx_r) => element_grid_conv
+                                                        .get(target_chunk, new_idx_r),
+                                                    Err(err) => Err(err),
+                                                }
+                                            };
+
+                                            // Now decide if we go left or right
+                                            let mut rng = rand::thread_rng();
+                                            let rand_bool = rng.gen_bool(0.5);
+                                            match (element_l, element_r, rand_bool) {
+                                                (Ok(element_l), Ok(_), false) => {
+                                                    if element_l.get_type() == ElementType::Vacuum {
+                                                        self.try_swap_me(
+                                                            new_idx_l.unwrap(),
+                                                            target_chunk,
+                                                            element_grid_conv,
+                                                            current_time,
+                                                        )
+                                                    } else {
+                                                        ElementTakeOptions::PutBack
+                                                    }
+                                                }
+                                                (Ok(_), Ok(element_r), true) => {
+                                                    if element_r.get_type() == ElementType::Vacuum {
+                                                        self.try_swap_me(
+                                                            new_idx_r.unwrap(),
+                                                            target_chunk,
+                                                            element_grid_conv,
+                                                            current_time,
+                                                        )
+                                                    } else {
+                                                        ElementTakeOptions::PutBack
+                                                    }
+                                                }
+                                                (Ok(element_l), Err(_), _) => {
+                                                    if element_l.get_type() == ElementType::Vacuum {
+                                                        self.try_swap_me(
+                                                            new_idx_l.unwrap(),
+                                                            target_chunk,
+                                                            element_grid_conv,
+                                                            current_time,
+                                                        )
+                                                    } else {
+                                                        ElementTakeOptions::PutBack
+                                                    }
+                                                }
+                                                (Err(_), Ok(element_r), _) => {
+                                                    if element_r.get_type() == ElementType::Vacuum {
+                                                        self.try_swap_me(
+                                                            new_idx_r.unwrap(),
+                                                            target_chunk,
+                                                            element_grid_conv,
+                                                            current_time,
+                                                        )
+                                                    } else {
+                                                        ElementTakeOptions::PutBack
+                                                    }
+                                                }
+                                                (Err(_), Err(_), _) => ElementTakeOptions::PutBack,
+                                            }
+                                        }
+                                    }
+                                    Err(_) => ElementTakeOptions::PutBack,
+                                }
                             }
-                            _ => ElementTakeOptions::PutBack,
+                            _ => {
+                                // If we would not in the center chunk anymore, just swap with below
+                                let element = element_grid_conv.get(target_chunk, idx);
+                                match element {
+                                    Ok(element) => {
+                                        if element.get_type() == ElementType::Vacuum {
+                                            self.try_swap_me(
+                                                idx,
+                                                target_chunk,
+                                                element_grid_conv,
+                                                current_time,
+                                            )
+                                        } else {
+                                            ElementTakeOptions::PutBack
+                                        }
+                                    }
+                                    Err(_) => ElementTakeOptions::PutBack,
+                                }
+                            }
                         }
-                    } else {
-                        ElementTakeOptions::PutBack
                     }
+                    Err(_) => ElementTakeOptions::PutBack,
                 }
-                Err(_) => ElementTakeOptions::PutBack,
-            }
-        };
+            };
         self.last_processed = current_time;
         out
     }
