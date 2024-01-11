@@ -1,4 +1,4 @@
-use bevy_ecs::{bundle::Bundle, component::Component, system::Resource};
+use bevy_ecs::{component::Component, system::Resource};
 use ggez::glam::Vec2;
 
 use crate::{
