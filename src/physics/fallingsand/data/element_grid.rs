@@ -1,5 +1,6 @@
 use ggez::graphics::Rect;
 
+use crate::physics::fallingsand::convolution::neighbor_grids::TopNeighborGrids;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions};
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
@@ -16,6 +17,12 @@ use super::super::util::image::RawImage;
 pub struct ElementGrid {
     grid: Grid<Box<dyn Element>>,
     coords: ChunkCoords,
+
+    /// Some low resolution data about the world
+    total_mass: f64,
+    total_mass_above: f64,
+    total_heat: f64,
+    total_heat_capacity_at_atp: f64,
 
     /// This deals with a lock during convolution
     already_processed: bool,
@@ -84,12 +91,31 @@ impl ElementGrid {
     pub fn get_last_set(&self) -> Clock {
         self.last_set
     }
-    #[allow(clippy::borrowed_box)]
     pub fn get_chunk_coords(&self) -> &ChunkCoords {
         &self.coords
     }
     pub fn get_grid(&self) -> &Grid<Box<dyn Element>> {
         &self.grid
+    }
+    /// Does not calculate the total mass, just gets the set value of it
+    pub fn get_total_mass(&self) -> f64 {
+        self.total_mass
+    }
+    /// Does not calculate the total mass, just gets the set value of it
+    pub fn get_total_mass_above(&self) -> f64 {
+        self.total_mass_above
+    }
+    /// Calculate the total heat capacity at the given pressure
+    pub fn get_total_heat_capacity_at_pressure(&self) -> f64 {
+        self.get_total_heat_capacity_at_atp() * self.total_mass_above * 1.0e-5
+    }
+    pub fn get_total_heat_capacity_at_atp(&self) -> f64 {
+        self.total_heat_capacity_at_atp
+    }
+    /// Get temperature
+    /// Assume total_mass_above correlates to pressure
+    pub fn get_temperature(&self) -> f64 {
+        self.total_heat / self.get_total_heat_capacity_at_pressure()
     }
     pub fn get_process_unneeded(&self, current_time: Clock) -> bool {
         self.last_set.get_current_frame() < current_time.get_current_frame() - 1
@@ -134,6 +160,10 @@ impl ElementGrid {
         // if locked {
         //     return;
         // }
+
+        // Process the cells in the grid
+        self.total_mass = 0.0;
+        self.total_heat_capacity = 0.0;
         let already_processed = self.get_already_processed();
         debug_assert!(!already_processed, "Already processed");
         for j in 0..self.coords.get_num_concentric_circles() {
@@ -169,14 +199,34 @@ impl ElementGrid {
                 match res {
                     ElementTakeOptions::PutBack => {
                         self.grid.replace(pos, element);
+                        self.total_heat_capacity += element.get_heat_capacity();
+                        self.total_mass += element.get_mass();
                     }
                     ElementTakeOptions::ReplaceWith(new_element) => {
                         self.grid.replace(pos, new_element);
+                        self.total_heat_capacity += new_element.get_heat_capacity();
+                        self.total_mass += new_element.get_mass();
                     }
                     ElementTakeOptions::DoNothing => {}
                 }
             }
         }
+
+        // Process the grid itself
+        self.total_mass_above = {
+            match element_grid_conv_neigh.grids.top {
+                TopNeighborGrids::Normal { t, .. } => t.get_total_mass_above() + t.get_total_mass(),
+                TopNeighborGrids::LayerTransition { tl, tr, .. } => {
+                    tl.get_total_mass_above()
+                        + tl.get_total_mass()
+                        + tr.get_total_mass_above()
+                        + tr.get_total_mass()
+                }
+                TopNeighborGrids::TopOfGrid => 0.0,
+            }
+        }
+
+        // TODO: Run the heat equation on the convolution one frame
     }
 }
 

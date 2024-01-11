@@ -57,6 +57,9 @@ pub trait Element: Send + Sync {
     fn get_last_processed(&self) -> Clock;
     #[allow(clippy::borrowed_box)]
     fn get_color(&self) -> Color;
+    fn get_heat(&self) -> f64;
+    fn get_heat_capacity(&self) -> f64;
+    fn get_mass(&self) -> f64;
     fn process(
         &mut self,
         pos: JkVector,

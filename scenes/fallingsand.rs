@@ -46,7 +46,7 @@ impl MainState {
         // Create the celestial
         let coordinate_dir = CoordinateDirBuilder::new()
             .cell_radius(1.0)
-            .num_layers(7)
+            .num_layers(9)
             .first_num_radial_lines(12)
             .second_num_concentric_circles(3)
             .first_num_radial_chunks(3)
