@@ -2,10 +2,13 @@ use ggegui::{
     egui::{self, Ui},
     Gui,
 };
-use ggez::{Context, glam::Vec2};
-use mint::{Point2, Vector2};
+use ggez::{glam::Vec2, Context};
+use mint::Vector2;
 
-use crate::{nodes::{brush::Brush, camera::cam::Camera, celestial::Celestial}, physics::util::vectors::ScreenCoord};
+use crate::{
+    nodes::{brush::Brush, camera::cam::Camera, celestial::Celestial},
+    physics::util::vectors::ScreenCoord,
+};
 
 use super::gui_trait::WindowTrait;
 

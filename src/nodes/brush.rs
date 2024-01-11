@@ -138,7 +138,6 @@ impl Brush {
     }
 }
 
-
 impl NodeTrait for Brush {
     fn get_world_coord(&self) -> WorldCoord {
         self.world_coord

@@ -2,7 +2,7 @@ use ggegui::{
     egui::{self, Ui},
     Gui,
 };
-use ggez::{glam::Vec2, mint::Point2, Context};
+use ggez::{glam::Vec2, Context};
 use mint::Vector2;
 
 use crate::{
@@ -12,7 +12,7 @@ use crate::{
             elements::element::ElementType,
             util::vectors::{ChunkIjkVector, IjkVector, JkVector},
         },
-        util::vectors::{RelXyPoint, WorldCoord, ScreenCoord},
+        util::vectors::{RelXyPoint, ScreenCoord, WorldCoord},
     },
 };
 

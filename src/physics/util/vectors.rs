@@ -19,7 +19,7 @@ pub struct RelXyPoint(pub Vec2);
 
 impl RelXyPoint {
     pub fn new(x: f32, y: f32) -> Self {
-        Self(Vec2{x, y})
+        Self(Vec2 { x, y })
     }
 }
 

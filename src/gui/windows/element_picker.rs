@@ -2,8 +2,7 @@ use ggegui::{
     egui::{self, Ui},
     Gui,
 };
-use ggez::{Context, glam::Vec2};
-use mint::Point2;
+use ggez::{glam::Vec2, Context};
 
 use crate::physics::{fallingsand::elements::element::ElementType, util::vectors::ScreenCoord};
 

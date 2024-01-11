@@ -6,7 +6,7 @@ use ggez::{
     Context,
 };
 
-use crate::physics::util::vectors::{WorldCoord, ScreenCoord};
+use crate::physics::util::vectors::{ScreenCoord, WorldCoord};
 
 use super::transform::Transform;
 
@@ -72,8 +72,7 @@ impl Camera {
         })
     }
 
-    pub fn screen_to_world_coords(&self, point: ScreenCoord) -> WorldCoord
-    {
+    pub fn screen_to_world_coords(&self, point: ScreenCoord) -> WorldCoord {
         let inverse_matrix = self.to_matrix().inverse();
         let point = Vec3::new(point.0.x, point.0.y, 0.);
         let world_point = inverse_matrix.transform_point3(point);
