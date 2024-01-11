@@ -91,7 +91,7 @@ impl CameraWindow {
     pub fn save_optionally(&mut self, ctx: &mut Context, celestial: &Celestial) {
         if self.queue_save {
             self.queue_save = false;
-            match celestial.save(ctx, &self.path) {
+            match celestial.data.save(ctx, &self.path) {
                 Ok(_) => println!("Saved to '{}'", self.path),
                 Err(e) => println!("Error saving to {}: {}", self.path, e),
             }

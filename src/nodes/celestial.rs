@@ -1,3 +1,5 @@
+use bevy_ecs::bundle::Bundle;
+use bevy_ecs::component::Component;
 use hashbrown::HashMap;
 
 use ggez::graphics::{Canvas, Mesh, Rect};
@@ -10,12 +12,13 @@ use crate::physics::fallingsand::util::image::RawImage;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::util::clock::Clock;
+use crate::physics::util::vectors::WorldCoord;
 
 use super::camera::cam::Camera;
-use super::node_trait::NodeTrait;
 
 /// Acts as a cache for a radial mesh's meshes and textures
-pub struct Celestial {
+#[derive(Component)]
+pub struct CelestialData {
     element_grid_dir: ElementGridDir,
     all_textures: HashMap<ChunkIjkVector, RawImage>,
     bounding_boxes: Vec<Grid<Rect>>,
@@ -24,7 +27,13 @@ pub struct Celestial {
     combined_wireframe_mesh: OwnedMeshData,
 }
 
-impl Celestial {
+#[derive(Bundle)]
+pub struct Celestial {
+    pub data: CelestialData,
+    pub world_coord: WorldCoord,
+}
+
+impl CelestialData {
     pub fn new(element_grid_dir: ElementGridDir) -> Self {
         // In testing we found that the resolution doesn't matter, so make it infinite
         // a misnomer is the fact that in this case, big "res" is fewer mesh cells
@@ -130,7 +139,7 @@ impl Celestial {
     }
 }
 
-impl Celestial {
+impl CelestialData {
     /// Produces a mask of which chunks are visible, true if visible, false if not
     fn frustum_cull(&self, camera: &Camera) -> Vec<Grid<bool>> {
         let cam_bb = &camera.world_coord_bounding_box();
@@ -147,8 +156,8 @@ impl Celestial {
     }
 }
 
-impl NodeTrait for Celestial {
-    fn get_world_coord(&self) -> mint::Point2<f32> {
-        mint::Point2 { x: 0.0, y: 0.0 }
+impl Celestial {
+    pub fn get_world_coord(&self) -> WorldCoord {
+        self.world_coord
     }
 }

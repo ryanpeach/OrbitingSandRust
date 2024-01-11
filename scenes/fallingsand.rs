@@ -90,8 +90,8 @@ impl EventHandler<ggez::GameError> for MainState {
 
         // Process the celestial
         match self.camera_window.should_i_process() {
-            YesNoFullStep::Yes => self.celestial.process(self.current_time),
-            YesNoFullStep::FullStep => self.celestial.process_full(self.current_time),
+            YesNoFullStep::Yes => self.celestial.data.process(self.current_time),
+            YesNoFullStep::FullStep => self.celestial.data.process_full(self.current_time),
             YesNoFullStep::No => {}
         }
 
@@ -103,12 +103,16 @@ impl EventHandler<ggez::GameError> for MainState {
         canvas.set_sampler(Sampler::from(FilterMode::Nearest));
 
         // Draw the celestial
-        self.celestial.draw(ctx, &mut canvas, self.camera);
+        self.celestial.data.draw(ctx, &mut canvas, self.camera);
         if self.camera_window.get_outline() {
-            self.celestial.draw_outline(ctx, &mut canvas, self.camera);
+            self.celestial
+                .data
+                .draw_outline(ctx, &mut canvas, self.camera);
         }
         if self.camera_window.get_wireframe() {
-            self.celestial.draw_wireframe(ctx, &mut canvas, self.camera);
+            self.celestial
+                .data
+                .draw_wireframe(ctx, &mut canvas, self.camera);
         }
 
         // Draw the gui

@@ -2,7 +2,7 @@ use ggegui::{
     egui::{self, Ui},
     Gui,
 };
-use ggez::{mint::Point2, Context};
+use ggez::{glam::Vec2, mint::Point2, Context};
 use mint::Vector2;
 
 use crate::{
@@ -12,14 +12,14 @@ use crate::{
             elements::element::ElementType,
             util::vectors::{ChunkIjkVector, IjkVector, JkVector},
         },
-        util::vectors::RelXyPoint,
+        util::vectors::{RelXyPoint, WorldCoord},
     },
 };
 
 use super::gui_trait::WindowTrait;
 
 pub struct CursorTooltip {
-    world_coords: Point2<f32>,
+    world_coords: WorldCoord,
     screen_coords: Point2<f32>,
     camera_zoom: Vector2<f32>,
     screen_size: Vector2<f32>,
@@ -37,7 +37,7 @@ impl CursorTooltip {
             chunk_coords: (ChunkIjkVector::new(0, 0, 0), JkVector::new(0, 0)),
             element_type: ElementType::Vacuum,
             screen_coords: Point2 { x: 0.0, y: 0.0 },
-            world_coords: Point2 { x: 0.0, y: 0.0 },
+            world_coords: WorldCoord(Vec2 { x: 0.0, y: 0.0 }),
             screen_size: camera.screen_size,
             gui: Gui::new(ctx),
         }
@@ -45,16 +45,17 @@ impl CursorTooltip {
 
     pub fn update(&mut self, camera: &Camera, celestial: &Celestial) {
         self.camera_zoom = camera.get_zoom();
-        let coordinate_dir = celestial.get_element_dir().get_coordinate_dir();
+        let coordinate_dir = celestial.data.get_element_dir().get_coordinate_dir();
         self.world_coords = camera.screen_to_world_coords(self.screen_coords);
         self.ijk_coords = {
-            match coordinate_dir.rel_pos_to_cell_idx(RelXyPoint(self.world_coords.into())) {
+            match coordinate_dir.rel_pos_to_cell_idx(RelXyPoint(self.world_coords.0.into())) {
                 Ok(coords) => coords,
                 Err(coords) => coords,
             }
         };
         self.chunk_coords = coordinate_dir.cell_idx_to_chunk_idx(self.ijk_coords);
         self.element_type = celestial
+            .data
             .get_element_dir()
             .get_element(self.ijk_coords)
             .get_type();

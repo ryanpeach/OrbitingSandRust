@@ -1,20 +1,21 @@
+use bevy_ecs::system::Resource;
 use ggez::{
-    glam::{Mat4, Vec3},
+    glam::{Mat4, Vec2, Vec3},
     graphics::{DrawParam, Rect},
     mint::{Point2, Vector2},
     Context,
 };
 
-use crate::nodes::node_trait::NodeTrait;
+use crate::physics::util::vectors::WorldCoord;
 
 use super::transform::Transform;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Resource, Debug, Clone, Copy)]
 pub struct Camera {
     pub offset: Point2<f32>,
     pub rotation: f32,
     pub scale: Vector2<f32>,
-    pub position: Point2<f32>,
+    pub position: WorldCoord,
     pub screen_size: Vector2<f32>,
 }
 
@@ -32,7 +33,7 @@ impl Camera {
             rotation: 0.,
             screen_size: ss,
             scale: Vector2 { x: 1., y: 1. },
-            position: Point2 { x: 0., y: 0. },
+            position: WorldCoord(Vec2 { x: 0., y: 0. }),
         }
     }
     pub fn to_matrix(&self) -> Mat4 {
@@ -41,8 +42,8 @@ impl Camera {
         let m01 = -sinr * self.scale.y;
         let m10 = sinr * self.scale.x;
         let m11 = cosr * self.scale.y;
-        let m03 = self.position.x * (-m00) - self.position.y * m01 + self.offset.x;
-        let m13 = self.position.y * (-m11) - self.position.x * m10 + self.offset.y;
+        let m03 = self.position.0.x * (-m00) - self.position.0.y * m01 + self.offset.x;
+        let m13 = self.position.0.y * (-m11) - self.position.0.x * m10 + self.offset.y;
 
         Mat4::from_cols_array(&[
             m00, m01, 0.0, m03, //
@@ -62,12 +63,8 @@ impl Camera {
         self.to_matrix().mul_mat4(&object.to_matrix())
     }
 
-    pub fn world_to_screen_coords<P>(&self, point: P) -> Point2<f32>
-    where
-        P: Into<Point2<f32>>,
-    {
-        let point: Point2<f32> = point.into();
-        let point = Vec3::new(point.x, point.y, 0.);
+    pub fn world_to_screen_coords<P>(&self, point: WorldCoord) -> Point2<f32> {
+        let point = Vec3::new(point.0.x, point.0.y, 0.);
         let screen_point = self.to_matrix().transform_point3(point);
         Point2 {
             x: screen_point.x,
@@ -75,7 +72,7 @@ impl Camera {
         }
     }
 
-    pub fn screen_to_world_coords<P>(&self, point: P) -> Point2<f32>
+    pub fn screen_to_world_coords<P>(&self, point: P) -> WorldCoord
     where
         P: Into<Point2<f32>>,
     {
@@ -83,10 +80,10 @@ impl Camera {
         let point: Point2<f32> = point.into();
         let point = Vec3::new(point.x, point.y, 0.);
         let world_point = inverse_matrix.transform_point3(point);
-        Point2 {
+        WorldCoord(Vec2 {
             x: world_point.x,
             y: world_point.y,
-        }
+        })
     }
 
     pub fn set_position<P>(&mut self, point: P)
@@ -94,8 +91,8 @@ impl Camera {
         P: Into<Point2<f32>>,
     {
         let point: Point2<f32> = point.into();
-        self.position.x = point.x;
-        self.position.y = point.y;
+        self.position.0.x = point.x;
+        self.position.0.y = point.y;
     }
 
     pub fn set_offset<P>(&mut self, point: P)
@@ -112,8 +109,8 @@ impl Camera {
         P: Into<Point2<f32>>,
     {
         let delta: Point2<f32> = delta.into();
-        self.position.x -= delta.x;
-        self.position.y -= delta.y;
+        self.position.0.x -= delta.x;
+        self.position.0.y -= delta.y;
     }
 
     pub fn move_by_screen_coords<P>(&mut self, delta: P)
@@ -121,8 +118,8 @@ impl Camera {
         P: Into<Point2<f32>>,
     {
         let delta: Point2<f32> = delta.into();
-        self.position.x -= delta.x / self.scale.x;
-        self.position.y -= delta.y / self.scale.y;
+        self.position.0.x -= delta.x / self.scale.x;
+        self.position.0.y -= delta.y / self.scale.y;
     }
 
     pub fn world_coord_bounding_box(&self) -> Rect {
@@ -131,7 +128,7 @@ impl Camera {
             x: self.screen_size.x,
             y: self.screen_size.y,
         });
-        Rect::new(pos0.x, pos0.y, pos1.x - pos0.x, pos1.y - pos0.y)
+        Rect::new(pos0.0.x, pos0.0.y, pos1.0.x - pos0.0.x, pos1.0.y - pos0.0.y)
     }
 
     pub fn get_zoom(&self) -> Vector2<f32> {
@@ -165,8 +162,8 @@ impl Camera {
             y: screen_rect.1 / 2.0,
         };
         let world_center = self.screen_to_world_coords(screen_center);
-        self.position.x = world_center.x - (world_center.x - self.position.x) / factor.x;
-        self.position.y = world_center.y - (world_center.y - self.position.y) / factor.y;
+        self.position.0.x = world_center.0.x - (world_center.0.x - self.position.0.x) / factor.x;
+        self.position.0.y = world_center.0.y - (world_center.0.y - self.position.0.y) / factor.y;
         self.scale.x *= factor.x;
         self.scale.y *= factor.y;
     }
@@ -179,8 +176,8 @@ impl Camera {
         let point: Point2<f32> = point.into();
         let factor: Vector2<f32> = factor.into();
         let world_center = self.screen_to_world_coords(point);
-        self.position.x = world_center.x - (world_center.x - self.position.x) / factor.x;
-        self.position.y = world_center.y - (world_center.y - self.position.y) / factor.y;
+        self.position.0.x = world_center.0.x - (world_center.0.x - self.position.0.x) / factor.x;
+        self.position.0.y = world_center.0.y - (world_center.0.y - self.position.0.y) / factor.y;
         self.scale.x *= factor.x;
         self.scale.y *= factor.y;
     }
@@ -197,11 +194,5 @@ impl Camera {
 impl From<Camera> for DrawParam {
     fn from(value: Camera) -> Self {
         DrawParam::default().transform(value.to_matrix())
-    }
-}
-
-impl NodeTrait for Camera {
-    fn get_world_coord(&self) -> Point2<f32> {
-        self.position
     }
 }
