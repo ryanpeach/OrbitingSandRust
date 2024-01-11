@@ -6,6 +6,7 @@ use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 use ggez::graphics::Color;
 use strum_macros::EnumIter;
+use uom::si::f64::{HeatCapacity, Energy, Mass};
 
 use super::fliers::down::DownFlier;
 use super::fliers::left::LeftFlier;
@@ -64,9 +65,9 @@ pub trait Element: Send + Sync {
     fn get_type(&self) -> ElementType;
     fn get_last_processed(&self) -> Clock;
     fn get_color(&self) -> Color;
-    fn get_heat(&self) -> f64;
-    fn get_heat_capacity(&self) -> f64;
-    fn get_mass(&self) -> f64;
+    fn get_heat(&self) -> Energy;
+    fn get_heat_capacity(&self) -> HeatCapacity;
+    fn get_mass(&self) -> Mass;
     fn get_state_of_matter(&self) -> StateOfMatter;
     fn process(
         &mut self,

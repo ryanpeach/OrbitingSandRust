@@ -1,4 +1,5 @@
 use ggez::graphics::Rect;
+use uom::si::f64::{Mass, Energy, HeatCapacity, ThermodynamicTemperature};
 
 use crate::physics::fallingsand::convolution::neighbor_grids::TopNeighborGrids;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions};
@@ -19,10 +20,10 @@ pub struct ElementGrid {
     coords: ChunkCoords,
 
     /// Some low resolution data about the world
-    total_mass: f64,
-    total_mass_above: f64,
-    total_heat: f64,
-    total_heat_capacity_at_atp: f64,
+    total_mass: Mass, // Total mass in kilograms
+    total_mass_above: Mass, // Total mass above a certain point, in kilograms
+    total_heat: Energy, // Total heat in joules
+    total_heat_capacity_at_atp: HeatCapacity, // Total heat capacity at ATP in joules per kelvin
 
     /// This deals with a lock during convolution
     already_processed: bool,
@@ -98,23 +99,23 @@ impl ElementGrid {
         &self.grid
     }
     /// Does not calculate the total mass, just gets the set value of it
-    pub fn get_total_mass(&self) -> f64 {
+    pub fn get_total_mass(&self) -> Mass {
         self.total_mass
     }
     /// Does not calculate the total mass, just gets the set value of it
-    pub fn get_total_mass_above(&self) -> f64 {
+    pub fn get_total_mass_above(&self) -> Mass {
         self.total_mass_above
     }
     /// Calculate the total heat capacity at the given pressure
-    pub fn get_total_heat_capacity_at_pressure(&self) -> f64 {
+    pub fn get_total_heat_capacity_at_pressure(&self) -> HeatCapacity {
         self.get_total_heat_capacity_at_atp() * self.total_mass_above * 1.0e-5
     }
-    pub fn get_total_heat_capacity_at_atp(&self) -> f64 {
+    pub fn get_total_heat_capacity_at_atp(&self) -> HeatCapacity {
         self.total_heat_capacity_at_atp
     }
     /// Get temperature
     /// Assume total_mass_above correlates to pressure
-    pub fn get_temperature(&self) -> f64 {
+    pub fn get_temperature(&self) -> ThermodynamicTemperature {
         self.total_heat / self.get_total_heat_capacity_at_pressure()
     }
     pub fn get_process_unneeded(&self, current_time: Clock) -> bool {
@@ -163,7 +164,7 @@ impl ElementGrid {
 
         // Process the cells in the grid
         self.total_mass = 0.0;
-        self.total_heat_capacity = 0.0;
+        self.total_heat_capacity_at_atp = 0.0;
         let already_processed = self.get_already_processed();
         debug_assert!(!already_processed, "Already processed");
         for j in 0..self.coords.get_num_concentric_circles() {
