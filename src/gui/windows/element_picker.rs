@@ -1,3 +1,4 @@
+use bevy_ecs::system::Resource;
 use ggegui::{
     egui::{self, Ui},
     Gui,
@@ -6,9 +7,10 @@ use ggez::{glam::Vec2, Context};
 
 use crate::physics::{fallingsand::elements::element::ElementType, util::vectors::ScreenCoord};
 
-use super::gui_trait::WindowTrait;
+use super::window_trait::WindowTrait;
 
 /// A window used to select an element to place
+#[derive(Resource)]
 pub struct ElementPicker {
     screen_coords: ScreenCoord,
     current_selection: ElementType,

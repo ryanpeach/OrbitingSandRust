@@ -1,3 +1,4 @@
+use bevy_ecs::system::Resource;
 use ggegui::{
     egui::{self, Ui},
     Gui,
@@ -6,11 +7,12 @@ use ggez::{glam::Vec2, Context};
 use mint::Vector2;
 
 use crate::{
-    nodes::{brush::Brush, camera::cam::Camera, celestial::Celestial},
+    gui::brush::Brush,
+    nodes::{camera::cam::Camera, celestial::Celestial},
     physics::util::vectors::ScreenCoord,
 };
 
-use super::gui_trait::WindowTrait;
+use super::window_trait::WindowTrait;
 
 #[derive(Debug, Clone, Copy)]
 pub enum PlayPauseMode {
@@ -26,6 +28,7 @@ pub enum YesNoFullStep {
     FullStep,
 }
 
+#[derive(Resource)]
 pub struct CameraWindow {
     screen_coords: ScreenCoord,
     brush_size: f32,

@@ -1,3 +1,4 @@
+use bevy_ecs::system::Resource;
 use ggegui::{
     egui::{self, Ui},
     Gui,
@@ -16,8 +17,9 @@ use crate::{
     },
 };
 
-use super::gui_trait::WindowTrait;
+use super::window_trait::WindowTrait;
 
+#[derive(Resource)]
 pub struct CursorTooltip {
     world_coords: WorldCoord,
     screen_coords: ScreenCoord,

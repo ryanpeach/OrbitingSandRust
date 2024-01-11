@@ -10,8 +10,20 @@ use ggez::glam::Vec2;
 #[derive(Component, Debug, Copy, Clone, PartialEq)]
 pub struct WorldCoord(pub Vec2);
 
+impl Default for WorldCoord {
+    fn default() -> Self {
+        Self(Vec2 { x: 0.0, y: 0.0 })
+    }
+}
+
 #[derive(Component, Debug, Copy, Clone, PartialEq)]
 pub struct ScreenCoord(pub Vec2);
+
+impl Default for ScreenCoord {
+    fn default() -> Self {
+        Self(Vec2 { x: 0.0, y: 0.0 })
+    }
+}
 
 /// A world coord vector that is relative to some position in pixel space.
 #[derive(Debug, Copy, Clone, PartialEq)]
