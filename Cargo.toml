@@ -11,6 +11,7 @@ opt-level = 3
 debug = true
 
 [dependencies]
+bevy_ecs = "0.12.1"
 ggegui = "0.3.7"
 ggez = "0.9.3"
 hashbrown = { version = "0.14.2", features = ["rayon", "ahash"] }
