@@ -15,6 +15,7 @@ use crate::physics::util::clock::Clock;
 use crate::physics::util::vectors::WorldCoord;
 
 use super::camera::cam::Camera;
+use super::node_trait::NodeTrait;
 
 /// Acts as a cache for a radial mesh's meshes and textures
 #[derive(Component)]
@@ -156,8 +157,8 @@ impl CelestialData {
     }
 }
 
-impl Celestial {
-    pub fn get_world_coord(&self) -> WorldCoord {
+impl NodeTrait for Celestial {
+    fn get_world_coord(&self) -> WorldCoord {
         self.world_coord
     }
 }

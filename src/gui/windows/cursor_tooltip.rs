@@ -12,7 +12,7 @@ use crate::{
             elements::element::ElementType,
             util::vectors::{ChunkIjkVector, IjkVector, JkVector},
         },
-        util::vectors::{RelXyPoint, WorldCoord},
+        util::vectors::{RelXyPoint, WorldCoord, ScreenCoord},
     },
 };
 
@@ -20,7 +20,7 @@ use super::gui_trait::WindowTrait;
 
 pub struct CursorTooltip {
     world_coords: WorldCoord,
-    screen_coords: Point2<f32>,
+    screen_coords: ScreenCoord,
     camera_zoom: Vector2<f32>,
     screen_size: Vector2<f32>,
     ijk_coords: IjkVector,
@@ -36,7 +36,7 @@ impl CursorTooltip {
             ijk_coords: IjkVector::new(0, 0, 0),
             chunk_coords: (ChunkIjkVector::new(0, 0, 0), JkVector::new(0, 0)),
             element_type: ElementType::Vacuum,
-            screen_coords: Point2 { x: 0.0, y: 0.0 },
+            screen_coords: ScreenCoord(Vec2 { x: 0.0, y: 0.0 }),
             world_coords: WorldCoord(Vec2 { x: 0.0, y: 0.0 }),
             screen_size: camera.screen_size,
             gui: Gui::new(ctx),
@@ -63,15 +63,15 @@ impl CursorTooltip {
 }
 
 impl WindowTrait for CursorTooltip {
-    fn get_offset(&self) -> Point2<f32> {
+    fn get_offset(&self) -> ScreenCoord {
         self.screen_coords
     }
 
-    fn set_offset(&mut self, screen_coords: Point2<f32>) {
-        if screen_coords.x > 0.
-            && screen_coords.y > 0.
-            && screen_coords.x < self.screen_size.x - 100.
-            && screen_coords.y < self.screen_size.y - 100.
+    fn set_offset(&mut self, screen_coords: ScreenCoord) {
+        if screen_coords.0.x > 0.
+            && screen_coords.0.y > 0.
+            && screen_coords.0.x < self.screen_size.x - 100.
+            && screen_coords.0.y < self.screen_size.y - 100.
         {
             self.screen_coords = screen_coords;
         }

@@ -5,11 +5,13 @@ use ggegui::{
 use ggez::graphics::{Canvas, DrawParam};
 use mint::Point2;
 
+use crate::physics::util::vectors::ScreenCoord;
+
 /// A convienience trait for gui objects to make certain functionality common and consistent
 pub trait WindowTrait {
     // Getters and setters
-    fn get_offset(&self) -> Point2<f32>;
-    fn set_offset(&mut self, screen_coords: Point2<f32>);
+    fn get_offset(&self) -> ScreenCoord;
+    fn set_offset(&mut self, screen_coords: ScreenCoord);
     fn get_alignment(&self) -> Align2;
     fn get_gui(&self) -> &Gui;
     fn get_gui_mut(&mut self) -> &mut Gui;
@@ -26,7 +28,7 @@ pub trait WindowTrait {
         egui::Window::new(self.get_title())
             .anchor(
                 self.get_alignment(),
-                [self.get_offset().x, self.get_offset().y],
+                [self.get_offset().0.x, self.get_offset().0.y],
             )
             .show(&gui_ctx, |ui| {
                 self.window(ui);

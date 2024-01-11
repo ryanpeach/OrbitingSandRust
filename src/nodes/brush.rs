@@ -10,7 +10,7 @@ use crate::{
     },
 };
 
-use super::camera::cam::Camera;
+use super::{camera::cam::Camera, node_trait::NodeTrait};
 
 #[derive(Component, Default, Debug, Clone, Copy)]
 pub struct BrushData {
@@ -43,10 +43,6 @@ impl Brush {
 
     pub fn set_position(&mut self, world_coord: WorldCoord) {
         self.world_coord = world_coord;
-    }
-
-    pub fn get_world_coord(&self) -> WorldCoord {
-        self.world_coord
     }
 
     pub fn mult_radius(&mut self, multiplier: f32) {
@@ -139,5 +135,12 @@ impl Brush {
                 );
             }
         }
+    }
+}
+
+
+impl NodeTrait for Brush {
+    fn get_world_coord(&self) -> WorldCoord {
+        self.world_coord
     }
 }

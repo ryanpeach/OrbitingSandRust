@@ -6,7 +6,7 @@ use ggez::{
     Context,
 };
 
-use crate::physics::util::vectors::WorldCoord;
+use crate::physics::util::vectors::{WorldCoord, ScreenCoord};
 
 use super::transform::Transform;
 
@@ -63,22 +63,19 @@ impl Camera {
         self.to_matrix().mul_mat4(&object.to_matrix())
     }
 
-    pub fn world_to_screen_coords<P>(&self, point: WorldCoord) -> Point2<f32> {
+    pub fn world_to_screen_coords(&self, point: WorldCoord) -> ScreenCoord {
         let point = Vec3::new(point.0.x, point.0.y, 0.);
         let screen_point = self.to_matrix().transform_point3(point);
-        Point2 {
+        ScreenCoord(Vec2 {
             x: screen_point.x,
             y: screen_point.y,
-        }
+        })
     }
 
-    pub fn screen_to_world_coords<P>(&self, point: P) -> WorldCoord
-    where
-        P: Into<Point2<f32>>,
+    pub fn screen_to_world_coords(&self, point: ScreenCoord) -> WorldCoord
     {
         let inverse_matrix = self.to_matrix().inverse();
-        let point: Point2<f32> = point.into();
-        let point = Vec3::new(point.x, point.y, 0.);
+        let point = Vec3::new(point.0.x, point.0.y, 0.);
         let world_point = inverse_matrix.transform_point3(point);
         WorldCoord(Vec2 {
             x: world_point.x,
@@ -123,11 +120,11 @@ impl Camera {
     }
 
     pub fn world_coord_bounding_box(&self) -> Rect {
-        let pos0 = self.screen_to_world_coords(Point2 { x: 0., y: 0. });
-        let pos1 = self.screen_to_world_coords(Point2 {
+        let pos0 = self.screen_to_world_coords(ScreenCoord(Vec2 { x: 0., y: 0. }));
+        let pos1 = self.screen_to_world_coords(ScreenCoord(Vec2 {
             x: self.screen_size.x,
             y: self.screen_size.y,
-        });
+        }));
         Rect::new(pos0.0.x, pos0.0.y, pos1.0.x - pos0.0.x, pos1.0.y - pos0.0.y)
     }
 
@@ -157,10 +154,10 @@ impl Camera {
     {
         let factor: Vector2<f32> = factor.into();
         let screen_rect = ctx.gfx.drawable_size();
-        let screen_center = Point2 {
+        let screen_center = ScreenCoord(Vec2 {
             x: screen_rect.0 / 2.0,
             y: screen_rect.1 / 2.0,
-        };
+        });
         let world_center = self.screen_to_world_coords(screen_center);
         self.position.0.x = world_center.0.x - (world_center.0.x - self.position.0.x) / factor.x;
         self.position.0.y = world_center.0.y - (world_center.0.y - self.position.0.y) / factor.y;
@@ -173,7 +170,7 @@ impl Camera {
         P: Into<Point2<f32>>,
         V: Into<Vector2<f32>>,
     {
-        let point: Point2<f32> = point.into();
+        let point = ScreenCoord(point.into().into());
         let factor: Vector2<f32> = factor.into();
         let world_center = self.screen_to_world_coords(point);
         self.position.0.x = world_center.0.x - (world_center.0.x - self.position.0.x) / factor.x;

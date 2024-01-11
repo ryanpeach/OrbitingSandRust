@@ -2,10 +2,10 @@ use ggegui::{
     egui::{self, Ui},
     Gui,
 };
-use ggez::Context;
+use ggez::{Context, glam::Vec2};
 use mint::{Point2, Vector2};
 
-use crate::nodes::{brush::Brush, camera::cam::Camera, celestial::Celestial};
+use crate::{nodes::{brush::Brush, camera::cam::Camera, celestial::Celestial}, physics::util::vectors::ScreenCoord};
 
 use super::gui_trait::WindowTrait;
 
@@ -24,7 +24,7 @@ pub enum YesNoFullStep {
 }
 
 pub struct CameraWindow {
-    draw_coords: Point2<f32>,
+    screen_coords: ScreenCoord,
     brush_size: f32,
     outline: bool,
     wireframe: bool,
@@ -41,7 +41,7 @@ impl CameraWindow {
         // let pwd = std::env::current_dir().unwrap();
         // let pwdstr = pwd.to_str().unwrap();
         Self {
-            draw_coords: Point2 { x: 0.0, y: 0.0 },
+            screen_coords: ScreenCoord(Vec2 { x: 0.0, y: 0.0 }),
             outline: false,
             wireframe: false,
             queue_save: true,
@@ -100,12 +100,12 @@ impl CameraWindow {
 }
 
 impl WindowTrait for CameraWindow {
-    fn get_offset(&self) -> Point2<f32> {
-        self.draw_coords
+    fn get_offset(&self) -> ScreenCoord {
+        self.screen_coords
     }
 
-    fn set_offset(&mut self, screen_coords: Point2<f32>) {
-        self.draw_coords = screen_coords;
+    fn set_offset(&mut self, screen_coords: ScreenCoord) {
+        self.screen_coords = screen_coords;
     }
 
     fn get_gui(&self) -> &Gui {
