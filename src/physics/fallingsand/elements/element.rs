@@ -26,6 +26,14 @@ pub enum ElementTakeOptions {
     ReplaceWith(Box<dyn Element>),
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter, PartialOrd, Ord)]
+pub enum StateOfMatter {
+    Empty,
+    Gas,
+    Liquid,
+    Solid,
+}
+
 /// Useful for match statements
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter)]
 pub enum ElementType {
@@ -55,8 +63,8 @@ impl ElementType {
 pub trait Element: Send + Sync {
     fn get_type(&self) -> ElementType;
     fn get_last_processed(&self) -> Clock;
-    #[allow(clippy::borrowed_box)]
     fn get_color(&self) -> Color;
+    fn get_state_of_matter(&self) -> StateOfMatter;
     fn process(
         &mut self,
         pos: JkVector,

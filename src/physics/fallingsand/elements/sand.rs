@@ -1,4 +1,4 @@
-use super::element::{Element, ElementTakeOptions, ElementType};
+use super::element::{Element, ElementTakeOptions, ElementType, StateOfMatter};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::convolution::neighbor_identifiers::ConvolutionIdentifier;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
@@ -24,7 +24,9 @@ impl Element for Sand {
     fn _set_last_processed(&mut self, current_time: Clock) {
         self.last_processed = current_time;
     }
-    #[allow(clippy::borrowed_box)]
+    fn get_state_of_matter(&self) -> StateOfMatter {
+        StateOfMatter::Solid
+    }
     fn get_color(&self) -> Color {
         Color::YELLOW
     }
@@ -49,7 +51,7 @@ impl Element for Sand {
                         let element = element_grid_conv.get(target_chunk, idx);
                         match element {
                             Ok(element) => {
-                                if element.get_type() == ElementType::Vacuum {
+                                if element.get_state_of_matter() <= StateOfMatter::Liquid {
                                     self.try_swap_me(
                                         idx,
                                         target_chunk,
@@ -83,7 +85,9 @@ impl Element for Sand {
                                     let rand_bool = rng.gen_bool(0.5);
                                     match (element_l, element_r, rand_bool) {
                                         (Ok(element_l), Ok(_), false) => {
-                                            if element_l.get_type() == ElementType::Vacuum {
+                                            if element_l.get_state_of_matter()
+                                                <= StateOfMatter::Liquid
+                                            {
                                                 self.try_swap_me(
                                                     new_idx_l.unwrap(),
                                                     target_chunk,
@@ -95,7 +99,9 @@ impl Element for Sand {
                                             }
                                         }
                                         (Ok(_), Ok(element_r), true) => {
-                                            if element_r.get_type() == ElementType::Vacuum {
+                                            if element_r.get_state_of_matter()
+                                                <= StateOfMatter::Liquid
+                                            {
                                                 self.try_swap_me(
                                                     new_idx_r.unwrap(),
                                                     target_chunk,
@@ -107,7 +113,9 @@ impl Element for Sand {
                                             }
                                         }
                                         (Ok(element_l), Err(_), _) => {
-                                            if element_l.get_type() == ElementType::Vacuum {
+                                            if element_l.get_state_of_matter()
+                                                <= StateOfMatter::Liquid
+                                            {
                                                 self.try_swap_me(
                                                     new_idx_l.unwrap(),
                                                     target_chunk,
@@ -119,7 +127,9 @@ impl Element for Sand {
                                             }
                                         }
                                         (Err(_), Ok(element_r), _) => {
-                                            if element_r.get_type() == ElementType::Vacuum {
+                                            if element_r.get_state_of_matter()
+                                                <= StateOfMatter::Liquid
+                                            {
                                                 self.try_swap_me(
                                                     new_idx_r.unwrap(),
                                                     target_chunk,
@@ -142,7 +152,7 @@ impl Element for Sand {
                         let element = element_grid_conv.get(target_chunk, idx);
                         match element {
                             Ok(element) => {
-                                if element.get_type() == ElementType::Vacuum {
+                                if element.get_state_of_matter() <= StateOfMatter::Liquid {
                                     self.try_swap_me(
                                         idx,
                                         target_chunk,
