@@ -1,6 +1,6 @@
 use ggez::graphics::Color;
 
-use super::element::{Element, ElementTakeOptions, ElementType};
+use super::element::{Element, ElementTakeOptions, ElementType, StateOfMatter};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
@@ -23,7 +23,9 @@ impl Element for Vacuum {
     fn _set_last_processed(&mut self, current_time: Clock) {
         self.last_processed = current_time;
     }
-    #[allow(clippy::borrowed_box)]
+    fn get_state_of_matter(&self) -> StateOfMatter {
+        StateOfMatter::Empty
+    }
     fn get_color(&self) -> Color {
         Color::BLACK
     }

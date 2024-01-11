@@ -1,4 +1,4 @@
-use super::element::{Element, ElementTakeOptions, ElementType};
+use super::element::{Element, ElementTakeOptions, ElementType, StateOfMatter};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
@@ -22,8 +22,10 @@ impl Element for Stone {
     fn _set_last_processed(&mut self, current_time: Clock) {
         self.last_processed = current_time;
     }
+    fn get_state_of_matter(&self) -> StateOfMatter {
+        StateOfMatter::Solid
+    }
     // Gray
-    #[allow(clippy::borrowed_box)]
     fn get_color(&self) -> Color {
         Color::from_rgb_u32(0x808080)
     }
