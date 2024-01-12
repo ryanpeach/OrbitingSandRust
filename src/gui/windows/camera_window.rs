@@ -1,4 +1,4 @@
-use bevy_ecs::{system::Resource, component::Component, bundle::Bundle};
+use bevy_ecs::{bundle::Bundle, component::Component, system::Resource};
 use ggegui::{
     egui::{self, Ui},
     Gui,
@@ -7,8 +7,14 @@ use ggez::{glam::Vec2, Context};
 use mint::Vector2;
 
 use crate::{
-    gui::{brush::{Brush, BrushRadius}, gui_trait::GuiComponent},
-    nodes::{camera::cam::{Camera, CameraZoom}, celestial::Celestial},
+    gui::{
+        brush::{Brush, BrushRadius},
+        screen_trait::GuiComponent,
+    },
+    nodes::{
+        camera::cam::{Camera, CameraZoom},
+        celestial::Celestial,
+    },
     physics::util::vectors::ScreenCoord,
 };
 
@@ -35,12 +41,12 @@ struct MeshDrawMode {
 }
 
 #[derive(Component)]
-struct SaveParams{
+struct SaveParams {
     queue_save: bool,
     path: String,
 }
 
-#[derive(Resource)]
+#[derive(Bundle)]
 pub struct CameraWindow {
     screen_coords: ScreenCoord,
     brush_size: BrushRadius,

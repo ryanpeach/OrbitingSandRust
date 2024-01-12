@@ -5,6 +5,7 @@ use std::{
 
 use bevy_ecs::component::Component;
 use ggez::glam::Vec2;
+use mint::Point2;
 
 /// An absolute position in the world. Usually the location of some object.
 #[derive(Component, Debug, Copy, Clone, PartialEq)]
@@ -16,12 +17,30 @@ impl Default for WorldCoord {
     }
 }
 
+impl Into<Point2<f32>> for WorldCoord {
+    fn into(self) -> Point2<f32> {
+        Point2 {
+            x: self.0.x,
+            y: self.0.y,
+        }
+    }
+}
+
 #[derive(Component, Debug, Copy, Clone, PartialEq)]
 pub struct ScreenCoord(pub Vec2);
 
 impl Default for ScreenCoord {
     fn default() -> Self {
         Self(Vec2 { x: 0.0, y: 0.0 })
+    }
+}
+
+impl Into<Point2<f32>> for ScreenCoord {
+    fn into(self) -> Point2<f32> {
+        Point2 {
+            x: self.0.x,
+            y: self.0.y,
+        }
     }
 }
 

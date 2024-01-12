@@ -1,3 +1,3 @@
 pub mod brush;
-pub mod gui_trait;
+pub mod screen_trait;
 pub mod windows;

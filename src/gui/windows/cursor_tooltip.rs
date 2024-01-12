@@ -1,4 +1,4 @@
-use bevy_ecs::{system::Resource, bundle::Bundle, component::Component};
+use bevy_ecs::{bundle::Bundle, component::Component, system::Resource};
 use ggegui::{
     egui::{self, Ui},
     Gui,
@@ -7,19 +7,23 @@ use ggez::{glam::Vec2, Context};
 use mint::Vector2;
 
 use crate::{
-    nodes::{camera::cam::{Camera, CameraZoom, ScreenSize}, celestial::Celestial},
+    gui::screen_trait::GuiComponent,
+    nodes::{
+        camera::cam::{Camera, CameraZoom, ScreenSize},
+        celestial::Celestial,
+    },
     physics::{
         fallingsand::{
             elements::element::ElementType,
             util::vectors::{ChunkIjkVector, IjkVector, JkVector},
         },
         util::vectors::{RelXyPoint, ScreenCoord, WorldCoord},
-    }, gui::gui_trait::GuiComponent,
+    },
 };
 
 use super::window_trait::WindowTrait;
 
-#[derive(Resource)]
+#[derive(Bundle)]
 pub struct CursorTooltip {
     screen_coords: ScreenCoord,
     ijk_coords: IjkVector,

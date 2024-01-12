@@ -1,4 +1,4 @@
-use bevy_ecs::{system::Resource, component::Component, bundle::Bundle};
+use bevy_ecs::{bundle::Bundle, component::Component, system::Resource};
 use ggez::{
     glam::{Mat4, Vec2, Vec3},
     graphics::{DrawParam, Rect},
@@ -33,8 +33,7 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(screen_size: ScreenSize) -> Self
-    {
+    pub fn new(screen_size: ScreenSize) -> Self {
         let ss = screen_size;
         Camera {
             offset: ScreenCoord(Vec2 {
@@ -143,8 +142,7 @@ impl Camera {
         self.scale
     }
 
-    pub fn set_zoom<V>(&mut self, scale: CameraZoom)
-    {
+    pub fn set_zoom<V>(&mut self, scale: CameraZoom) {
         self.scale = scale;
     }
 
@@ -194,6 +192,10 @@ impl Camera {
 
     pub fn set_rotation(&mut self, angle: f32) {
         self.rotation.0 = angle;
+    }
+
+    pub fn as_draw_param(&self) -> DrawParam {
+        DrawParam::default().transform(self.to_matrix())
     }
 }
 

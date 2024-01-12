@@ -28,7 +28,38 @@ impl Default for OwnedMeshData {
     }
 }
 
+/// Get the uv bounds of a list of vertices
+fn calc_uv_bounds(vertices: &[Vertex]) -> Rect {
+    let width: f32 = vertices
+        .iter()
+        .map(|vertex| vertex.uv[0])
+        .fold(0.0, |a, b| a.max(b));
+    let height: f32 = vertices
+        .iter()
+        .map(|vertex| vertex.uv[1])
+        .fold(0.0, |a, b| a.max(b));
+    let min_x: f32 = vertices
+        .iter()
+        .map(|vertex| vertex.uv[0])
+        .fold(f32::INFINITY, |a, b| a.min(b));
+    let min_y: f32 = vertices
+        .iter()
+        .map(|vertex| vertex.uv[1])
+        .fold(f32::INFINITY, |a, b| a.min(b));
+    Rect::new(min_x, min_y, width, height)
+}
+
 impl OwnedMeshData {
+    /// Create a new OwnedMeshData object
+    pub fn new(vertices: Vec<Vertex>, indices: Vec<u32>) -> Self {
+        let uv_bounds = calc_uv_bounds(&vertices);
+        Self {
+            uv_bounds,
+            vertices,
+            indices,
+        }
+    }
+
     /// Convert to a ggez MeshData object
     /// which takes references and has a lifetime
     pub fn to_mesh_data(&self) -> MeshData {
