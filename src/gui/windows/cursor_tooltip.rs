@@ -1,4 +1,4 @@
-use bevy_ecs::system::Resource;
+use bevy_ecs::{system::Resource, bundle::Bundle, component::Component};
 use ggegui::{
     egui::{self, Ui},
     Gui,
@@ -7,28 +7,38 @@ use ggez::{glam::Vec2, Context};
 use mint::Vector2;
 
 use crate::{
-    nodes::{camera::cam::Camera, celestial::Celestial},
+    nodes::{camera::cam::{Camera, CameraZoom, ScreenSize}, celestial::Celestial},
     physics::{
         fallingsand::{
             elements::element::ElementType,
             util::vectors::{ChunkIjkVector, IjkVector, JkVector},
         },
         util::vectors::{RelXyPoint, ScreenCoord, WorldCoord},
-    },
+    }, gui::gui_trait::GuiComponent,
 };
 
 use super::window_trait::WindowTrait;
 
-#[derive(Resource)]
+#[derive(Component)]
+pub struct CursorScreenCoords {
+    screen_coords: ScreenCoord,
+}
+
+#[derive(Component)]
+pub struct CursorCelestialData {
+    ijk_coords: IjkVector,
+    element_type: ElementType,
+    chunk_coords: (ChunkIjkVector, JkVector),
+}
+
+#[derive(Bundle)]
 pub struct CursorTooltip {
     world_coords: WorldCoord,
     screen_coords: ScreenCoord,
-    camera_zoom: Vector2<f32>,
-    screen_size: Vector2<f32>,
-    ijk_coords: IjkVector,
-    chunk_coords: (ChunkIjkVector, JkVector),
-    element_type: ElementType,
-    gui: Gui,
+    camera_zoom: CameraZoom,
+    screen_size: ScreenSize,
+    cursor_celestial_data: CursorCelestialData,
+    gui: GuiComponent,
 }
 
 impl CursorTooltip {

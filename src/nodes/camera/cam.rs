@@ -1,4 +1,4 @@
-use bevy_ecs::system::Resource;
+use bevy_ecs::{system::Resource, component::Component, bundle::Bundle};
 use ggez::{
     glam::{Mat4, Vec2, Vec3},
     graphics::{DrawParam, Rect},
@@ -10,40 +10,47 @@ use crate::physics::util::vectors::{ScreenCoord, WorldCoord};
 
 use super::transform::Transform;
 
-#[derive(Resource, Debug, Clone, Copy)]
+#[derive(Component, Debug, Clone, Copy)]
+pub struct CameraZoom(Vec2);
+
+#[derive(Component, Debug, Clone, Copy)]
+pub struct ScreenSize(Vec2);
+
+#[derive(Component, Debug, Clone, Copy)]
+pub struct CameraRotation(f32);
+
+#[derive(Bundle, Debug, Clone, Copy)]
 pub struct Camera {
-    pub offset: Point2<f32>,
-    pub rotation: f32,
-    pub scale: Vector2<f32>,
+    pub offset: ScreenCoord,
+    pub rotation: CameraRotation,
+    pub scale: CameraZoom,
     pub position: WorldCoord,
-    pub screen_size: Vector2<f32>,
+    pub screen_size: ScreenSize,
 }
 
 impl Camera {
-    pub fn new<V>(screen_size: V) -> Self
-    where
-        V: Into<Vector2<f32>>,
+    pub fn new(screen_size: ScreenSize) -> Self
     {
-        let ss = screen_size.into();
+        let ss = screen_size;
         Camera {
-            offset: Point2 {
-                x: ss.x / 2.,
-                y: ss.y / 2.,
-            },
-            rotation: 0.,
+            offset: ScreenCoord(Vec2 {
+                x: ss.0.x / 2.,
+                y: ss.0.y / 2.,
+            }),
+            rotation: CameraRotation(0.),
             screen_size: ss,
-            scale: Vector2 { x: 1., y: 1. },
+            scale: CameraZoom(Vec2 { x: 1., y: 1. }),
             position: WorldCoord(Vec2 { x: 0., y: 0. }),
         }
     }
     pub fn to_matrix(&self) -> Mat4 {
-        let (sinr, cosr) = self.rotation.sin_cos();
-        let m00 = cosr * self.scale.x;
-        let m01 = -sinr * self.scale.y;
-        let m10 = sinr * self.scale.x;
-        let m11 = cosr * self.scale.y;
-        let m03 = self.position.0.x * (-m00) - self.position.0.y * m01 + self.offset.x;
-        let m13 = self.position.0.y * (-m11) - self.position.0.x * m10 + self.offset.y;
+        let (sinr, cosr) = self.rotation.0.sin_cos();
+        let m00 = cosr * self.scale.0.x;
+        let m01 = -sinr * self.scale.0.y;
+        let m10 = sinr * self.scale.0.x;
+        let m11 = cosr * self.scale.0.y;
+        let m03 = self.position.0.x * (-m00) - self.position.0.y * m01 + self.offset.0.x;
+        let m13 = self.position.0.y * (-m11) - self.position.0.x * m10 + self.offset.0.y;
 
         Mat4::from_cols_array(&[
             m00, m01, 0.0, m03, //
@@ -96,8 +103,8 @@ impl Camera {
         P: Into<Point2<f32>>,
     {
         let point: Point2<f32> = point.into();
-        self.offset.x = point.x * self.scale.x;
-        self.offset.y = point.y * self.scale.y;
+        self.offset.0.x = point.x * self.scale.0.x;
+        self.offset.0.y = point.y * self.scale.0.y;
     }
 
     pub fn move_by_world_coords<P>(&mut self, delta: P)
@@ -114,28 +121,26 @@ impl Camera {
         P: Into<Point2<f32>>,
     {
         let delta: Point2<f32> = delta.into();
-        self.position.0.x -= delta.x / self.scale.x;
-        self.position.0.y -= delta.y / self.scale.y;
+        self.position.0.x -= delta.x / self.scale.0.x;
+        self.position.0.y -= delta.y / self.scale.0.y;
     }
 
     pub fn world_coord_bounding_box(&self) -> Rect {
         let pos0 = self.screen_to_world_coords(ScreenCoord(Vec2 { x: 0., y: 0. }));
         let pos1 = self.screen_to_world_coords(ScreenCoord(Vec2 {
-            x: self.screen_size.x,
-            y: self.screen_size.y,
+            x: self.screen_size.0.x,
+            y: self.screen_size.0.y,
         }));
         Rect::new(pos0.0.x, pos0.0.y, pos1.0.x - pos0.0.x, pos1.0.y - pos0.0.y)
     }
 
-    pub fn get_zoom(&self) -> Vector2<f32> {
+    pub fn get_zoom(&self) -> CameraZoom {
         self.scale
     }
 
-    pub fn set_zoom<V>(&mut self, scale: V)
-    where
-        V: Into<Vector2<f32>>,
+    pub fn set_zoom<V>(&mut self, scale: CameraZoom)
     {
-        self.scale = scale.into();
+        self.scale = scale;
     }
 
     pub fn zoom<V>(&mut self, factor: V)
@@ -143,8 +148,8 @@ impl Camera {
         V: Into<Vector2<f32>>,
     {
         let factor: Vector2<f32> = factor.into();
-        self.scale.x *= factor.x;
-        self.scale.y *= factor.y;
+        self.scale.0.x *= factor.x;
+        self.scale.0.y *= factor.y;
     }
 
     pub fn zoom_center<V>(&mut self, ctx: &Context, factor: V)
@@ -160,8 +165,8 @@ impl Camera {
         let world_center = self.screen_to_world_coords(screen_center);
         self.position.0.x = world_center.0.x - (world_center.0.x - self.position.0.x) / factor.x;
         self.position.0.y = world_center.0.y - (world_center.0.y - self.position.0.y) / factor.y;
-        self.scale.x *= factor.x;
-        self.scale.y *= factor.y;
+        self.scale.0.x *= factor.x;
+        self.scale.0.y *= factor.y;
     }
 
     pub fn zoom_at_screen_coords<P, V>(&mut self, point: P, factor: V)
@@ -174,16 +179,16 @@ impl Camera {
         let world_center = self.screen_to_world_coords(point);
         self.position.0.x = world_center.0.x - (world_center.0.x - self.position.0.x) / factor.x;
         self.position.0.y = world_center.0.y - (world_center.0.y - self.position.0.y) / factor.y;
-        self.scale.x *= factor.x;
-        self.scale.y *= factor.y;
+        self.scale.0.x *= factor.x;
+        self.scale.0.y *= factor.y;
     }
 
     pub fn rotate(&mut self, angle: f32) {
-        self.rotation += angle;
+        self.rotation.0 += angle;
     }
 
     pub fn set_rotation(&mut self, angle: f32) {
-        self.rotation = angle;
+        self.rotation.0 = angle;
     }
 }
 

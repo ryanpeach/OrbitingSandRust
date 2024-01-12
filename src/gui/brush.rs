@@ -1,4 +1,4 @@
-use bevy_ecs::{component::Component, system::Resource};
+use bevy_ecs::{component::Component, system::Resource, bundle::Bundle};
 use ggez::glam::Vec2;
 
 use crate::{
@@ -12,31 +12,28 @@ use crate::{
 
 use super::gui_trait::GuiTrait;
 
-#[derive(Component, Default, Debug, Clone, Copy)]
-pub struct BrushData {}
+#[derive(Component, Debug, Clone, Copy)]
+pub struct BrushRadius(f32);
 
-#[derive(Resource, Debug, Clone, Copy)]
-pub struct Brush {
-    radius: f32,
-    screen_coord: ScreenCoord,
+impl Default for BrushRadius {
+    fn default() -> Self {
+        Self(0.5)
+    }
 }
 
-impl Default for Brush {
-    fn default() -> Self {
-        Self {
-            radius: 0.5,
-            screen_coord: ScreenCoord(Vec2 { x: 0.0, y: 0.0 }),
-        }
-    }
+#[derive(Bundle, Default, Debug, Clone, Copy)]
+pub struct Brush {
+    radius: BrushRadius,
+    screen_coord: ScreenCoord,
 }
 
 impl Brush {
     pub fn set_radius(&mut self, radius: f32) {
-        self.radius = radius;
+        self.radius.0 = radius;
     }
 
     pub fn get_radius(&self) -> f32 {
-        self.radius
+        self.radius.0
     }
 
     pub fn set_position(&mut self, screen_coords: ScreenCoord) {
@@ -44,9 +41,9 @@ impl Brush {
     }
 
     pub fn mult_radius(&mut self, multiplier: f32) {
-        self.radius *= multiplier;
-        if self.radius < 0.5 {
-            self.radius = 0.5;
+        self.radius.0 *= multiplier;
+        if self.radius.0 < 0.5 {
+            self.radius.0 = 0.5;
         }
     }
 
@@ -64,7 +61,7 @@ impl Brush {
             ctx,
             ggez::graphics::DrawMode::stroke(0.5),
             self.get_world_coord(&camera).0,
-            self.radius,
+            self.radius.0,
             0.1,
             ggez::graphics::Color::WHITE,
         )
@@ -80,8 +77,8 @@ impl Brush {
     fn brush_positions(&self, celestial: &Celestial, camera: &Camera) -> Vec<RelXyPoint> {
         let center =
             RelXyPoint(self.get_world_coord(&camera).0) - RelXyPoint(celestial.get_world_coord().0);
-        let begin_at = center - RelXyPoint::new(self.radius, self.radius);
-        let end_at = center + RelXyPoint::new(self.radius, self.radius);
+        let begin_at = center - RelXyPoint::new(self.radius.0, self.radius.0);
+        let end_at = center + RelXyPoint::new(self.radius.0, self.radius.0);
         let mut positions = Vec::new();
         let mut x = begin_at.0.x
             + celestial
@@ -100,7 +97,7 @@ impl Brush {
                     / 2.0;
             while y < end_at.0.y {
                 let pos = RelXyPoint::new(x, y);
-                if pos.0.distance(center.0) < self.radius {
+                if pos.0.distance(center.0) < self.radius.0 {
                     positions.push(pos);
                 }
                 y += celestial

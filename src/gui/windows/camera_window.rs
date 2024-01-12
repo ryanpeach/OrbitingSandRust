@@ -1,4 +1,4 @@
-use bevy_ecs::system::Resource;
+use bevy_ecs::{system::Resource, component::Component, bundle::Bundle};
 use ggegui::{
     egui::{self, Ui},
     Gui,
@@ -7,8 +7,8 @@ use ggez::{glam::Vec2, Context};
 use mint::Vector2;
 
 use crate::{
-    gui::brush::Brush,
-    nodes::{camera::cam::Camera, celestial::Celestial},
+    gui::{brush::{Brush, BrushRadius}, gui_trait::GuiComponent},
+    nodes::{camera::cam::{Camera, CameraZoom}, celestial::Celestial},
     physics::util::vectors::ScreenCoord,
 };
 
@@ -28,18 +28,36 @@ pub enum YesNoFullStep {
     FullStep,
 }
 
-#[derive(Resource)]
-pub struct CameraWindow {
-    screen_coords: ScreenCoord,
-    brush_size: f32,
+#[derive(Component, Default)]
+struct FPS(f32);
+
+#[derive(Component)]
+struct MeshDrawMode {
     outline: bool,
     wireframe: bool,
+}
+
+#[derive(Component)]
+struct SaveButton{
     queue_save: bool,
-    fps: f64,
-    play_pause: PlayPauseMode,
-    camera_zoom: Vector2<f32>,
     path: String,
-    gui: Gui,
+}
+
+#[derive(Component)]
+struct PlayPauseButton {
+    play_pause: PlayPauseMode,
+}
+
+#[derive(Bundle)]
+pub struct CameraWindow {
+    screen_coords: ScreenCoord,
+    brush_size: BrushRadius,
+    mesh_draw_mode: MeshDrawMode,
+    queue_save: SaveButton,
+    fps: FPS,
+    play_pause: PlayPauseButton,
+    camera_zoom: CameraZoom,
+    gui: GuiComponent,
 }
 
 impl CameraWindow {
@@ -51,8 +69,8 @@ impl CameraWindow {
             outline: false,
             wireframe: false,
             queue_save: true,
-            brush_size: 1.0,
-            fps: 0.0,
+            brush_size: BrushRadius::default(),
+            fps: FPS::default(),
             play_pause: PlayPauseMode::Play,
             camera_zoom: Vector2 { x: 1.0, y: 1.0 },
             path: "".to_owned(),
@@ -60,8 +78,8 @@ impl CameraWindow {
         }
     }
 
-    pub fn update(&mut self, ctx: &mut Context, camera: &Camera, brush: &Brush) {
-        self.fps = ctx.time.fps();
+    pub fn update(&mut self, fps: &FPS, camera: &Camera, brush: &Brush) {
+        self.fps = fps;
         self.camera_zoom = camera.get_zoom();
         self.brush_size = brush.get_radius();
     }

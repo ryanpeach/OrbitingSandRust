@@ -2,6 +2,7 @@ extern crate orbiting_sand;
 
 use std::{env, path};
 
+use bevy_ecs::schedule::Schedule;
 use bevy_ecs::system::Resource;
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
@@ -28,6 +29,7 @@ use orbiting_sand::physics::util::vectors::WorldCoord;
 
 struct MainState {
     world: World,
+    schedule: Schedule,
     mouse_down: bool,
 }
 
@@ -79,9 +81,13 @@ impl MainState {
         let current_time = GlobalClock::default();
         world.insert_resource(current_time);
 
+        // Create the schedule
+        let mut schedule = Schedule::default();
+
         // Return the world
         Ok(MainState {
             world,
+            schedule,
             mouse_down: false,
         })
     }
@@ -89,23 +95,24 @@ impl MainState {
 
 impl EventHandler<ggez::GameError> for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
-        // Update the gui
-        self.camera_window.update(ctx, &self.camera, &self.brush);
-        self.cursor_tooltip.update(&self.camera, &self.celestial);
+        self.schedule.run(&mut self.world);
+        // // Update the gui
+        // self.camera_window.update(ctx, &self.camera, &self.brush);
+        // self.cursor_tooltip.update(&self.camera, &self.celestial);
 
-        // Save the celestial if requested
-        self.camera_window.save_optionally(ctx, &self.celestial);
+        // // Save the celestial if requested
+        // self.camera_window.save_optionally(ctx, &self.celestial);
 
-        // Update the clock
-        let delta_time = ctx.time.delta();
-        self.current_time.update(delta_time);
+        // // Update the clock
+        // let delta_time = ctx.time.delta();
+        // self.current_time.update(delta_time);
 
-        // Process the celestial
-        match self.camera_window.should_i_process() {
-            YesNoFullStep::Yes => self.celestial.data.process(self.current_time),
-            YesNoFullStep::FullStep => self.celestial.data.process_full(self.current_time),
-            YesNoFullStep::No => {}
-        }
+        // // Process the celestial
+        // match self.camera_window.should_i_process() {
+        //     YesNoFullStep::Yes => self.celestial.data.process(self.current_time),
+        //     YesNoFullStep::FullStep => self.celestial.data.process_full(self.current_time),
+        //     YesNoFullStep::No => {}
+        // }
 
         Ok(())
     }
