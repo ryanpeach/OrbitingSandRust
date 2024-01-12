@@ -19,26 +19,13 @@ use crate::{
 
 use super::window_trait::WindowTrait;
 
-#[derive(Component)]
-pub struct CursorScreenCoords {
+#[derive(Resource)]
+pub struct CursorTooltip {
     screen_coords: ScreenCoord,
-}
-
-#[derive(Component)]
-pub struct CursorCelestialData {
     ijk_coords: IjkVector,
     element_type: ElementType,
     chunk_coords: (ChunkIjkVector, JkVector),
-}
-
-#[derive(Bundle)]
-pub struct CursorTooltip {
-    world_coords: WorldCoord,
-    screen_coords: ScreenCoord,
-    camera_zoom: CameraZoom,
-    screen_size: ScreenSize,
-    cursor_celestial_data: CursorCelestialData,
-    gui: GuiComponent,
+    gui: Gui,
 }
 
 impl CursorTooltip {
@@ -49,7 +36,6 @@ impl CursorTooltip {
             chunk_coords: (ChunkIjkVector::new(0, 0, 0), JkVector::new(0, 0)),
             element_type: ElementType::Vacuum,
             screen_coords: ScreenCoord(Vec2 { x: 0.0, y: 0.0 }),
-            world_coords: WorldCoord(Vec2 { x: 0.0, y: 0.0 }),
             screen_size: camera.screen_size,
             gui: Gui::new(ctx),
         }

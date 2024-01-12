@@ -28,9 +28,6 @@ pub enum YesNoFullStep {
     FullStep,
 }
 
-#[derive(Component, Default)]
-struct FPS(f32);
-
 #[derive(Component)]
 struct MeshDrawMode {
     outline: bool,
@@ -38,26 +35,20 @@ struct MeshDrawMode {
 }
 
 #[derive(Component)]
-struct SaveButton{
+struct SaveParams{
     queue_save: bool,
     path: String,
 }
 
-#[derive(Component)]
-struct PlayPauseButton {
-    play_pause: PlayPauseMode,
-}
-
-#[derive(Bundle)]
+#[derive(Resource)]
 pub struct CameraWindow {
     screen_coords: ScreenCoord,
     brush_size: BrushRadius,
     mesh_draw_mode: MeshDrawMode,
-    queue_save: SaveButton,
-    fps: FPS,
-    play_pause: PlayPauseButton,
+    queue_save: SaveParams,
+    play_pause: PlayPauseMode,
     camera_zoom: CameraZoom,
-    gui: GuiComponent,
+    gui: Gui,
 }
 
 impl CameraWindow {

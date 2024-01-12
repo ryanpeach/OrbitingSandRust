@@ -10,22 +10,26 @@ use crate::physics::util::vectors::{ScreenCoord, WorldCoord};
 
 use super::transform::Transform;
 
-#[derive(Component, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy)]
+struct FPS(f32);
+
+#[derive(Debug, Clone, Copy)]
 pub struct CameraZoom(Vec2);
 
-#[derive(Component, Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct ScreenSize(Vec2);
 
-#[derive(Component, Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct CameraRotation(f32);
 
-#[derive(Bundle, Debug, Clone, Copy)]
+#[derive(Resource, Debug, Clone, Copy)]
 pub struct Camera {
     pub offset: ScreenCoord,
     pub rotation: CameraRotation,
     pub scale: CameraZoom,
     pub position: WorldCoord,
     pub screen_size: ScreenSize,
+    pub fps: FPS,
 }
 
 impl Camera {
@@ -41,6 +45,7 @@ impl Camera {
             screen_size: ss,
             scale: CameraZoom(Vec2 { x: 1., y: 1. }),
             position: WorldCoord(Vec2 { x: 0., y: 0. }),
+            fps: FPS(0.),
         }
     }
     pub fn to_matrix(&self) -> Mat4 {

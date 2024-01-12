@@ -5,21 +5,16 @@ use ggegui::{
 };
 use ggez::{glam::Vec2, Context};
 
-use crate::{physics::{fallingsand::elements::element::ElementType, util::vectors::ScreenCoord}, gui::gui_trait::GuiComponent};
+use crate::{physics::{fallingsand::elements::element::ElementType, util::vectors::ScreenCoord}};
 
 use super::window_trait::WindowTrait;
 
-#[derive(Component)]
-pub struct ElementSelection {
-    element_type: ElementType,
-}
-
 /// A window used to select an element to place
-#[derive(Bundle)]
+#[derive(Resource)]
 pub struct ElementPicker {
     screen_coords: ScreenCoord,
-    current_selection: ElementSelection,
-    gui: GuiComponent,
+    current_selection: ElementType,
+    gui: Gui,
 }
 
 impl ElementPicker {
