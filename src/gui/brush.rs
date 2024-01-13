@@ -16,28 +16,31 @@ use crate::{
 use super::screen_trait::ScreenDrawable;
 
 #[derive(Component, Debug, Clone, Copy)]
+pub struct BrushRadius(pub f32);
+
+#[derive(Component, Debug, Clone, Copy)]
 pub struct BrushData {
-    radius: f32,
+    radius: BrushRadius,
     nb_vertices: usize,
 }
 
 impl Default for BrushData {
     fn default() -> Self {
         Self {
-            radius: 1.0,
+            radius: BrushRadius(1.0),
             nb_vertices: 100,
         }
     }
 }
 
-#[derive(Bundle, Default)]
+#[derive(Resource, Default)]
 pub struct Brush {
     data: BrushData,
     drawable: ScreenDrawable,
 }
 
 impl Brush {
-    pub fn new(ctx: &mut ggez::Context) -> Self {
+    pub fn new() -> Self {
         let data = BrushData::default();
         Self {
             data: data,
@@ -45,15 +48,15 @@ impl Brush {
         }
     }
 
-    pub fn set_radius(&mut self, radius: f32) {
+    pub fn set_radius(&mut self, radius: BrushRadius) {
         self.data.radius = radius;
-        if self.data.radius < 0.5 {
-            self.data.radius = 0.5;
+        if self.data.radius.0 < 0.5 {
+            self.data.radius = BrushRadius(0.5);
         }
         self.drawable = Self::calc_mesh(self.data);
     }
 
-    pub fn get_radius(&self) -> f32 {
+    pub fn get_radius(&self) -> BrushRadius {
         self.data.radius
     }
 
@@ -62,7 +65,7 @@ impl Brush {
     }
 
     pub fn mult_radius(&mut self, multiplier: f32) {
-        self.set_radius(multiplier * self.get_radius());
+        self.set_radius(BrushRadius(multiplier * self.get_radius().0));
     }
 
     pub fn get_world_coord(&self, camera: &Camera) -> WorldCoord {
@@ -74,8 +77,8 @@ impl Brush {
         let mut indices: Vec<u32> = Vec::with_capacity(data.nb_vertices);
         for i in 0..data.nb_vertices {
             let angle = 2.0 * std::f32::consts::PI * (i as f32) / (data.nb_vertices as f32);
-            let x = data.radius * angle.cos();
-            let y = data.radius * angle.sin();
+            let x = data.radius.0 * angle.cos();
+            let y = data.radius.0 * angle.sin();
             vertices.push(Vertex {
                 position: [x, y],
                 uv: [0.0, 0.0],
@@ -95,8 +98,8 @@ impl Brush {
     fn brush_positions(&self, celestial: &Celestial, camera: &Camera) -> Vec<RelXyPoint> {
         let center =
             RelXyPoint(self.get_world_coord(&camera).0) - RelXyPoint(celestial.get_world_coord().0);
-        let begin_at = center - RelXyPoint::new(self.data.radius, self.data.radius);
-        let end_at = center + RelXyPoint::new(self.data.radius, self.data.radius);
+        let begin_at = center - RelXyPoint::new(self.data.radius.0, self.data.radius.0);
+        let end_at = center + RelXyPoint::new(self.data.radius.0, self.data.radius.0);
         let mut positions = Vec::new();
         let mut x = begin_at.0.x
             + celestial
@@ -115,7 +118,7 @@ impl Brush {
                     / 2.0;
             while y < end_at.0.y {
                 let pos = RelXyPoint::new(x, y);
-                if pos.0.distance(center.0) < self.data.radius {
+                if pos.0.distance(center.0) < self.data.radius.0 {
                     positions.push(pos);
                 }
                 y += celestial
@@ -142,7 +145,7 @@ impl Brush {
     ) {
         let positions = self.brush_positions(celestial, &camera);
         for pos in positions {
-            let mut element_dir = celestial.data.element_grid_dir;
+            let element_dir = &mut celestial.data.element_grid_dir;
             let coord_dir = element_dir.get_coordinate_dir();
             let conversion = coord_dir.rel_pos_to_cell_idx(pos);
             if let Ok(coords) = conversion {

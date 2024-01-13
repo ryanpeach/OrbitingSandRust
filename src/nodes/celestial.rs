@@ -96,7 +96,7 @@ impl Celestial {
         );
     }
     /// Only recalculates the texture for the combined mesh, not the mesh itself
-    pub fn calc_combined_mesh_texture(&self) {
+    pub fn calc_combined_mesh_texture(&mut self) {
         self.combined_mesh.texture = Some(RawImage::combine(
             self.data.all_textures.clone(),
             self.combined_mesh.mesh.uv_bounds,

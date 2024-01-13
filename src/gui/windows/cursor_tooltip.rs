@@ -1,13 +1,12 @@
-use bevy_ecs::{bundle::Bundle, component::Component, system::Resource};
+use bevy_ecs::system::Resource;
 use ggegui::{
     egui::{self, Ui},
     Gui,
 };
-use ggez::{glam::Vec2, Context};
+use ggez::{glam::Vec2, mint::Point2, Context};
 use mint::Vector2;
 
 use crate::{
-    gui::screen_trait::GuiComponent,
     nodes::{
         camera::cam::{Camera, CameraZoom, ScreenSize},
         celestial::Celestial,
@@ -21,25 +20,29 @@ use crate::{
     },
 };
 
-use super::window_trait::WindowTrait;
+use super::gui_trait::WindowTrait;
 
-#[derive(Bundle)]
+#[derive(Resource)]
 pub struct CursorTooltip {
+    world_coords: WorldCoord,
     screen_coords: ScreenCoord,
+    camera_zoom: CameraZoom,
+    screen_size: ScreenSize,
     ijk_coords: IjkVector,
-    element_type: ElementType,
     chunk_coords: (ChunkIjkVector, JkVector),
+    element_type: ElementType,
     gui: Gui,
 }
 
 impl CursorTooltip {
     pub fn new(ctx: &Context, camera: &Camera) -> Self {
         Self {
-            camera_zoom: Vector2 { x: 1.0, y: 1.0 },
+            camera_zoom: CameraZoom(Vec2 { x: 1.0, y: 1.0 }),
             ijk_coords: IjkVector::new(0, 0, 0),
             chunk_coords: (ChunkIjkVector::new(0, 0, 0), JkVector::new(0, 0)),
             element_type: ElementType::Vacuum,
             screen_coords: ScreenCoord(Vec2 { x: 0.0, y: 0.0 }),
+            world_coords: WorldCoord(Vec2 { x: 0.0, y: 0.0 }),
             screen_size: camera.screen_size,
             gui: Gui::new(ctx),
         }
@@ -47,17 +50,16 @@ impl CursorTooltip {
 
     pub fn update(&mut self, camera: &Camera, celestial: &Celestial) {
         self.camera_zoom = camera.get_zoom();
-        let coordinate_dir = celestial.data.get_element_dir().get_coordinate_dir();
+        let coordinate_dir = celestial.get_element_dir().get_coordinate_dir();
         self.world_coords = camera.screen_to_world_coords(self.screen_coords);
         self.ijk_coords = {
-            match coordinate_dir.rel_pos_to_cell_idx(RelXyPoint(self.world_coords.0.into())) {
+            match coordinate_dir.rel_pos_to_cell_idx(RelXyPoint(self.world_coords.0)) {
                 Ok(coords) => coords,
                 Err(coords) => coords,
             }
         };
         self.chunk_coords = coordinate_dir.cell_idx_to_chunk_idx(self.ijk_coords);
         self.element_type = celestial
-            .data
             .get_element_dir()
             .get_element(self.ijk_coords)
             .get_type();
@@ -72,8 +74,8 @@ impl WindowTrait for CursorTooltip {
     fn set_offset(&mut self, screen_coords: ScreenCoord) {
         if screen_coords.0.x > 0.
             && screen_coords.0.y > 0.
-            && screen_coords.0.x < self.screen_size.x - 100.
-            && screen_coords.0.y < self.screen_size.y - 100.
+            && screen_coords.0.x < self.screen_size.0.x - 100.
+            && screen_coords.0.y < self.screen_size.0.y - 100.
         {
             self.screen_coords = screen_coords;
         }

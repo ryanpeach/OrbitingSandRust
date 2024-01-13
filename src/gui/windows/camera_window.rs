@@ -1,24 +1,20 @@
-use bevy_ecs::{bundle::Bundle, component::Component, system::Resource};
+use bevy_ecs::system::Resource;
 use ggegui::{
     egui::{self, Ui},
     Gui,
 };
 use ggez::{glam::Vec2, Context};
-use mint::Vector2;
 
 use crate::{
-    gui::{
-        brush::{Brush, BrushRadius},
-        screen_trait::GuiComponent,
-    },
+    gui::brush::{Brush, BrushRadius},
     nodes::{
-        camera::cam::{Camera, CameraZoom},
+        camera::cam::{Camera, CameraZoom, FPS},
         celestial::Celestial,
     },
     physics::util::vectors::ScreenCoord,
 };
 
-use super::window_trait::WindowTrait;
+use super::gui_trait::WindowTrait;
 
 #[derive(Debug, Clone, Copy)]
 pub enum PlayPauseMode {
@@ -34,26 +30,17 @@ pub enum YesNoFullStep {
     FullStep,
 }
 
-#[derive(Component)]
-struct MeshDrawMode {
+#[derive(Resource)]
+pub struct CameraWindow {
+    draw_coords: ScreenCoord,
+    brush_size: BrushRadius,
     outline: bool,
     wireframe: bool,
-}
-
-#[derive(Component)]
-struct SaveParams {
     queue_save: bool,
-    path: String,
-}
-
-#[derive(Bundle)]
-pub struct CameraWindow {
-    screen_coords: ScreenCoord,
-    brush_size: BrushRadius,
-    mesh_draw_mode: MeshDrawMode,
-    queue_save: SaveParams,
+    fps: FPS,
     play_pause: PlayPauseMode,
     camera_zoom: CameraZoom,
+    path: String,
     gui: Gui,
 }
 
@@ -62,21 +49,21 @@ impl CameraWindow {
         // let pwd = std::env::current_dir().unwrap();
         // let pwdstr = pwd.to_str().unwrap();
         Self {
-            screen_coords: ScreenCoord(Vec2 { x: 0.0, y: 0.0 }),
+            draw_coords: ScreenCoord(Vec2 { x: 0.0, y: 0.0 }),
             outline: false,
             wireframe: false,
             queue_save: true,
-            brush_size: BrushRadius::default(),
-            fps: FPS::default(),
+            brush_size: BrushRadius(1.0),
+            fps: FPS(0.0),
             play_pause: PlayPauseMode::Play,
-            camera_zoom: Vector2 { x: 1.0, y: 1.0 },
+            camera_zoom: CameraZoom(Vec2 { x: 1.0, y: 1.0 }),
             path: "".to_owned(),
             gui: Gui::new(ctx),
         }
     }
 
-    pub fn update(&mut self, fps: &FPS, camera: &Camera, brush: &Brush) {
-        self.fps = fps;
+    pub fn update(&mut self, ctx: &mut Context, camera: &Camera, brush: &Brush) {
+        self.fps = FPS(ctx.time.fps());
         self.camera_zoom = camera.get_zoom();
         self.brush_size = brush.get_radius();
     }
@@ -112,7 +99,7 @@ impl CameraWindow {
     pub fn save_optionally(&mut self, ctx: &mut Context, celestial: &Celestial) {
         if self.queue_save {
             self.queue_save = false;
-            match celestial.data.save(ctx, &self.path) {
+            match celestial.save(ctx, &self.path) {
                 Ok(_) => println!("Saved to '{}'", self.path),
                 Err(e) => println!("Error saving to {}: {}", self.path, e),
             }
@@ -122,11 +109,11 @@ impl CameraWindow {
 
 impl WindowTrait for CameraWindow {
     fn get_offset(&self) -> ScreenCoord {
-        self.screen_coords
+        self.draw_coords
     }
 
     fn set_offset(&mut self, screen_coords: ScreenCoord) {
-        self.screen_coords = screen_coords;
+        self.draw_coords = screen_coords;
     }
 
     fn get_gui(&self) -> &Gui {
@@ -146,9 +133,9 @@ impl WindowTrait for CameraWindow {
     }
 
     fn window(&mut self, ui: &mut Ui) {
-        ui.label(format!("Brush Size: {}", self.brush_size));
+        ui.label(format!("Brush Size: {}", self.brush_size.0));
         ui.label(format!("Zoom: {:?}", self.camera_zoom));
-        ui.label(format!("FPS: {}", self.fps));
+        ui.label(format!("FPS: {}", self.fps.0));
         // Set a radiomode for "DrawMode"
         ui.separator();
         ui.checkbox(&mut self.outline, "Outline");

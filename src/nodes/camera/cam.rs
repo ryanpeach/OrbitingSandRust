@@ -11,16 +11,16 @@ use crate::physics::util::vectors::{ScreenCoord, WorldCoord};
 use super::transform::Transform;
 
 #[derive(Default, Debug, Clone, Copy)]
-struct FPS(f32);
+pub struct FPS(pub f64);
 
 #[derive(Debug, Clone, Copy)]
-pub struct CameraZoom(Vec2);
+pub struct CameraZoom(pub Vec2);
 
 #[derive(Debug, Clone, Copy)]
-pub struct ScreenSize(Vec2);
+pub struct ScreenSize(pub Vec2);
 
 #[derive(Debug, Clone, Copy)]
-pub struct CameraRotation(f32);
+pub struct CameraRotation(pub f32);
 
 #[derive(Resource, Debug, Clone, Copy)]
 pub struct Camera {
