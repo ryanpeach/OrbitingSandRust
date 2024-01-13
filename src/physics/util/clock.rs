@@ -20,10 +20,7 @@ impl Debug for Clock {
 
 impl Clock {
     pub fn new(time: Time, frame: FrameCount) -> Self {
-        Self {
-            time: time.clone(),
-            frame: frame.clone(),
-        }
+        Self { time, frame }
     }
     pub fn get_current_time(&self) -> Duration {
         self.time.elapsed()

@@ -72,7 +72,7 @@ impl CelestialData {
     }
     /// Only recalculates the texture for the combined mesh, not the mesh itself
     pub fn calc_combined_mesh_texture(&self, mesh: &OwnedMeshData) -> RawImage {
-        RawImage::combine(self.all_textures.clone(), mesh.uv_bounds.clone())
+        RawImage::combine(self.all_textures.clone(), mesh.uv_bounds)
     }
 
     /// Something to call every frame
