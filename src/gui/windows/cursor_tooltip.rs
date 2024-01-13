@@ -44,7 +44,7 @@ impl CursorTooltip {
 
     pub fn update(&mut self, camera: &Camera, celestial: &Celestial) {
         self.camera_zoom = camera.get_zoom();
-        let coordinate_dir = celestial.get_element_dir().get_coordinate_dir();
+        let coordinate_dir = celestial.data.get_element_dir().get_coordinate_dir();
         self.world_coords = camera.screen_to_world_coords(self.screen_coords);
         self.ijk_coords = {
             match coordinate_dir.rel_pos_to_cell_idx(RelXyPoint(self.world_coords.0)) {
@@ -54,6 +54,7 @@ impl CursorTooltip {
         };
         self.chunk_coords = coordinate_dir.cell_idx_to_chunk_idx(self.ijk_coords);
         self.element_type = celestial
+            .data
             .get_element_dir()
             .get_element(self.ijk_coords)
             .get_type();

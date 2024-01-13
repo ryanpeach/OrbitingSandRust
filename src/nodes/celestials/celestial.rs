@@ -1,5 +1,13 @@
+use bevy::asset::Handle;
+use bevy::core::FrameCount;
 use bevy::ecs::bundle::Bundle;
 use bevy::ecs::component::Component;
+use bevy::ecs::system::{Query, Res, ResMut};
+use bevy::render::mesh::shape::Quad;
+use bevy::render::mesh::Mesh;
+use bevy::render::render_asset::RenderAsset;
+use bevy::render::texture::Image;
+use bevy::time::Time;
 use hashbrown::HashMap;
 
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
@@ -21,30 +29,15 @@ pub struct CelestialData {
     pub bounding_boxes: Vec<Grid<Rect>>,
 }
 
-#[derive(Bundle)]
-pub struct Celestial {
-    pub data: CelestialData,
-    pub combined_mesh: WorldDrawable,
-    pub combined_outline_mesh: WorldDrawable,
-    pub combined_wireframe_mesh: WorldDrawable,
-}
-
-impl Celestial {
+impl CelestialData {
     pub fn new(element_grid_dir: ElementGridDir) -> Self {
         // In testing we found that the resolution doesn't matter, so make it infinite
         // a misnomer is the fact that in this case, big "res" is fewer mesh cells
-        let mut out = Self {
-            data: CelestialData {
-                element_grid_dir,
-                all_textures: HashMap::new(),
-                bounding_boxes: Vec::new(),
-            },
-            combined_mesh: WorldDrawable::default(),
-            combined_outline_mesh: WorldDrawable::default(),
-            combined_wireframe_mesh: WorldDrawable::default(),
-        };
-        out.ready();
-        out
+        Self {
+            element_grid_dir,
+            all_textures: HashMap::new(),
+            bounding_boxes: Vec::new(),
+        }
     }
 
     // /// Save the combined mesh and textures to a directory
@@ -56,108 +49,96 @@ impl Celestial {
     //     self.data.element_grid_dir.save(ctx, dir_path)
     // }
 
-    /// Something to call only on MAJOR changes, not every frame
-    fn ready(&mut self) {
-        self.calc_combined_mesh();
-        self.calc_combined_mesh_texture();
-        self.calc_combined_mesh_outline();
-        self.calc_combined_mesh_wireframe();
-    }
-    pub fn calc_combined_mesh_outline(&mut self) {
-        self.combined_mesh.mesh = OwnedMeshData::combine(
+    pub fn calc_combined_mesh_outline(&self) -> OwnedMeshData {
+        OwnedMeshData::combine(
             &self
-                .data
                 .element_grid_dir
                 .get_coordinate_dir()
                 .get_mesh_data(MeshDrawMode::Outline),
-        );
+        )
     }
-    pub fn calc_combined_mesh_wireframe(&mut self) {
-        self.combined_mesh.mesh = OwnedMeshData::combine(
+    pub fn calc_combined_mesh_wireframe(&self) -> OwnedMeshData {
+        OwnedMeshData::combine(
             &self
-                .data
                 .element_grid_dir
                 .get_coordinate_dir()
                 .get_mesh_data(MeshDrawMode::TriangleWireframe),
-        );
+        )
     }
     /// Only recalculates the mesh for the combined mesh, not the texture
-    pub fn calc_combined_mesh(&mut self) {
-        self.combined_mesh.mesh = OwnedMeshData::combine(
+    pub fn calc_combined_mesh(&self) -> OwnedMeshData {
+        OwnedMeshData::combine(
             &self
-                .data
                 .element_grid_dir
                 .get_coordinate_dir()
                 .get_mesh_data(MeshDrawMode::TexturedMesh),
-        );
+        )
     }
     /// Only recalculates the texture for the combined mesh, not the mesh itself
-    pub fn calc_combined_mesh_texture(&mut self) {
-        self.combined_mesh.texture = Some(RawImage::combine(
-            self.data.all_textures.clone(),
-            self.combined_mesh.mesh.uv_bounds,
-        ));
+    pub fn calc_combined_mesh_texture(&self, mesh: &OwnedMeshData) -> RawImage {
+        RawImage::combine(self.all_textures.clone(), mesh.uv_bounds.clone())
     }
 
     /// Something to call every frame
     pub fn process(&mut self, current_time: Clock) {
-        self.data.element_grid_dir.process(current_time);
-        self.data
-            .all_textures
-            .extend(self.data.element_grid_dir.get_updated_target_textures());
-        // self.data.all_textures = self.data.element_grid_dir.get_textures();
+        self.element_grid_dir.process(current_time);
+        self.all_textures
+            .extend(self.element_grid_dir.get_updated_target_textures());
+        // self.all_textures = self.element_grid_dir.get_textures();
     }
 
     pub fn process_full(&mut self, current_time: Clock) {
-        self.data.element_grid_dir.process_full(current_time);
-        self.data
-            .all_textures
-            .extend(self.data.element_grid_dir.get_updated_target_textures());
-    }
-    pub fn get_combined_mesh_texture(&self) -> (&OwnedMeshData, &RawImage) {
-        (
-            &self.combined_mesh.mesh,
-            self.combined_mesh.texture.as_ref().unwrap(),
-        )
+        self.element_grid_dir.process_full(current_time);
+        self.all_textures
+            .extend(self.element_grid_dir.get_updated_target_textures());
     }
     pub fn get_all_bounding_boxes(&self) -> &Vec<Grid<Rect>> {
-        &self.data.bounding_boxes
+        &self.bounding_boxes
     }
     pub fn get_all_textures(&self) -> &HashMap<ChunkIjkVector, RawImage> {
-        &self.data.all_textures
+        &self.all_textures
     }
     pub fn get_element_dir(&self) -> &ElementGridDir {
-        &self.data.element_grid_dir
+        &self.element_grid_dir
     }
     pub fn get_element_dir_mut(&mut self) -> &mut ElementGridDir {
-        &mut self.data.element_grid_dir
+        &mut self.element_grid_dir
     }
 }
 
-// impl CelestialData {
-//     /// Produces a mask of which chunks are visible, true if visible, false if not
-//     fn frustum_cull(&self, camera: &Camera) -> Vec<Grid<bool>> {
-//         let cam_bb = &camera.world_coord_bounding_box();
-//         let mut out =
-//             Vec::with_capacity(self.data.element_grid_dir.get_coordinate_dir().get_num_layers());
-//         for layer in self.get_all_bounding_boxes() {
-//             let vec_out = layer
-//                 .iter()
-//                 .map(|x| x.overlaps(cam_bb))
-//                 .collect::<Vec<bool>>();
-//             out.push(Grid::new(layer.get_width(), layer.get_height(), vec_out));
-//         }
-//         out
-//     }
-// }
+#[derive(Bundle)]
+pub struct Celestial {
+    pub world_coord: WorldCoord,
+    pub data: CelestialData,
+}
+
+impl Celestial {
+    pub fn new(element_grid_dir: ElementGridDir) -> Self {
+        Self {
+            world_coord: WorldCoord::default(),
+            data: CelestialData::new(element_grid_dir),
+        }
+    }
+}
 
 impl NodeTrait for Celestial {
     fn get_world_coord(&self) -> WorldCoord {
-        self.combined_mesh.get_world_coord()
+        self.world_coord
     }
     fn set_world_coord(&mut self, world_coord: WorldCoord) {
-        self.combined_mesh.set_world_coord(world_coord);
-        self.combined_outline_mesh.set_world_coord(world_coord);
-        self.combined_wireframe_mesh.set_world_coord(world_coord);
+        self.world_coord = world_coord;
+    }
+}
+
+/// Bevy Systems
+impl Celestial {
+    pub fn process_system(
+        mut celestial: Query<&mut CelestialData>,
+        time: Res<Time>,
+        frame: Res<FrameCount>,
+    ) {
+        for mut celestial in celestial.iter_mut() {
+            celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
+        }
     }
 }

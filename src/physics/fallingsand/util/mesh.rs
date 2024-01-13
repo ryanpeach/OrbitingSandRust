@@ -147,7 +147,7 @@ impl OwnedMeshData {
         }
     }
 
-    fn create_bevy_mesh(&self, meshes: &mut ResMut<Assets<Mesh>>) -> Handle<Mesh> {
+    pub fn load_bevy_mesh(&self, meshes: &mut ResMut<Assets<Mesh>>) -> Handle<Mesh> {
         let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
 
         // Assuming that Vertex struct has position, uv, and color fields

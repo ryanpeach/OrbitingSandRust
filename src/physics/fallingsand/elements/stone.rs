@@ -78,7 +78,7 @@ mod tests {
         };
 
         fn assert_movement(mut element_grid_dir: ElementGridDir, loc1: (ChunkIjkVector, JkVector)) {
-            let mut clock = Clock::new();
+            let mut clock = Clock::default();
 
             // Set the bottom right to sand
             {

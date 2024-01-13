@@ -101,7 +101,7 @@ mod tests {
             loc1: (ChunkIjkVector, JkVector),
             loc2: (ChunkIjkVector, JkVector),
         ) {
-            let mut clock = Clock::new();
+            let mut clock = Clock::default();
 
             // Set the bottom right to sand
             {

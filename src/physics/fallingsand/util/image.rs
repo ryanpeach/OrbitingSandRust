@@ -1,6 +1,6 @@
 use bevy::{
     asset::{AssetServer, Handle},
-    ecs::system::Res,
+    ecs::system::{Res, ResMut},
     render::{
         render_resource::{Extent3d, TextureDimension, TextureFormat},
         texture::Image,
@@ -54,7 +54,7 @@ impl RawImage {
     //     img.encode(ctx, ImageEncodingFormat::Png, path)
     // }
 
-    fn load_texture(&self, asset_server: &Res<AssetServer>) -> Handle<Image> {
+    pub fn load_bevy_texture(&self, asset_server: &Res<AssetServer>) -> Handle<Image> {
         let size = Extent3d {
             width: self.bounds.w as u32,
             height: self.bounds.h as u32,

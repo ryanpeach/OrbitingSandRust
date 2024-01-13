@@ -1,56 +1,68 @@
-// struct MainState {
-//     world: World,
-//     schedule: Schedule,
-//     mouse_down: bool,
-// }
+use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
+use orbiting_sand::nodes::{
+    celestials::{
+        celestial::{self, Celestial},
+        earthlike::EarthLikeBuilder,
+    },
+    node_trait::WorldDrawable,
+};
+use rayon::iter::Update;
 
-// impl MainState {
-//     fn new() -> GameResult<MainState> {
-//         // Create the world
-//         let mut world = World::default();
+fn main() {
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_systems(Startup, setup)
+        .add_systems(Update, Celestial::process_system)
+        .run();
+}
 
-//         // Create the celestial
-//         let planet = EarthLikeBuilder::new().build();
-//         world.spawn(planet);
+fn setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    asset_server: Res<AssetServer>,
+) {
+    commands.spawn(Camera2dBundle::default());
 
-//         // Create the camera
-//         let _screen_size = ctx.gfx.drawable_size();
-//         let camera = Camera::new(ScreenSize(Vec2::new(_screen_size.0, _screen_size.1)));
-//         world.insert_resource(camera);
+    // Create a Celestial and add its meshs as children
+    let planet = EarthLikeBuilder::new().build();
+    let mesh = planet.data.calc_combined_mesh();
+    let texture = planet
+        .data
+        .calc_combined_mesh_texture(&mesh)
+        .load_bevy_texture(&asset_server);
+    let material = materials.add(texture.into());
+    commands.spawn(MaterialMesh2dBundle {
+        mesh: mesh.load_bevy_mesh(&mut meshes).into(),
+        transform: Transform::from_xyz(0.0, 0.0, 0.0),
+        material,
+        ..Default::default()
+    });
+}
 
-//         // Create the camera window
-//         let camera_window = CameraWindow::new(&ctx);
-//         world.insert_resource(camera_window);
+// fn process_celestial(
+//     time: Res<Time>,
+//     frame_count: Res<FrameCount>,
+//     mut commands: Commands,
+//     mut meshes: ResMut<Assets<Mesh>>,
+//     mut materials: ResMut<Assets<StandardMaterial>>,
+//     celestial: Query<&Celestial>,
+// ) {
+//     for celestial in celestial.iter() {
+//         // process the celestial
+//         celestial.data.process(Clock{time, frame_count});
 
-//         // Create the cursor tooltip
-//         let cursor_tooltip = CursorTooltip::new(&ctx, &camera);
-//         world.insert_resource(cursor_tooltip);
+//         // get the celestials children
+//         let children = celestial.get_children();
 
-//         // Create the element picker
-//         let element_picker = ElementPicker::new(&mut ctx);
-//         world.insert_resource(element_picker);
-
-//         // Add the context to the world
-//         world.insert_resource(ctx);
-
-//         // Create the brush
-//         let brush = Brush::default();
-//         world.insert_resource(brush);
-
-//         // Create the global clock
-//         let current_time = GlobalClock::default();
-//         world.insert_resource(current_time);
-
-//         // Create the schedule
-//         let mut schedule = Schedule::default();
-
-//         // Return the world
-//         Ok(MainState {
-//             world,
-//             schedule,
-//             mouse_down: false,
-//         })
+//         // All children that are MaterialMesh2dBundle's
+//         // redraw their textures
+//         for child in children.iter() {
+//             if let Ok(mut mesh) = child.get_bundle::<MaterialMesh2dBundle>() {
+//                 let texture = child.redraw(&mut mesh);
+//                 mesh.material = materials.add(texture.into());
+//                 break;
+//             }
+//         }
 //     }
 // }
-
-fn main() {}

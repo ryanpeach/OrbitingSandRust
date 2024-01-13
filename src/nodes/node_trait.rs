@@ -1,4 +1,9 @@
-use bevy::ecs::component::Component;
+use bevy::{
+    ecs::{bundle::Bundle, component::Component},
+    pbr::StandardMaterial,
+    render::{mesh::Mesh, render_resource::Texture, texture::Image},
+    sprite::MaterialMesh2dBundle,
+};
 
 use crate::physics::{
     fallingsand::util::{image::RawImage, mesh::OwnedMeshData},
@@ -35,5 +40,15 @@ impl NodeTrait for WorldDrawable {
     }
     fn set_world_coord(&mut self, world_coord: WorldCoord) {
         self.world_coord = world_coord;
+    }
+}
+
+impl WorldDrawable {
+    fn create_bevy_mesh(&self) -> Mesh {
+        todo!()
+    }
+
+    fn create_bevy_material(&self) -> StandardMaterial {
+        todo!()
     }
 }

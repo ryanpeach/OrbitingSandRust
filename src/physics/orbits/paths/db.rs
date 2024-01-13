@@ -1,17 +1,12 @@
 use bevy::ecs::{bundle::Bundle, component::Component, entity::Entity, system::Resource};
 use quadtree_rs::Quadtree;
 
-use crate::physics::util::clock::InGameTime;
+use crate::physics::util::clock::Clock;
 
 #[derive(Component)]
-struct EntityQuadtree {
-    quadtree: Quadtree<u16, Entity>,
-}
-
-#[derive(Bundle)]
 struct PositionDatabase {
-    start_time: InGameTime,
-    quadtree: EntityQuadtree,
+    start_time: Clock,
+    quadtree: Quadtree<u16, Entity>,
 }
 
 #[derive(Resource)]

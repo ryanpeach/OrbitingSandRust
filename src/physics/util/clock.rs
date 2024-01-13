@@ -1,61 +1,42 @@
-use std::time::Duration;
+use std::{fmt::Debug, time::Duration};
 
-use bevy::ecs::{bundle::Bundle, component::Component, system::Resource};
-
-/// The current frame
-#[derive(Component, Default, Debug, Clone, Copy)]
-pub struct Frame {
-    pub frame: u64,
-}
-
-/// The current time in the game, taking into account pausing and ff, from bootup
-#[derive(Component, Default, Debug, Clone, Copy)]
-pub struct InGameTime {
-    pub time: Duration,
-}
-
-/// The delta between the last frame and the current frame
-#[derive(Component, Default, Debug, Clone, Copy)]
-pub struct DeltaInGameTime {
-    pub delta: Duration,
-}
-
-/// The time and delta for physics objects
-#[derive(Component, Default, Debug, Clone, Copy)]
-pub struct PhysicsTime {
-    pub current: InGameTime,
-    pub delta: DeltaInGameTime,
-}
+use bevy::{core::FrameCount, time::Time};
 
 /// A clock for physics objects
-#[derive(Bundle, Default, Debug, Clone, Copy)]
+#[derive(Default, Clone, Copy)]
 pub struct Clock {
-    time: PhysicsTime,
-    frame: Frame,
+    time: Time,
+    frame: FrameCount,
 }
 
-/// The clock for the world itself
-#[derive(Resource, Default, Debug, Clone, Copy)]
-pub struct GlobalClock {
-    pub clock: Clock,
+impl Debug for Clock {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Clock")
+            .field("time", &self.time)
+            .field("frame", &self.frame.0)
+            .finish()
+    }
 }
 
 impl Clock {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(time: Time, frame: FrameCount) -> Self {
+        Self {
+            time: time.clone(),
+            frame: frame.clone(),
+        }
     }
     pub fn get_current_time(&self) -> Duration {
-        self.time.current.time
+        self.time.elapsed()
     }
     pub fn get_last_delta(&self) -> Duration {
-        self.time.delta.delta
+        self.time.delta()
     }
-    pub fn get_current_frame(&self) -> u64 {
-        self.frame.frame
+    pub fn get_current_frame(&self) -> u32 {
+        self.frame.0
     }
+    /// Mostly used for testing
     pub fn update(&mut self, delta: Duration) {
-        self.time.current.time += delta;
-        self.time.delta.delta = delta;
-        self.frame.frame += 1;
+        self.time.advance_by(delta);
+        self.frame.0 += 1;
     }
 }
