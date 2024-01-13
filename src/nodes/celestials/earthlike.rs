@@ -1,5 +1,4 @@
 use crate::{
-    nodes::celestials::celestial::CelestialData,
     physics::fallingsand::{
         data::element_directory::ElementGridDir, mesh::coordinate_directory::CoordinateDirBuilder,
     },

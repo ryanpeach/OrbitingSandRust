@@ -6,7 +6,6 @@ use crate::{
     gui::brush::{Brush, BrushRadius},
     nodes::{
         camera::cam::{Camera, CameraZoom, FPS},
-        celestials::celestial::Celestial,
     },
     physics::util::vectors::ScreenCoord,
 };

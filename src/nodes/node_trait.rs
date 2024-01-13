@@ -1,4 +1,4 @@
-use bevy::ecs::{component::Component, query::WorldQuery};
+use bevy::ecs::{component::Component};
 
 use crate::physics::{
     fallingsand::util::{image::RawImage, mesh::OwnedMeshData},

@@ -1,4 +1,4 @@
-use bevy::render::texture::ImageFormat;
+
 use hashbrown::HashMap;
 
 use crate::physics::util::vectors::Rect;

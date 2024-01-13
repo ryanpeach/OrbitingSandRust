@@ -1,4 +1,4 @@
-use bevy_egui::egui::{self, Align2, Ui};
+use bevy_egui::egui::{Align2, Ui};
 
 use crate::physics::util::vectors::ScreenCoord;
 
