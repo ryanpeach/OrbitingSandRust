@@ -1,8 +1,5 @@
 use bevy::ecs::system::Resource;
-use bevy_egui::{
-    egui::{self, Ui},
-    Gui,
-};
+use bevy_egui::egui::{self, Ui};
 use glam::Vec2;
 
 use crate::{
@@ -41,11 +38,10 @@ pub struct CameraWindow {
     play_pause: PlayPauseMode,
     camera_zoom: CameraZoom,
     path: String,
-    gui: Gui,
 }
 
 impl CameraWindow {
-    pub fn new(ctx: &Context) -> Self {
+    pub fn new() -> Self {
         // let pwd = std::env::current_dir().unwrap();
         // let pwdstr = pwd.to_str().unwrap();
         Self {
@@ -58,12 +54,11 @@ impl CameraWindow {
             play_pause: PlayPauseMode::Play,
             camera_zoom: CameraZoom(Vec2 { x: 1.0, y: 1.0 }),
             path: "".to_owned(),
-            gui: Gui::new(ctx),
         }
     }
 
-    pub fn update(&mut self, ctx: &mut Context, camera: &Camera, brush: &Brush) {
-        self.fps = FPS(ctx.time.fps());
+    pub fn update(&mut self, fps: &FPS, camera: &Camera, brush: &Brush) {
+        self.fps = fps.clone();
         self.camera_zoom = camera.get_zoom();
         self.brush_size = brush.get_radius();
     }
@@ -96,15 +91,15 @@ impl CameraWindow {
         }
     }
 
-    pub fn save_optionally(&mut self, ctx: &mut Context, celestial: &Celestial) {
-        if self.queue_save {
-            self.queue_save = false;
-            match celestial.save(ctx, &self.path) {
-                Ok(_) => println!("Saved to '{}'", self.path),
-                Err(e) => println!("Error saving to {}: {}", self.path, e),
-            }
-        }
-    }
+    // pub fn save_optionally(&mut self, ctx: &mut Context, celestial: &Celestial) {
+    //     if self.queue_save {
+    //         self.queue_save = false;
+    //         match celestial.save(ctx, &self.path) {
+    //             Ok(_) => println!("Saved to '{}'", self.path),
+    //             Err(e) => println!("Error saving to {}: {}", self.path, e),
+    //         }
+    //     }
+    // }
 }
 
 impl WindowTrait for CameraWindow {
@@ -114,14 +109,6 @@ impl WindowTrait for CameraWindow {
 
     fn set_offset(&mut self, screen_coords: ScreenCoord) {
         self.draw_coords = screen_coords;
-    }
-
-    fn get_gui(&self) -> &Gui {
-        &self.gui
-    }
-
-    fn get_gui_mut(&mut self) -> &mut Gui {
-        &mut self.gui
     }
 
     fn get_alignment(&self) -> egui::Align2 {

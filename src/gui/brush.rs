@@ -1,4 +1,7 @@
-use bevy::ecs::{component::Component, system::Resource};
+use bevy::{
+    ecs::{component::Component, system::Resource},
+    render::color::Color,
+};
 use glam::Vec2;
 
 use crate::{
@@ -8,7 +11,7 @@ use crate::{
         fallingsand::util::mesh::OwnedMeshData,
         util::{
             clock::Clock,
-            vectors::{RelXyPoint, ScreenCoord, WorldCoord},
+            vectors::{RelXyPoint, ScreenCoord, Vertex, WorldCoord},
         },
     },
 };
@@ -80,18 +83,18 @@ impl Brush {
             let x = data.radius.0 * angle.cos();
             let y = data.radius.0 * angle.sin();
             vertices.push(Vertex {
-                position: [x, y],
-                uv: [0.0, 0.0],
-                color: [1.0, 1.0, 1.0, 1.0],
+                position: Vec2::new(x, y),
+                uv: Vec2::new(0.0, 0.0),
+                color: Color::rgba(1.0, 1.0, 1.0, 1.0),
             });
             indices.push(i as u32);
         }
         let mesh = OwnedMeshData::new(vertices, indices);
         ScreenDrawable::new(ScreenCoord(Vec2::new(0.0, 0.0)), mesh, None)
     }
-    pub fn draw(&mut self, ctx: &mut ggez::Context, canvas: &mut Canvas, camera: &Camera) {
-        self.drawable.draw(ctx, canvas, camera);
-    }
+    // pub fn draw(&mut self, ctx: &mut ggez::Context, canvas: &mut Canvas, camera: &Camera) {
+    //     self.drawable.draw(ctx, canvas, camera);
+    // }
 }
 
 /// Brush Radius Effect

@@ -28,7 +28,7 @@ impl Element for DownFlier {
         StateOfMatter::Solid
     }
     fn get_color(&self) -> Color {
-        Color::rgb(255, 255, 255)
+        Color::rgb_u8(255, 255, 255)
     }
     fn _process(
         &mut self,

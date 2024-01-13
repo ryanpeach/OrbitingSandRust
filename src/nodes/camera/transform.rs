@@ -1,8 +1,5 @@
-use ggez::{
-    glam::Mat4,
-    graphics::{self, DrawParam},
-    mint::{Point2, Vector2},
-};
+use glam::Mat4;
+use mint::{Point2, Vector2};
 
 #[derive(Clone, Copy)]
 pub struct Transform {
@@ -47,33 +44,6 @@ impl Default for Transform {
             rotation: 0.,
             scale: Vector2 { x: 1., y: 1. },
             offset: Point2 { x: 0., y: 0. },
-        }
-    }
-}
-
-impl From<Transform> for DrawParam {
-    fn from(value: Transform) -> Self {
-        DrawParam::default().transform(value.to_matrix())
-    }
-}
-
-impl From<graphics::Transform> for Transform {
-    fn from(value: graphics::Transform) -> Self {
-        match value {
-            graphics::Transform::Values {
-                dest,
-                rotation,
-                scale,
-                offset,
-            } => Transform {
-                dest,
-                rotation,
-                scale,
-                offset,
-            },
-            graphics::Transform::Matrix(_) => {
-                panic!("Cannot convert ggez::Transform to crate::Transform")
-            }
         }
     }
 }

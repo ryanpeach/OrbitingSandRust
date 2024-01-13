@@ -1,3 +1,5 @@
+use glam::Vec2;
+
 use crate::physics::util::vectors::{Rect, Vertex};
 
 use super::grid::Grid;
@@ -115,7 +117,7 @@ impl OwnedMeshData {
                     (vertex.uv[1] * mesh_data.uv_bounds.h + mesh_data.uv_bounds.y) / max_y;
                 new_vertices.push(Vertex {
                     position: vertex.position,
-                    uv: [un_normalized_u, un_normalized_v],
+                    uv: Vec2::new(un_normalized_u, un_normalized_v),
                     color: vertex.color,
                 })
             }

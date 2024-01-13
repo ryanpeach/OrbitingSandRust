@@ -76,12 +76,14 @@ impl Add for RelXyPoint {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Vertex {
     pub position: Vec2,
     pub uv: Vec2,
     pub color: Color,
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Rect {
     pub x: f32,
     pub y: f32,
@@ -98,8 +100,8 @@ impl Into<bevy::math::Rect> for Rect {
 impl From<bevy::math::Rect> for Rect {
     fn from(rect: bevy::math::Rect) -> Self {
         Self {
-            x: rect.x(),
-            y: rect.y(),
+            x: rect.min.x,
+            y: rect.min.y,
             w: rect.width(),
             h: rect.height(),
         }

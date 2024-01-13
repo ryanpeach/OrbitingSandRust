@@ -1,12 +1,8 @@
 use bevy::ecs::system::Resource;
-use ggez::{
-    glam::{Mat4, Vec2, Vec3},
-    graphics::{DrawParam, Rect},
-    mint::{Point2, Vector2},
-    Context,
-};
+use glam::{Mat4, Vec2, Vec3};
+use mint::{Point2, Vector2};
 
-use crate::physics::util::vectors::{ScreenCoord, WorldCoord};
+use crate::physics::util::vectors::{Rect, ScreenCoord, WorldCoord};
 
 use super::transform::Transform;
 
@@ -155,15 +151,15 @@ impl Camera {
         self.scale.0.y *= factor.y;
     }
 
-    pub fn zoom_center<V>(&mut self, ctx: &Context, factor: V)
+    pub fn zoom_center<V>(&mut self, factor: V)
     where
         V: Into<Vector2<f32>>,
     {
         let factor: Vector2<f32> = factor.into();
-        let screen_rect = ctx.gfx.drawable_size();
+        let screen_rect = self.screen_size;
         let screen_center = ScreenCoord(Vec2 {
-            x: screen_rect.0 / 2.0,
-            y: screen_rect.1 / 2.0,
+            x: screen_rect.0.x / 2.0,
+            y: screen_rect.0.y / 2.0,
         });
         let world_center = self.screen_to_world_coords(screen_center);
         self.position.0.x = world_center.0.x - (world_center.0.x - self.position.0.x) / factor.x;
@@ -177,7 +173,8 @@ impl Camera {
         P: Into<Point2<f32>>,
         V: Into<Vector2<f32>>,
     {
-        let point = ScreenCoord(point.into().into());
+        let point: Point2<f32> = point.into();
+        let point = ScreenCoord(Vec2::new(point.x, point.y));
         let factor: Vector2<f32> = factor.into();
         let world_center = self.screen_to_world_coords(point);
         self.position.0.x = world_center.0.x - (world_center.0.x - self.position.0.x) / factor.x;
@@ -194,13 +191,13 @@ impl Camera {
         self.rotation.0 = angle;
     }
 
-    pub fn as_draw_param(&self) -> DrawParam {
-        DrawParam::default().transform(self.to_matrix())
-    }
+    // pub fn as_draw_param(&self) -> DrawParam {
+    //     DrawParam::default().transform(self.to_matrix())
+    // }
 }
 
-impl From<Camera> for DrawParam {
-    fn from(value: Camera) -> Self {
-        DrawParam::default().transform(value.to_matrix())
-    }
-}
+// impl From<Camera> for DrawParam {
+//     fn from(value: Camera) -> Self {
+//         DrawParam::default().transform(value.to_matrix())
+//     }
+// }

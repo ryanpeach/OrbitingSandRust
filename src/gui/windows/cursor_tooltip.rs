@@ -1,9 +1,6 @@
 use bevy::ecs::system::Resource;
-use bevy_egui::{
-    egui::{self, Ui},
-    Gui,
-};
-use ggez::{glam::Vec2, Context};
+use bevy_egui::egui::{self, Ui};
+use glam::Vec2;
 
 use crate::{
     nodes::{
@@ -30,11 +27,10 @@ pub struct CursorTooltip {
     ijk_coords: IjkVector,
     chunk_coords: (ChunkIjkVector, JkVector),
     element_type: ElementType,
-    gui: Gui,
 }
 
 impl CursorTooltip {
-    pub fn new(ctx: &Context, camera: &Camera) -> Self {
+    pub fn new(camera: &Camera) -> Self {
         Self {
             camera_zoom: CameraZoom(Vec2 { x: 1.0, y: 1.0 }),
             ijk_coords: IjkVector::new(0, 0, 0),
@@ -43,7 +39,6 @@ impl CursorTooltip {
             screen_coords: ScreenCoord(Vec2 { x: 0.0, y: 0.0 }),
             world_coords: WorldCoord(Vec2 { x: 0.0, y: 0.0 }),
             screen_size: camera.screen_size,
-            gui: Gui::new(ctx),
         }
     }
 
@@ -78,14 +73,6 @@ impl WindowTrait for CursorTooltip {
         {
             self.screen_coords = screen_coords;
         }
-    }
-
-    fn get_gui(&self) -> &Gui {
-        &self.gui
-    }
-
-    fn get_gui_mut(&mut self) -> &mut Gui {
-        &mut self.gui
     }
 
     fn get_alignment(&self) -> egui::Align2 {

@@ -2,10 +2,6 @@ use bevy::ecs::bundle::Bundle;
 use bevy::ecs::component::Component;
 use hashbrown::HashMap;
 
-use ggez::graphics::Rect;
-use ggez::Context;
-
-use crate::physics::fallingsand::data::element_directory::ElementGridDir;
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
 use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::image::RawImage;
@@ -13,6 +9,7 @@ use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::util::clock::Clock;
 use crate::physics::util::vectors::WorldCoord;
+use crate::physics::{fallingsand::data::element_directory::ElementGridDir, util::vectors::Rect};
 
 use super::super::node_trait::{NodeTrait, WorldDrawable};
 
@@ -50,14 +47,14 @@ impl Celestial {
         out
     }
 
-    /// Save the combined mesh and textures to a directory
-    /// As well as all the chunks
-    pub fn save(&self, ctx: &mut Context, dir_path: &str) -> Result<(), ggez::GameError> {
-        let img = self.get_combined_mesh_texture().1.to_image(ctx);
-        let combined_path = format!("{}/combined.png", dir_path);
-        img.encode(ctx, ggez::graphics::ImageEncodingFormat::Png, combined_path)?;
-        self.data.element_grid_dir.save(ctx, dir_path)
-    }
+    // /// Save the combined mesh and textures to a directory
+    // /// As well as all the chunks
+    // pub fn save(&self, ctx: &mut Context, dir_path: &str) -> Result<(), ggez::GameError> {
+    //     let img = self.get_combined_mesh_texture().1.to_image(ctx);
+    //     let combined_path = format!("{}/combined.png", dir_path);
+    //     img.encode(ctx, ggez::graphics::ImageEncodingFormat::Png, combined_path)?;
+    //     self.data.element_grid_dir.save(ctx, dir_path)
+    // }
 
     /// Something to call only on MAJOR changes, not every frame
     fn ready(&mut self) {

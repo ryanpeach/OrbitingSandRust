@@ -1,12 +1,8 @@
 use bevy::ecs::component::Component;
-use ggez::graphics::{Canvas, DrawParam, Mesh};
 
-use crate::{
-    nodes::camera::cam::Camera,
-    physics::{
-        fallingsand::util::{image::RawImage, mesh::OwnedMeshData},
-        util::vectors::ScreenCoord,
-    },
+use crate::physics::{
+    fallingsand::util::{image::RawImage, mesh::OwnedMeshData},
+    util::vectors::ScreenCoord,
 };
 
 #[derive(Component)]
@@ -64,17 +60,17 @@ impl ScreenDrawable {
     pub fn set_enabled(&mut self, enabled: bool) {
         self.enabled = enabled;
     }
-    pub fn draw(&mut self, ctx: &mut ggez::Context, canvas: &mut Canvas, camera: &Camera) {
-        if !self.get_enabled() {
-            return;
-        }
-        let mesh = Mesh::from_data(ctx, self.get_mesh_mut().to_mesh_data());
-        let texture = self.get_texture_mut();
-        if let Some(texture) = texture {
-            canvas.draw_textured_mesh(mesh, texture.to_image(ctx), camera.as_draw_param());
-        } else {
-            let draw_param = DrawParam::new().dest(self.get_screen_coord());
-            canvas.draw(&mesh, draw_param);
-        }
-    }
+    // pub fn draw(&mut self, ctx: &mut ggez::Context, canvas: &mut Canvas, camera: &Camera) {
+    //     if !self.get_enabled() {
+    //         return;
+    //     }
+    //     let mesh = Mesh::from_data(ctx, self.get_mesh_mut().to_mesh_data());
+    //     let texture = self.get_texture_mut();
+    //     if let Some(texture) = texture {
+    //         canvas.draw_textured_mesh(mesh, texture.to_image(ctx), camera.as_draw_param());
+    //     } else {
+    //         let draw_param = DrawParam::new().dest(self.get_screen_coord());
+    //         canvas.draw(&mesh, draw_param);
+    //     }
+    // }
 }

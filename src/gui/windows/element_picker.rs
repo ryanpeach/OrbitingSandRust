@@ -1,9 +1,6 @@
 use bevy::ecs::system::Resource;
-use bevy_egui::{
-    egui::{self, Ui},
-    Gui,
-};
-use ggez::{glam::Vec2, Context};
+use bevy_egui::egui::{self, Ui};
+use glam::Vec2;
 
 use crate::physics::{fallingsand::elements::element::ElementType, util::vectors::ScreenCoord};
 
@@ -14,15 +11,13 @@ use super::window_trait::WindowTrait;
 pub struct ElementPicker {
     screen_coords: ScreenCoord,
     current_selection: ElementType,
-    gui: Gui,
 }
 
 impl ElementPicker {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new() -> Self {
         Self {
             screen_coords: ScreenCoord(Vec2 { x: 0.0, y: 0.0 }),
             current_selection: ElementType::Vacuum,
-            gui: Gui::new(ctx),
         }
     }
 
@@ -41,14 +36,6 @@ impl WindowTrait for ElementPicker {
 
     fn set_offset(&mut self, screen_coords: ScreenCoord) {
         self.screen_coords = screen_coords;
-    }
-
-    fn get_gui(&self) -> &Gui {
-        &self.gui
-    }
-
-    fn get_gui_mut(&mut self) -> &mut Gui {
-        &mut self.gui
     }
 
     fn get_title(&self) -> &str {

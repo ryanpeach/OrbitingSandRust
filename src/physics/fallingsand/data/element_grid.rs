@@ -189,11 +189,11 @@ impl ElementGrid {
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {
                 let element = self.grid.get(JkVector { j, k });
-                let color = element.get_color().to_rgba();
-                out.push(color.0);
-                out.push(color.1);
-                out.push(color.2);
-                out.push(color.3);
+                let color = element.get_color().as_rgba_u8();
+                out.push(color[0]);
+                out.push(color[1]);
+                out.push(color[2]);
+                out.push(color[3]);
             }
         }
         RawImage {
