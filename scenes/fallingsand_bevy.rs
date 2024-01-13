@@ -1,12 +1,5 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
-use orbiting_sand::nodes::{
-    celestials::{
-        celestial::{self, Celestial},
-        earthlike::EarthLikeBuilder,
-    },
-    node_trait::WorldDrawable,
-};
-use rayon::iter::Update;
+use orbiting_sand::nodes::celestials::{celestial::Celestial, earthlike::EarthLikeBuilder};
 
 fn main() {
     App::new()

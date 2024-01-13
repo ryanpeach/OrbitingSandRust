@@ -1,9 +1,4 @@
-use bevy::{
-    ecs::{bundle::Bundle, component::Component},
-    pbr::StandardMaterial,
-    render::{mesh::Mesh, render_resource::Texture, texture::Image},
-    sprite::MaterialMesh2dBundle,
-};
+use bevy::{ecs::component::Component, pbr::StandardMaterial, render::mesh::Mesh};
 
 use crate::physics::{
     fallingsand::util::{image::RawImage, mesh::OwnedMeshData},

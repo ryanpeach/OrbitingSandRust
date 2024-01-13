@@ -1,12 +1,8 @@
-use bevy::asset::Handle;
 use bevy::core::FrameCount;
 use bevy::ecs::bundle::Bundle;
 use bevy::ecs::component::Component;
-use bevy::ecs::system::{Query, Res, ResMut};
-use bevy::render::mesh::shape::Quad;
-use bevy::render::mesh::Mesh;
-use bevy::render::render_asset::RenderAsset;
-use bevy::render::texture::Image;
+use bevy::ecs::system::{Query, Res};
+
 use bevy::time::Time;
 use hashbrown::HashMap;
 
@@ -19,7 +15,7 @@ use crate::physics::util::clock::Clock;
 use crate::physics::util::vectors::WorldCoord;
 use crate::physics::{fallingsand::data::element_directory::ElementGridDir, util::vectors::Rect};
 
-use super::super::node_trait::{NodeTrait, WorldDrawable};
+use super::super::node_trait::NodeTrait;
 
 /// Acts as a cache for a radial mesh's meshes and textures
 #[derive(Component)]

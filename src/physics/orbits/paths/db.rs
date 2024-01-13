@@ -1,4 +1,4 @@
-use bevy::ecs::{bundle::Bundle, component::Component, entity::Entity, system::Resource};
+use bevy::ecs::{component::Component, entity::Entity, system::Resource};
 use quadtree_rs::Quadtree;
 
 use crate::physics::util::clock::Clock;
