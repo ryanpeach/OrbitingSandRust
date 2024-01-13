@@ -1,4 +1,4 @@
-use ggez::graphics::{MeshData, Rect, Vertex};
+use crate::physics::util::vectors::{Rect, Vertex};
 
 use super::grid::Grid;
 
@@ -60,14 +60,14 @@ impl OwnedMeshData {
         }
     }
 
-    /// Convert to a ggez MeshData object
-    /// which takes references and has a lifetime
-    pub fn to_mesh_data(&self) -> MeshData {
-        MeshData {
-            vertices: &self.vertices,
-            indices: self.indices.as_slice(),
-        }
-    }
+    // /// Convert to a ggez MeshData object
+    // /// which takes references and has a lifetime
+    // pub fn to_mesh_data(&self) -> MeshData {
+    //     MeshData {
+    //         vertices: &self.vertices,
+    //         indices: self.indices.as_slice(),
+    //     }
+    // }
 
     /// Combine a list of OwnedMeshData objects into one OwnedMeshData object
     /// This dramatically increases draw performance in testing.

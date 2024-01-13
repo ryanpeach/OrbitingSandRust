@@ -1,8 +1,8 @@
-use bevy_ecs::bundle::Bundle;
-use bevy_ecs::component::Component;
+use bevy::ecs::bundle::Bundle;
+use bevy::ecs::component::Component;
 use hashbrown::HashMap;
 
-use ggez::graphics::{Rect};
+use ggez::graphics::Rect;
 use ggez::Context;
 
 use crate::physics::fallingsand::data::element_directory::ElementGridDir;
@@ -14,8 +14,7 @@ use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::util::clock::Clock;
 use crate::physics::util::vectors::WorldCoord;
 
-
-use super::node_trait::{NodeTrait, WorldDrawable};
+use super::super::node_trait::{NodeTrait, WorldDrawable};
 
 /// Acts as a cache for a radial mesh's meshes and textures
 #[derive(Component)]

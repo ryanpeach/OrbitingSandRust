@@ -1,4 +1,4 @@
-use ggez::graphics::Color;
+use bevy::render::color::Color;
 
 use super::element::{Element, ElementTakeOptions, ElementType, StateOfMatter};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;

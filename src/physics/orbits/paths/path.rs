@@ -1,5 +1,5 @@
-use bevy_ecs::component::Component;
-use ggez::glam::Vec2;
+use bevy::ecs::component::Component;
+use glam::Vec2;
 
 use crate::physics::util::clock::InGameTime;
 

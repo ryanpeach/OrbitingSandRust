@@ -1,20 +1,20 @@
-use bevy_ecs::system::Resource;
-use ggegui::{
+use bevy::ecs::system::Resource;
+use bevy_egui::{
     egui::{self, Ui},
     Gui,
 };
-use ggez::{glam::Vec2, Context};
+use glam::Vec2;
 
 use crate::{
     gui::brush::{Brush, BrushRadius},
     nodes::{
         camera::cam::{Camera, CameraZoom, FPS},
-        celestial::Celestial,
+        celestials::celestial::Celestial,
     },
     physics::util::vectors::ScreenCoord,
 };
 
-use super::gui_trait::WindowTrait;
+use super::window_trait::WindowTrait;
 
 #[derive(Debug, Clone, Copy)]
 pub enum PlayPauseMode {

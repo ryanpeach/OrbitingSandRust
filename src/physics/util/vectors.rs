@@ -3,8 +3,8 @@ use std::{
     ops::{Add, Sub},
 };
 
-use bevy_ecs::component::Component;
-use ggez::glam::Vec2;
+use bevy::{ecs::component::Component, render::color::Color};
+use glam::Vec2;
 use mint::Point2;
 
 /// An absolute position in the world. Usually the location of some object.
@@ -73,5 +73,41 @@ impl Add for RelXyPoint {
 
     fn add(self, rhs: Self) -> Self::Output {
         Self(self.0 + rhs.0)
+    }
+}
+
+pub struct Vertex {
+    pub position: Vec2,
+    pub uv: Vec2,
+    pub color: Color,
+}
+
+pub struct Rect {
+    pub x: f32,
+    pub y: f32,
+    pub w: f32,
+    pub h: f32,
+}
+
+impl Into<bevy::math::Rect> for Rect {
+    fn into(self) -> bevy::math::Rect {
+        bevy::math::Rect::new(self.x, self.y, self.x + self.w, self.y + self.h)
+    }
+}
+
+impl From<bevy::math::Rect> for Rect {
+    fn from(rect: bevy::math::Rect) -> Self {
+        Self {
+            x: rect.x(),
+            y: rect.y(),
+            w: rect.width(),
+            h: rect.height(),
+        }
+    }
+}
+
+impl Rect {
+    pub fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
+        Self { x, y, w, h }
     }
 }

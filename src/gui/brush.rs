@@ -1,9 +1,9 @@
-use bevy_ecs::{component::Component, system::Resource};
-use ggez::{glam::Vec2, graphics::Vertex};
+use bevy::ecs::{component::Component, system::Resource};
+use glam::Vec2;
 
 use crate::{
     gui::windows::element_picker::ElementPicker,
-    nodes::{camera::cam::Camera, celestial::Celestial, node_trait::NodeTrait},
+    nodes::{camera::cam::Camera, celestials::celestial::Celestial, node_trait::NodeTrait},
     physics::{
         fallingsand::util::mesh::OwnedMeshData,
         util::{
@@ -88,6 +88,9 @@ impl Brush {
         }
         let mesh = OwnedMeshData::new(vertices, indices);
         ScreenDrawable::new(ScreenCoord(Vec2::new(0.0, 0.0)), mesh, None)
+    }
+    pub fn draw(&mut self, ctx: &mut ggez::Context, canvas: &mut Canvas, camera: &Camera) {
+        self.drawable.draw(ctx, canvas, camera);
     }
 }
 

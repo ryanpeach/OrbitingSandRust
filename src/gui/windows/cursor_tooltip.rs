@@ -1,15 +1,14 @@
-use bevy_ecs::system::Resource;
-use ggegui::{
+use bevy::ecs::system::Resource;
+use bevy_egui::{
     egui::{self, Ui},
     Gui,
 };
 use ggez::{glam::Vec2, Context};
 
-
 use crate::{
     nodes::{
         camera::cam::{Camera, CameraZoom, ScreenSize},
-        celestial::Celestial,
+        celestials::celestial::Celestial,
     },
     physics::{
         fallingsand::{
@@ -20,7 +19,7 @@ use crate::{
     },
 };
 
-use super::gui_trait::WindowTrait;
+use super::window_trait::WindowTrait;
 
 #[derive(Resource)]
 pub struct CursorTooltip {

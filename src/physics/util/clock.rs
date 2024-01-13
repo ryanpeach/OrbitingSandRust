@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use bevy_ecs::{bundle::Bundle, component::Component, system::Resource};
+use bevy::ecs::{bundle::Bundle, component::Component, system::Resource};
 
 /// The current frame
 #[derive(Component, Default, Debug, Clone, Copy)]

@@ -1,9 +1,7 @@
+use bevy::render::texture::ImageFormat;
 use hashbrown::HashMap;
 
-use ggez::{
-    graphics::{Image, ImageEncodingFormat, ImageFormat, Rect},
-    Context,
-};
+use crate::physics::util::vectors::Rect;
 
 use super::vectors::ChunkIjkVector;
 
@@ -32,22 +30,22 @@ impl Default for RawImage {
 }
 
 impl RawImage {
-    /// Create a ggez Image from this type using a context
-    pub fn to_image(&self, ctx: &mut Context) -> Image {
-        Image::from_pixels(
-            ctx,
-            &self.pixels[..],
-            ImageFormat::Rgba8Unorm,
-            self.bounds.w as u32,
-            self.bounds.h as u32,
-        )
-    }
+    // /// Create a ggez Image from this type using a context
+    // pub fn to_image(&self, ctx: &mut Context) -> Image {
+    //     Image::from_pixels(
+    //         ctx,
+    //         &self.pixels[..],
+    //         ImageFormat::Rgba8Unorm,
+    //         self.bounds.w as u32,
+    //         self.bounds.h as u32,
+    //     )
+    // }
 
-    /// Save the image to a file
-    pub fn save(&self, ctx: &mut Context, path: &str) -> Result<(), ggez::GameError> {
-        let img = self.to_image(ctx);
-        img.encode(ctx, ImageEncodingFormat::Png, path)
-    }
+    // /// Save the image to a file
+    // pub fn save(&self, ctx: &mut Context, path: &str) -> Result<(), ggez::GameError> {
+    //     let img = self.to_image(ctx);
+    //     img.encode(ctx, ImageEncodingFormat::Png, path)
+    // }
 
     /// Combine a list of images into one image
     /// The images are placed on the canvas according to their bounds

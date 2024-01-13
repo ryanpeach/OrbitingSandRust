@@ -1,9 +1,8 @@
-use ggegui::{
+use bevy_egui::{
     egui::{self, Align2, Ui},
     Gui,
 };
 use ggez::graphics::{Canvas, DrawParam};
-
 
 use crate::physics::util::vectors::ScreenCoord;
 

@@ -4,7 +4,7 @@ use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
-use ggez::graphics::Color;
+use bevy::render::color::Color;
 use strum_macros::EnumIter;
 
 use super::fliers::down::DownFlier;
@@ -122,7 +122,7 @@ pub trait Element: Send + Sync {
 
 #[cfg(test)]
 mod tests {
-    use ggez::graphics::Color;
+    use bevy::render::color::Color;
     use strum::IntoEnumIterator;
 
     use super::ElementType;

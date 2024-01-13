@@ -1,3 +1,3 @@
 pub mod camera;
-pub mod celestial;
+pub mod celestials;
 pub mod node_trait;

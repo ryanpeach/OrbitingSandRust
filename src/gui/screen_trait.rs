@@ -1,4 +1,4 @@
-use bevy_ecs::component::Component;
+use bevy::ecs::component::Component;
 use ggez::graphics::{Canvas, DrawParam, Mesh};
 
 use crate::{

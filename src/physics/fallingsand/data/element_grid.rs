@@ -1,9 +1,8 @@
-use ggez::graphics::Rect;
-
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions};
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
+use crate::physics::util::vectors::Rect;
 
 use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
 
@@ -208,11 +207,11 @@ impl ElementGrid {
         }
     }
 
-    /// Save the grid
-    /// dir_path is the path to the directory where the grid will be saved WITHOUT a trailing slash
-    pub fn save(&self, ctx: &mut ggez::Context, dir_path: &str) -> Result<(), ggez::GameError> {
-        let idx = self.get_chunk_coords().get_chunk_idx();
-        let chunk_path = format!("{}/i{}_j{}_k{}.png", dir_path, idx.i, idx.j, idx.k);
-        self.get_texture().save(ctx, chunk_path.as_str())
-    }
+    // /// Save the grid
+    // /// dir_path is the path to the directory where the grid will be saved WITHOUT a trailing slash
+    // pub fn save(&self, ctx: &mut ggez::Context, dir_path: &str) -> Result<(), ggez::GameError> {
+    //     let idx = self.get_chunk_coords().get_chunk_idx();
+    //     let chunk_path = format!("{}/i{}_j{}_k{}.png", dir_path, idx.i, idx.j, idx.k);
+    //     self.get_texture().save(ctx, chunk_path.as_str())
+    // }
 }

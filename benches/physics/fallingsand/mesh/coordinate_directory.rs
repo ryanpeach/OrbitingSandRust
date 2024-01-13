@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, Criterion};
-use ggez::glam::Vec2;
+use glam::Vec2;
 use orbiting_sand::physics::{
     fallingsand::{
         mesh::coordinate_directory::{CoordinateDir, CoordinateDirBuilder},

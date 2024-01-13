@@ -6,7 +6,7 @@ use crate::physics::fallingsand::elements::element::{
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
-use ggez::graphics::Color;
+use bevy::render::color::Color;
 
 /// Literally nothing
 #[derive(Default, Copy, Clone, Debug)]
@@ -28,7 +28,7 @@ impl Element for DownFlier {
         StateOfMatter::Solid
     }
     fn get_color(&self) -> Color {
-        Color::from_rgb(255, 255, 255)
+        Color::rgb(255, 255, 255)
     }
     fn _process(
         &mut self,
