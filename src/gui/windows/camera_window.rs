@@ -4,9 +4,7 @@ use glam::Vec2;
 
 use crate::{
     gui::brush::{Brush, BrushRadius},
-    nodes::{
-        camera::cam::{Camera, CameraZoom, FPS},
-    },
+    nodes::camera::cam::{Camera, CameraZoom, FPS},
     physics::util::vectors::ScreenCoord,
 };
 
@@ -39,6 +37,12 @@ pub struct CameraWindow {
     path: String,
 }
 
+impl Default for CameraWindow {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CameraWindow {
     pub fn new() -> Self {
         // let pwd = std::env::current_dir().unwrap();
@@ -57,7 +61,7 @@ impl CameraWindow {
     }
 
     pub fn update(&mut self, fps: &FPS, camera: &Camera, brush: &Brush) {
-        self.fps = fps.clone();
+        self.fps = *fps;
         self.camera_zoom = camera.get_zoom();
         self.brush_size = brush.get_radius();
     }

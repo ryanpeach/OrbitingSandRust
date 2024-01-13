@@ -17,11 +17,11 @@ impl Default for WorldCoord {
     }
 }
 
-impl Into<Point2<f32>> for WorldCoord {
-    fn into(self) -> Point2<f32> {
+impl From<WorldCoord> for Point2<f32> {
+    fn from(val: WorldCoord) -> Self {
         Point2 {
-            x: self.0.x,
-            y: self.0.y,
+            x: val.0.x,
+            y: val.0.y,
         }
     }
 }
@@ -35,11 +35,11 @@ impl Default for ScreenCoord {
     }
 }
 
-impl Into<Point2<f32>> for ScreenCoord {
-    fn into(self) -> Point2<f32> {
+impl From<ScreenCoord> for Point2<f32> {
+    fn from(val: ScreenCoord) -> Self {
         Point2 {
-            x: self.0.x,
-            y: self.0.y,
+            x: val.0.x,
+            y: val.0.y,
         }
     }
 }
@@ -91,9 +91,9 @@ pub struct Rect {
     pub h: f32,
 }
 
-impl Into<bevy::math::Rect> for Rect {
-    fn into(self) -> bevy::math::Rect {
-        bevy::math::Rect::new(self.x, self.y, self.x + self.w, self.y + self.h)
+impl From<Rect> for bevy::math::Rect {
+    fn from(val: Rect) -> Self {
+        bevy::math::Rect::new(val.x, val.y, val.x + val.w, val.y + val.h)
     }
 }
 

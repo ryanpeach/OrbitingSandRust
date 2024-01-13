@@ -1,7 +1,5 @@
-use crate::{
-    physics::fallingsand::{
-        data::element_directory::ElementGridDir, mesh::coordinate_directory::CoordinateDirBuilder,
-    },
+use crate::physics::fallingsand::{
+    data::element_directory::ElementGridDir, mesh::coordinate_directory::CoordinateDirBuilder,
 };
 
 use super::celestial::Celestial;
@@ -14,6 +12,12 @@ pub struct EarthLikeBuilder {
     first_num_radial_chunks: usize,
     max_radial_lines_per_chunk: usize,
     max_concentric_circles_per_chunk: usize,
+}
+
+impl Default for EarthLikeBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl EarthLikeBuilder {

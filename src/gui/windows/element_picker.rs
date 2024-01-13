@@ -13,6 +13,12 @@ pub struct ElementPicker {
     current_selection: ElementType,
 }
 
+impl Default for ElementPicker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ElementPicker {
     pub fn new() -> Self {
         Self {

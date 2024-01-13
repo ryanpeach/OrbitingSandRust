@@ -1,4 +1,4 @@
-use bevy::ecs::{component::Component};
+use bevy::ecs::component::Component;
 
 use crate::physics::{
     fallingsand::util::{image::RawImage, mesh::OwnedMeshData},

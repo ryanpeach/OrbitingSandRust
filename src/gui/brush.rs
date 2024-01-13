@@ -46,7 +46,7 @@ impl Brush {
     pub fn new() -> Self {
         let data = BrushData::default();
         Self {
-            data: data,
+            data,
             drawable: Self::calc_mesh(data),
         }
     }
@@ -103,7 +103,7 @@ impl Brush {
     /// points in relative xy coordinates that the brush will affect.
     fn brush_positions(&self, celestial: &Celestial, camera: &Camera) -> Vec<RelXyPoint> {
         let center =
-            RelXyPoint(self.get_world_coord(&camera).0) - RelXyPoint(celestial.get_world_coord().0);
+            RelXyPoint(self.get_world_coord(camera).0) - RelXyPoint(celestial.get_world_coord().0);
         let begin_at = center - RelXyPoint::new(self.data.radius.0, self.data.radius.0);
         let end_at = center + RelXyPoint::new(self.data.radius.0, self.data.radius.0);
         let mut positions = Vec::new();
@@ -149,7 +149,7 @@ impl Brush {
         current_time: Clock,
         camera: &Camera,
     ) {
-        let positions = self.brush_positions(celestial, &camera);
+        let positions = self.brush_positions(celestial, camera);
         for pos in positions {
             let element_dir = &mut celestial.data.element_grid_dir;
             let coord_dir = element_dir.get_coordinate_dir();

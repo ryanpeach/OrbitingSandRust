@@ -475,9 +475,9 @@ impl ChunkCoords {
         let vertices: Vec<Vertex> = self.get_vertices(VertexMode::Grid);
         let mut new_indices = Vec::new();
         for i in (0..indices.len()).step_by(3) {
-            let i1 = indices[i] as u32;
-            let i2 = indices[i + 1] as u32;
-            let i3 = indices[i + 2] as u32;
+            let i1 = indices[i];
+            let i2 = indices[i + 1];
+            let i3 = indices[i + 2];
 
             new_indices.push(i1);
             new_indices.push(i2);
@@ -485,7 +485,7 @@ impl ChunkCoords {
             new_indices.push(i1);
         }
         OwnedMeshData {
-            vertices: vertices,
+            vertices,
             indices: new_indices,
             uv_bounds: Rect::new(
                 self.get_start_radial_line() as f32,

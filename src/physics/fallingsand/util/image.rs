@@ -1,4 +1,3 @@
-
 use hashbrown::HashMap;
 
 use crate::physics::util::vectors::Rect;
