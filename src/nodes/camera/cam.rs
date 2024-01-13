@@ -1,4 +1,4 @@
-use bevy_ecs::{bundle::Bundle, component::Component, system::Resource};
+use bevy_ecs::{system::Resource};
 use ggez::{
     glam::{Mat4, Vec2, Vec3},
     graphics::{DrawParam, Rect},

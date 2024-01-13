@@ -3,8 +3,8 @@ use ggegui::{
     egui::{self, Ui},
     Gui,
 };
-use ggez::{glam::Vec2, mint::Point2, Context};
-use mint::Vector2;
+use ggez::{glam::Vec2, Context};
+
 
 use crate::{
     nodes::{
