@@ -1,3 +1,11 @@
+use bevy::{
+    asset::{AssetServer, Assets, Handle},
+    ecs::system::{Commands, Res, ResMut},
+    render::{
+        render_resource::{Extent3d, Texture, TextureDimension, TextureFormat},
+        texture::Image,
+    },
+};
 use hashbrown::HashMap;
 
 use crate::physics::util::vectors::Rect;
@@ -45,6 +53,24 @@ impl RawImage {
     //     let img = self.to_image(ctx);
     //     img.encode(ctx, ImageEncodingFormat::Png, path)
     // }
+
+    fn load_texture(&self, asset_server: &Res<AssetServer>) -> Handle<Image> {
+        let size = Extent3d {
+            width: self.bounds.w as u32,
+            height: self.bounds.h as u32,
+            depth_or_array_layers: 1,
+        };
+
+        let texture = Image::new(
+            size,
+            TextureDimension::D2,
+            self.pixels.clone(),
+            TextureFormat::Rgba8UnormSrgb, // Assuming RGBA format
+        );
+
+        // Loading the texture as an asset
+        asset_server.add(texture)
+    }
 
     /// Combine a list of images into one image
     /// The images are placed on the canvas according to their bounds

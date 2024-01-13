@@ -1,3 +1,11 @@
+use bevy::{
+    asset::{Assets, Handle},
+    ecs::system::ResMut,
+    render::{
+        mesh::{Mesh, VertexAttributeValues},
+        render_resource::PrimitiveTopology,
+    },
+};
 use glam::Vec2;
 
 use crate::physics::util::vectors::{Rect, Vertex};
@@ -137,6 +145,43 @@ impl OwnedMeshData {
             vertices: combined_vertices,
             indices: combined_indices,
         }
+    }
+
+    fn create_bevy_mesh(&self, meshes: &mut ResMut<Assets<Mesh>>) -> Handle<Mesh> {
+        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
+
+        // Assuming that Vertex struct has position, uv, and color fields
+        let positions: Vec<[f32; 3]> = self
+            .vertices
+            .iter()
+            .map(|v| {
+                [v.position.x, v.position.y, 0.0] // Bevy's mesh uses Vec3 for position
+            })
+            .collect();
+
+        let uvs: Vec<[f32; 2]> = self.vertices.iter().map(|v| [v.uv.x, v.uv.y]).collect();
+
+        let colors: Vec<[f32; 4]> = self
+            .vertices
+            .iter()
+            .map(|v| [v.color.r(), v.color.g(), v.color.b(), v.color.a()])
+            .collect();
+
+        // Set vertex positions, UVs, and colors
+        mesh.insert_attribute(
+            Mesh::ATTRIBUTE_POSITION,
+            VertexAttributeValues::Float32x3(positions),
+        );
+        mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, VertexAttributeValues::Float32x2(uvs));
+        mesh.insert_attribute(
+            Mesh::ATTRIBUTE_COLOR,
+            VertexAttributeValues::Float32x4(colors),
+        );
+
+        // Set indices
+        mesh.set_indices(Some(bevy::render::mesh::Indices::U32(self.indices.clone())));
+
+        meshes.add(mesh)
     }
 }
 
