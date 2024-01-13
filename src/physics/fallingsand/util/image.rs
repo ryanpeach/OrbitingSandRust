@@ -1,8 +1,8 @@
 use bevy::{
-    asset::{AssetServer, Assets, Handle},
-    ecs::system::{Commands, Res, ResMut},
+    asset::{AssetServer, Handle},
+    ecs::system::Res,
     render::{
-        render_resource::{Extent3d, Texture, TextureDimension, TextureFormat},
+        render_resource::{Extent3d, TextureDimension, TextureFormat},
         texture::Image,
     },
 };
