@@ -6,12 +6,11 @@ use bevy::ecs::entity::Entity;
 use bevy::ecs::query::With;
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
-use bevy::log::{debug, info, trace};
+use bevy::log::{debug, trace};
 use bevy::render::texture::Image;
-use bevy::sprite::{ColorMaterial, Material2d, MaterialMesh2dBundle};
+use bevy::sprite::ColorMaterial;
 use bevy::time::Time;
-use bevy::ui::debug;
-use bevy::utils::info;
+
 use hashbrown::HashMap;
 
 use crate::physics::fallingsand::util::enums::MeshDrawMode;

@@ -1,9 +1,6 @@
 use bevy::{log::LogPlugin, prelude::*, sprite::MaterialMesh2dBundle};
 use orbiting_sand::{
-    nodes::celestials::{
-        celestial::{Celestial, CelestialData},
-        earthlike::EarthLikeBuilder,
-    },
+    nodes::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder},
     physics::util::clock::Clock,
 };
 
@@ -42,7 +39,7 @@ fn setup(
     commands.spawn((
         MaterialMesh2dBundle {
             mesh: mesh.into(),
-            material: material,
+            material,
             transform: Transform::from_translation(Vec3::new(-150., 0., 0.)),
             ..Default::default()
         },

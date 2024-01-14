@@ -8,8 +8,6 @@ use crate::{
     },
 };
 
-use super::celestial::Celestial;
-
 pub struct EarthLikeBuilder {
     cell_radius: f32,
     num_layers: usize,
