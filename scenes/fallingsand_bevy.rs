@@ -33,7 +33,7 @@ fn setup(
         MaterialMesh2dBundle {
             mesh: mesh.into(),
             material,
-            transform: Transform::from_translation(Vec3::new(-150., 0., 0.)),
+            transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
             ..Default::default()
         },
         planet,
