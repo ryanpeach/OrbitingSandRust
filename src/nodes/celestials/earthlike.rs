@@ -28,7 +28,7 @@ impl EarthLikeBuilder {
     pub fn new() -> Self {
         Self {
             cell_radius: 1.0,
-            num_layers: 7,
+            num_layers: 8,
             first_num_radial_lines: 12,
             second_num_concentric_circles: 3,
             first_num_radial_chunks: 3,
@@ -89,6 +89,7 @@ impl EarthLikeBuilder {
         info!("Num elements: {}", element_grid_dir.get_total_num_cells());
 
         // Iterate over each layer of the element grid and fill it with the appropriate element
+        let mut total_j = 0;
         for layer_num in 0..element_grid_dir.get_coordinate_dir().get_num_layers() {
             for j in 0..element_grid_dir
                 .get_coordinate_dir()
@@ -100,21 +101,29 @@ impl EarthLikeBuilder {
                 {
                     let chunk_idx = ChunkIjkVector::new(layer_num, j, k);
                     let element_grid = element_grid_dir.get_chunk_by_chunk_ijk_mut(chunk_idx);
-                    match layer_num {
-                        0..=3 => {
+                    match total_j {
+                        0..=9 => {
                             element_grid.fill(ElementType::Stone);
                         }
-                        4..=5 => {
+                        10..=12 => {
                             element_grid.fill(ElementType::Sand);
                         }
-                        6 => {
+                        13..=14 => {
                             element_grid.fill(ElementType::Water);
+                        }
+                        15..=16 => {
+                            if k % 2 == 0 {
+                                element_grid.fill(ElementType::Vacuum);
+                            } else {
+                                element_grid.fill(ElementType::Sand);
+                            }
                         }
                         _ => {
                             element_grid.fill(ElementType::Vacuum);
                         }
                     }
                 }
+                total_j += 1;
             }
         }
         CelestialData::new(element_grid_dir)

@@ -6,7 +6,7 @@ use bevy::ecs::entity::Entity;
 use bevy::ecs::query::With;
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
-use bevy::log::{debug, trace};
+use bevy::log::{debug, trace, warn};
 use bevy::render::texture::Image;
 use bevy::sprite::ColorMaterial;
 use bevy::time::Time;
@@ -16,7 +16,7 @@ use hashbrown::HashMap;
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
 
 use crate::physics::fallingsand::data::element_directory::ElementGridDir;
-use crate::physics::fallingsand::util::image::RawImage;
+use crate::physics::fallingsand::util::image::{self, RawImage};
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::util::clock::Clock;
@@ -129,31 +129,25 @@ impl Celestial {
 /// Bevy Systems
 impl CelestialData {
     pub fn process_system(
-        mut celestial: Query<(Entity, &mut CelestialData)>,
+        mut celestial: Query<&mut CelestialData>,
         time: Res<Time>,
         frame: Res<FrameCount>,
     ) {
-        debug!("Processing celestials");
-        for (entity, mut celestial) in celestial.iter_mut() {
-            trace!("Processing celestial {:?}", entity);
+        for (mut celestial) in celestial.iter_mut() {
             celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
         }
     }
 
     pub fn redraw_system(
-        mut commands: Commands,
-        mut entity: Query<(Entity, &CelestialData), With<CelestialData>>,
+        mut query: Query<(&mut Handle<ColorMaterial>, &CelestialData), With<CelestialData>>,
         mut materials: ResMut<Assets<ColorMaterial>>,
         asset_server: Res<AssetServer>,
     ) {
-        debug!("Redrawing celestials");
-        for (entity, celestial_data) in entity.iter_mut() {
-            trace!("Redrawing celestial {:?}", entity);
-            let texture: Handle<Image> = celestial_data
-                .calc_combined_mesh_texture()
-                .load_bevy_texture(&asset_server);
-            let new_material: Handle<ColorMaterial> = materials.add(texture.into());
-            commands.entity(entity).insert(new_material);
+        for (material_handle, celestial_data) in query.iter_mut() {
+            let new_image: Image = celestial_data.calc_combined_mesh_texture().to_bevy_image();
+            if let Some(material) = materials.get_mut(&*material_handle) {
+                material.texture = Some(asset_server.add(new_image));
+            }
         }
     }
 }

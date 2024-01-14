@@ -9,10 +9,10 @@ fn main() {
         }))
         .add_systems(Startup, setup)
         .add_systems(Update, CelestialData::process_system)
-        // .add_systems(
-        //     Update,
-        //     CelestialData::redraw_system.after(CelestialData::process_system),
-        // )
+        .add_systems(
+            Update,
+            CelestialData::redraw_system.after(CelestialData::process_system),
+        )
         .run();
 }
 
@@ -27,10 +27,8 @@ fn setup(
     // Create a Celestial
     let planet = EarthLikeBuilder::new().build();
     let mesh: Handle<Mesh> = planet.get_combined_mesh().load_bevy_mesh(&mut meshes);
-    let texture: Handle<Image> = planet
-        .calc_combined_mesh_texture()
-        .load_bevy_texture(&asset_server);
-    let material: Handle<ColorMaterial> = materials.add(texture.into());
+    let image: Image = planet.calc_combined_mesh_texture().to_bevy_image();
+    let material: Handle<ColorMaterial> = materials.add(asset_server.add(image).into());
     commands.spawn((
         MaterialMesh2dBundle {
             mesh: mesh.into(),

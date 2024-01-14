@@ -54,7 +54,13 @@ impl RawImage {
     //     img.encode(ctx, ImageEncodingFormat::Png, path)
     // }
 
-    pub fn load_bevy_texture(&self, asset_server: &Res<AssetServer>) -> Handle<Image> {
+    /// Convert to a bevy image
+    /// Load this into an asset server to get a texture like the following
+    /// ```rust
+    /// let image_handle: Handle<Image> = asset_server.add(image.to_bevy_image());
+    /// let material_handle: Handle<ColorMaterial> = materials.add(image_handle.into());
+    /// ```
+    pub fn to_bevy_image(self) -> Image {
         let size = Extent3d {
             width: self.bounds.w as u32,
             height: self.bounds.h as u32,
@@ -64,12 +70,10 @@ impl RawImage {
         let texture = Image::new(
             size,
             TextureDimension::D2,
-            self.pixels.clone(),
+            self.pixels,
             TextureFormat::Rgba8UnormSrgb, // Assuming RGBA format
         );
-
-        // Loading the texture as an asset
-        asset_server.add(texture)
+        texture
     }
 
     /// Combine a list of images into one image
