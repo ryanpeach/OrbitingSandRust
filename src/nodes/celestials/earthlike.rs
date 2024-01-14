@@ -1,6 +1,11 @@
-use crate::physics::fallingsand::{
-    data::element_directory::ElementGridDir, elements::element::ElementType,
-    mesh::coordinate_directory::CoordinateDirBuilder, util::vectors::ChunkIjkVector,
+use bevy::log::info;
+
+use crate::{
+    nodes::celestials::celestial::CelestialData,
+    physics::fallingsand::{
+        data::element_directory::ElementGridDir, elements::element::ElementType,
+        mesh::coordinate_directory::CoordinateDirBuilder, util::vectors::ChunkIjkVector,
+    },
 };
 
 use super::celestial::Celestial;
@@ -72,7 +77,7 @@ impl EarthLikeBuilder {
         self
     }
 
-    pub fn build(&self) -> Celestial {
+    pub fn build(&self) -> CelestialData {
         let coordinate_dir = CoordinateDirBuilder::new()
             .cell_radius(self.cell_radius)
             .num_layers(self.num_layers)
@@ -83,7 +88,7 @@ impl EarthLikeBuilder {
             .max_concentric_circles_per_chunk(self.max_concentric_circles_per_chunk)
             .build();
         let mut element_grid_dir = ElementGridDir::new_empty(coordinate_dir);
-        println!("Num elements: {}", element_grid_dir.get_total_num_cells());
+        info!("Num elements: {}", element_grid_dir.get_total_num_cells());
 
         // Iterate over each layer of the element grid and fill it with the appropriate element
         for layer_num in 0..element_grid_dir.get_coordinate_dir().get_num_layers() {
@@ -114,6 +119,6 @@ impl EarthLikeBuilder {
                 }
             }
         }
-        Celestial::new(element_grid_dir)
+        CelestialData::new(element_grid_dir)
     }
 }

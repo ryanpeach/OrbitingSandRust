@@ -2,7 +2,7 @@ use bevy::{
     asset::{Assets, Handle},
     ecs::system::ResMut,
     render::{
-        mesh::{Mesh, VertexAttributeValues},
+        mesh::{Indices, Mesh, VertexAttributeValues},
         render_resource::PrimitiveTopology,
     },
 };
@@ -179,7 +179,7 @@ impl OwnedMeshData {
         );
 
         // Set indices
-        mesh.set_indices(Some(bevy::render::mesh::Indices::U32(self.indices.clone())));
+        mesh.set_indices(Some(Indices::U32(self.indices.clone())));
 
         meshes.add(mesh)
     }

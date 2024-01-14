@@ -1,9 +1,17 @@
+use bevy::asset::{AssetServer, Assets, Handle};
 use bevy::core::FrameCount;
 use bevy::ecs::bundle::Bundle;
 use bevy::ecs::component::Component;
-use bevy::ecs::system::{Query, Res};
+use bevy::ecs::entity::Entity;
+use bevy::ecs::query::With;
+use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
+use bevy::log::{debug, info, trace};
+use bevy::render::texture::Image;
+use bevy::sprite::{ColorMaterial, Material2d, MaterialMesh2dBundle};
 use bevy::time::Time;
+use bevy::ui::debug;
+use bevy::utils::info;
 use hashbrown::HashMap;
 
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
@@ -15,12 +23,11 @@ use crate::physics::util::clock::Clock;
 use crate::physics::util::vectors::WorldCoord;
 use crate::physics::{fallingsand::data::element_directory::ElementGridDir, util::vectors::Rect};
 
-use super::super::node_trait::NodeTrait;
-
 /// Acts as a cache for a radial mesh's meshes and textures
 #[derive(Component)]
 pub struct CelestialData {
     pub element_grid_dir: ElementGridDir,
+    pub combined_mesh: OwnedMeshData,
     pub all_textures: HashMap<ChunkIjkVector, RawImage>,
     pub bounding_boxes: Vec<Grid<Rect>>,
 }
@@ -30,6 +37,7 @@ impl CelestialData {
         // In testing we found that the resolution doesn't matter, so make it infinite
         // a misnomer is the fact that in this case, big "res" is fewer mesh cells
         Self {
+            combined_mesh: Self::calc_combined_mesh(&element_grid_dir),
             element_grid_dir,
             all_textures: HashMap::new(),
             bounding_boxes: Vec::new(),
@@ -62,32 +70,39 @@ impl CelestialData {
         )
     }
     /// Only recalculates the mesh for the combined mesh, not the texture
-    pub fn calc_combined_mesh(&self) -> OwnedMeshData {
+    fn calc_combined_mesh(element_grid_dir: &ElementGridDir) -> OwnedMeshData {
         OwnedMeshData::combine(
-            &self
-                .element_grid_dir
+            &element_grid_dir
                 .get_coordinate_dir()
                 .get_mesh_data(MeshDrawMode::TexturedMesh),
         )
     }
+    /// Retrieves the combined mesh
+    pub fn get_combined_mesh(&self) -> &OwnedMeshData {
+        &self.combined_mesh
+    }
     /// Only recalculates the texture for the combined mesh, not the mesh itself
-    pub fn calc_combined_mesh_texture(&self, mesh: &OwnedMeshData) -> RawImage {
-        RawImage::combine(self.all_textures.clone(), mesh.uv_bounds)
+    pub fn calc_combined_mesh_texture(&self) -> RawImage {
+        RawImage::combine(self.all_textures.clone(), self.combined_mesh.uv_bounds)
     }
 
     /// Something to call every frame
+    /// This calculates only 1/9th of the grid each frame
+    /// for maximum performance
     pub fn process(&mut self, current_time: Clock) {
         self.element_grid_dir.process(current_time);
         self.all_textures
             .extend(self.element_grid_dir.get_updated_target_textures());
-        // self.all_textures = self.element_grid_dir.get_textures();
     }
 
+    /// Something to call every frame
+    /// This is the same as process, but it processes the entire grid
     pub fn process_full(&mut self, current_time: Clock) {
         self.element_grid_dir.process_full(current_time);
         self.all_textures
-            .extend(self.element_grid_dir.get_updated_target_textures());
+            .extend(self.element_grid_dir.get_textures());
     }
+
     pub fn get_all_bounding_boxes(&self) -> &Vec<Grid<Rect>> {
         &self.bounding_boxes
     }
@@ -117,24 +132,34 @@ impl Celestial {
     }
 }
 
-impl NodeTrait for Celestial {
-    fn get_world_coord(&self) -> WorldCoord {
-        self.world_coord
-    }
-    fn set_world_coord(&mut self, world_coord: WorldCoord) {
-        self.world_coord = world_coord;
-    }
-}
-
 /// Bevy Systems
-impl Celestial {
+impl CelestialData {
     pub fn process_system(
-        mut celestial: Query<&mut CelestialData>,
+        mut celestial: Query<(Entity, &mut CelestialData)>,
         time: Res<Time>,
         frame: Res<FrameCount>,
     ) {
-        for mut celestial in celestial.iter_mut() {
+        debug!("Processing celestials");
+        for (entity, mut celestial) in celestial.iter_mut() {
+            trace!("Processing celestial {:?}", entity);
             celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
+        }
+    }
+
+    pub fn redraw_system(
+        mut commands: Commands,
+        mut entity: Query<(Entity, &CelestialData), With<CelestialData>>,
+        mut materials: ResMut<Assets<ColorMaterial>>,
+        asset_server: Res<AssetServer>,
+    ) {
+        debug!("Redrawing celestials");
+        for (entity, celestial_data) in entity.iter_mut() {
+            trace!("Redrawing celestial {:?}", entity);
+            let texture: Handle<Image> = celestial_data
+                .calc_combined_mesh_texture()
+                .load_bevy_texture(&asset_server);
+            let new_material: Handle<ColorMaterial> = materials.add(texture.into());
+            commands.entity(entity).insert(new_material);
         }
     }
 }

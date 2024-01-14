@@ -1,11 +1,24 @@
-use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
-use orbiting_sand::nodes::celestials::{celestial::Celestial, earthlike::EarthLikeBuilder};
+use bevy::{log::LogPlugin, prelude::*, sprite::MaterialMesh2dBundle};
+use orbiting_sand::{
+    nodes::celestials::{
+        celestial::{Celestial, CelestialData},
+        earthlike::EarthLikeBuilder,
+    },
+    physics::util::clock::Clock,
+};
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(LogPlugin {
+            level: bevy::log::Level::TRACE,
+            ..Default::default()
+        }))
         .add_systems(Startup, setup)
-        .add_systems(Update, Celestial::process_system)
+        .add_systems(Update, CelestialData::process_system)
+        // .add_systems(
+        //     Update,
+        //     CelestialData::redraw_system.after(CelestialData::process_system),
+        // )
         .run();
 }
 
@@ -17,45 +30,22 @@ fn setup(
 ) {
     commands.spawn(Camera2dBundle::default());
 
-    // Create a Celestial and add its meshs as children
-    let planet = EarthLikeBuilder::new().build();
-    let mesh = planet.data.calc_combined_mesh();
-    let texture = planet
-        .data
-        .calc_combined_mesh_texture(&mesh)
+    // Create a Celestial
+    let mut planet = EarthLikeBuilder::new().build();
+    // Process the planet once or else the textures won't be loaded
+    planet.process_full(Clock::default());
+    let mesh: Handle<Mesh> = planet.get_combined_mesh().load_bevy_mesh(&mut meshes);
+    let texture: Handle<Image> = planet
+        .calc_combined_mesh_texture()
         .load_bevy_texture(&asset_server);
-    let material = materials.add(texture.into());
-    commands.spawn(MaterialMesh2dBundle {
-        mesh: mesh.load_bevy_mesh(&mut meshes).into(),
-        transform: Transform::from_xyz(0.0, 0.0, 0.0),
-        material,
-        ..Default::default()
-    });
+    let material: Handle<ColorMaterial> = materials.add(texture.into());
+    commands.spawn((
+        MaterialMesh2dBundle {
+            mesh: mesh.into(),
+            material: material,
+            transform: Transform::from_translation(Vec3::new(-150., 0., 0.)),
+            ..Default::default()
+        },
+        planet,
+    ));
 }
-
-// fn process_celestial(
-//     time: Res<Time>,
-//     frame_count: Res<FrameCount>,
-//     mut commands: Commands,
-//     mut meshes: ResMut<Assets<Mesh>>,
-//     mut materials: ResMut<Assets<StandardMaterial>>,
-//     celestial: Query<&Celestial>,
-// ) {
-//     for celestial in celestial.iter() {
-//         // process the celestial
-//         celestial.data.process(Clock{time, frame_count});
-
-//         // get the celestials children
-//         let children = celestial.get_children();
-
-//         // All children that are MaterialMesh2dBundle's
-//         // redraw their textures
-//         for child in children.iter() {
-//             if let Ok(mut mesh) = child.get_bundle::<MaterialMesh2dBundle>() {
-//                 let texture = child.redraw(&mut mesh);
-//                 mesh.material = materials.add(texture.into());
-//                 break;
-//             }
-//         }
-//     }
-// }

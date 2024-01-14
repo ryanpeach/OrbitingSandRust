@@ -1,3 +1,6 @@
+//! Vectors can be used to represent many things
+//! This module contains all the vector types used in the game.
+
 use std::{
     fmt::Display,
     ops::{Add, Sub},
@@ -26,6 +29,7 @@ impl From<WorldCoord> for Point2<f32> {
     }
 }
 
+/// A position in pixel space. Usually the location of some gui window on the screen.
 #[derive(Component, Debug, Copy, Clone, PartialEq)]
 pub struct ScreenCoord(pub Vec2);
 
@@ -76,6 +80,8 @@ impl Add for RelXyPoint {
     }
 }
 
+/// A vertex in a mesh
+/// Originally from ggez
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Vertex {
     pub position: Vec2,
@@ -83,6 +89,9 @@ pub struct Vertex {
     pub color: Color,
 }
 
+/// A rectangle
+/// Originally from ggez
+/// TODO: Replace with bevy::math::Rect
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Rect {
     pub x: f32,
