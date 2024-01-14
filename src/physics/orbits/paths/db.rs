@@ -4,10 +4,10 @@
 use std::time::Duration;
 
 use bevy::ecs::{component::Component, entity::Entity, system::Resource};
-use knn::PointCloud;
+use nabo::{dummy_point::P2, KDTree};
 use quadtree_rs::Quadtree;
 
-use crate::physics::util::{clock::Clock, vectors::WorldCoord};
+use crate::physics::util::clock::Clock;
 
 /// A database of positions
 /// Imagine that this is a "point in time" for all orbiting bodies
@@ -22,7 +22,7 @@ use crate::physics::util::{clock::Clock, vectors::WorldCoord};
 struct PositionDatabase {
     time: Clock,
     quadtree: Quadtree<u16, Entity>,
-    knn: PointCloud<'static, WorldCoord>,
+    knn: KDTree<f32, P2>,
 }
 
 /// A server that holds all the position databases
