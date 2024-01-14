@@ -1,5 +1,6 @@
 use crate::physics::fallingsand::{
-    data::element_directory::ElementGridDir, mesh::coordinate_directory::CoordinateDirBuilder,
+    data::element_directory::ElementGridDir, elements::element::ElementType,
+    mesh::coordinate_directory::CoordinateDirBuilder, util::vectors::ChunkIjkVector,
 };
 
 use super::celestial::Celestial;
@@ -81,8 +82,38 @@ impl EarthLikeBuilder {
             .max_radial_lines_per_chunk(self.max_radial_lines_per_chunk)
             .max_concentric_circles_per_chunk(self.max_concentric_circles_per_chunk)
             .build();
-        let element_grid_dir = ElementGridDir::new_empty(coordinate_dir);
+        let mut element_grid_dir = ElementGridDir::new_empty(coordinate_dir);
         println!("Num elements: {}", element_grid_dir.get_total_num_cells());
+
+        // Iterate over each layer of the element grid and fill it with the appropriate element
+        for layer_num in 0..element_grid_dir.get_coordinate_dir().get_num_layers() {
+            for j in 0..element_grid_dir
+                .get_coordinate_dir()
+                .get_layer_num_concentric_chunks(layer_num)
+            {
+                for k in 0..element_grid_dir
+                    .get_coordinate_dir()
+                    .get_layer_num_radial_chunks(layer_num)
+                {
+                    let chunk_idx = ChunkIjkVector::new(layer_num, j, k);
+                    let element_grid = element_grid_dir.get_chunk_by_chunk_ijk_mut(chunk_idx);
+                    match layer_num {
+                        0..=3 => {
+                            element_grid.fill(ElementType::Stone);
+                        }
+                        4..=5 => {
+                            element_grid.fill(ElementType::Sand);
+                        }
+                        6 => {
+                            element_grid.fill(ElementType::Water);
+                        }
+                        _ => {
+                            element_grid.fill(ElementType::Vacuum);
+                        }
+                    }
+                }
+            }
+        }
         Celestial::new(element_grid_dir)
     }
 }

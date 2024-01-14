@@ -1,4 +1,4 @@
-use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions};
+use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
@@ -119,7 +119,20 @@ impl ElementGrid {
     }
 }
 
-/* Handle processing */
+/// Proceedural generation helpers
+impl ElementGrid {
+    /// Fill the grid with the given element
+    pub fn fill(&mut self, element: ElementType) {
+        for j in 0..self.get_chunk_coords().get_num_concentric_circles() {
+            for k in 0..self.get_chunk_coords().get_num_radial_lines() {
+                let pos = JkVector { j, k };
+                self.grid.replace(pos, element.get_element());
+            }
+        }
+    }
+}
+
+/// Handle processing
 impl ElementGrid {
     /// Do one iteration of processing on the grid
     #[allow(clippy::mem_replace_with_default)]
