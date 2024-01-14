@@ -29,8 +29,6 @@ fn setup(
 
     // Create a Celestial
     let mut planet = EarthLikeBuilder::new().build();
-    // Process the planet once or else the textures won't be loaded
-    planet.process_full(Clock::default());
     let mesh: Handle<Mesh> = planet.get_combined_mesh().load_bevy_mesh(&mut meshes);
     let texture: Handle<Image> = planet
         .calc_combined_mesh_texture()

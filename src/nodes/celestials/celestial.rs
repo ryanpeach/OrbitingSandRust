@@ -28,7 +28,6 @@ pub struct CelestialData {
     pub element_grid_dir: ElementGridDir,
     pub combined_mesh: OwnedMeshData,
     pub all_textures: HashMap<ChunkIjkVector, RawImage>,
-    pub bounding_boxes: Vec<Grid<Rect>>,
 }
 
 impl CelestialData {
@@ -37,9 +36,8 @@ impl CelestialData {
         // a misnomer is the fact that in this case, big "res" is fewer mesh cells
         Self {
             combined_mesh: Self::calc_combined_mesh(&element_grid_dir),
+            all_textures: element_grid_dir.get_textures(),
             element_grid_dir,
-            all_textures: HashMap::new(),
-            bounding_boxes: Vec::new(),
         }
     }
 
@@ -102,9 +100,6 @@ impl CelestialData {
             .extend(self.element_grid_dir.get_textures());
     }
 
-    pub fn get_all_bounding_boxes(&self) -> &Vec<Grid<Rect>> {
-        &self.bounding_boxes
-    }
     pub fn get_all_textures(&self) -> &HashMap<ChunkIjkVector, RawImage> {
         &self.all_textures
     }
