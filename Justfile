@@ -18,3 +18,6 @@ check:
   cargo test
   cargo check --all-targets
   cargo clippy --all-targets
+
+doc:
+  cargo doc --release --no-deps --open
