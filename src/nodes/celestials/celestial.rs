@@ -2,11 +2,10 @@ use bevy::asset::{AssetServer, Assets, Handle};
 use bevy::core::FrameCount;
 use bevy::ecs::bundle::Bundle;
 use bevy::ecs::component::Component;
-use bevy::ecs::entity::Entity;
-use bevy::ecs::query::With;
-use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
-use bevy::log::{debug, trace, warn};
+use bevy::ecs::query::With;
+use bevy::ecs::system::{Query, Res, ResMut};
+
 use bevy::render::texture::Image;
 use bevy::sprite::ColorMaterial;
 use bevy::time::Time;
@@ -16,7 +15,7 @@ use hashbrown::HashMap;
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
 
 use crate::physics::fallingsand::data::element_directory::ElementGridDir;
-use crate::physics::fallingsand::util::image::{self, RawImage};
+use crate::physics::fallingsand::util::image::RawImage;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::util::clock::Clock;
@@ -133,7 +132,7 @@ impl CelestialData {
         time: Res<Time>,
         frame: Res<FrameCount>,
     ) {
-        for (mut celestial) in celestial.iter_mut() {
+        for mut celestial in celestial.iter_mut() {
             celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
         }
     }

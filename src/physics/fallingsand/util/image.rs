@@ -1,10 +1,6 @@
-use bevy::{
-    asset::{AssetServer, Handle},
-    ecs::system::Res,
-    render::{
-        render_resource::{Extent3d, TextureDimension, TextureFormat},
-        texture::Image,
-    },
+use bevy::render::{
+    render_resource::{Extent3d, TextureDimension, TextureFormat},
+    texture::Image,
 };
 use hashbrown::HashMap;
 
@@ -37,17 +33,6 @@ impl Default for RawImage {
 }
 
 impl RawImage {
-    // /// Create a ggez Image from this type using a context
-    // pub fn to_image(&self, ctx: &mut Context) -> Image {
-    //     Image::from_pixels(
-    //         ctx,
-    //         &self.pixels[..],
-    //         ImageFormat::Rgba8Unorm,
-    //         self.bounds.w as u32,
-    //         self.bounds.h as u32,
-    //     )
-    // }
-
     // /// Save the image to a file
     // pub fn save(&self, ctx: &mut Context, path: &str) -> Result<(), ggez::GameError> {
     //     let img = self.to_image(ctx);
@@ -67,13 +52,12 @@ impl RawImage {
             depth_or_array_layers: 1,
         };
 
-        let texture = Image::new(
+        Image::new(
             size,
             TextureDimension::D2,
             self.pixels,
             TextureFormat::Rgba8UnormSrgb, // Assuming RGBA format
-        );
-        texture
+        )
     }
 
     /// Combine a list of images into one image
