@@ -14,13 +14,13 @@ use bevy::time::Time;
 use hashbrown::HashMap;
 
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
-use crate::physics::fallingsand::util::grid::Grid;
+
+use crate::physics::fallingsand::data::element_directory::ElementGridDir;
 use crate::physics::fallingsand::util::image::RawImage;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::util::clock::Clock;
 use crate::physics::util::vectors::WorldCoord;
-use crate::physics::{fallingsand::data::element_directory::ElementGridDir, util::vectors::Rect};
 
 /// Acts as a cache for a radial mesh's meshes and textures
 #[derive(Component)]

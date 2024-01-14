@@ -1,8 +1,5 @@
 use bevy::{log::LogPlugin, prelude::*, sprite::MaterialMesh2dBundle};
-use orbiting_sand::{
-    nodes::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder},
-    physics::util::clock::Clock,
-};
+use orbiting_sand::nodes::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
 
 fn main() {
     App::new()
@@ -28,7 +25,7 @@ fn setup(
     commands.spawn(Camera2dBundle::default());
 
     // Create a Celestial
-    let mut planet = EarthLikeBuilder::new().build();
+    let planet = EarthLikeBuilder::new().build();
     let mesh: Handle<Mesh> = planet.get_combined_mesh().load_bevy_mesh(&mut meshes);
     let texture: Handle<Image> = planet
         .calc_combined_mesh_texture()
