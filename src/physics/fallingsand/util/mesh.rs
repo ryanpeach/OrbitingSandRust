@@ -1,9 +1,23 @@
-use ggez::graphics::{MeshData, Rect, Vertex};
+//! Mesh utilities
+//! I found it useful to write my own mesh class in ggez and it has been useful in bevy as well
+//! keeps us from having to use specific bevy types in the physics engine
+
+use bevy::{
+    asset::{Assets, Handle},
+    ecs::system::ResMut,
+    render::{
+        mesh::{Indices, Mesh, VertexAttributeValues},
+        render_resource::PrimitiveTopology,
+    },
+};
+use glam::Vec2;
+
+use crate::physics::util::vectors::{Rect, Vertex};
 
 use super::grid::Grid;
 
 /// Represents a mesh that is owned by this object
-/// For some reason a MeshData object has a lifetime and is a set of borrows.
+/// For some reason a MeshData in ggez object has a lifetime and is a set of borrows.
 /// This is a workaround for that.
 #[derive(Clone)]
 pub struct OwnedMeshData {
@@ -28,15 +42,46 @@ impl Default for OwnedMeshData {
     }
 }
 
+/// Get the uv bounds of a list of vertices
+fn calc_uv_bounds(vertices: &[Vertex]) -> Rect {
+    let width: f32 = vertices
+        .iter()
+        .map(|vertex| vertex.uv[0])
+        .fold(0.0, |a, b| a.max(b));
+    let height: f32 = vertices
+        .iter()
+        .map(|vertex| vertex.uv[1])
+        .fold(0.0, |a, b| a.max(b));
+    let min_x: f32 = vertices
+        .iter()
+        .map(|vertex| vertex.uv[0])
+        .fold(f32::INFINITY, |a, b| a.min(b));
+    let min_y: f32 = vertices
+        .iter()
+        .map(|vertex| vertex.uv[1])
+        .fold(f32::INFINITY, |a, b| a.min(b));
+    Rect::new(min_x, min_y, width, height)
+}
+
 impl OwnedMeshData {
-    /// Convert to a ggez MeshData object
-    /// which takes references and has a lifetime
-    pub fn to_mesh_data(&self) -> MeshData {
-        MeshData {
-            vertices: &self.vertices,
-            indices: self.indices.as_slice(),
+    /// Create a new OwnedMeshData object
+    pub fn new(vertices: Vec<Vertex>, indices: Vec<u32>) -> Self {
+        let uv_bounds = calc_uv_bounds(&vertices);
+        Self {
+            uv_bounds,
+            vertices,
+            indices,
         }
     }
+
+    // /// Convert to a ggez MeshData object
+    // /// which takes references and has a lifetime
+    // pub fn to_mesh_data(&self) -> MeshData {
+    //     MeshData {
+    //         vertices: &self.vertices,
+    //         indices: self.indices.as_slice(),
+    //     }
+    // }
 
     /// Combine a list of OwnedMeshData objects into one OwnedMeshData object
     /// This dramatically increases draw performance in testing.
@@ -84,7 +129,7 @@ impl OwnedMeshData {
                     (vertex.uv[1] * mesh_data.uv_bounds.h + mesh_data.uv_bounds.y) / max_y;
                 new_vertices.push(Vertex {
                     position: vertex.position,
-                    uv: [un_normalized_u, un_normalized_v],
+                    uv: Vec2::new(un_normalized_u, un_normalized_v),
                     color: vertex.color,
                 })
             }
@@ -104,6 +149,43 @@ impl OwnedMeshData {
             vertices: combined_vertices,
             indices: combined_indices,
         }
+    }
+
+    pub fn load_bevy_mesh(&self, meshes: &mut ResMut<Assets<Mesh>>) -> Handle<Mesh> {
+        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
+
+        // Assuming that Vertex struct has position, uv, and color fields
+        let positions: Vec<[f32; 3]> = self
+            .vertices
+            .iter()
+            .map(|v| {
+                [v.position.x, v.position.y, 0.0] // Bevy's mesh uses Vec3 for position
+            })
+            .collect();
+
+        let uvs: Vec<[f32; 2]> = self.vertices.iter().map(|v| [v.uv.x, v.uv.y]).collect();
+
+        let colors: Vec<[f32; 4]> = self
+            .vertices
+            .iter()
+            .map(|v| [v.color.r(), v.color.g(), v.color.b(), v.color.a()])
+            .collect();
+
+        // Set vertex positions, UVs, and colors
+        mesh.insert_attribute(
+            Mesh::ATTRIBUTE_POSITION,
+            VertexAttributeValues::Float32x3(positions),
+        );
+        mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, VertexAttributeValues::Float32x2(uvs));
+        mesh.insert_attribute(
+            Mesh::ATTRIBUTE_COLOR,
+            VertexAttributeValues::Float32x4(colors),
+        );
+
+        // Set indices
+        mesh.set_indices(Some(Indices::U32(self.indices.clone())));
+
+        meshes.add(mesh)
     }
 }
 

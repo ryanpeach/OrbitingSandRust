@@ -1,27 +1,29 @@
-use ggegui::{
-    egui::{self, Ui},
-    Gui,
-};
-use ggez::Context;
-use mint::Point2;
+use bevy::ecs::system::Resource;
+use bevy_egui::egui::{self, Ui};
+use glam::Vec2;
 
-use crate::physics::fallingsand::elements::element::ElementType;
+use crate::physics::{fallingsand::elements::element::ElementType, util::vectors::ScreenCoord};
 
-use super::gui_trait::WindowTrait;
+use super::window_trait::WindowTrait;
 
 /// A window used to select an element to place
+#[derive(Resource)]
 pub struct ElementPicker {
-    screen_coords: Point2<f32>,
+    screen_coords: ScreenCoord,
     current_selection: ElementType,
-    gui: Gui,
+}
+
+impl Default for ElementPicker {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ElementPicker {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new() -> Self {
         Self {
-            screen_coords: Point2 { x: 0.0, y: 0.0 },
+            screen_coords: ScreenCoord(Vec2 { x: 0.0, y: 0.0 }),
             current_selection: ElementType::Vacuum,
-            gui: Gui::new(ctx),
         }
     }
 
@@ -34,20 +36,12 @@ impl ElementPicker {
 }
 
 impl WindowTrait for ElementPicker {
-    fn get_offset(&self) -> Point2<f32> {
+    fn get_offset(&self) -> ScreenCoord {
         self.screen_coords
     }
 
-    fn set_offset(&mut self, screen_coords: Point2<f32>) {
+    fn set_offset(&mut self, screen_coords: ScreenCoord) {
         self.screen_coords = screen_coords;
-    }
-
-    fn get_gui(&self) -> &Gui {
-        &self.gui
-    }
-
-    fn get_gui_mut(&mut self) -> &mut Gui {
-        &mut self.gui
     }
 
     fn get_title(&self) -> &str {

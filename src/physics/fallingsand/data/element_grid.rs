@@ -1,9 +1,8 @@
-use ggez::graphics::Rect;
-
-use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions};
+use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
+use crate::physics::util::vectors::Rect;
 
 use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
 
@@ -120,7 +119,20 @@ impl ElementGrid {
     }
 }
 
-/* Handle processing */
+/// Proceedural generation helpers
+impl ElementGrid {
+    /// Fill the grid with the given element
+    pub fn fill(&mut self, element: ElementType) {
+        for j in 0..self.get_chunk_coords().get_num_concentric_circles() {
+            for k in 0..self.get_chunk_coords().get_num_radial_lines() {
+                let pos = JkVector { j, k };
+                self.grid.replace(pos, element.get_element());
+            }
+        }
+    }
+}
+
+/// Handle processing
 impl ElementGrid {
     /// Do one iteration of processing on the grid
     #[allow(clippy::mem_replace_with_default)]
@@ -190,11 +202,11 @@ impl ElementGrid {
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {
                 let element = self.grid.get(JkVector { j, k });
-                let color = element.get_color().to_rgba();
-                out.push(color.0);
-                out.push(color.1);
-                out.push(color.2);
-                out.push(color.3);
+                let color = element.get_color().as_rgba_u8();
+                out.push(color[0]);
+                out.push(color[1]);
+                out.push(color[2]);
+                out.push(color[3]);
             }
         }
         RawImage {
@@ -208,11 +220,11 @@ impl ElementGrid {
         }
     }
 
-    /// Save the grid
-    /// dir_path is the path to the directory where the grid will be saved WITHOUT a trailing slash
-    pub fn save(&self, ctx: &mut ggez::Context, dir_path: &str) -> Result<(), ggez::GameError> {
-        let idx = self.get_chunk_coords().get_chunk_idx();
-        let chunk_path = format!("{}/i{}_j{}_k{}.png", dir_path, idx.i, idx.j, idx.k);
-        self.get_texture().save(ctx, chunk_path.as_str())
-    }
+    // /// Save the grid
+    // /// dir_path is the path to the directory where the grid will be saved WITHOUT a trailing slash
+    // pub fn save(&self, ctx: &mut ggez::Context, dir_path: &str) -> Result<(), ggez::GameError> {
+    //     let idx = self.get_chunk_coords().get_chunk_idx();
+    //     let chunk_path = format!("{}/i{}_j{}_k{}.png", dir_path, idx.i, idx.j, idx.k);
+    //     self.get_texture().save(ctx, chunk_path.as_str())
+    // }
 }

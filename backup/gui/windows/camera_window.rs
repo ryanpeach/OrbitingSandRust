@@ -1,13 +1,14 @@
-use ggegui::{
-    egui::{self, Ui},
-    Gui,
+use bevy::ecs::system::Resource;
+use bevy_egui::egui::{self, Ui};
+use glam::Vec2;
+
+use crate::{
+    gui::brush::{Brush, BrushRadius},
+    nodes::camera::cam::{Camera, CameraZoom, FPS},
+    physics::util::vectors::ScreenCoord,
 };
-use ggez::Context;
-use mint::{Point2, Vector2};
 
-use crate::nodes::{brush::Brush, camera::cam::Camera, celestial::Celestial};
-
-use super::gui_trait::WindowTrait;
+use super::window_trait::WindowTrait;
 
 #[derive(Debug, Clone, Copy)]
 pub enum PlayPauseMode {
@@ -23,39 +24,44 @@ pub enum YesNoFullStep {
     FullStep,
 }
 
+#[derive(Resource)]
 pub struct CameraWindow {
-    draw_coords: Point2<f32>,
-    brush_size: f32,
+    draw_coords: ScreenCoord,
+    brush_size: BrushRadius,
     outline: bool,
     wireframe: bool,
     queue_save: bool,
-    fps: f64,
+    fps: FPS,
     play_pause: PlayPauseMode,
-    camera_zoom: Vector2<f32>,
+    camera_zoom: CameraZoom,
     path: String,
-    gui: Gui,
+}
+
+impl Default for CameraWindow {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl CameraWindow {
-    pub fn new(ctx: &Context) -> Self {
+    pub fn new() -> Self {
         // let pwd = std::env::current_dir().unwrap();
         // let pwdstr = pwd.to_str().unwrap();
         Self {
-            draw_coords: Point2 { x: 0.0, y: 0.0 },
+            draw_coords: ScreenCoord(Vec2 { x: 0.0, y: 0.0 }),
             outline: false,
             wireframe: false,
             queue_save: true,
-            brush_size: 1.0,
-            fps: 0.0,
+            brush_size: BrushRadius(1.0),
+            fps: FPS(0.0),
             play_pause: PlayPauseMode::Play,
-            camera_zoom: Vector2 { x: 1.0, y: 1.0 },
+            camera_zoom: CameraZoom(Vec2 { x: 1.0, y: 1.0 }),
             path: "".to_owned(),
-            gui: Gui::new(ctx),
         }
     }
 
-    pub fn update(&mut self, ctx: &mut Context, camera: &Camera, brush: &Brush) {
-        self.fps = ctx.time.fps();
+    pub fn update(&mut self, fps: &FPS, camera: &Camera, brush: &Brush) {
+        self.fps = *fps;
         self.camera_zoom = camera.get_zoom();
         self.brush_size = brush.get_radius();
     }
@@ -88,32 +94,24 @@ impl CameraWindow {
         }
     }
 
-    pub fn save_optionally(&mut self, ctx: &mut Context, celestial: &Celestial) {
-        if self.queue_save {
-            self.queue_save = false;
-            match celestial.save(ctx, &self.path) {
-                Ok(_) => println!("Saved to '{}'", self.path),
-                Err(e) => println!("Error saving to {}: {}", self.path, e),
-            }
-        }
-    }
+    // pub fn save_optionally(&mut self, ctx: &mut Context, celestial: &Celestial) {
+    //     if self.queue_save {
+    //         self.queue_save = false;
+    //         match celestial.save(ctx, &self.path) {
+    //             Ok(_) => println!("Saved to '{}'", self.path),
+    //             Err(e) => println!("Error saving to {}: {}", self.path, e),
+    //         }
+    //     }
+    // }
 }
 
 impl WindowTrait for CameraWindow {
-    fn get_offset(&self) -> Point2<f32> {
+    fn get_offset(&self) -> ScreenCoord {
         self.draw_coords
     }
 
-    fn set_offset(&mut self, screen_coords: Point2<f32>) {
+    fn set_offset(&mut self, screen_coords: ScreenCoord) {
         self.draw_coords = screen_coords;
-    }
-
-    fn get_gui(&self) -> &Gui {
-        &self.gui
-    }
-
-    fn get_gui_mut(&mut self) -> &mut Gui {
-        &mut self.gui
     }
 
     fn get_alignment(&self) -> egui::Align2 {
@@ -125,9 +123,9 @@ impl WindowTrait for CameraWindow {
     }
 
     fn window(&mut self, ui: &mut Ui) {
-        ui.label(format!("Brush Size: {}", self.brush_size));
+        ui.label(format!("Brush Size: {}", self.brush_size.0));
         ui.label(format!("Zoom: {:?}", self.camera_zoom));
-        ui.label(format!("FPS: {}", self.fps));
+        ui.label(format!("FPS: {}", self.fps.0));
         // Set a radiomode for "DrawMode"
         ui.separator();
         ui.checkbox(&mut self.outline, "Outline");

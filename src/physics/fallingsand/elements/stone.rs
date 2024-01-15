@@ -4,7 +4,7 @@ use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
-use ggez::graphics::Color;
+use bevy::render::color::Color;
 
 /// Literally nothing
 #[derive(Default, Copy, Clone, Debug)]
@@ -27,7 +27,7 @@ impl Element for Stone {
     }
     // Gray
     fn get_color(&self) -> Color {
-        Color::from_rgb_u32(0x808080)
+        Color::rgb_u8(128, 128, 128)
     }
     // Stone does nothing
     fn _process(
@@ -78,7 +78,7 @@ mod tests {
         };
 
         fn assert_movement(mut element_grid_dir: ElementGridDir, loc1: (ChunkIjkVector, JkVector)) {
-            let mut clock = Clock::new();
+            let mut clock = Clock::default();
 
             // Set the bottom right to sand
             {

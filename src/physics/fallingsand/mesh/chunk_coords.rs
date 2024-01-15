@@ -2,9 +2,9 @@ use crate::physics::fallingsand::util::functions::interpolate_points;
 use crate::physics::fallingsand::util::image::RawImage;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
-use crate::physics::util::vectors::RelXyPoint;
-use ggez::glam::Vec2;
-use ggez::graphics::{Color, MeshBuilder, Rect, Vertex};
+use crate::physics::util::vectors::{Rect, RelXyPoint, Vertex};
+use bevy::render::color::Color;
+use glam::Vec2;
 
 use std::f32::consts::PI;
 
@@ -312,11 +312,11 @@ impl ChunkCoords {
                 } else {
                     Color::BLUE
                 };
-                let rgba = color.to_rgba();
-                pixels.push(rgba.0);
-                pixels.push(rgba.1);
-                pixels.push(rgba.2);
-                pixels.push(rgba.3);
+                let rgba = color.as_rgba_u8();
+                pixels.push(rgba[0]);
+                pixels.push(rgba[1]);
+                pixels.push(rgba[2]);
+                pixels.push(rgba[3]);
                 i += 1;
             }
             i += 1;
@@ -422,21 +422,30 @@ impl ChunkCoords {
             .iter()
             .zip(uvs.iter())
             .map(|(p, uv)| Vertex {
-                position: [p.x, p.y],
-                uv: [uv.x, uv.y],
-                color: [1.0, 1.0, 1.0, 1.0],
+                position: Vec2::new(p.x, p.y),
+                uv: Vec2::new(uv.x, uv.y),
+                color: Color::rgba(1.0, 1.0, 1.0, 1.0),
             })
             .collect();
         vertexes
     }
     pub fn calc_chunk_outline(&self) -> OwnedMeshData {
-        let mut mb = MeshBuilder::new();
-        let outline = self.get_outline();
-        let _ = mb.line(&outline, 1.0, Color::RED);
-        let meshdata = mb.build();
+        let positions = self.get_outline();
+        let mut vertices = Vec::with_capacity(positions.len());
+        for pos in positions {
+            vertices.push(Vertex {
+                position: pos,
+                uv: Vec2::new(0.0, 0.0),
+                color: Color::rgba(1.0, 1.0, 1.0, 1.0),
+            });
+        }
+        let mut indices = Vec::new();
+        for i in 0..vertices.len() {
+            indices.push(i as u32);
+        }
         OwnedMeshData {
-            vertices: meshdata.vertices.to_owned(),
-            indices: meshdata.indices.to_owned(),
+            vertices,
+            indices,
             uv_bounds: Rect::new(
                 self.get_start_radial_line() as f32,
                 self.get_start_concentric_circle_absolute() as f32,
@@ -462,24 +471,22 @@ impl ChunkCoords {
         }
     }
     pub fn calc_chunk_triangle_wireframe(&self) -> OwnedMeshData {
-        let mut mb = MeshBuilder::new();
         let indices = self.get_indices(VertexMode::Grid);
         let vertices: Vec<Vertex> = self.get_vertices(VertexMode::Grid);
+        let mut new_indices = Vec::new();
         for i in (0..indices.len()).step_by(3) {
-            let i1: usize = indices[i] as usize;
-            let i2 = indices[i + 1] as usize;
-            let i3 = indices[i + 2] as usize;
+            let i1 = indices[i];
+            let i2 = indices[i + 1];
+            let i3 = indices[i + 2];
 
-            let p1 = vertices[i1].position;
-            let p2 = vertices[i2].position;
-            let p3 = vertices[i3].position;
-
-            let _ = mb.line(&[p1, p2, p3, p1], 0.1, Color::WHITE).unwrap();
+            new_indices.push(i1);
+            new_indices.push(i2);
+            new_indices.push(i3);
+            new_indices.push(i1);
         }
-        let meshdata = mb.build();
         OwnedMeshData {
-            vertices: meshdata.vertices.to_owned(),
-            indices: meshdata.indices.to_owned(),
+            vertices,
+            indices: new_indices,
             uv_bounds: Rect::new(
                 self.get_start_radial_line() as f32,
                 self.get_start_concentric_circle_absolute() as f32,

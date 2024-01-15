@@ -1,13 +1,19 @@
+//! Image utilities
+//! I found it useful to write my own image class in ggez and it has been useful in bevy as well
+//! keeps us from having to use specific bevy types in the physics engine
+
+use bevy::render::{
+    render_resource::{Extent3d, TextureDimension, TextureFormat},
+    texture::Image,
+};
 use hashbrown::HashMap;
 
-use ggez::{
-    graphics::{Image, ImageEncodingFormat, ImageFormat, Rect},
-    Context,
-};
+use crate::physics::util::vectors::Rect;
 
 use super::vectors::ChunkIjkVector;
 
 /// Representing a raw RGBA image
+/// Game engine agnostic, full ownership, no lifetimes, not a component
 /// For some reason ggez::graphics::Image requires a
 /// Context for an image to be created, so we use this instead
 #[derive(Clone)]
@@ -32,27 +38,37 @@ impl Default for RawImage {
 }
 
 impl RawImage {
-    /// Create a ggez Image from this type using a context
-    pub fn to_image(&self, ctx: &mut Context) -> Image {
-        Image::from_pixels(
-            ctx,
-            &self.pixels[..],
-            ImageFormat::Rgba8Unorm,
-            self.bounds.w as u32,
-            self.bounds.h as u32,
-        )
-    }
+    // /// Save the image to a file
+    // pub fn save(&self, ctx: &mut Context, path: &str) -> Result<(), ggez::GameError> {
+    //     let img = self.to_image(ctx);
+    //     img.encode(ctx, ImageEncodingFormat::Png, path)
+    // }
 
-    /// Save the image to a file
-    pub fn save(&self, ctx: &mut Context, path: &str) -> Result<(), ggez::GameError> {
-        let img = self.to_image(ctx);
-        img.encode(ctx, ImageEncodingFormat::Png, path)
+    /// Convert to a bevy image
+    /// Load this into an asset server to get a texture like the following
+    /// ```ignore
+    /// let image: RawImage = RawImage::default();
+    /// let image_handle: Handle<Image> = asset_server.add(image.to_bevy_image());
+    /// let material_handle: Handle<ColorMaterial> = materials.add(image_handle.into());
+    /// ```
+    pub fn to_bevy_image(self) -> Image {
+        let size = Extent3d {
+            width: self.bounds.w as u32,
+            height: self.bounds.h as u32,
+            depth_or_array_layers: 1,
+        };
+
+        Image::new(
+            size,
+            TextureDimension::D2,
+            self.pixels,
+            TextureFormat::Rgba8UnormSrgb, // Assuming RGBA format
+        )
     }
 
     /// Combine a list of images into one image
     /// The images are placed on the canvas according to their bounds
     /// This dramatically increases draw speed in testing.
-    /// TODO: Test
     pub fn combine(vec_grid: HashMap<ChunkIjkVector, RawImage>, uvbounds: Rect) -> RawImage {
         let lst = vec_grid.into_iter().map(|x| x.1).collect::<Vec<RawImage>>();
         // Calculate total width and height for the canvas

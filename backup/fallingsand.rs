@@ -2,120 +2,75 @@ extern crate orbiting_sand;
 
 use std::{env, path};
 
+use bevy::ecs::schedule::Schedule;
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
-use ggez::glam::Vec2;
-use ggez::graphics::{self, FilterMode, Sampler};
+use ggez::graphics::{self, FilterMode, GraphicsContext, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
+use glam::Vec2;
 
 use mint::{Point2, Vector2};
-use orbiting_sand::gui::windows::camera_window::{CameraWindow, YesNoFullStep};
-use orbiting_sand::gui::windows::cursor_tooltip::CursorTooltip;
+use orbiting_sand::gui::brush::Brush;
+use orbiting_sand::gui::windows::camera_window::{self, CameraWindow, YesNoFullStep};
+use orbiting_sand::gui::windows::cursor_tooltip::{self, CursorTooltip};
 use orbiting_sand::gui::windows::element_picker::ElementPicker;
-use orbiting_sand::gui::windows::gui_trait::WindowTrait;
-use orbiting_sand::nodes::brush::Brush;
-use orbiting_sand::physics::fallingsand::data::element_directory::ElementGridDir;
 
-use orbiting_sand::nodes::camera::cam::Camera;
-use orbiting_sand::nodes::celestial::Celestial;
+use orbiting_sand::gui::windows::window_trait::WindowTrait;
+use orbiting_sand::nodes::camera::cam::{Camera, ScreenSize};
 
-use orbiting_sand::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
-use orbiting_sand::physics::util::clock::Clock;
-
-// =================
-// Helper methods
-// =================
-
-// ===================
-// Main Game
-// ==================
-struct MainState {
-    celestial: Celestial,
-    camera: Camera,
-    cursor_tooltip: CursorTooltip,
-    camera_window: CameraWindow,
-    element_picker: ElementPicker,
-    brush: Brush,
-    current_time: Clock,
-    mouse_down: bool,
-}
-
-impl MainState {
-    fn new(ctx: &mut Context) -> GameResult<MainState> {
-        // Create the celestial
-        let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(1.0)
-            .num_layers(7)
-            .first_num_radial_lines(12)
-            .second_num_concentric_circles(3)
-            .first_num_radial_chunks(3)
-            .max_radial_lines_per_chunk(128)
-            .max_concentric_circles_per_chunk(128)
-            .build();
-        // let fill0: &dyn Element = &Vacuum::default();
-        // let fill1: &dyn Element = &Sand::default();
-        let element_grid_dir = ElementGridDir::new_empty(coordinate_dir);
-        println!("Num elements: {}", element_grid_dir.get_total_num_cells());
-        let celestial = Celestial::new(element_grid_dir);
-
-        // Create the camera
-        let _screen_size = ctx.gfx.drawable_size();
-        let camera = Camera::new(Vec2::new(_screen_size.0, _screen_size.1));
-        Ok(MainState {
-            celestial,
-            camera,
-            cursor_tooltip: CursorTooltip::new(ctx, &camera),
-            camera_window: CameraWindow::new(ctx),
-            element_picker: ElementPicker::new(ctx),
-            brush: Brush::new(),
-            current_time: Clock::new(),
-            mouse_down: false,
-        })
-    }
-}
+use bevy::ecs::world::World;
+use orbiting_sand::nodes::celestials::celestial::{Celestial, CelestialData};
+use orbiting_sand::nodes::celestials::earthlike::EarthLikeBuilder;
+use orbiting_sand::nodes::node_trait::WorldDrawable;
+use orbiting_sand::physics::util::clock::GlobalClock;
 
 impl EventHandler<ggez::GameError> for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
-        // Update the gui
-        self.camera_window.update(ctx, &self.camera, &self.brush);
-        self.cursor_tooltip.update(&self.camera, &self.celestial);
+        self.schedule.run(&mut self.world);
+        // // Update the gui
+        // self.camera_window.update(ctx, &self.camera, &self.brush);
+        // self.cursor_tooltip.update(&self.camera, &self.celestial);
 
-        // Save the celestial if requested
-        self.camera_window.save_optionally(ctx, &self.celestial);
+        // // Save the celestial if requested
+        // self.camera_window.save_optionally(ctx, &self.celestial);
 
-        // Update the clock
-        let delta_time = ctx.time.delta();
-        self.current_time.update(delta_time);
+        // // Update the clock
+        // let delta_time = ctx.time.delta();
+        // self.current_time.update(delta_time);
 
-        // Process the celestial
-        match self.camera_window.should_i_process() {
-            YesNoFullStep::Yes => self.celestial.process(self.current_time),
-            YesNoFullStep::FullStep => self.celestial.process_full(self.current_time),
-            YesNoFullStep::No => {}
-        }
+        // // Process the celestial
+        // match self.camera_window.should_i_process() {
+        //     YesNoFullStep::Yes => self.celestial.data.process(self.current_time),
+        //     YesNoFullStep::FullStep => self.celestial.data.process_full(self.current_time),
+        //     YesNoFullStep::No => {}
+        // }
 
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-        let mut canvas = graphics::Canvas::from_frame(ctx, graphics::Color::BLACK);
+        let mut canvas = graphics::Canvas::from_frame(ctx, Color::BLACK);
         canvas.set_sampler(Sampler::from(FilterMode::Nearest));
 
-        // Draw the celestial
-        self.celestial.draw(ctx, &mut canvas, self.camera);
-        if self.camera_window.get_outline() {
-            self.celestial.draw_outline(ctx, &mut canvas, self.camera);
-        }
-        if self.camera_window.get_wireframe() {
-            self.celestial.draw_wireframe(ctx, &mut canvas, self.camera);
+        // Get the camera
+        let camera = self.world.get_resource::<Camera>().unwrap();
+
+        // Draw the celestials
+        let all_celestials = self.world.query::<WorldDrawable>();
+        for celestial in all_celestials.iter(&self.world) {
+            celestial.draw(ctx, &mut canvas, &camera);
         }
 
         // Draw the gui
-        self.camera_window.draw(ctx, &mut canvas);
-        self.cursor_tooltip.draw(ctx, &mut canvas);
-        self.element_picker.draw(ctx, &mut canvas);
-        self.brush.draw(ctx, &mut canvas, self.camera);
+        let camera_window = self.world.get_resource::<CameraWindow>().unwrap();
+        camera_window.draw(ctx, &mut canvas);
+        let cursor_tooltip = self.world.get_resource::<CursorTooltip>().unwrap();
+        cursor_tooltip.draw(ctx, &mut canvas);
+        let element_picker = self.world.get_resource::<ElementPicker>().unwrap();
+        element_picker.draw(ctx, &mut canvas);
+        let brush = self.world.get_resource::<Brush>().unwrap();
+        brush.draw(ctx, &mut canvas, &camera);
 
         let _ = canvas.finish(ctx);
         Ok(())

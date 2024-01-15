@@ -6,7 +6,7 @@ use crate::physics::fallingsand::elements::element::{
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
-use ggez::graphics::Color;
+use bevy::render::color::Color;
 
 /// Literally nothing
 #[derive(Default, Copy, Clone, Debug)]
@@ -28,7 +28,7 @@ impl Element for RightFlier {
         StateOfMatter::Solid
     }
     fn get_color(&self) -> Color {
-        Color::from_rgb(253, 253, 253)
+        Color::rgb_u8(253, 253, 253)
     }
     fn _process(
         &mut self,
@@ -101,7 +101,7 @@ mod tests {
             loc1: (ChunkIjkVector, JkVector),
             loc2: (ChunkIjkVector, JkVector),
         ) {
-            let mut clock = Clock::new();
+            let mut clock = Clock::default();
 
             // Set the bottom right to sand
             {

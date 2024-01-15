@@ -737,20 +737,20 @@ impl ElementGridDir {
     }
 
     /// Save all chunks
-    pub fn save(&self, ctx: &mut ggez::Context, dir_path: &str) -> Result<(), ggez::GameError> {
-        for i in 0..self.coords.get_num_layers() {
-            let j_size = self.coords.get_layer_num_concentric_chunks(i);
-            let k_size = self.coords.get_layer_num_radial_chunks(i);
-            for j in 0..j_size {
-                for k in 0..k_size {
-                    let coord = ChunkIjkVector { i, j, k };
-                    let chunk = self.get_chunk_by_chunk_ijk(coord);
-                    chunk.save(ctx, dir_path)?;
-                }
-            }
-        }
-        Ok(())
-    }
+    // pub fn save(&self, ctx: &mut ggez::Context, dir_path: &str) -> Result<(), ggez::GameError> {
+    //     for i in 0..self.coords.get_num_layers() {
+    //         let j_size = self.coords.get_layer_num_concentric_chunks(i);
+    //         let k_size = self.coords.get_layer_num_radial_chunks(i);
+    //         for j in 0..j_size {
+    //             for k in 0..k_size {
+    //                 let coord = ChunkIjkVector { i, j, k };
+    //                 let chunk = self.get_chunk_by_chunk_ijk(coord);
+    //                 chunk.save(ctx, dir_path)?;
+    //             }
+    //         }
+    //     }
+    //     Ok(())
+    // }
 
     /// Get all textures
     pub fn get_textures(&self) -> HashMap<ChunkIjkVector, RawImage> {
