@@ -42,7 +42,6 @@ fn setup(
     commands.spawn(Camera2dBundle {
         camera_2d: Camera2d {
             clear_color: ClearColorConfig::Custom(Color::rgb(0.0, 0.0, 0.0)),
-            ..Default::default()
         },
         ..Default::default()
     });

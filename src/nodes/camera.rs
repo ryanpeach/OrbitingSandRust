@@ -8,7 +8,6 @@ use bevy::{
         system::{Query, Res},
     },
     input::{keyboard::KeyCode, mouse::MouseWheel, Input},
-    log::trace,
     math::Vec3,
     time::Time,
     transform::components::Transform,
