@@ -17,6 +17,7 @@ glam = "0.25.0"
 hashbrown = { version = "0.14.2", features = ["rayon", "ahash"] }
 kdtree = "0.7.0"
 mint = "0.5.9"
+num-rational = "0.4.1"
 rand = "0.8.5"
 rayon = "1.8.0"
 serde = "1.0.189"

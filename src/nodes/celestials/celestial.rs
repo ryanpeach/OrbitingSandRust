@@ -72,7 +72,7 @@ impl CelestialData {
                 .get_coordinate_dir()
                 .get_mesh_data(MeshDrawMode::TexturedMesh),
         );
-        out.stitch_mesh()
+        out.stitch_mesh().deduplicate_vertexes()
     }
     /// Retrieves the combined mesh
     pub fn get_combined_mesh(&self) -> &OwnedMeshData {

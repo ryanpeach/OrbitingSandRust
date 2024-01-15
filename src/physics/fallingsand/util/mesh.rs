@@ -12,7 +12,9 @@ use bevy::{
     },
 };
 use glam::Vec2;
+use hashbrown::HashMap;
 use kdtree::{distance::squared_euclidean, KdTree};
+use num_rational::Rational32;
 
 use crate::physics::util::vectors::{Rect, Vertex};
 
@@ -155,8 +157,9 @@ impl OwnedMeshData {
 
     /// Sometimes the combine function produces minor artifacts where positions that should be the same are slightly different
     /// This function stitches the mesh together by finding vertices that are close enough to each other and making them the same
+    /// WARNING: This is pretty expensive, so use it sparingly. It is benchmarked in benches/physics/fallingsand/mesh/mesh.rs
     pub fn stitch_mesh(&self) -> OwnedMeshData {
-        const STITCH_DISTANCE: f32 = 0.05;
+        const STITCH_DISTANCE: f32 = 0.00001; // This is the distance that vertices have to be within to be considered the same. Unsure what a good value is.
         let mut kdtree = KdTree::with_capacity(2, self.vertices.len());
         let mut new_vertices = Vec::with_capacity(self.vertices.len());
         let mut nb_identical = 0;
@@ -198,6 +201,48 @@ impl OwnedMeshData {
             uv_bounds: self.uv_bounds,
             vertices: new_vertices,
             indices: self.indices.clone(),
+        }
+    }
+
+    /// Deduplicate the vertexes in the mesh
+    /// Assuming they are already exactly equal using stitch_mesh
+    pub fn deduplicate_vertexes(&self) -> OwnedMeshData {
+        // Now deduplicate the indices
+        // A hashmap mapping old indices to new indices
+        let mut deduplication =
+            HashMap::<[Rational32; 2], (usize, usize)>::with_capacity(self.indices.len());
+        let mut count = 0;
+        for (i, v) in self.vertices.iter().enumerate() {
+            let k = [
+                Rational32::approximate_float(v.position.x).unwrap(),
+                Rational32::approximate_float(v.position.y).unwrap(),
+            ];
+            let v = (i, count);
+            if !deduplication.contains_key(&k) {
+                deduplication.insert(k, v);
+                count += 1;
+            }
+        }
+        let new_new_vertices = deduplication
+            .iter()
+            .map(|(_, v)| self.vertices[v.0])
+            .collect::<Vec<Vertex>>();
+        let new_indices = self
+            .indices
+            .iter()
+            .map(|i| {
+                deduplication[&[
+                    Rational32::approximate_float(self.vertices[*i as usize].position.x).unwrap(),
+                    Rational32::approximate_float(self.vertices[*i as usize].position.y).unwrap(),
+                ]]
+                    .1 as u32
+            })
+            .collect::<Vec<u32>>();
+        debug!("New number of vertices: {}", new_new_vertices.len());
+        OwnedMeshData {
+            uv_bounds: self.uv_bounds,
+            vertices: new_new_vertices,
+            indices: new_indices,
         }
     }
 
