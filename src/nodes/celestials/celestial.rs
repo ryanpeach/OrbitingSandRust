@@ -67,11 +67,12 @@ impl CelestialData {
     }
     /// Only recalculates the mesh for the combined mesh, not the texture
     fn calc_combined_mesh(element_grid_dir: &ElementGridDir) -> OwnedMeshData {
-        OwnedMeshData::combine(
+        let out = OwnedMeshData::combine(
             &element_grid_dir
                 .get_coordinate_dir()
                 .get_mesh_data(MeshDrawMode::TexturedMesh),
-        )
+        );
+        out.stitch_mesh()
     }
     /// Retrieves the combined mesh
     pub fn get_combined_mesh(&self) -> &OwnedMeshData {

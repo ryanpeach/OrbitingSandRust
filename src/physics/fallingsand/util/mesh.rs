@@ -5,12 +5,14 @@
 use bevy::{
     asset::{Assets, Handle},
     ecs::system::ResMut,
+    log::debug,
     render::{
         mesh::{Indices, Mesh, VertexAttributeValues},
         render_resource::PrimitiveTopology,
     },
 };
 use glam::Vec2;
+use kdtree::{distance::squared_euclidean, KdTree};
 
 use crate::physics::util::vectors::{Rect, Vertex};
 
@@ -148,6 +150,54 @@ impl OwnedMeshData {
             uv_bounds: Rect::new(min_x, min_y, width, height),
             vertices: combined_vertices,
             indices: combined_indices,
+        }
+    }
+
+    /// Sometimes the combine function produces minor artifacts where positions that should be the same are slightly different
+    /// This function stitches the mesh together by finding vertices that are close enough to each other and making them the same
+    pub fn stitch_mesh(&self) -> OwnedMeshData {
+        const STITCH_DISTANCE: f32 = 0.05;
+        let mut kdtree = KdTree::with_capacity(2, self.vertices.len());
+        let mut new_vertices = Vec::with_capacity(self.vertices.len());
+        let mut nb_identical = 0;
+        for (idx, vertex) in self.vertices.iter().enumerate() {
+            let neighbors = kdtree
+                .within(
+                    &[vertex.position.x, vertex.position.y],
+                    STITCH_DISTANCE,
+                    &squared_euclidean,
+                )
+                .unwrap();
+            match neighbors.len() {
+                0 => {
+                    kdtree
+                        .add([vertex.position.x, vertex.position.y], idx)
+                        .unwrap();
+                    new_vertices.push(*vertex);
+                }
+                1 => {
+                    nb_identical += 1;
+                    let neighbor = neighbors[0].1;
+                    new_vertices.push(Vertex {
+                        position: self.vertices[*neighbor].position,
+                        uv: vertex.uv,
+                        color: vertex.color,
+                    });
+                }
+                _ => {
+                    panic!("More than one neighbor found for {}", idx);
+                }
+            }
+        }
+        debug!(
+            "Stitched {} vertices out of {} total",
+            nb_identical,
+            self.vertices.len()
+        );
+        OwnedMeshData {
+            uv_bounds: self.uv_bounds,
+            vertices: new_vertices,
+            indices: self.indices.clone(),
         }
     }
 

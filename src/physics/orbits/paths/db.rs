@@ -3,9 +3,8 @@
 
 use std::time::Duration;
 
-use bevy::ecs::{component::Component, entity::Entity, system::Resource};
-use nabo::{dummy_point::P2, KDTree};
-use quadtree_rs::Quadtree;
+use bevy::ecs::{component::Component, system::Resource};
+use kdtree::KdTree;
 
 use crate::physics::util::clock::Clock;
 
@@ -21,8 +20,7 @@ use crate::physics::util::clock::Clock;
 #[derive(Component)]
 struct PositionDatabase {
     time: Clock,
-    quadtree: Quadtree<u16, Entity>,
-    knn: KDTree<f32, P2>,
+    kd_tree: KdTree<f32, usize, [f32; 2]>,
 }
 
 /// A server that holds all the position databases
