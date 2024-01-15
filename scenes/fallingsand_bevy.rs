@@ -1,17 +1,34 @@
-use bevy::{log::LogPlugin, prelude::*, sprite::MaterialMesh2dBundle};
+use bevy::{
+    core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*,
+    sprite::MaterialMesh2dBundle,
+};
+use orbiting_sand::nodes::camera::GameCamera;
 use orbiting_sand::nodes::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins.set(LogPlugin {
-            level: bevy::log::Level::TRACE,
-            ..Default::default()
-        }))
+        .add_plugins(
+            DefaultPlugins
+                .set(LogPlugin {
+                    level: bevy::log::Level::TRACE,
+                    ..Default::default()
+                })
+                .set(ImagePlugin::default_nearest()),
+        )
         .add_systems(Startup, setup)
-        .add_systems(Update, CelestialData::process_system)
         .add_systems(
             Update,
-            CelestialData::redraw_system.after(CelestialData::process_system),
+            (
+                GameCamera::zoom_camera_system,
+                GameCamera::move_camera_system,
+            ),
+        )
+        .add_systems(
+            Update,
+            (
+                CelestialData::process_system,
+                CelestialData::redraw_system.after(CelestialData::process_system),
+            ),
         )
         .run();
 }
@@ -22,7 +39,13 @@ fn setup(
     mut materials: ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle {
+        camera_2d: Camera2d {
+            clear_color: ClearColorConfig::Custom(Color::rgb(0.0, 0.0, 0.0)),
+            ..Default::default()
+        },
+        ..Default::default()
+    });
 
     // Create a Celestial
     let planet = EarthLikeBuilder::new().build();

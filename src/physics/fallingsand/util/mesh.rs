@@ -1,3 +1,7 @@
+//! Mesh utilities
+//! I found it useful to write my own mesh class in ggez and it has been useful in bevy as well
+//! keeps us from having to use specific bevy types in the physics engine
+
 use bevy::{
     asset::{Assets, Handle},
     ecs::system::ResMut,
@@ -13,7 +17,7 @@ use crate::physics::util::vectors::{Rect, Vertex};
 use super::grid::Grid;
 
 /// Represents a mesh that is owned by this object
-/// For some reason a MeshData object has a lifetime and is a set of borrows.
+/// For some reason a MeshData in ggez object has a lifetime and is a set of borrows.
 /// This is a workaround for that.
 #[derive(Clone)]
 pub struct OwnedMeshData {
