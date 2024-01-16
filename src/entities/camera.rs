@@ -4,10 +4,14 @@ use bevy::{
     core_pipeline::core_2d::Camera2d,
     ecs::{
         component::Component,
-        event::Events,
+        event::EventReader,
         system::{Query, Res},
     },
-    input::{keyboard::KeyCode, mouse::MouseWheel, Input},
+    input::{
+        keyboard::KeyCode,
+        mouse::{MouseScrollUnit, MouseWheel},
+        Input,
+    },
     math::Vec3,
     time::Time,
     transform::components::Transform,
@@ -21,12 +25,19 @@ pub struct GameCamera;
 impl GameCamera {
     pub fn zoom_camera_system(
         time: Res<Time>,
-        mouse_wheel: Res<Events<MouseWheel>>,
+        mut scroll_evr: EventReader<MouseWheel>,
         mut query: Query<(&mut Transform, &mut Camera2d)>,
     ) {
         let mut delta = 0.;
-        for event in mouse_wheel.get_reader().read(&mouse_wheel) {
-            delta += event.y;
+        for ev in scroll_evr.read() {
+            match ev.unit {
+                MouseScrollUnit::Line => {
+                    delta += ev.y;
+                }
+                MouseScrollUnit::Pixel => {
+                    delta += ev.y;
+                }
+            }
         }
         if delta != 0. {
             for (mut transform, _) in query.iter_mut() {
