@@ -1,3 +1,5 @@
+use bevy::render::view::screenshot::ScreenshotManager;
+use bevy::window::PrimaryWindow;
 use bevy::{
     core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*,
     sprite::MaterialMesh2dBundle,
@@ -30,6 +32,10 @@ fn main() {
                 CelestialData::redraw_system.after(CelestialData::process_system),
             ),
         )
+        .add_systems(
+            Update,
+            screenshot_on_spacebar.after(CelestialData::redraw_system),
+        )
         .run();
 }
 
@@ -60,4 +66,21 @@ fn setup(
         },
         planet,
     ));
+}
+
+fn screenshot_on_spacebar(
+    input: Res<Input<KeyCode>>,
+    main_window: Query<Entity, With<PrimaryWindow>>,
+    mut screenshot_manager: ResMut<ScreenshotManager>,
+    mut counter: Local<u32>,
+) {
+    if input.just_pressed(KeyCode::Space) {
+        // Create the ./save directory if it doesn't exist
+        std::fs::create_dir_all("./save/screenshots").unwrap();
+        let path = format!("./save/screenshots/screenshot-{}.png", *counter);
+        *counter += 1;
+        screenshot_manager
+            .save_screenshot_to_disk(main_window.single(), path)
+            .unwrap();
+    }
 }
