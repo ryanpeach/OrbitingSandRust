@@ -2,8 +2,8 @@ use bevy::{
     core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*,
     sprite::MaterialMesh2dBundle,
 };
-use orbiting_sand::nodes::camera::GameCamera;
-use orbiting_sand::nodes::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
+use orbiting_sand::entities::camera::GameCamera;
+use orbiting_sand::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
 
 fn main() {
     App::new()

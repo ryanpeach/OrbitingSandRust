@@ -1,7 +1,7 @@
 use bevy::log::info;
 
 use crate::{
-    nodes::celestials::celestial::CelestialData,
+    entities::celestials::celestial::CelestialData,
     physics::fallingsand::{
         data::element_directory::ElementGridDir, elements::element::ElementType,
         mesh::coordinate_directory::CoordinateDirBuilder, util::vectors::ChunkIjkVector,
