@@ -3,25 +3,25 @@ use bevy::core::FrameCount;
 use bevy::ecs::component::Component;
 
 use bevy::ecs::entity::Entity;
-use bevy::ecs::query::With;
+
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
 use bevy::math::Vec3;
 use bevy::render::mesh::Mesh;
-use bevy::render::texture::Image;
+
 use bevy::sprite::{ColorMaterial, MaterialMesh2dBundle};
 use bevy::time::Time;
 
-use bevy::transform::commands;
+
 use bevy::transform::components::Transform;
 use hashbrown::HashMap;
 
-use crate::physics::fallingsand::util::enums::MeshDrawMode;
+
 
 use crate::physics::fallingsand::data::element_directory::ElementGridDir;
 use crate::physics::fallingsand::util::image::RawImage;
-use crate::physics::fallingsand::util::mesh::OwnedMeshData;
+
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::util::clock::Clock;
 

@@ -1,9 +1,9 @@
-use criterion::{black_box, criterion_group, Criterion};
+
 use orbiting_sand::physics::fallingsand::data::element_directory::ElementGridDir;
 use orbiting_sand::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
-use orbiting_sand::physics::fallingsand::util::enums::MeshDrawMode;
-use orbiting_sand::physics::fallingsand::util::image::RawImage;
-use orbiting_sand::physics::fallingsand::util::mesh::OwnedMeshData;
+
+
+
 
 /// The default element grid directory for testing
 fn get_element_grid_dir() -> ElementGridDir {

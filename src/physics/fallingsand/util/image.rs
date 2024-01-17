@@ -6,11 +6,11 @@ use bevy::render::{
     render_resource::{Extent3d, TextureDimension, TextureFormat},
     texture::Image,
 };
-use hashbrown::HashMap;
+
 
 use crate::physics::util::vectors::Rect;
 
-use super::vectors::ChunkIjkVector;
+
 
 /// Representing a raw RGBA image
 /// Game engine agnostic, full ownership, no lifetimes, not a component
@@ -69,12 +69,12 @@ impl RawImage {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    
     use crate::physics::fallingsand::data::element_directory::ElementGridDir;
     use crate::physics::fallingsand::elements::{element::Element, sand::Sand, vacuum::Vacuum};
     use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
-    use crate::physics::fallingsand::util::enums::MeshDrawMode;
-    use crate::physics::fallingsand::util::mesh::OwnedMeshData;
+    
+    
 
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {

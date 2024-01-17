@@ -5,7 +5,6 @@
 use bevy::{
     asset::{Assets, Handle},
     ecs::system::ResMut,
-    math::Vec2,
     render::{
         mesh::{Indices, Mesh, VertexAttributeValues},
         render_resource::PrimitiveTopology,
@@ -14,7 +13,7 @@ use bevy::{
 
 use crate::physics::util::vectors::{Rect, Vertex};
 
-use super::grid::Grid;
+
 
 /// Represents a mesh that is owned by this object
 /// For some reason a MeshData in ggez object has a lifetime and is a set of borrows.
@@ -114,11 +113,11 @@ impl OwnedMeshData {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    
     use crate::physics::fallingsand::data::element_directory::ElementGridDir;
     use crate::physics::fallingsand::elements::{element::Element, sand::Sand, vacuum::Vacuum};
     use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
-    use crate::physics::fallingsand::util::enums::MeshDrawMode;
+    
 
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {
