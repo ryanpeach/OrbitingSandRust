@@ -30,13 +30,10 @@ fn main() {
             Update,
             (
                 CelestialData::process_system,
-                CelestialData::redraw_system.after(CelestialData::process_system),
+                // CelestialData::redraw_system.after(CelestialData::process_system),
             ),
         )
-        .add_systems(
-            Update,
-            camera_window_system.after(CelestialData::redraw_system),
-        )
+        .add_systems(Update, camera_window_system)
         .add_systems(Update, ElementSelection::element_picker_system)
         .add_systems(Update, BrushRadius::draw_brush_system)
         .run();
@@ -62,7 +59,7 @@ fn setup(
     let brush_mesh = BrushRadius(1.).calc_mesh().load_bevy_mesh(&mut meshes);
     let brush = commands
         .spawn((
-            BrushRadius(100.),
+            BrushRadius(1.),
             MaterialMesh2dBundle {
                 mesh: brush_mesh.into(),
                 material: materials.add(Color::rgb(0.0, 0.0, 0.0).into()),
@@ -75,22 +72,15 @@ fn setup(
     commands.entity(camera).push_children(&[brush]);
 
     // Create a Celestial
-    let planet = EarthLikeBuilder::new().build();
-    let mesh: Handle<Mesh> = planet.get_combined_mesh().load_bevy_mesh(&mut meshes);
-    let image: Image = planet.calc_combined_mesh_texture().to_bevy_image();
-    let material: Handle<ColorMaterial> = materials.add(asset_server.add(image).into());
-    let celestial = commands
-        .spawn((
-            MaterialMesh2dBundle {
-                mesh: mesh.into(),
-                material,
-                transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
-                ..Default::default()
-            },
-            planet,
-        ))
-        .id();
+    let planet_data = EarthLikeBuilder::new().build();
+    let celestial_id = CelestialData::setup(
+        planet_data,
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+        &asset_server,
+    );
 
     // Parent the camera to the celestial
-    commands.entity(celestial).push_children(&[camera]);
+    commands.entity(celestial_id).push_children(&[camera]);
 }
