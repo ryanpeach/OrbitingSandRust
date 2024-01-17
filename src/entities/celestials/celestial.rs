@@ -113,7 +113,7 @@ impl CelestialData {
     pub fn setup(
         celestial: CelestialData,
         commands: &mut Commands,
-        mut meshes: &mut ResMut<Assets<Mesh>>,
+        meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<ColorMaterial>>,
         asset_server: &Res<AssetServer>,
     ) -> Entity {
@@ -130,7 +130,7 @@ impl CelestialData {
                     let mesh = coordinate_dir
                         .get_chunk_at_idx(chunk_ijk)
                         .calc_chunk_meshdata()
-                        .load_bevy_mesh(&mut meshes);
+                        .load_bevy_mesh(meshes);
                     let material = textures.remove(&chunk_ijk).unwrap().to_bevy_image();
                     let chunk = commands
                         .spawn((
@@ -177,13 +177,11 @@ impl CelestialData {
             let mut new_textures =
                 celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
             for (parent, material_handle, chunk_ijk) in chunks.iter_mut() {
-                if parent.get() == celestial_id {
-                    if new_textures.contains_key(&chunk_ijk.0) {
-                        let material = materials.get_mut(&*material_handle).unwrap();
-                        let new_texture =
-                            new_textures.remove(&chunk_ijk.0).unwrap().to_bevy_image();
-                        material.texture = Some(asset_server.add(new_texture));
-                    }
+                if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
+                    let material = materials.get_mut(&*material_handle).unwrap();
+                    let new_texture =
+                        new_textures.remove(&chunk_ijk.0).unwrap().to_bevy_image();
+                    material.texture = Some(asset_server.add(new_texture));
                 }
             }
         }
