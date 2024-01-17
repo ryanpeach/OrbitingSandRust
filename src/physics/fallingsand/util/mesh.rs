@@ -74,83 +74,6 @@ impl OwnedMeshData {
         }
     }
 
-    // /// Convert to a ggez MeshData object
-    // /// which takes references and has a lifetime
-    // pub fn to_mesh_data(&self) -> MeshData {
-    //     MeshData {
-    //         vertices: &self.vertices,
-    //         indices: self.indices.as_slice(),
-    //     }
-    // }
-
-    /// Combine a list of OwnedMeshData objects into one OwnedMeshData object
-    /// This dramatically increases draw performance in testing.
-    /// Remarks on Implementation:
-    /// * You need to add the previous last_idx to all the elements of the next indices
-    /// * You also need to un_normalize the uvs and then re_normalize them at the end
-    pub fn combine(vec_grid: &[Grid<OwnedMeshData>]) -> OwnedMeshData {
-        let mut combined_vertices = Vec::new();
-        let mut combined_indices = Vec::new();
-        let lst = vec_grid.iter().flatten().collect::<Vec<&OwnedMeshData>>();
-
-        // This is to find the max and min bounds for the UVs
-        let width: f32 = lst
-            .iter()
-            .map(|mesh| mesh.uv_bounds.w + mesh.uv_bounds.x)
-            .fold(0.0, |a, b| a.max(b));
-        let height: f32 = lst
-            .iter()
-            .map(|mesh| mesh.uv_bounds.h + mesh.uv_bounds.y)
-            .fold(0.0, |a, b| a.max(b));
-        let min_x: f32 = lst
-            .iter()
-            .map(|mesh| mesh.uv_bounds.x)
-            .fold(f32::INFINITY, |a, b| a.min(b));
-        let min_y: f32 = lst
-            .iter()
-            .map(|mesh| mesh.uv_bounds.y)
-            .fold(f32::INFINITY, |a, b| a.min(b));
-        let max_x: f32 = lst
-            .iter()
-            .map(|mesh| mesh.uv_bounds.x + mesh.uv_bounds.w)
-            .fold(0.0, |a, b| a.max(b));
-        let max_y: f32 = lst
-            .iter()
-            .map(|mesh| mesh.uv_bounds.y + mesh.uv_bounds.h)
-            .fold(0.0, |a, b| a.max(b));
-
-        let mut last_idx = 0usize;
-        for mesh_data in lst {
-            let mut new_vertices = Vec::with_capacity(mesh_data.vertices.len());
-            for vertex in &mesh_data.vertices {
-                let un_normalized_u =
-                    (vertex.uv[0] * mesh_data.uv_bounds.w + mesh_data.uv_bounds.x) / max_x;
-                let un_normalized_v =
-                    (vertex.uv[1] * mesh_data.uv_bounds.h + mesh_data.uv_bounds.y) / max_y;
-                new_vertices.push(Vertex {
-                    position: vertex.position,
-                    uv: Vec2::new(un_normalized_u, un_normalized_v),
-                    color: vertex.color,
-                })
-            }
-
-            let mut new_indices = Vec::with_capacity(mesh_data.indices.len());
-            for index in &mesh_data.indices {
-                new_indices.push(index + last_idx as u32);
-            }
-
-            last_idx += new_vertices.len();
-            combined_vertices.extend(new_vertices);
-            combined_indices.extend(new_indices);
-        }
-
-        OwnedMeshData {
-            uv_bounds: Rect::new(min_x, min_y, width, height),
-            vertices: combined_vertices,
-            indices: combined_indices,
-        }
-    }
-
     pub fn load_bevy_mesh(&self, meshes: &mut ResMut<Assets<Mesh>>) -> Handle<Mesh> {
         let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
 
@@ -212,35 +135,35 @@ mod tests {
         ElementGridDir::new_checkerboard(coordinate_dir, fill0, fill1)
     }
 
-    #[test]
-    fn test_combine() {
-        let meshes = get_element_grid_dir()
-            .get_coordinate_dir()
-            .get_mesh_data(MeshDrawMode::TexturedMesh);
-        let combined_mesh = OwnedMeshData::combine(&meshes);
-        // Test that the combined_mesh uvs are normalized
-        for vertex in &combined_mesh.vertices {
-            assert!(vertex.uv[0] <= 1.0);
-            assert!(vertex.uv[0] >= 0.0);
-            assert!(vertex.uv[1] <= 1.0);
-            assert!(vertex.uv[1] >= 0.0);
-        }
-        // Test that the length of the combined_mesh indices is the same as the sum of the lengths of the meshes
-        let mut sum_indices = 0;
-        let mut sum_vertices = 0;
-        for grid in &meshes {
-            for mesh in grid {
-                sum_indices += mesh.indices.len();
-                sum_vertices += mesh.vertices.len();
-            }
-        }
-        assert_eq!(combined_mesh.indices.len(), sum_indices);
-        assert_eq!(combined_mesh.vertices.len(), sum_vertices);
-        // Test that the indices have been offset correctly
-        assert_eq!(*combined_mesh.indices.iter().min().unwrap(), 0u32);
-        assert_eq!(
-            *combined_mesh.indices.iter().max().unwrap(),
-            (combined_mesh.vertices.iter().len() - 1) as u32
-        );
-    }
+    // #[test]
+    // fn test_combine() {
+    //     let meshes = get_element_grid_dir()
+    //         .get_coordinate_dir()
+    //         .get_mesh_data(MeshDrawMode::TexturedMesh);
+    //     let combined_mesh = OwnedMeshData::combine(&meshes);
+    //     // Test that the combined_mesh uvs are normalized
+    //     for vertex in &combined_mesh.vertices {
+    //         assert!(vertex.uv[0] <= 1.0);
+    //         assert!(vertex.uv[0] >= 0.0);
+    //         assert!(vertex.uv[1] <= 1.0);
+    //         assert!(vertex.uv[1] >= 0.0);
+    //     }
+    //     // Test that the length of the combined_mesh indices is the same as the sum of the lengths of the meshes
+    //     let mut sum_indices = 0;
+    //     let mut sum_vertices = 0;
+    //     for grid in &meshes {
+    //         for mesh in grid {
+    //             sum_indices += mesh.indices.len();
+    //             sum_vertices += mesh.vertices.len();
+    //         }
+    //     }
+    //     assert_eq!(combined_mesh.indices.len(), sum_indices);
+    //     assert_eq!(combined_mesh.vertices.len(), sum_vertices);
+    //     // Test that the indices have been offset correctly
+    //     assert_eq!(*combined_mesh.indices.iter().min().unwrap(), 0u32);
+    //     assert_eq!(
+    //         *combined_mesh.indices.iter().max().unwrap(),
+    //         (combined_mesh.vertices.iter().len() - 1) as u32
+    //     );
+    // }
 }

@@ -17,15 +17,4 @@ fn get_element_grid_dir() -> ElementGridDir {
     ElementGridDir::new_empty(coordinate_dir)
 }
 
-fn bench_combine_meshes(c: &mut Criterion) {
-    let meshes = get_element_grid_dir()
-        .get_coordinate_dir()
-        .get_mesh_data(MeshDrawMode::TexturedMesh);
-    c.bench_function("combine_meshes", |b| {
-        b.iter(|| {
-            OwnedMeshData::combine(black_box(&meshes[..]));
-        })
-    });
-}
-
-criterion_group!(benches, bench_combine_meshes);
+// criterion_group!(benches, bench_combine_meshes);

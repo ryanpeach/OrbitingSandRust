@@ -2,13 +2,19 @@ use bevy::asset::{AssetServer, Assets, Handle};
 use bevy::core::FrameCount;
 use bevy::ecs::component::Component;
 
+use bevy::ecs::entity::Entity;
 use bevy::ecs::query::With;
-use bevy::ecs::system::{Query, Res, ResMut};
+use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
+use bevy::hierarchy::{BuildChildren, Parent};
+use bevy::math::Vec3;
+use bevy::render::mesh::Mesh;
 use bevy::render::texture::Image;
-use bevy::sprite::ColorMaterial;
+use bevy::sprite::{ColorMaterial, MaterialMesh2dBundle};
 use bevy::time::Time;
 
+use bevy::transform::commands;
+use bevy::transform::components::Transform;
 use hashbrown::HashMap;
 
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
@@ -19,23 +25,20 @@ use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::util::clock::Clock;
 
+#[derive(Component)]
+pub struct CelestialChunkIdk(ChunkIjkVector);
+
 /// Acts as a cache for a radial mesh's meshes and textures
 #[derive(Component)]
 pub struct CelestialData {
     pub element_grid_dir: ElementGridDir,
-    pub combined_mesh: OwnedMeshData,
-    pub all_textures: HashMap<ChunkIjkVector, RawImage>,
 }
 
 impl CelestialData {
     pub fn new(element_grid_dir: ElementGridDir) -> Self {
         // In testing we found that the resolution doesn't matter, so make it infinite
         // a misnomer is the fact that in this case, big "res" is fewer mesh cells
-        Self {
-            combined_mesh: Self::calc_combined_mesh(&element_grid_dir),
-            all_textures: element_grid_dir.get_textures(),
-            element_grid_dir,
-        }
+        Self { element_grid_dir }
     }
 
     // /// Save the combined mesh and textures to a directory
@@ -47,59 +50,54 @@ impl CelestialData {
     //     self.data.element_grid_dir.save(ctx, dir_path)
     // }
 
-    pub fn calc_combined_mesh_outline(&self) -> OwnedMeshData {
-        OwnedMeshData::combine(
-            &self
-                .element_grid_dir
-                .get_coordinate_dir()
-                .get_mesh_data(MeshDrawMode::Outline),
-        )
-    }
-    pub fn calc_combined_mesh_wireframe(&self) -> OwnedMeshData {
-        OwnedMeshData::combine(
-            &self
-                .element_grid_dir
-                .get_coordinate_dir()
-                .get_mesh_data(MeshDrawMode::TriangleWireframe),
-        )
-    }
-    /// Only recalculates the mesh for the combined mesh, not the texture
-    fn calc_combined_mesh(element_grid_dir: &ElementGridDir) -> OwnedMeshData {
-        OwnedMeshData::combine(
-            &element_grid_dir
-                .get_coordinate_dir()
-                .get_mesh_data(MeshDrawMode::TexturedMesh),
-        )
-    }
-    /// Retrieves the combined mesh
-    pub fn get_combined_mesh(&self) -> &OwnedMeshData {
-        &self.combined_mesh
-    }
-    /// Only recalculates the texture for the combined mesh, not the mesh itself
-    pub fn calc_combined_mesh_texture(&self) -> RawImage {
-        RawImage::combine(self.all_textures.clone(), self.combined_mesh.uv_bounds)
-    }
+    // pub fn calc_combined_mesh_outline(&self) -> OwnedMeshData {
+    //     OwnedMeshData::combine(
+    //         &self
+    //             .element_grid_dir
+    //             .get_coordinate_dir()
+    //             .get_mesh_data(MeshDrawMode::Outline),
+    //     )
+    // }
+    // pub fn calc_combined_mesh_wireframe(&self) -> OwnedMeshData {
+    //     OwnedMeshData::combine(
+    //         &self
+    //             .element_grid_dir
+    //             .get_coordinate_dir()
+    //             .get_mesh_data(MeshDrawMode::TriangleWireframe),
+    //     )
+    // }
+    // /// Only recalculates the mesh for the combined mesh, not the texture
+    // fn calc_combined_mesh(element_grid_dir: &ElementGridDir) -> OwnedMeshData {
+    //     OwnedMeshData::combine(
+    //         &element_grid_dir
+    //             .get_coordinate_dir()
+    //             .get_mesh_data(MeshDrawMode::TexturedMesh),
+    //     )
+    // }
+    // /// Retrieves the combined mesh
+    // pub fn get_combined_mesh(&self) -> &OwnedMeshData {
+    //     &self.combined_mesh
+    // }
+    // /// Only recalculates the texture for the combined mesh, not the mesh itself
+    // pub fn calc_combined_mesh_texture(&self) -> RawImage {
+    //     RawImage::combine(self.all_textures.clone(), self.combined_mesh.uv_bounds)
+    // }
 
     /// Something to call every frame
     /// This calculates only 1/9th of the grid each frame
     /// for maximum performance
-    pub fn process(&mut self, current_time: Clock) {
+    pub fn process(&mut self, current_time: Clock) -> HashMap<ChunkIjkVector, RawImage> {
         self.element_grid_dir.process(current_time);
-        self.all_textures
-            .extend(self.element_grid_dir.get_updated_target_textures());
+        self.element_grid_dir.get_updated_target_textures()
     }
 
     /// Something to call every frame
     /// This is the same as process, but it processes the entire grid
-    pub fn process_full(&mut self, current_time: Clock) {
+    pub fn process_full(&mut self, current_time: Clock) -> HashMap<ChunkIjkVector, RawImage> {
         self.element_grid_dir.process_full(current_time);
-        self.all_textures
-            .extend(self.element_grid_dir.get_textures());
+        self.element_grid_dir.get_textures()
     }
 
-    pub fn get_all_textures(&self) -> &HashMap<ChunkIjkVector, RawImage> {
-        &self.all_textures
-    }
     pub fn get_element_dir(&self) -> &ElementGridDir {
         &self.element_grid_dir
     }
@@ -110,25 +108,83 @@ impl CelestialData {
 
 /// Bevy Systems
 impl CelestialData {
+    /// Draws all the chunks and sets them up as child entities of the celestial
+    /// TODO: Should this be a system
+    pub fn setup(
+        celestial: CelestialData,
+        commands: &mut Commands,
+        mut meshes: &mut ResMut<Assets<Mesh>>,
+        materials: &mut ResMut<Assets<ColorMaterial>>,
+        asset_server: &Res<AssetServer>,
+    ) -> Entity {
+        // Create all the chunk meshes as pairs of ChunkIjkVector and Mesh2dBundle
+        let mut children = Vec::new();
+        let element_dir = celestial.get_element_dir();
+        let coordinate_dir = element_dir.get_coordinate_dir();
+        let mut textures = element_dir.get_textures();
+        for i in 0..coordinate_dir.get_num_layers() {
+            for j in 0..coordinate_dir.get_layer_num_concentric_chunks(i) {
+                for k in 0..coordinate_dir.get_layer_num_radial_chunks(i) {
+                    let chunk_ijk = ChunkIjkVector::new(i, j, k);
+                    let celestial_chunk_id = CelestialChunkIdk(chunk_ijk);
+                    let mesh = coordinate_dir
+                        .get_chunk_at_idx(chunk_ijk)
+                        .calc_chunk_meshdata()
+                        .load_bevy_mesh(&mut meshes);
+                    let material = textures.remove(&chunk_ijk).unwrap().to_bevy_image();
+                    let chunk = commands
+                        .spawn((
+                            celestial_chunk_id,
+                            MaterialMesh2dBundle {
+                                mesh: mesh.into(),
+                                material: materials.add(asset_server.add(material).into()),
+                                ..Default::default()
+                            },
+                        ))
+                        .id();
+                    // Parent celestial to chunk
+                    children.push(chunk);
+                }
+            }
+        }
+
+        // Create a Celestial
+        let celestial_id = commands
+            .spawn((
+                celestial,
+                Transform::from_translation(Vec3::new(0., 0., 0.)),
+            ))
+            .id();
+
+        // Parent the celestial to all the chunks
+        commands
+            .entity(celestial_id)
+            .push_children(children.as_slice());
+
+        // Return the celestial
+        celestial_id
+    }
+
     pub fn process_system(
-        mut celestial: Query<&mut CelestialData>,
+        mut celestial: Query<(Entity, &mut CelestialData)>,
+        mut chunks: Query<(&Parent, &mut Handle<ColorMaterial>, &CelestialChunkIdk)>,
+        mut materials: ResMut<Assets<ColorMaterial>>,
+        asset_server: Res<AssetServer>,
         time: Res<Time>,
         frame: Res<FrameCount>,
     ) {
-        for mut celestial in celestial.iter_mut() {
-            celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
-        }
-    }
-
-    pub fn redraw_system(
-        mut query: Query<(&mut Handle<ColorMaterial>, &CelestialData), With<CelestialData>>,
-        mut materials: ResMut<Assets<ColorMaterial>>,
-        asset_server: Res<AssetServer>,
-    ) {
-        for (material_handle, celestial_data) in query.iter_mut() {
-            let new_image: Image = celestial_data.calc_combined_mesh_texture().to_bevy_image();
-            if let Some(material) = materials.get_mut(&*material_handle) {
-                material.texture = Some(asset_server.add(new_image));
+        for (celestial_id, mut celestial) in celestial.iter_mut() {
+            let mut new_textures =
+                celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
+            for (parent, material_handle, chunk_ijk) in chunks.iter_mut() {
+                if parent.get() == celestial_id {
+                    if new_textures.contains_key(&chunk_ijk.0) {
+                        let material = materials.get_mut(&*material_handle).unwrap();
+                        let new_texture =
+                            new_textures.remove(&chunk_ijk.0).unwrap().to_bevy_image();
+                        material.texture = Some(asset_server.add(new_texture));
+                    }
+                }
             }
         }
     }

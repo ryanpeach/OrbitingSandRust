@@ -1,3 +1,5 @@
+use bevy::ecs::component::Component;
+
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
