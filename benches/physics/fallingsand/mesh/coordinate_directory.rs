@@ -3,7 +3,7 @@ use glam::Vec2;
 use orbiting_sand::physics::{
     fallingsand::{
         mesh::coordinate_directory::{CoordinateDir, CoordinateDirBuilder},
-        util::{enums::MeshDrawMode, mesh::OwnedMeshData, vectors::JkVector},
+        util::{vectors::JkVector},
     },
     util::vectors::RelXyPoint,
 };
