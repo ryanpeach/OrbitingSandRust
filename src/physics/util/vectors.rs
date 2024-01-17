@@ -7,13 +7,13 @@ use std::{
 };
 
 use bevy::{
-    ecs::{component::Component, system::Query},
+    ecs::{system::Query},
     math::{Vec2, Vec3},
     render::color::Color,
     transform::components::Transform,
     window::{CursorMoved, Window},
 };
-use mint::Point2;
+
 
 /// A world coord vector that is relative to some position in pixel space.
 #[derive(Debug, Copy, Clone, PartialEq)]
