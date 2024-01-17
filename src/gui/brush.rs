@@ -46,7 +46,7 @@ impl BrushRadius {
         mut query: Query<&mut Transform, With<BrushRadius>>,
     ) {
         let window = windows.single();
-        let window_size = Vec2::new(window.width() as f32, window.height() as f32);
+        let window_size = Vec2::new(window.width(), window.height());
 
         for event in cursor_moved_events.read() {
             // Translate cursor position to coordinate system with origin at the center of the screen
