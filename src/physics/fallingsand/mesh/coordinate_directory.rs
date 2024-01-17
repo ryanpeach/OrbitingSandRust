@@ -8,7 +8,7 @@ use super::chunk_coords::PartialLayerChunkCoordsBuilder;
 use super::chunk_coords::{ChunkCoords, VertexMode};
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
-use glam::Vec2;
+use bevy::math::Vec2;
 
 /// A structure that contains all the chunk coordinates for a celestial body
 /// Useful for drawing the total mesh

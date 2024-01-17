@@ -3,12 +3,12 @@ extern crate orbiting_sand;
 use std::{env, path};
 
 use bevy::ecs::schedule::Schedule;
+use bevy::math::Vec2;
 use ggez::conf::WindowMode;
 use ggez::event::{self, EventHandler};
 use ggez::graphics::{self, FilterMode, GraphicsContext, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
-use glam::Vec2;
 
 use mint::{Point2, Vector2};
 use orbiting_sand::gui::brush::Brush;

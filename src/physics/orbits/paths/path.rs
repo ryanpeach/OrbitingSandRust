@@ -2,7 +2,7 @@
 //! They allow precomputation of orbits, allowing them to be stored in memory
 
 use bevy::ecs::component::Component;
-use glam::Vec2;
+use bevy::math::Vec2;
 
 use crate::physics::util::clock::Clock;
 

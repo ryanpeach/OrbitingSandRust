@@ -1,12 +1,18 @@
+use crate::physics::{fallingsand::util::mesh::OwnedMeshData, util::vectors::Vertex};
+use bevy::math::Vec2;
+use bevy::prelude::Window;
 use bevy::{
-    ecs::{component::Component, event::EventReader, query::With, system::Query},
-    input::mouse::MouseMotion,
+    ecs::{
+        component::Component,
+        event::EventReader,
+        query::With,
+        system::{Query, Res},
+    },
+    gizmos::gizmos::Gizmos,
     render::color::Color,
     transform::components::Transform,
+    window::CursorMoved,
 };
-use glam::Vec2;
-
-use crate::physics::{fallingsand::util::mesh::OwnedMeshData, util::vectors::Vertex};
 
 #[derive(Default, Component, Debug, Clone, Copy)]
 pub struct BrushRadius(pub f32);
@@ -33,15 +39,30 @@ impl BrushRadius {
 
 /// Bevy Systems
 impl BrushRadius {
-    pub fn draw_brush_system(
-        mut motion_evr: EventReader<MouseMotion>,
+    pub fn move_brush_system(
+        windows: Query<&mut Window>,
+        mut cursor_moved_events: EventReader<CursorMoved>,
         mut query: Query<&mut Transform, With<BrushRadius>>,
     ) {
-        for event in motion_evr.read() {
+        let window = windows.single();
+        let window_size = Vec2::new(window.width() as f32, window.height() as f32);
+
+        for event in cursor_moved_events.read() {
+            // Translate cursor position to coordinate system with origin at the center of the screen
+            let centered_x = event.position.x - window_size.x / 2.0;
+            let centered_y = event.position.y - window_size.y / 2.0;
+
             query.for_each_mut(|mut transform| {
-                transform.translation.x += event.delta.x;
-                transform.translation.y += event.delta.y;
+                transform.translation.x = centered_x;
+                transform.translation.y = -centered_y; // Invert y-axis to match Bevy's coordinate system
             });
+        }
+    }
+
+    pub fn draw_brush_system(query: Query<(&Transform, &BrushRadius)>, mut gizmos: Gizmos) {
+        for (transform, brush_radius) in query.iter() {
+            let mesh = brush_radius.calc_mesh();
+            mesh.draw_bevy_gizmo_outline(&mut gizmos, transform);
         }
     }
 }

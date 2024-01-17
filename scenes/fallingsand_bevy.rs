@@ -38,7 +38,13 @@ fn main() {
             camera_window_system.after(CelestialData::redraw_system),
         )
         .add_systems(Update, ElementSelection::element_picker_system)
-        .add_systems(Update, BrushRadius::draw_brush_system)
+        .add_systems(
+            Update,
+            (
+                BrushRadius::move_brush_system,
+                BrushRadius::draw_brush_system,
+            ),
+        )
         .run();
 }
 
@@ -59,15 +65,10 @@ fn setup(
         .id();
 
     // Create the brush
-    let brush_mesh = BrushRadius(1.).calc_mesh().load_bevy_mesh(&mut meshes);
     let brush = commands
         .spawn((
             BrushRadius(100.),
-            MaterialMesh2dBundle {
-                mesh: brush_mesh.into(),
-                material: materials.add(Color::rgb(0.0, 0.0, 0.0).into()),
-                ..default()
-            },
+            Transform::from_translation(Vec3::new(0., 0., 0.)),
         ))
         .id();
 
