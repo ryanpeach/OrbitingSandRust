@@ -1,4 +1,4 @@
-use glam::Vec2;
+use bevy::math::Vec2;
 
 /// A modulo that works for negative numbers
 pub fn modulo(x: isize, y: usize) -> usize {

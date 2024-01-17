@@ -1,5 +1,7 @@
 use std::f32::consts::PI;
 
+use bevy::math::Vec2;
+
 use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use crate::physics::util::vectors::{Rect, RelXyPoint, Vertex};
@@ -8,7 +10,6 @@ use super::chunk_coords::PartialLayerChunkCoordsBuilder;
 use super::chunk_coords::{ChunkCoords, VertexMode};
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
-use glam::Vec2;
 
 /// A structure that contains all the chunk coordinates for a celestial body
 /// Useful for drawing the total mesh

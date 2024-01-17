@@ -1,10 +1,10 @@
 use bevy::{
     ecs::{component::Component, event::EventReader, query::With, system::Query},
     input::mouse::MouseMotion,
+    math::Vec2,
     render::color::Color,
     transform::components::Transform,
 };
-use glam::Vec2;
 
 use crate::physics::{fallingsand::util::mesh::OwnedMeshData, util::vectors::Vertex};
 
