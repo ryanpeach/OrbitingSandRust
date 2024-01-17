@@ -41,11 +41,7 @@ pub fn camera_window_system(
         .get(FrameTimeDiagnosticsPlugin::FPS)
         .and_then(|fps| fps.smoothed())
         .unwrap_or(0.0);
-    let mut scale = 0.0;
-    for (transform, _) in camera_transform.iter() {
-        scale = transform.scale.length();
-        break;
-    }
+    let scale = camera_transform.iter().next().unwrap().0.scale.z;
     egui::Window::new("Camera Window").show(contexts.ctx_mut(), |ui| {
         // ui.label(format!("Brush Size: {}", self.brush_size.0));
         ui.label(format!("Zoom: {:?}", scale));

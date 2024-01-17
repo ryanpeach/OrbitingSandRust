@@ -7,6 +7,7 @@ use bevy::{
 use bevy_egui::EguiPlugin;
 use orbiting_sand::entities::camera::{move_camera_system, zoom_camera_system};
 use orbiting_sand::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
+use orbiting_sand::gui::brush::BrushRadius;
 use orbiting_sand::gui::camera_window::camera_window_system;
 use orbiting_sand::gui::element_picker::ElementSelection;
 
@@ -37,6 +38,7 @@ fn main() {
             camera_window_system.after(CelestialData::redraw_system),
         )
         .add_systems(Update, ElementSelection::element_picker_system)
+        .add_systems(Update, BrushRadius::draw_brush_system)
         .run();
 }
 
@@ -46,25 +48,49 @@ fn setup(
     mut materials: ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
-    commands.spawn(Camera2dBundle {
-        camera_2d: Camera2d {
-            clear_color: ClearColorConfig::Custom(Color::rgb(0.0, 0.0, 0.0)),
-        },
-        ..Default::default()
-    });
+    // Create a 2D camera
+    let camera = commands
+        .spawn(Camera2dBundle {
+            camera_2d: Camera2d {
+                clear_color: ClearColorConfig::Custom(Color::rgb(0.0, 0.0, 0.0)),
+            },
+            ..Default::default()
+        })
+        .id();
+
+    // Create the brush
+    let brush_mesh = BrushRadius(1.).calc_mesh().load_bevy_mesh(&mut meshes);
+    let brush = commands
+        .spawn((
+            BrushRadius(100.),
+            MaterialMesh2dBundle {
+                mesh: brush_mesh.into(),
+                material: materials.add(Color::rgb(0.0, 0.0, 0.0).into()),
+                ..default()
+            },
+        ))
+        .id();
+
+    // Parent the brush to the camera
+    commands.entity(camera).push_children(&[brush]);
 
     // Create a Celestial
     let planet = EarthLikeBuilder::new().build();
     let mesh: Handle<Mesh> = planet.get_combined_mesh().load_bevy_mesh(&mut meshes);
     let image: Image = planet.calc_combined_mesh_texture().to_bevy_image();
     let material: Handle<ColorMaterial> = materials.add(asset_server.add(image).into());
-    commands.spawn((
-        MaterialMesh2dBundle {
-            mesh: mesh.into(),
-            material,
-            transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
-            ..Default::default()
-        },
-        planet,
-    ));
+    let celestial = commands
+        .spawn((
+            MaterialMesh2dBundle {
+                mesh: mesh.into(),
+                material,
+                transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
+                ..Default::default()
+            },
+            planet,
+        ))
+        .id();
+
+    // Parent the camera to the celestial
+    commands.entity(celestial).push_children(&[camera]);
 }
