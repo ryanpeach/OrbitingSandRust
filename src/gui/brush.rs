@@ -3,12 +3,7 @@ use crate::physics::util::vectors::Vertex;
 use bevy::math::Vec2;
 use bevy::prelude::Window;
 use bevy::{
-    ecs::{
-        component::Component,
-        event::EventReader,
-        query::With,
-        system::{Query},
-    },
+    ecs::{component::Component, event::EventReader, query::With, system::Query},
     gizmos::gizmos::Gizmos,
     render::color::Color,
     transform::components::Transform,
