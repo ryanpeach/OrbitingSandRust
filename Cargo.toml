@@ -14,7 +14,6 @@ debug = true
 bevy = "0.12.1"
 bevy_egui = "0.24.0"
 hashbrown = { version = "0.14.2", features = ["rayon", "ahash"] }
-mint = "0.5.9"
 nabo = "0.3.0"
 quadtree_rs = "0.1.3"
 rand = "0.8.5"

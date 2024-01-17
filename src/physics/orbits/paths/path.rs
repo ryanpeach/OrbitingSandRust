@@ -1,8 +1,7 @@
 //! Paths are the main component of the orbiting system.
 //! They allow precomputation of orbits, allowing them to be stored in memory
 
-use bevy::ecs::component::Component;
-use bevy::math::Vec2;
+use bevy::{ecs::component::Component, math::Vec2};
 
 use crate::physics::util::clock::Clock;
 

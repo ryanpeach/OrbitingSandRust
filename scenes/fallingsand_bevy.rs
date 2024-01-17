@@ -1,9 +1,6 @@
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 
-use bevy::{
-    core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*,
-    sprite::MaterialMesh2dBundle,
-};
+use bevy::{core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*};
 use bevy_egui::EguiPlugin;
 use orbiting_sand::entities::camera::{move_camera_system, zoom_camera_system};
 use orbiting_sand::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
@@ -30,13 +27,10 @@ fn main() {
             Update,
             (
                 CelestialData::process_system,
-                CelestialData::redraw_system.after(CelestialData::process_system),
+                // CelestialData::redraw_system.after(CelestialData::process_system),
             ),
         )
-        .add_systems(
-            Update,
-            camera_window_system.after(CelestialData::redraw_system),
-        )
+        .add_systems(Update, camera_window_system)
         .add_systems(Update, ElementSelection::element_picker_system)
         .add_systems(
             Update,
@@ -78,22 +72,15 @@ fn setup(
     commands.entity(camera).push_children(&[brush]);
 
     // Create a Celestial
-    let planet = EarthLikeBuilder::new().build();
-    let mesh: Handle<Mesh> = planet.get_combined_mesh().load_bevy_mesh(&mut meshes);
-    let image: Image = planet.calc_combined_mesh_texture().to_bevy_image();
-    let material: Handle<ColorMaterial> = materials.add(asset_server.add(image).into());
-    let celestial = commands
-        .spawn((
-            MaterialMesh2dBundle {
-                mesh: mesh.into(),
-                material,
-                transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
-                ..Default::default()
-            },
-            planet,
-        ))
-        .id();
+    let planet_data = EarthLikeBuilder::new().build();
+    let celestial_id = CelestialData::setup(
+        planet_data,
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+        &asset_server,
+    );
 
     // Parent the camera to the celestial
-    commands.entity(celestial).push_children(&[camera]);
+    commands.entity(celestial_id).push_children(&[camera]);
 }
