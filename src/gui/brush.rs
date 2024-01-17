@@ -1,5 +1,8 @@
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::util::vectors::Vertex;
+use bevy::ecs::system::Res;
+use bevy::input::Input;
+use bevy::input::keyboard::KeyCode;
 use bevy::math::Vec2;
 use bevy::prelude::Window;
 use bevy::{
@@ -59,6 +62,23 @@ impl BrushRadius {
         for (transform, brush_radius) in query.iter() {
             let mesh = brush_radius.calc_mesh();
             mesh.draw_bevy_gizmo_outline(&mut gizmos, transform);
+        }
+    }
+
+    pub fn resize_brush_system(
+        keys: Res<Input<KeyCode>>,
+        mut query: Query<&mut BrushRadius>,
+    ) {
+        for mut brush_radius in query.iter_mut() {
+            if keys.just_pressed(KeyCode::Equals) {
+                brush_radius.0 *= 2.0;
+            }
+            if keys.just_pressed(KeyCode::Minus) {
+                brush_radius.0 /= 2.0;
+            }
+            if brush_radius.0 < 0.5 {
+                brush_radius.0 = 0.5;
+            }
         }
     }
 }

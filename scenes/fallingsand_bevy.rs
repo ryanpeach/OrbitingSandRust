@@ -43,6 +43,7 @@ fn main() {
             (
                 BrushRadius::move_brush_system,
                 BrushRadius::draw_brush_system,
+                BrushRadius::resize_brush_system,
             ),
         )
         .run();
@@ -67,7 +68,7 @@ fn setup(
     // Create the brush
     let brush = commands
         .spawn((
-            BrushRadius(100.),
+            BrushRadius(0.5),
             Transform::from_translation(Vec3::new(0., 0., 0.)),
         ))
         .id();
