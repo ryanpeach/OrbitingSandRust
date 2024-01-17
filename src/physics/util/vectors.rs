@@ -6,46 +6,14 @@ use std::{
     ops::{Add, Sub},
 };
 
-use bevy::{ecs::component::Component, math::Vec2, render::color::Color};
+use bevy::{
+    ecs::{component::Component, system::Query},
+    math::{Vec2, Vec3},
+    render::color::Color,
+    transform::components::Transform,
+    window::{CursorMoved, Window},
+};
 use mint::Point2;
-
-/// An absolute position in the world. Usually the location of some object.
-#[derive(Component, Debug, Copy, Clone, PartialEq)]
-pub struct WorldCoord(pub Vec2);
-
-impl Default for WorldCoord {
-    fn default() -> Self {
-        Self(Vec2 { x: 0.0, y: 0.0 })
-    }
-}
-
-impl From<WorldCoord> for Point2<f32> {
-    fn from(val: WorldCoord) -> Self {
-        Point2 {
-            x: val.0.x,
-            y: val.0.y,
-        }
-    }
-}
-
-/// A position in pixel space. Usually the location of some gui window on the screen.
-#[derive(Component, Debug, Copy, Clone, PartialEq)]
-pub struct ScreenCoord(pub Vec2);
-
-impl Default for ScreenCoord {
-    fn default() -> Self {
-        Self(Vec2 { x: 0.0, y: 0.0 })
-    }
-}
-
-impl From<ScreenCoord> for Point2<f32> {
-    fn from(val: ScreenCoord) -> Self {
-        Point2 {
-            x: val.0.x,
-            y: val.0.y,
-        }
-    }
-}
 
 /// A world coord vector that is relative to some position in pixel space.
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -120,4 +88,17 @@ impl Rect {
     pub fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
         Self { x, y, w, h }
     }
+}
+
+/// Take a mouse coordinate and translate it into a Transform position
+pub fn mouse_coord_to_world_coord(
+    windows: &Query<'_, '_, &mut Window>,
+    event: &CursorMoved,
+) -> Transform {
+    // Translate cursor position to coordinate system with origin at the center of the screen
+    let window = windows.single();
+    let window_size = Vec2::new(window.width(), window.height());
+    let centered_x = event.position.x - window_size.x / 2.0;
+    let centered_y = -(event.position.y - window_size.y / 2.0);
+    Transform::from_translation(Vec3::new(centered_x, centered_y, 0.0))
 }

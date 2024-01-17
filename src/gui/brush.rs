@@ -1,7 +1,7 @@
 use crate::entities::celestials::celestial::CelestialData;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::util::clock::Clock;
-use crate::physics::util::vectors::{RelXyPoint, Vertex};
+use crate::physics::util::vectors::{mouse_coord_to_world_coord, RelXyPoint, Vertex};
 use bevy::core::FrameCount;
 use bevy::core_pipeline::core_2d::Camera2d;
 use bevy::ecs::query::Without;
@@ -55,11 +55,11 @@ impl BrushRadius {
         mut query: Query<&mut Transform, With<BrushRadius>>,
     ) {
         for event in cursor_moved_events.read() {
-            let (centered_x, centered_y) = screen_coord_to_world_coord(&windows, event);
+            let mouse_transform = mouse_coord_to_world_coord(&windows, event);
 
-            query.for_each_mut(|mut transform| {
-                transform.translation.x = centered_x;
-                transform.translation.y = centered_y; // Invert y-axis to match Bevy's coordinate system
+            query.for_each_mut(|mut brush_transform| {
+                brush_transform.translation.x = mouse_transform.translation.x;
+                brush_transform.translation.y = mouse_transform.translation.y; // Invert y-axis to match Bevy's coordinate system
             });
         }
     }
@@ -84,18 +84,6 @@ impl BrushRadius {
             }
         }
     }
-}
-
-fn screen_coord_to_world_coord(
-    windows: &Query<'_, '_, &mut Window>,
-    event: &CursorMoved,
-) -> (f32, f32) {
-    // Translate cursor position to coordinate system with origin at the center of the screen
-    let window = windows.single();
-    let window_size = Vec2::new(window.width(), window.height());
-    let centered_x = event.position.x - window_size.x / 2.0;
-    let centered_y = -(event.position.y - window_size.y / 2.0);
-    (centered_x, centered_y)
 }
 
 /// Brush Radius Effect
