@@ -13,8 +13,6 @@ use bevy::{
 
 use crate::physics::util::vectors::{Rect, Vertex};
 
-
-
 /// Represents a mesh that is owned by this object
 /// For some reason a MeshData in ggez object has a lifetime and is a set of borrows.
 /// This is a workaround for that.
@@ -113,11 +111,10 @@ impl OwnedMeshData {
 
 #[cfg(test)]
 mod tests {
-    
+
     use crate::physics::fallingsand::data::element_directory::ElementGridDir;
     use crate::physics::fallingsand::elements::{element::Element, sand::Sand, vacuum::Vacuum};
     use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
-    
 
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {

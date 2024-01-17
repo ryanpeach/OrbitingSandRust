@@ -1,9 +1,5 @@
-
 use orbiting_sand::physics::fallingsand::data::element_directory::ElementGridDir;
 use orbiting_sand::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
-
-
-
 
 /// The default element grid directory for testing
 fn get_element_grid_dir() -> ElementGridDir {

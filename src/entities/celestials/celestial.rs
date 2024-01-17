@@ -13,11 +13,8 @@ use bevy::render::mesh::Mesh;
 use bevy::sprite::{ColorMaterial, MaterialMesh2dBundle};
 use bevy::time::Time;
 
-
 use bevy::transform::components::Transform;
 use hashbrown::HashMap;
-
-
 
 use crate::physics::fallingsand::data::element_directory::ElementGridDir;
 use crate::physics::fallingsand::util::image::RawImage;
@@ -179,8 +176,7 @@ impl CelestialData {
             for (parent, material_handle, chunk_ijk) in chunks.iter_mut() {
                 if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
                     let material = materials.get_mut(&*material_handle).unwrap();
-                    let new_texture =
-                        new_textures.remove(&chunk_ijk.0).unwrap().to_bevy_image();
+                    let new_texture = new_textures.remove(&chunk_ijk.0).unwrap().to_bevy_image();
                     material.texture = Some(asset_server.add(new_texture));
                 }
             }

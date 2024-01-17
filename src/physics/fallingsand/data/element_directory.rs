@@ -1,6 +1,3 @@
-
-
-
 use hashbrown::{HashMap, HashSet};
 
 use crate::physics::util::clock::Clock;
