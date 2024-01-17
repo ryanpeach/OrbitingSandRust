@@ -1,6 +1,6 @@
 use bevy::asset::{AssetServer, Assets, Handle};
 use bevy::core::FrameCount;
-use bevy::ecs::bundle::Bundle;
+
 use bevy::ecs::component::Component;
 
 use bevy::ecs::query::With;

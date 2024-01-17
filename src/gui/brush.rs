@@ -7,7 +7,7 @@ use bevy::{
         component::Component,
         event::EventReader,
         query::With,
-        system::{Query, Res},
+        system::{Query},
     },
     gizmos::gizmos::Gizmos,
     render::color::Color,
