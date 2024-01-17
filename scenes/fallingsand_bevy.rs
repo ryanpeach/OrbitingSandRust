@@ -22,7 +22,7 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugins(EguiPlugin)
-        .add_plugins(FrameTimeDiagnosticsPlugin::default())
+        .add_plugins(FrameTimeDiagnosticsPlugin)
         .insert_resource(ElementSelection::default())
         .add_systems(Startup, setup)
         .add_systems(Update, (zoom_camera_system, move_camera_system))
