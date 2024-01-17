@@ -3,7 +3,6 @@
 use bevy::{
     core_pipeline::core_2d::Camera2d,
     ecs::{
-        component::Component,
         event::EventReader,
         system::{Query, Res},
     },

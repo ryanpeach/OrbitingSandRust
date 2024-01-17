@@ -4,19 +4,19 @@ use bevy::{
     ecs::{
         entity::Entity,
         query::With,
-        system::{Local, Query, Res, ResMut, Resource},
+        system::{Local, Query, Res, ResMut},
     },
     render::view::screenshot::ScreenshotManager,
     transform::components::Transform,
     window::PrimaryWindow,
 };
 use bevy_egui::{
-    egui::{self, Ui},
+    egui::{self},
     EguiContexts,
 };
-use glam::Vec2;
 
-use crate::physics::util::vectors::ScreenCoord;
+
+
 
 #[derive(Debug, Clone, Copy)]
 pub enum PlayPauseMode {

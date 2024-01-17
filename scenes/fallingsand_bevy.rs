@@ -1,6 +1,6 @@
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-use bevy::render::view::screenshot::ScreenshotManager;
-use bevy::window::PrimaryWindow;
+
+
 use bevy::{
     core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*,
     sprite::MaterialMesh2dBundle,
