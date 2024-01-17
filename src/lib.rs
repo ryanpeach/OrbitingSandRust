@@ -1,3 +1,4 @@
 #![allow(dead_code)]
-pub mod nodes;
+pub mod entities;
+pub mod gui;
 pub mod physics;
