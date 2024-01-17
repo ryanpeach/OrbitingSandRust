@@ -8,9 +8,7 @@ use ggez::event::{self, EventHandler};
 use ggez::graphics::{self, FilterMode, GraphicsContext, Sampler};
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use ggez::{Context, GameResult};
-use glam::Vec2;
 
-use mint::{Point2, Vector2};
 use orbiting_sand::gui::brush::Brush;
 use orbiting_sand::gui::windows::camera_window::{self, CameraWindow, YesNoFullStep};
 use orbiting_sand::gui::windows::cursor_tooltip::{self, CursorTooltip};

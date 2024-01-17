@@ -1,6 +1,5 @@
 use bevy::ecs::system::Resource;
 use bevy_egui::egui::{self, Ui};
-use glam::Vec2;
 
 use crate::{
     nodes::{

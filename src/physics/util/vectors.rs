@@ -6,47 +6,7 @@ use std::{
     ops::{Add, Sub},
 };
 
-use bevy::{ecs::component::Component, render::color::Color};
-use glam::Vec2;
-use mint::Point2;
-
-/// An absolute position in the world. Usually the location of some object.
-#[derive(Component, Debug, Copy, Clone, PartialEq)]
-pub struct WorldCoord(pub Vec2);
-
-impl Default for WorldCoord {
-    fn default() -> Self {
-        Self(Vec2 { x: 0.0, y: 0.0 })
-    }
-}
-
-impl From<WorldCoord> for Point2<f32> {
-    fn from(val: WorldCoord) -> Self {
-        Point2 {
-            x: val.0.x,
-            y: val.0.y,
-        }
-    }
-}
-
-/// A position in pixel space. Usually the location of some gui window on the screen.
-#[derive(Component, Debug, Copy, Clone, PartialEq)]
-pub struct ScreenCoord(pub Vec2);
-
-impl Default for ScreenCoord {
-    fn default() -> Self {
-        Self(Vec2 { x: 0.0, y: 0.0 })
-    }
-}
-
-impl From<ScreenCoord> for Point2<f32> {
-    fn from(val: ScreenCoord) -> Self {
-        Point2 {
-            x: val.0.x,
-            y: val.0.y,
-        }
-    }
-}
+use bevy::{math::Vec2, render::color::Color};
 
 /// A world coord vector that is relative to some position in pixel space.
 #[derive(Debug, Copy, Clone, PartialEq)]

@@ -3,8 +3,8 @@ use crate::physics::fallingsand::util::image::RawImage;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use crate::physics::util::vectors::{Rect, RelXyPoint, Vertex};
+use bevy::math::Vec2;
 use bevy::render::color::Color;
-use glam::Vec2;
 
 use std::f32::consts::PI;
 

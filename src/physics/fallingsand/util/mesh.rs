@@ -5,12 +5,12 @@
 use bevy::{
     asset::{Assets, Handle},
     ecs::system::ResMut,
+    math::Vec2,
     render::{
         mesh::{Indices, Mesh, VertexAttributeValues},
         render_resource::PrimitiveTopology,
     },
 };
-use glam::Vec2;
 
 use crate::physics::util::vectors::{Rect, Vertex};
 

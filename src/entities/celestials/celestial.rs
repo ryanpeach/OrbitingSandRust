@@ -1,6 +1,5 @@
 use bevy::asset::{AssetServer, Assets, Handle};
 use bevy::core::FrameCount;
-use bevy::ecs::bundle::Bundle;
 use bevy::ecs::component::Component;
 
 use bevy::ecs::query::With;
@@ -19,7 +18,6 @@ use crate::physics::fallingsand::util::image::RawImage;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::util::clock::Clock;
-use crate::physics::util::vectors::WorldCoord;
 
 /// Acts as a cache for a radial mesh's meshes and textures
 #[derive(Component)]
@@ -107,21 +105,6 @@ impl CelestialData {
     }
     pub fn get_element_dir_mut(&mut self) -> &mut ElementGridDir {
         &mut self.element_grid_dir
-    }
-}
-
-#[derive(Bundle)]
-pub struct Celestial {
-    pub world_coord: WorldCoord,
-    pub data: CelestialData,
-}
-
-impl Celestial {
-    pub fn new(element_grid_dir: ElementGridDir) -> Self {
-        Self {
-            world_coord: WorldCoord::default(),
-            data: CelestialData::new(element_grid_dir),
-        }
     }
 }
 

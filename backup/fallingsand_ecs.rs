@@ -5,7 +5,6 @@ use ggez::graphics::{self, Color, DrawMode};
 use ggez::input::keyboard;
 use ggez::GameResult;
 use ggez::{event, winit, Context};
-use glam::Vec2;
 use orbiting_sand::gui::brush::Brush;
 use orbiting_sand::gui::windows::camera_window::CameraWindow;
 use orbiting_sand::gui::windows::cursor_tooltip::CursorTooltip;
@@ -78,13 +77,13 @@ pub fn main() -> GameResult {
                 let circle = graphics::Mesh::new_circle(
                     ctx,
                     DrawMode::fill(),
-                    glam::Vec2::new(0.0, 0.0),
+                    Vec2::new(0.0, 0.0),
                     100.0,
                     2.0,
                     Color::WHITE,
                 )
                 .unwrap();
-                canvas.draw(&circle, glam::Vec2::new(position, 380.0));
+                canvas.draw(&circle, Vec2::new(position, 380.0));
 
                 canvas.finish(ctx).unwrap();
                 ctx.gfx.end_frame().unwrap();
