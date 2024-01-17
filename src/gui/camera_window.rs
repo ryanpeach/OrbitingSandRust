@@ -15,9 +15,6 @@ use bevy_egui::{
     EguiContexts,
 };
 
-
-
-
 #[derive(Debug, Clone, Copy)]
 pub enum PlayPauseMode {
     Play,

@@ -1,13 +1,10 @@
-use bevy::ecs::{
-    system::{ResMut, Resource},
-};
+use bevy::ecs::system::{ResMut, Resource};
 use bevy_egui::{
     egui::{self},
     EguiContexts,
 };
 
-
-use crate::physics::{fallingsand::elements::element::ElementType};
+use crate::physics::fallingsand::elements::element::ElementType;
 
 /// A window used to select an element to place
 #[derive(Resource, Default)]
