@@ -1,24 +1,12 @@
 use bevy::{
-    ecs::{
-        component::Component,
-        event::EventReader,
-        query::With,
-        system::{Query},
-    },
+    ecs::{component::Component, event::EventReader, query::With, system::Query},
     input::mouse::MouseMotion,
-    render::{color::Color},
+    render::color::Color,
     transform::components::Transform,
 };
 use glam::Vec2;
 
-use crate::{
-    physics::{
-        fallingsand::util::mesh::OwnedMeshData,
-        util::{
-            vectors::{Vertex},
-        },
-    },
-};
+use crate::physics::{fallingsand::util::mesh::OwnedMeshData, util::vectors::Vertex};
 
 #[derive(Default, Component, Debug, Clone, Copy)]
 pub struct BrushRadius(pub f32);
