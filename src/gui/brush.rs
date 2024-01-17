@@ -1,24 +1,21 @@
 use bevy::{
-    core_pipeline::core_2d::Camera2d,
     ecs::{
         component::Component,
         event::EventReader,
         query::With,
-        system::{Query, Resource},
+        system::{Query},
     },
     input::mouse::MouseMotion,
-    render::{color::Color, mesh::Mesh},
+    render::{color::Color},
     transform::components::Transform,
 };
 use glam::Vec2;
 
 use crate::{
-    entities::celestials::celestial::Celestial,
     physics::{
         fallingsand::util::mesh::OwnedMeshData,
         util::{
-            clock::Clock,
-            vectors::{RelXyPoint, ScreenCoord, Vertex, WorldCoord},
+            vectors::{Vertex},
         },
     },
 };
