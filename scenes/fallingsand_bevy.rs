@@ -44,6 +44,7 @@ fn main() {
                 BrushRadius::move_brush_system,
                 BrushRadius::draw_brush_system,
                 BrushRadius::resize_brush_system,
+                BrushRadius::apply_brush_system,
             ),
         )
         .run();
