@@ -1,4 +1,5 @@
-use crate::physics::{fallingsand::util::mesh::OwnedMeshData, util::vectors::Vertex};
+use crate::physics::fallingsand::util::mesh::OwnedMeshData;
+use crate::physics::util::vectors::Vertex;
 use bevy::math::Vec2;
 use bevy::prelude::Window;
 use bevy::{
