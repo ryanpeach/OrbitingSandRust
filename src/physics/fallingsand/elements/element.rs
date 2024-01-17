@@ -20,14 +20,17 @@ use super::water::Water;
 /// self reference in the process operation for thread safety.
 /// However, we shouldn't put it back if the element has moved, instead
 /// we will ask the element itself to clone itself and put the clone somewhere else
+#[derive(Default)]
 pub enum ElementTakeOptions {
+    #[default]
     PutBack,
     DoNothing,
     ReplaceWith(Box<dyn Element>),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter, PartialOrd, Ord)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter, PartialOrd, Ord)]
 pub enum StateOfMatter {
+    #[default]
     Empty,
     Gas,
     Liquid,
@@ -35,8 +38,9 @@ pub enum StateOfMatter {
 }
 
 /// Useful for match statements
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter)]
 pub enum ElementType {
+    #[default]
     Vacuum,
     Sand,
     Stone,
