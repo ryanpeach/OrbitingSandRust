@@ -1,8 +1,8 @@
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::util::vectors::Vertex;
 use bevy::ecs::system::Res;
-use bevy::input::Input;
 use bevy::input::keyboard::KeyCode;
+use bevy::input::Input;
 use bevy::math::Vec2;
 use bevy::prelude::Window;
 use bevy::{
@@ -65,10 +65,7 @@ impl BrushRadius {
         }
     }
 
-    pub fn resize_brush_system(
-        keys: Res<Input<KeyCode>>,
-        mut query: Query<&mut BrushRadius>,
-    ) {
+    pub fn resize_brush_system(keys: Res<Input<KeyCode>>, mut query: Query<&mut BrushRadius>) {
         for mut brush_radius in query.iter_mut() {
             if keys.just_pressed(KeyCode::Equals) {
                 brush_radius.0 *= 2.0;
