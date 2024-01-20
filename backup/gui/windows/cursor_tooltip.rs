@@ -1,4 +1,5 @@
 use bevy::ecs::system::Resource;
+use bevy::math::Vec2;
 use bevy_egui::egui::{self, Ui};
 
 use crate::{
@@ -11,7 +12,7 @@ use crate::{
             elements::element::ElementType,
             util::vectors::{ChunkIjkVector, IjkVector, JkVector},
         },
-        util::vectors::{RelXyPoint, ScreenCoord, WorldCoord},
+        util::vectors::RelXyPoint,
     },
 };
 

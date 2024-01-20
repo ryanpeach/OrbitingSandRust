@@ -2,13 +2,17 @@
 //! I found it useful to write my own mesh class in ggez and it has been useful in bevy as well
 //! keeps us from having to use specific bevy types in the physics engine
 
+use bevy::math::Vec2;
 use bevy::{
     asset::{Assets, Handle},
     ecs::system::ResMut,
+    gizmos::gizmos::Gizmos,
     render::{
+        color::Color,
         mesh::{Indices, Mesh, VertexAttributeValues},
         render_resource::PrimitiveTopology,
     },
+    transform::components::Transform,
 };
 
 use crate::physics::util::vectors::{Rect, Vertex};
@@ -106,6 +110,58 @@ impl OwnedMeshData {
         mesh.set_indices(Some(Indices::U32(self.indices.clone())));
 
         meshes.add(mesh)
+    }
+
+    /// Draws the mesh using bevy's gizmos, which is an immediate mode renderer
+    /// This is useful for chunk outlines and for the brush
+    /// This draw mode "loops" like you would for an enclosed shape
+    pub fn draw_bevy_gizmo_outline(&self, gizmos: &mut Gizmos, transform: &Transform) {
+        for idx in 0..(self.indices.len() - 1) {
+            let idx0 = self.indices[idx] as usize;
+            let idx1 = self.indices[idx + 1] as usize;
+            self.draw_bevy_gizmo_line(idx0, idx1, transform, gizmos);
+        }
+        // Now the final line to close the loop
+        let idx0 = self.indices[self.indices.len() - 1] as usize;
+        let idx1 = self.indices[0] as usize;
+        self.draw_bevy_gizmo_line(idx0, idx1, transform, gizmos);
+    }
+
+    /// Draws the mesh using bevy's gizmos, which is an immediate mode renderer
+    /// This is useful for wireframes
+    /// This draw mode draws each triangle (triple) individually
+    pub fn draw_bevy_gizmo_triangles(&self, gizmos: &mut Gizmos, transform: &Transform) {
+        for idx in (0..self.indices.len()).step_by(3) {
+            let idx0 = self.indices[idx] as usize;
+            let idx1 = self.indices[idx + 1] as usize;
+            let idx2 = self.indices[idx + 2] as usize;
+            self.draw_bevy_gizmo_line(idx0, idx1, transform, gizmos);
+            self.draw_bevy_gizmo_line(idx1, idx2, transform, gizmos);
+            self.draw_bevy_gizmo_line(idx2, idx0, transform, gizmos);
+        }
+    }
+
+    /// Simply draws a line from an index to another but applies the transform first
+    fn draw_bevy_gizmo_line(
+        &self,
+        idx0: usize,
+        idx1: usize,
+        transform: &Transform,
+        gizmos: &mut Gizmos,
+    ) {
+        let mut pos0 = self.vertices[idx0].position;
+        let mut pos1 = self.vertices[idx1].position;
+        pos0.x += transform.translation.x;
+        pos0.y += transform.translation.y;
+        pos1.x += transform.translation.x;
+        pos1.y += transform.translation.y;
+        pos0.x *= transform.scale.x;
+        pos0.y *= transform.scale.y;
+        gizmos.line_2d(
+            Vec2::new(pos0.x, pos0.y),
+            Vec2::new(pos1.x, pos1.y),
+            Color::WHITE,
+        );
     }
 }
 

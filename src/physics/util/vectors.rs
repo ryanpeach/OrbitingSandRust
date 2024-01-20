@@ -6,7 +6,13 @@ use std::{
     ops::{Add, Sub},
 };
 
-use bevy::{math::Vec2, render::color::Color};
+use bevy::{
+    ecs::system::Query,
+    math::{Vec2, Vec3},
+    render::color::Color,
+    transform::components::Transform,
+    window::{CursorMoved, Window},
+};
 
 /// A world coord vector that is relative to some position in pixel space.
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -81,4 +87,17 @@ impl Rect {
     pub fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
         Self { x, y, w, h }
     }
+}
+
+/// Take a mouse coordinate and translate it into a Transform position
+pub fn mouse_coord_to_world_coord(
+    windows: &Query<'_, '_, &mut Window>,
+    event: &CursorMoved,
+) -> Transform {
+    // Translate cursor position to coordinate system with origin at the center of the screen
+    let window = windows.single();
+    let window_size = Vec2::new(window.width(), window.height());
+    let centered_x = event.position.x - window_size.x / 2.0;
+    let centered_y = -(event.position.y - window_size.y / 2.0);
+    Transform::from_translation(Vec3::new(centered_x, centered_y, 0.0))
 }

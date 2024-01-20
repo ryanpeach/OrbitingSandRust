@@ -1,9 +1,6 @@
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 
-use bevy::{
-    core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*,
-    sprite::MaterialMesh2dBundle,
-};
+use bevy::{core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*};
 use bevy_egui::EguiPlugin;
 use orbiting_sand::entities::camera::{move_camera_system, zoom_camera_system};
 use orbiting_sand::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
@@ -35,7 +32,15 @@ fn main() {
         )
         .add_systems(Update, camera_window_system)
         .add_systems(Update, ElementSelection::element_picker_system)
-        .add_systems(Update, BrushRadius::draw_brush_system)
+        .add_systems(
+            Update,
+            (
+                BrushRadius::move_brush_system,
+                BrushRadius::draw_brush_system,
+                BrushRadius::resize_brush_system,
+                BrushRadius::apply_brush_system,
+            ),
+        )
         .run();
 }
 
@@ -56,15 +61,10 @@ fn setup(
         .id();
 
     // Create the brush
-    let brush_mesh = BrushRadius(1.).calc_mesh().load_bevy_mesh(&mut meshes);
     let brush = commands
         .spawn((
-            BrushRadius(1.),
-            MaterialMesh2dBundle {
-                mesh: brush_mesh.into(),
-                material: materials.add(Color::rgb(0.0, 0.0, 0.0).into()),
-                ..default()
-            },
+            BrushRadius(0.5),
+            Transform::from_translation(Vec3::new(0., 0., 0.)),
         ))
         .id();
 
