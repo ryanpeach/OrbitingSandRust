@@ -7,6 +7,7 @@ use orbiting_sand::entities::celestials::{celestial::CelestialData, earthlike::E
 use orbiting_sand::gui::brush::BrushRadius;
 use orbiting_sand::gui::camera_window::camera_window_system;
 use orbiting_sand::gui::element_picker::ElementSelection;
+use orbiting_sand::physics::orbits::nbody::leapfrog_integration_system;
 
 fn main() {
     App::new()
@@ -23,13 +24,7 @@ fn main() {
         .insert_resource(ElementSelection::default())
         .add_systems(Startup, setup)
         .add_systems(Update, (zoom_camera_system, move_camera_system))
-        .add_systems(
-            Update,
-            (
-                CelestialData::process_system,
-                // CelestialData::redraw_system.after(CelestialData::process_system),
-            ),
-        )
+        .add_systems(Update, CelestialData::process_system)
         .add_systems(Update, camera_window_system)
         .add_systems(Update, ElementSelection::element_picker_system)
         .add_systems(
@@ -40,6 +35,10 @@ fn main() {
                 BrushRadius::resize_brush_system,
                 BrushRadius::apply_brush_system,
             ),
+        )
+        .add_systems(
+            Update,
+            leapfrog_integration_system.after(CelestialData::process_system),
         )
         .run();
 }

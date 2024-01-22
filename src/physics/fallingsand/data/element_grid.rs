@@ -15,6 +15,7 @@ use super::super::util::image::RawImage;
 pub struct ElementGrid {
     grid: Grid<Box<dyn Element>>,
     coords: ChunkCoords,
+    mass_cache: f32,
 
     /// This deals with a lock during convolution
     already_processed: bool,
@@ -57,6 +58,7 @@ impl ElementGrid {
             coords: chunk_coords,
             already_processed: false,
             last_set: Clock::default(),
+            mass_cache: 0.0,
         }
     }
 }
@@ -92,6 +94,9 @@ impl ElementGrid {
     }
     pub fn get_process_unneeded(&self, current_time: Clock) -> bool {
         self.last_set.get_current_frame() < current_time.get_current_frame() - 1
+    }
+    pub fn get_total_mass(&self) -> f32 {
+        self.mass_cache
     }
 }
 
@@ -146,6 +151,7 @@ impl ElementGrid {
         // if locked {
         //     return;
         // }
+        let mut mass = 0.0;
         let already_processed = self.get_already_processed();
         debug_assert!(!already_processed, "Already processed");
         for j in 0..self.coords.get_num_concentric_circles() {
@@ -180,15 +186,18 @@ impl ElementGrid {
                 //
                 match res {
                     ElementTakeOptions::PutBack => {
+                        mass += element.get_mass();
                         self.grid.replace(pos, element);
                     }
                     ElementTakeOptions::ReplaceWith(new_element) => {
+                        mass += new_element.get_mass();
                         self.grid.replace(pos, new_element);
                     }
                     ElementTakeOptions::DoNothing => {}
                 }
             }
         }
+        self.mass_cache = mass;
     }
 }
 

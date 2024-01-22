@@ -18,6 +18,9 @@ impl Element for LeftFlier {
     fn get_type(&self) -> ElementType {
         ElementType::LeftFlier
     }
+    fn get_mass(&self) -> f32 {
+        0.0
+    }
     fn get_last_processed(&self) -> Clock {
         self.last_processed
     }

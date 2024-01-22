@@ -20,6 +20,9 @@ impl Element for Vacuum {
     fn get_last_processed(&self) -> Clock {
         self.last_processed
     }
+    fn get_mass(&self) -> f32 {
+        0.0
+    }
     fn _set_last_processed(&mut self, current_time: Clock) {
         self.last_processed = current_time;
     }

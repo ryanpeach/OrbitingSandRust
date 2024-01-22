@@ -20,6 +20,7 @@ use crate::physics::fallingsand::data::element_directory::ElementGridDir;
 use crate::physics::fallingsand::util::image::RawImage;
 
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
+use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 
 #[derive(Component)]
@@ -148,6 +149,7 @@ impl CelestialData {
         // Create a Celestial
         let celestial_id = commands
             .spawn((
+                Mass(celestial.get_element_dir().get_total_mass()),
                 celestial,
                 Transform::from_translation(Vec3::new(0., 0., 0.)),
             ))
@@ -163,16 +165,17 @@ impl CelestialData {
     }
 
     pub fn process_system(
-        mut celestial: Query<(Entity, &mut CelestialData)>,
+        mut celestial: Query<(Entity, &mut CelestialData, &mut Mass)>,
         mut chunks: Query<(&Parent, &mut Handle<ColorMaterial>, &CelestialChunkIdk)>,
         mut materials: ResMut<Assets<ColorMaterial>>,
         asset_server: Res<AssetServer>,
         time: Res<Time>,
         frame: Res<FrameCount>,
     ) {
-        for (celestial_id, mut celestial) in celestial.iter_mut() {
+        for (celestial_id, mut celestial, mut mass) in celestial.iter_mut() {
             let mut new_textures =
                 celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
+            mass.0 = celestial.get_element_dir().get_total_mass();
             for (parent, material_handle, chunk_ijk) in chunks.iter_mut() {
                 if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
                     let material = materials.get_mut(&*material_handle).unwrap();
