@@ -55,40 +55,6 @@ pub struct Vertex {
     pub color: Color,
 }
 
-/// A rectangle
-/// Originally from ggez
-/// TODO: Replace with bevy::math::Rect
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Rect {
-    pub x: f32,
-    pub y: f32,
-    pub w: f32,
-    pub h: f32,
-}
-
-impl From<Rect> for bevy::math::Rect {
-    fn from(val: Rect) -> Self {
-        bevy::math::Rect::new(val.x, val.y, val.x + val.w, val.y + val.h)
-    }
-}
-
-impl From<bevy::math::Rect> for Rect {
-    fn from(rect: bevy::math::Rect) -> Self {
-        Self {
-            x: rect.min.x,
-            y: rect.min.y,
-            w: rect.width(),
-            h: rect.height(),
-        }
-    }
-}
-
-impl Rect {
-    pub fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
-        Self { x, y, w, h }
-    }
-}
-
 /// Take a mouse coordinate and translate it into a Transform position
 pub fn mouse_coord_to_world_coord(
     windows: &Query<'_, '_, &mut Window>,

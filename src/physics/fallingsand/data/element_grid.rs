@@ -1,8 +1,9 @@
+use bevy::math::Rect;
+
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
-use crate::physics::util::vectors::Rect;
 
 use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
 
@@ -223,8 +224,10 @@ impl ElementGrid {
             bounds: Rect::new(
                 self.coords.get_start_radial_line() as f32,
                 self.coords.get_start_concentric_circle_absolute() as f32,
-                self.coords.get_num_radial_lines() as f32,
-                self.coords.get_num_concentric_circles() as f32,
+                self.coords.get_start_radial_line() as f32
+                    + self.coords.get_num_radial_lines() as f32,
+                self.coords.get_start_concentric_circle_absolute() as f32
+                    + self.coords.get_num_concentric_circles() as f32,
             ),
         }
     }

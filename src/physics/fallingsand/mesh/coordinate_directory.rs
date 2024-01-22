@@ -1,10 +1,10 @@
 use std::f32::consts::PI;
 
-use bevy::math::Vec2;
+use bevy::math::{Rect, Vec2};
 
 use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
-use crate::physics::util::vectors::{Rect, RelXyPoint, Vertex};
+use crate::physics::util::vectors::{RelXyPoint, Vertex};
 
 use super::chunk_coords::PartialLayerChunkCoordsBuilder;
 use super::chunk_coords::{ChunkCoords, VertexMode};

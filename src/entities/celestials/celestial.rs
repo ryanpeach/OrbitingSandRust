@@ -8,6 +8,7 @@ use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
 use bevy::math::Vec2;
+use bevy::prelude::SpatialBundle;
 use bevy::render::mesh::Mesh;
 
 use bevy::sprite::{ColorMaterial, MaterialMesh2dBundle};
@@ -154,7 +155,7 @@ impl CelestialData {
                 Mass(celestial.get_element_dir().get_total_mass()),
                 velocity,
                 celestial,
-                Transform::from_translation(translation.extend(0.0)),
+                SpatialBundle::from_transform(Transform::from_translation(translation.extend(0.0))),
             ))
             .id();
 
