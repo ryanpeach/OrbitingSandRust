@@ -59,7 +59,7 @@ impl ElementGrid {
             coords: chunk_coords,
             already_processed: false,
             last_set: Clock::default(),
-            mass_cache: 0.0,
+            mass_cache: 1.0,
         }
     }
 }

@@ -40,10 +40,10 @@ fn main() {
                 BrushRadius::apply_brush_system,
             ),
         )
-        // .add_systems(
-        //     Update,
-        //     leapfrog_integration_system.after(CelestialData::process_system),
-        // )
+        .add_systems(
+            Update,
+            leapfrog_integration_system.after(CelestialData::process_system),
+        )
         .run();
 }
 

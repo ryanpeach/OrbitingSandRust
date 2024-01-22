@@ -21,7 +21,7 @@ use crate::physics::fallingsand::data::element_directory::ElementGridDir;
 use crate::physics::fallingsand::util::image::RawImage;
 
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
-use crate::physics::orbits::components::{Mass, Velocity};
+use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
 use crate::physics::util::clock::Clock;
 
 #[derive(Component)]
@@ -156,6 +156,7 @@ impl CelestialData {
                 velocity,
                 celestial,
                 SpatialBundle::from_transform(Transform::from_translation(translation.extend(0.0))),
+                GravitationalField,
             ))
             .id();
 
@@ -180,6 +181,7 @@ impl CelestialData {
             let mut new_textures =
                 celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
             mass.0 = celestial.get_element_dir().get_total_mass();
+            debug_assert_ne!(mass.0, 0.0);
             for (parent, material_handle, chunk_ijk) in chunks.iter_mut() {
                 if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
                     let material = materials.get_mut(&*material_handle).unwrap();
