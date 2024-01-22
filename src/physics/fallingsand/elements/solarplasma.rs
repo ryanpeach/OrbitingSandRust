@@ -30,7 +30,7 @@ impl Element for SolarPlasma {
         StateOfMatter::Liquid
     }
     fn get_color(&self) -> Color {
-        Color::YELLOW
+        Color::ORANGE
     }
     fn _process(
         &mut self,
