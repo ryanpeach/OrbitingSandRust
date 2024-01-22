@@ -18,6 +18,9 @@ impl Element for Sand {
     fn get_type(&self) -> ElementType {
         ElementType::Sand
     }
+    fn get_mass(&self) -> f32 {
+        1.0
+    }
     fn get_last_processed(&self) -> Clock {
         self.last_processed
     }

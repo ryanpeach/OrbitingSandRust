@@ -68,6 +68,7 @@ pub trait Element: Send + Sync {
     fn get_type(&self) -> ElementType;
     fn get_last_processed(&self) -> Clock;
     fn get_color(&self) -> Color;
+    fn get_mass(&self) -> f32;
     fn get_state_of_matter(&self) -> StateOfMatter;
     fn process(
         &mut self,

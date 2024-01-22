@@ -691,6 +691,22 @@ impl ElementGridDir {
         out
     }
 
+    /// Get the total mass of the directory
+    pub fn get_total_mass(&self) -> f32 {
+        let mut out = 0.0;
+        for i in 0..self.coords.get_num_layers() {
+            let j_size = self.coords.get_layer_num_concentric_chunks(i);
+            let k_size = self.coords.get_layer_num_radial_chunks(i);
+            for j in 0..j_size {
+                for k in 0..k_size {
+                    let coord = ChunkIjkVector { i, j, k };
+                    out += self.get_chunk_by_chunk_ijk(coord).get_total_mass();
+                }
+            }
+        }
+        out
+    }
+
     /// Gets the chunk at the given index
     /// Errors if it is currently borrowed
     pub fn get_chunk_by_chunk_ijk(&self, coord: ChunkIjkVector) -> &ElementGrid {
