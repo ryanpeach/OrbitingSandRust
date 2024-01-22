@@ -2,8 +2,8 @@ use crate::physics::fallingsand::util::functions::interpolate_points;
 use crate::physics::fallingsand::util::image::RawImage;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
-use crate::physics::util::vectors::{Rect, RelXyPoint, Vertex};
-use bevy::math::Vec2;
+use crate::physics::util::vectors::{RelXyPoint, Vertex};
+use bevy::math::{Rect, Vec2};
 use bevy::render::color::Color;
 
 use std::f32::consts::PI;
@@ -239,7 +239,7 @@ impl ChunkCoords {
         let max_x = all_x.fold(f32::NEG_INFINITY, f32::max);
         let min_y = all_y.clone().fold(f32::INFINITY, f32::min);
         let max_y = all_y.fold(f32::NEG_INFINITY, f32::max);
-        Rect::new(min_x, min_y, max_x - min_x, max_y - min_y)
+        Rect::new(min_x, min_y, max_x, max_y)
     }
 
     /// Gets the UV coordinates of the vertexes of the chunk
@@ -326,8 +326,8 @@ impl ChunkCoords {
             bounds: Rect::new(
                 self.get_start_radial_line() as f32,
                 self.get_start_concentric_circle_absolute() as f32,
-                k_count as f32,
-                j_count as f32,
+                self.get_start_radial_line() as f32 + k_count as f32,
+                self.get_start_concentric_circle_absolute() as f32 + j_count as f32,
             ),
         }
     }
@@ -449,9 +449,8 @@ impl ChunkCoords {
             uv_bounds: Rect::new(
                 self.get_start_radial_line() as f32,
                 self.get_start_concentric_circle_absolute() as f32,
-                self.get_end_radial_line() as f32 - self.get_start_radial_line() as f32,
-                self.get_end_concentric_circle_absolute() as f32
-                    - self.get_start_concentric_circle_absolute() as f32,
+                self.get_end_radial_line() as f32,
+                self.get_end_concentric_circle_absolute() as f32,
             ),
         }
     }
@@ -464,9 +463,8 @@ impl ChunkCoords {
             uv_bounds: Rect::new(
                 self.get_start_radial_line() as f32,
                 self.get_start_concentric_circle_absolute() as f32,
-                self.get_end_radial_line() as f32 - self.get_start_radial_line() as f32,
-                self.get_end_concentric_circle_absolute() as f32
-                    - self.get_start_concentric_circle_absolute() as f32,
+                self.get_end_radial_line() as f32,
+                self.get_end_concentric_circle_absolute() as f32,
             ),
         }
     }
@@ -490,9 +488,8 @@ impl ChunkCoords {
             uv_bounds: Rect::new(
                 self.get_start_radial_line() as f32,
                 self.get_start_concentric_circle_absolute() as f32,
-                self.get_end_radial_line() as f32 - self.get_start_radial_line() as f32,
-                self.get_end_concentric_circle_absolute() as f32
-                    - self.get_start_concentric_circle_absolute() as f32,
+                self.get_end_radial_line() as f32,
+                self.get_end_concentric_circle_absolute() as f32,
             ),
         }
     }
@@ -1019,10 +1016,10 @@ mod tests {
         #[test]
         fn test_first_layer_bounding_box() {
             let bb = FIRST_LAYER.get_bounding_box();
-            assert_eq!(bb.x, -3.0);
-            assert_eq!(bb.y, -3.0);
-            assert_eq!(bb.w, 6.0);
-            assert_eq!(bb.h, 6.0);
+            assert_eq!(bb.min.x, -3.0);
+            assert_eq!(bb.min.y, -3.0);
+            assert_eq!(bb.width(), 6.0);
+            assert_eq!(bb.height(), 6.0);
         }
     }
 

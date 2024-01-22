@@ -2,7 +2,8 @@
 //! I found it useful to write my own mesh class in ggez and it has been useful in bevy as well
 //! keeps us from having to use specific bevy types in the physics engine
 
-use bevy::math::Vec2;
+use bevy::ecs::component::Component;
+use bevy::math::{Rect, Vec2};
 use bevy::{
     asset::{Assets, Handle},
     ecs::system::ResMut,
@@ -15,7 +16,10 @@ use bevy::{
     transform::components::Transform,
 };
 
-use crate::physics::util::vectors::{Rect, Vertex};
+use crate::physics::util::vectors::Vertex;
+
+#[derive(Component)]
+pub struct MeshBoundingBox(pub Rect);
 
 /// Represents a mesh that is owned by this object
 /// For some reason a MeshData in ggez object has a lifetime and is a set of borrows.
@@ -31,12 +35,7 @@ pub struct OwnedMeshData {
 impl Default for OwnedMeshData {
     fn default() -> Self {
         Self {
-            uv_bounds: Rect {
-                x: 0.0,
-                y: 0.0,
-                w: 0.0,
-                h: 0.0,
-            },
+            uv_bounds: Rect::default(),
             vertices: Vec::new(),
             indices: Vec::new(),
         }

@@ -2,12 +2,13 @@
 //! I found it useful to write my own image class in ggez and it has been useful in bevy as well
 //! keeps us from having to use specific bevy types in the physics engine
 
-use bevy::render::{
-    render_resource::{Extent3d, TextureDimension, TextureFormat},
-    texture::Image,
+use bevy::{
+    math::Rect,
+    render::{
+        render_resource::{Extent3d, TextureDimension, TextureFormat},
+        texture::Image,
+    },
 };
-
-use crate::physics::util::vectors::Rect;
 
 /// Representing a raw RGBA image
 /// Game engine agnostic, full ownership, no lifetimes, not a component
@@ -23,12 +24,7 @@ pub struct RawImage {
 impl Default for RawImage {
     fn default() -> Self {
         Self {
-            bounds: Rect {
-                x: 0.0,
-                y: 0.0,
-                w: 0.0,
-                h: 0.0,
-            },
+            bounds: Rect::new(0.0, 0.0, 0.0, 0.0),
             pixels: Vec::new(),
         }
     }
@@ -50,8 +46,8 @@ impl RawImage {
     /// ```
     pub fn to_bevy_image(self) -> Image {
         let size = Extent3d {
-            width: self.bounds.w as u32,
-            height: self.bounds.h as u32,
+            width: self.bounds.width() as u32,
+            height: self.bounds.height() as u32,
             depth_or_array_layers: 1,
         };
 
