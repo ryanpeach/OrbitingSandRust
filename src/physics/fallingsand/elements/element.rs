@@ -11,6 +11,7 @@ use super::fliers::down::DownFlier;
 use super::fliers::left::LeftFlier;
 use super::fliers::right::RightFlier;
 use super::sand::Sand;
+use super::solarplasma::SolarPlasma;
 use super::stone::Stone;
 use super::vacuum::Vacuum;
 use super::water::Water;
@@ -45,6 +46,7 @@ pub enum ElementType {
     Sand,
     Stone,
     Water,
+    SolarPlasma,
     DownFlier,
     LeftFlier,
     RightFlier,
@@ -59,6 +61,7 @@ impl ElementType {
             ElementType::LeftFlier => Box::<LeftFlier>::default(),
             ElementType::RightFlier => Box::<RightFlier>::default(),
             ElementType::Stone => Box::<Stone>::default(),
+            ElementType::SolarPlasma => Box::<SolarPlasma>::default(),
             ElementType::Water => Box::<Water>::default(),
         }
     }
@@ -68,7 +71,10 @@ pub trait Element: Send + Sync {
     fn get_type(&self) -> ElementType;
     fn get_last_processed(&self) -> Clock;
     fn get_color(&self) -> Color;
-    fn get_mass(&self) -> f32;
+    fn get_density(&self) -> f32;
+    fn get_mass(&self, cell_width: f32) -> f32 {
+        self.get_density() * cell_width.powi(2)
+    }
     fn get_state_of_matter(&self) -> StateOfMatter;
     fn process(
         &mut self,

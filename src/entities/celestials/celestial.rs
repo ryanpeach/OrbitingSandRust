@@ -7,7 +7,7 @@ use bevy::ecs::entity::Entity;
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
-use bevy::math::Vec3;
+use bevy::math::Vec2;
 use bevy::render::mesh::Mesh;
 
 use bevy::sprite::{ColorMaterial, MaterialMesh2dBundle};
@@ -20,7 +20,7 @@ use crate::physics::fallingsand::data::element_directory::ElementGridDir;
 use crate::physics::fallingsand::util::image::RawImage;
 
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
-use crate::physics::orbits::components::Mass;
+use crate::physics::orbits::components::{Mass, Velocity};
 use crate::physics::util::clock::Clock;
 
 #[derive(Component)]
@@ -110,6 +110,8 @@ impl CelestialData {
     /// TODO: Should this be a system
     pub fn setup(
         celestial: CelestialData,
+        velocity: Velocity,
+        translation: Vec2,
         commands: &mut Commands,
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<ColorMaterial>>,
@@ -150,8 +152,9 @@ impl CelestialData {
         let celestial_id = commands
             .spawn((
                 Mass(celestial.get_element_dir().get_total_mass()),
+                velocity,
                 celestial,
-                Transform::from_translation(Vec3::new(0., 0., 0.)),
+                Transform::from_translation(translation.extend(0.0)),
             ))
             .id();
 

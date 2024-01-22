@@ -3,10 +3,12 @@ use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::{core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*};
 use bevy_egui::EguiPlugin;
 use orbiting_sand::entities::camera::{move_camera_system, zoom_camera_system};
+use orbiting_sand::entities::celestials::sun::SunBuilder;
 use orbiting_sand::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
 use orbiting_sand::gui::brush::BrushRadius;
 use orbiting_sand::gui::camera_window::camera_window_system;
 use orbiting_sand::gui::element_picker::ElementSelection;
+use orbiting_sand::physics::orbits::components::Velocity;
 use orbiting_sand::physics::orbits::nbody::leapfrog_integration_system;
 
 fn main() {
@@ -55,6 +57,7 @@ fn setup(
             camera_2d: Camera2d {
                 clear_color: ClearColorConfig::Custom(Color::rgb(0.0, 0.0, 0.0)),
             },
+            transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0) * 100.0),
             ..Default::default()
         })
         .id();
@@ -70,16 +73,30 @@ fn setup(
     // Parent the brush to the camera
     commands.entity(camera).push_children(&[brush]);
 
-    // Create a Celestial
+    // Create earth
     let planet_data = EarthLikeBuilder::new().build();
-    let celestial_id = CelestialData::setup(
+    CelestialData::setup(
         planet_data,
+        Velocity(Vec2::new(0., 100.)),
+        Vec2::new(-100., 0.),
         &mut commands,
         &mut meshes,
         &mut materials,
         &asset_server,
     );
 
-    // Parent the camera to the celestial
-    commands.entity(celestial_id).push_children(&[camera]);
+    // Create a sun
+    let sun_data = SunBuilder::new().build();
+    let sun_id = CelestialData::setup(
+        sun_data,
+        Velocity(Vec2::new(0., 0.)),
+        Vec2::new(0., 0.),
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+        &asset_server,
+    );
+
+    // Parent the camera to the sun
+    commands.entity(sun_id).push_children(&[camera]);
 }

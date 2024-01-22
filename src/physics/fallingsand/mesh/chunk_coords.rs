@@ -422,7 +422,7 @@ impl ChunkCoords {
             .iter()
             .zip(uvs.iter())
             .map(|(p, uv)| Vertex {
-                position: Vec2::new(p.x, p.y),
+                position: Vec2::new(p.x, p.y) * self.get_cell_width(),
                 uv: Vec2::new(uv.x, uv.y),
                 color: Color::rgba(1.0, 1.0, 1.0, 1.0),
             })
@@ -434,7 +434,7 @@ impl ChunkCoords {
         let mut vertices = Vec::with_capacity(positions.len());
         for pos in positions {
             vertices.push(Vertex {
-                position: pos,
+                position: pos * self.get_cell_width(),
                 uv: Vec2::new(0.0, 0.0),
                 color: Color::rgba(1.0, 1.0, 1.0, 1.0),
             });

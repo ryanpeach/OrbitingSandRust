@@ -186,11 +186,11 @@ impl ElementGrid {
                 //
                 match res {
                     ElementTakeOptions::PutBack => {
-                        mass += element.get_mass();
+                        mass += element.get_mass(self.coords.get_cell_width());
                         self.grid.replace(pos, element);
                     }
                     ElementTakeOptions::ReplaceWith(new_element) => {
-                        mass += new_element.get_mass();
+                        mass += new_element.get_mass(self.coords.get_cell_width());
                         self.grid.replace(pos, new_element);
                     }
                     ElementTakeOptions::DoNothing => {}
