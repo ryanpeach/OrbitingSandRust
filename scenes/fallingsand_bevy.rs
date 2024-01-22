@@ -40,10 +40,10 @@ fn main() {
                 BrushRadius::apply_brush_system,
             ),
         )
-        .add_systems(
-            Update,
-            leapfrog_integration_system.after(CelestialData::process_system),
-        )
+        // .add_systems(
+        //     Update,
+        //     leapfrog_integration_system.after(CelestialData::process_system),
+        // )
         .run();
 }
 
@@ -79,8 +79,8 @@ fn setup(
     let planet_data = EarthLikeBuilder::new().build();
     CelestialData::setup(
         planet_data,
-        Velocity(Vec2::new(0., 100.)),
-        Vec2::new(-100., 0.),
+        Velocity(Vec2::new(0., 0.)),
+        Vec2::new(-10000., 0.),
         &mut commands,
         &mut meshes,
         &mut materials,
