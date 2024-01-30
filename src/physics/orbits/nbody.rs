@@ -2,12 +2,11 @@ use bevy::{
     app::{App, Plugin, Update},
     ecs::{
         component::Component,
-        entity::{self, Entity},
+        entity::{Entity},
         query::{With, Without},
         schedule::IntoSystemConfigs,
         system::{Query, Res},
     },
-    log::trace,
     math::{Vec2, Vec3Swizzles},
     time::Time,
     transform::components::Transform,
@@ -56,7 +55,7 @@ impl GravityCalculations {
     ) {
         let mut net_force = Vec2::ZERO;
         for other_body in other_bodies {
-            if (this_body.0 == other_body.0) {
+            if this_body.0 == other_body.0 {
                 continue;
             }
             let force = Self::compute_gravitational_force(
