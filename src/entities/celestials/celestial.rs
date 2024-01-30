@@ -117,6 +117,7 @@ impl CelestialData {
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<ColorMaterial>>,
         asset_server: &Res<AssetServer>,
+        gravitational: bool,
     ) -> Entity {
         // Create all the chunk meshes as pairs of ChunkIjkVector and Mesh2dBundle
         let mut children = Vec::new();
@@ -150,15 +151,32 @@ impl CelestialData {
         }
 
         // Create a Celestial
-        let celestial_id = commands
-            .spawn((
-                Mass(celestial.get_element_dir().get_total_mass()),
-                velocity,
-                celestial,
-                SpatialBundle::from_transform(Transform::from_translation(translation.extend(0.0))),
-                GravitationalField,
-            ))
-            .id();
+        let celestial_id = {
+            if gravitational {
+                commands
+                    .spawn((
+                        Mass(celestial.get_element_dir().get_total_mass()),
+                        velocity,
+                        celestial,
+                        SpatialBundle::from_transform(Transform::from_translation(
+                            translation.extend(0.0),
+                        )),
+                        GravitationalField,
+                    ))
+                    .id()
+            } else {
+                commands
+                    .spawn((
+                        Mass(celestial.get_element_dir().get_total_mass()),
+                        velocity,
+                        celestial,
+                        SpatialBundle::from_transform(Transform::from_translation(
+                            translation.extend(0.0),
+                        )),
+                    ))
+                    .id()
+            }
+        };
 
         // Parent the celestial to all the chunks
         commands
