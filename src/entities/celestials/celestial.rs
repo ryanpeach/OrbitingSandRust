@@ -109,6 +109,7 @@ impl CelestialData {
 impl CelestialData {
     /// Draws all the chunks and sets them up as child entities of the celestial
     /// TODO: Should this be a system
+    #[allow(clippy::too_many_arguments)]
     pub fn setup(
         celestial: CelestialData,
         velocity: Velocity,
