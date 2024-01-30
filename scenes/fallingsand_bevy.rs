@@ -86,6 +86,19 @@ fn setup(
         true,
     );
 
+    // Create earth2
+    let planet_data = EarthLikeBuilder::new().build();
+    CelestialData::setup(
+        planet_data,
+        Velocity(Vec2::new(0., -1200.)),
+        Vec2::new(10000., 0.),
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+        &asset_server,
+        true,
+    );
+
     // Create a sun
     let sun_data = SunBuilder::new().build();
     let sun_id = CelestialData::setup(
@@ -108,12 +121,12 @@ fn setup(
         // random radius between 5000.0 and 6000.0
         let r = 5000.0 + 1000.0 * rand::random::<f32>();
         let pos = r * Vec2::new(angle.cos(), angle.sin());
-        let vel = Vec2::new(-angle.sin(), angle.cos()) * 2000.0;
+        let vel = Vec2::new(angle.sin(), -angle.cos()) * 2000.0;
         commands.spawn((
             Velocity(vel),
-            Mass(100.0),
+            Mass(1.0),
             MaterialMesh2dBundle {
-                mesh: meshes.add(shape::Circle::new(50.).into()).into(),
+                mesh: meshes.add(shape::Circle::new(20.).into()).into(),
                 material: materials.add(ColorMaterial::from(Color::PURPLE)),
                 transform: Transform::from_translation(pos.extend(0.0)),
                 ..default()
