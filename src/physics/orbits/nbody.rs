@@ -44,7 +44,7 @@ impl GravityCalculations {
         let force_direction = r.normalize();
 
         // The final force vector is the direction scaled by the force magnitude
-        return Force((force_direction * force_magnitude).xy());
+        Force((force_direction * force_magnitude).xy())
     }
 
     /// Updates the velocity of the entity one half step
@@ -106,10 +106,10 @@ impl NBodyPlugin {
             .iter()
             .map(|(entity, transform, velocity, mass)| {
                 (
-                    entity.clone(),
-                    transform.clone(),
-                    velocity.clone(),
-                    mass.clone(),
+                    entity,
+                    *transform,
+                    *velocity,
+                    *mass,
                 )
             })
             .collect::<Vec<_>>();
@@ -149,10 +149,10 @@ impl NBodyPlugin {
             .iter()
             .map(|(entity, transform, velocity, mass)| {
                 (
-                    entity.clone(),
-                    transform.clone(),
-                    velocity.clone(),
-                    mass.clone(),
+                    entity,
+                    *transform,
+                    *velocity,
+                    *mass,
                 )
             })
             .collect::<Vec<_>>();
