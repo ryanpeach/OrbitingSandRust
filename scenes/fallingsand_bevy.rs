@@ -10,7 +10,7 @@ use orbiting_sand::gui::camera_window::camera_window_system;
 use orbiting_sand::gui::element_picker::ElementSelection;
 use orbiting_sand::physics::fallingsand::util::mesh::MeshBoundingBox;
 use orbiting_sand::physics::orbits::components::Velocity;
-use orbiting_sand::physics::orbits::nbody::leapfrog_integration_system;
+use orbiting_sand::physics::orbits::nbody::NBodyPlugin;
 
 fn main() {
     App::new()
@@ -23,6 +23,7 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugins(EguiPlugin)
+        .add_plugins(NBodyPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .insert_resource(ElementSelection::default())
         .add_systems(Startup, setup)
@@ -39,10 +40,6 @@ fn main() {
                 BrushRadius::resize_brush_system,
                 BrushRadius::apply_brush_system,
             ),
-        )
-        .add_systems(
-            Update,
-            leapfrog_integration_system.after(CelestialData::process_system),
         )
         .run();
 }
