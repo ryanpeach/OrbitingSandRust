@@ -9,16 +9,16 @@ use rand::Rng;
 
 /// Literally nothing
 #[derive(Default, Copy, Clone, Debug)]
-pub struct Water {
+pub struct SolarPlasma {
     last_processed: Clock,
 }
 
-impl Element for Water {
+impl Element for SolarPlasma {
     fn get_type(&self) -> ElementType {
         ElementType::Water
     }
     fn get_density(&self) -> f32 {
-        1.0
+        100.0
     }
     fn get_last_processed(&self) -> Clock {
         self.last_processed
@@ -30,7 +30,7 @@ impl Element for Water {
         StateOfMatter::Liquid
     }
     fn get_color(&self) -> Color {
-        Color::BLUE
+        Color::ORANGE
     }
     fn _process(
         &mut self,

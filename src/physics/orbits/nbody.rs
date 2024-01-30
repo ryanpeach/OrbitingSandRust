@@ -1,119 +1,164 @@
-use bevy::prelude::*;
+use bevy::{
+    app::{App, Plugin, Update},
+    ecs::{
+        component::Component,
+        entity::Entity,
+        query::{With, Without},
+        schedule::IntoSystemConfigs,
+        system::{Query, Res},
+    },
+    math::{Vec2, Vec3Swizzles},
+    time::Time,
+    transform::components::Transform,
+};
 
 use super::components::{GravitationalField, Mass, Velocity};
 
-pub fn leapfrog_integration_system(
-    mut no_grav_query: Query<(&Mass, &mut Velocity, &mut Transform), Without<GravitationalField>>,
-    mut grav_query: Query<(&Mass, &mut Velocity, &mut Transform), With<GravitationalField>>,
-    time: Res<Time>,
-) {
-    let dt = time.delta_seconds();
-    let half_dt = dt * 0.5;
-
-    // Handle interactions between bodies with gravity and bodies without gravity
-    // First half-step velocity update
-    no_grav_query
-        .par_iter_mut()
-        .for_each(|(mass, mut velocity, position)| {
-            let mut net_force = Vec2::ZERO;
-
-            for (other_mass, _, other_position) in &grav_query {
-                let force =
-                    compute_gravitational_force(&position, mass, other_position, other_mass);
-                net_force += force;
-            }
-
-            velocity.0 += net_force / mass.0 * half_dt;
-        });
-
-    // Full-step position update
-    no_grav_query
-        .par_iter_mut()
-        .for_each(|(_, velocity, mut position)| {
-            position.translation += (velocity.0 * dt).extend(0.0);
-        });
-
-    // Second half-step velocity update
-    no_grav_query
-        .par_iter_mut()
-        .for_each(|(mass, mut velocity, position)| {
-            let mut net_force = Vec2::ZERO;
-
-            for (other_mass, _, other_position) in &grav_query {
-                let force =
-                    compute_gravitational_force(&position, mass, other_position, other_mass);
-                net_force += force;
-            }
-
-            velocity.0 += net_force / mass.0 * half_dt;
-        });
-
-    // Handle interactions between bodies with gravity and each other
-    // We need to clone the original gravitational body query because we are doing
-    // a double iteration over it, which is not allowed by rust
-    let original_grav_query = grav_query
-        .iter()
-        .map(|(mass, velocity, transform)| (*mass, *velocity, *transform))
-        .collect::<Vec<_>>();
-
-    // First half-step velocity update
-    grav_query
-        .par_iter_mut()
-        .for_each(|(mass, mut velocity, position)| {
-            let mut net_force = Vec2::ZERO;
-
-            for (other_mass, _, other_position) in &original_grav_query {
-                if position.translation != other_position.translation {
-                    let force =
-                        compute_gravitational_force(&position, mass, other_position, other_mass);
-                    net_force += force;
-                }
-            }
-
-            velocity.0 += net_force / mass.0 * half_dt;
-        });
-
-    // Full-step position update
-    grav_query
-        .par_iter_mut()
-        .for_each(|(_, velocity, mut position)| {
-            position.translation += (velocity.0 * dt).extend(0.0);
-        });
-
-    // Second half-step velocity update
-    grav_query
-        .par_iter_mut()
-        .for_each(|(mass, mut velocity, position)| {
-            let mut net_force = Vec2::ZERO;
-
-            for (other_mass, _, other_position) in &original_grav_query {
-                if position.translation != other_position.translation {
-                    let force =
-                        compute_gravitational_force(&position, mass, other_position, other_mass);
-                    net_force += force;
-                }
-            }
-
-            velocity.0 += net_force / mass.0 * half_dt;
-        });
-}
+#[derive(Component, Debug, Clone, Copy)]
+struct Force(Vec2);
 
 /// It's important that we don't compute the gravitational force between two bodies that are too
 /// close together, because the force will be very large and the simulation will be unstable.
-const MIN_DISTANCE_SQUARED: f32 = 1.0;
+const MIN_DISTANCE_SQUARED: f32 = 100.0;
+const G: f32 = 1.0e3;
 
-fn compute_gravitational_force(
-    pos1: &Transform,
-    mass1: &Mass,
-    pos2: &Transform,
-    mass2: &Mass,
-) -> Vec2 {
-    let r = pos2.translation.truncate() - pos1.translation.truncate();
-    let mut distance_squared = r.length_squared();
-    distance_squared = distance_squared.max(MIN_DISTANCE_SQUARED);
+/// Just a namespace for the fundamental gravity functions
+struct GravityCalculations;
 
-    // Assume a simplified gravitational constant and avoid sqrt for performance
-    let force_magnitude = mass1.0 * mass2.0 / distance_squared;
-    let force_direction = r / distance_squared; // r is already a vector
-    force_direction * force_magnitude
+impl GravityCalculations {
+    pub fn compute_gravitational_force(
+        pos1: &Transform,
+        mass1: &Mass,
+        pos2: &Transform,
+        mass2: &Mass,
+    ) -> Force {
+        let r = pos2.translation - pos1.translation;
+        let mut distance_squared = r.length_squared();
+        distance_squared = distance_squared.max(MIN_DISTANCE_SQUARED);
+
+        // The gravitational constant G and masses are factored into the force magnitude
+        let force_magnitude = G * mass1.0 * mass2.0 / distance_squared;
+
+        // Calculate the force direction
+        // Normalize the displacement vector (r) to get the direction
+        let force_direction = r.normalize();
+
+        // The final force vector is the direction scaled by the force magnitude
+        Force((force_direction * force_magnitude).xy())
+    }
+
+    /// Updates the velocity of the entity one half step
+    pub fn half_step_velocity_update(
+        this_body: (Entity, &Transform, &mut Velocity, &Mass),
+        other_bodies: &[(Entity, Transform, Velocity, Mass)],
+        dt: f32,
+    ) {
+        let mut net_force = Vec2::ZERO;
+        for other_body in other_bodies {
+            if this_body.0 == other_body.0 {
+                continue;
+            }
+            let force = Self::compute_gravitational_force(
+                this_body.1,
+                this_body.3,
+                &other_body.1,
+                &other_body.3,
+            );
+            net_force += force.0;
+        }
+        let vdiff = net_force / this_body.3 .0 * (dt / 2.0);
+        this_body.2 .0 += vdiff;
+    }
+
+    /// Updates the position of the entity one full step
+    pub fn full_position_update(this_body: (Entity, &mut Transform, &Velocity, &Mass), dt: f32) {
+        let pdiff = (this_body.2 .0 * dt).extend(0.0);
+        this_body.1.translation += pdiff;
+    }
+}
+
+/// Plugin to set up nbody physics
+pub struct NBodyPlugin;
+
+impl Plugin for NBodyPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (
+                Self::grav_bodies_system,
+                Self::no_grav_bodies_system.after(Self::grav_bodies_system),
+            ),
+        );
+    }
+}
+
+/// Systems for the plugin
+impl NBodyPlugin {
+    fn grav_bodies_system(
+        mut grav_bodies: Query<
+            (Entity, &mut Transform, &mut Velocity, &Mass),
+            With<GravitationalField>,
+        >,
+        time: Res<Time>,
+    ) {
+        let dt = time.delta_seconds();
+        let grav_bodies_copy = grav_bodies
+            .iter()
+            .map(|(entity, transform, velocity, mass)| (entity, *transform, *velocity, *mass))
+            .collect::<Vec<_>>();
+        grav_bodies
+            .par_iter_mut()
+            .for_each(|(entity, mut transform, mut velocity, mass)| {
+                GravityCalculations::half_step_velocity_update(
+                    (entity, &transform, &mut velocity, mass),
+                    &grav_bodies_copy,
+                    dt,
+                );
+                GravityCalculations::full_position_update(
+                    (entity, &mut transform, &velocity, mass),
+                    dt,
+                );
+                GravityCalculations::half_step_velocity_update(
+                    (entity, &transform, &mut velocity, mass),
+                    &grav_bodies_copy,
+                    dt,
+                );
+            });
+    }
+
+    fn no_grav_bodies_system(
+        mut no_grav_bodies: Query<
+            (Entity, &mut Transform, &mut Velocity, &Mass),
+            Without<GravitationalField>,
+        >,
+        grav_bodies: Query<
+            (Entity, &mut Transform, &mut Velocity, &Mass),
+            With<GravitationalField>,
+        >,
+        time: Res<Time>,
+    ) {
+        let dt = time.delta_seconds();
+        let grav_bodies_copy = grav_bodies
+            .iter()
+            .map(|(entity, transform, velocity, mass)| (entity, *transform, *velocity, *mass))
+            .collect::<Vec<_>>();
+        no_grav_bodies
+            .par_iter_mut()
+            .for_each(|(entity, mut transform, mut velocity, mass)| {
+                GravityCalculations::half_step_velocity_update(
+                    (entity, &transform, &mut velocity, mass),
+                    &grav_bodies_copy,
+                    dt,
+                );
+                GravityCalculations::full_position_update(
+                    (entity, &mut transform, &velocity, mass),
+                    dt,
+                );
+                GravityCalculations::half_step_velocity_update(
+                    (entity, &transform, &mut velocity, mass),
+                    &grav_bodies_copy,
+                    dt,
+                );
+            });
+    }
 }

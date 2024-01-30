@@ -7,7 +7,7 @@ use bevy::ecs::entity::Entity;
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
-use bevy::math::Vec3;
+use bevy::math::Vec2;
 use bevy::prelude::SpatialBundle;
 use bevy::render::mesh::Mesh;
 
@@ -21,7 +21,7 @@ use crate::physics::fallingsand::data::element_directory::ElementGridDir;
 use crate::physics::fallingsand::util::image::RawImage;
 
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
-use crate::physics::orbits::components::Mass;
+use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
 use crate::physics::util::clock::Clock;
 
 #[derive(Component)]
@@ -109,12 +109,16 @@ impl CelestialData {
 impl CelestialData {
     /// Draws all the chunks and sets them up as child entities of the celestial
     /// TODO: Should this be a system
+    #[allow(clippy::too_many_arguments)]
     pub fn setup(
         celestial: CelestialData,
+        velocity: Velocity,
+        translation: Vec2,
         commands: &mut Commands,
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<ColorMaterial>>,
         asset_server: &Res<AssetServer>,
+        gravitational: bool,
     ) -> Entity {
         // Create all the chunk meshes as pairs of ChunkIjkVector and Mesh2dBundle
         let mut children = Vec::new();
@@ -148,13 +152,32 @@ impl CelestialData {
         }
 
         // Create a Celestial
-        let celestial_id = commands
-            .spawn((
-                Mass(celestial.get_element_dir().get_total_mass()),
-                celestial,
-                SpatialBundle::from_transform(Transform::from_translation(Vec3::new(0., 0., 0.))),
-            ))
-            .id();
+        let celestial_id = {
+            if gravitational {
+                commands
+                    .spawn((
+                        Mass(celestial.get_element_dir().get_total_mass()),
+                        velocity,
+                        celestial,
+                        SpatialBundle::from_transform(Transform::from_translation(
+                            translation.extend(0.0),
+                        )),
+                        GravitationalField,
+                    ))
+                    .id()
+            } else {
+                commands
+                    .spawn((
+                        Mass(celestial.get_element_dir().get_total_mass()),
+                        velocity,
+                        celestial,
+                        SpatialBundle::from_transform(Transform::from_translation(
+                            translation.extend(0.0),
+                        )),
+                    ))
+                    .id()
+            }
+        };
 
         // Parent the celestial to all the chunks
         commands
@@ -177,6 +200,7 @@ impl CelestialData {
             let mut new_textures =
                 celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
             mass.0 = celestial.get_element_dir().get_total_mass();
+            debug_assert_ne!(mass.0, 0.0);
             for (parent, material_handle, chunk_ijk) in chunks.iter_mut() {
                 if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
                     let material = materials.get_mut(&*material_handle).unwrap();
