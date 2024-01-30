@@ -2,7 +2,7 @@ use bevy::{
     app::{App, Plugin, Update},
     ecs::{
         component::Component,
-        entity::{Entity},
+        entity::Entity,
         query::{With, Without},
         schedule::IntoSystemConfigs,
         system::{Query, Res},
@@ -104,14 +104,7 @@ impl NBodyPlugin {
         let dt = time.delta_seconds();
         let grav_bodies_copy = grav_bodies
             .iter()
-            .map(|(entity, transform, velocity, mass)| {
-                (
-                    entity,
-                    *transform,
-                    *velocity,
-                    *mass,
-                )
-            })
+            .map(|(entity, transform, velocity, mass)| (entity, *transform, *velocity, *mass))
             .collect::<Vec<_>>();
         grav_bodies
             .par_iter_mut()
@@ -147,14 +140,7 @@ impl NBodyPlugin {
         let dt = time.delta_seconds();
         let grav_bodies_copy = grav_bodies
             .iter()
-            .map(|(entity, transform, velocity, mass)| {
-                (
-                    entity,
-                    *transform,
-                    *velocity,
-                    *mass,
-                )
-            })
+            .map(|(entity, transform, velocity, mass)| (entity, *transform, *velocity, *mass))
             .collect::<Vec<_>>();
         no_grav_bodies
             .par_iter_mut()
