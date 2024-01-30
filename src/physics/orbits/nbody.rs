@@ -5,11 +5,11 @@ use bevy::{
     render::{
         render_graph::{self, RenderGraph},
         render_resource::{
-            BindGroup, BindGroupEntry, BindGroupLayout,
-            BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType, BufferBindingType, BufferUsages, BufferVec,
-            CachedComputePipelineId, CachedPipelineState, ComputePassDescriptor,
-            ComputePipelineDescriptor, IntoBinding, PipelineCache,
-            ShaderStages, ShaderType, UniformBuffer,
+            BindGroup, BindGroupEntry, BindGroupLayout, BindGroupLayoutDescriptor,
+            BindGroupLayoutEntry, BindingResource, BindingType, BufferBindingType, BufferUsages,
+            BufferVec, CachedComputePipelineId, CachedPipelineState, ComputePassDescriptor,
+            ComputePipelineDescriptor, IntoBinding, PipelineCache, ShaderStages, ShaderType,
+            UniformBuffer,
         },
         renderer::{RenderContext, RenderDevice, RenderQueue},
         Render, RenderApp, RenderSet,
