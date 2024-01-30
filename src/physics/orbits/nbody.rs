@@ -1,3 +1,6 @@
+//! NBody physics simulation
+//! First attempt at using compute shaders in bevy
+
 use std::borrow::Cow;
 
 use bevy::{
@@ -14,6 +17,7 @@ use bevy::{
         renderer::{RenderContext, RenderDevice, RenderQueue},
         Render, RenderApp, RenderSet,
     },
+    transform::commands,
 };
 
 use super::components::{GravitationalField, Mass, Velocity};
@@ -22,13 +26,18 @@ use super::components::{GravitationalField, Mass, Velocity};
 /// close together, because the force will be very large and the simulation will be unstable.
 const MIN_DISTANCE_SQUARED: f32 = 1.0;
 const G: f32 = 1.0;
+
+/// WARNING: It's important that this matches the workgroup size in the compute shader
 const WORKGROUP_SIZE: u32 = 64;
 
 /// A body in the wgsl code
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct Body {
+    /// This is the entity id this body cooresponds to in the bevy world, converted to bytes
     entity: u64,
+    /// Note: I had to make mass f64 for the reason "cannot transmute between types of different sizes, or dependently-sized types"
+    /// In the rest of the code its f32
     mass: f64,
     position: Vec2,
     velocity: Vec2,
@@ -41,7 +50,7 @@ impl Body {
     }
 }
 
-// Uniforms struct
+/// Uniforms struct which contains most of the parameters for the simulation
 #[repr(C)]
 #[derive(Debug, Copy, Clone, ShaderType)]
 struct Uniforms {
@@ -50,7 +59,7 @@ struct Uniforms {
     dt: f32,
 }
 
-// Plugin to set up nbody physics
+/// Plugin to set up nbody physics
 pub struct NBodyPlugin;
 
 impl Plugin for NBodyPlugin {
@@ -69,25 +78,63 @@ impl Plugin for NBodyPlugin {
     fn finish(&self, app: &mut App) {
         let render_app = app.sub_app_mut(RenderApp);
         render_app.init_resource::<NBodyPipeline>();
-        render_app.add_systems(Update, NBodyPlugin::update_system);
+        render_app.add_systems(Update, NBodyPlugin::update_buffers_from_world);
     }
 }
 
+/// Systems that go from buffers to world and back
+/// Made both exclusive systems and query systems to play around with different implementations
 impl NBodyPlugin {
-    fn update_system(
-        no_grav_bodies: Query<
-            (Entity, &Mass, &mut Velocity, &mut Transform),
+    fn update_buffers_from_world(world: &mut World) {
+        let mut nbody_buffers = world.resource_mut::<NBodyBuffers>();
+        let render_device = world.resource::<RenderDevice>();
+        let render_queue = world.resource::<RenderQueue>();
+        let mut no_grav_bodies_query = world
+            .query_filtered::<(Entity, &Mass, &Velocity, &Transform), Without<GravitationalField>>(
+            );
+        let no_grav_bodies_vec = no_grav_bodies_query
+            .iter(&world)
+            .map(|(entity, mass, velocity, transform)| Body {
+                entity: entity.to_bits(),
+                mass: mass.0 as f64,
+                position: transform.translation.truncate(),
+                velocity: velocity.0,
+                thrust: Vec2::ZERO,
+            })
+            .collect::<Vec<_>>();
+        let mut grav_bodies_query = world
+            .query_filtered::<(Entity, &Mass, &Velocity, &Transform), With<GravitationalField>>();
+        let grav_bodies_vec = grav_bodies_query
+            .iter(&world)
+            .map(|(entity, mass, velocity, transform)| Body {
+                entity: entity.to_bits(),
+                mass: mass.0 as f64,
+                position: transform.translation.truncate(),
+                velocity: velocity.0,
+                thrust: Vec2::ZERO,
+            })
+            .collect::<Vec<_>>();
+
+        let _ = &nbody_buffers.load(
+            &render_device,
+            &render_queue,
+            no_grav_bodies_vec,
+            grav_bodies_vec,
+            0.0,
+        );
+    }
+
+    fn update_buffers_from_query(
+        no_grav_bodies_query: Query<
+            (Entity, &Mass, &Velocity, &Transform),
             Without<GravitationalField>,
         >,
-        grav_bodies: Query<
-            (Entity, &Mass, &mut Velocity, &mut Transform),
-            With<GravitationalField>,
-        >,
+        grav_bodies_query: Query<(Entity, &Mass, &Velocity, &Transform), With<GravitationalField>>,
         render_device: Res<RenderDevice>,
         render_queue: Res<RenderQueue>,
         mut nbody_buffers: ResMut<NBodyBuffers>,
     ) {
-        let no_grav_bodies_vec = no_grav_bodies
+        let no_grav_bodies_vec = no_grav_bodies_query
             .iter()
             .map(|(entity, mass, velocity, transform)| Body {
                 entity: entity.to_bits(),
@@ -97,7 +144,7 @@ impl NBodyPlugin {
                 thrust: Vec2::ZERO,
             })
             .collect::<Vec<_>>();
-        let grav_bodies_vec = grav_bodies
+        let grav_bodies_vec = grav_bodies_query
             .iter()
             .map(|(entity, mass, velocity, transform)| Body {
                 entity: entity.to_bits(),
@@ -116,7 +163,95 @@ impl NBodyPlugin {
             0.0,
         );
     }
+
+    fn update_world_from_buffers(world: &mut World) {
+        let values = world
+            .resource::<NBodyBuffers>()
+            .no_grav_bodies_buffer
+            .values()
+            .clone();
+        for body in values.iter() {
+            let idx = Entity::from_bits(body.entity);
+            {
+                let mut transform = world.get_mut::<Transform>(idx).unwrap();
+                transform.translation = Vec3::new(body.position.x, body.position.y, 0.0);
+                trace!("no_grav_bodies.body.position: {:?}", body.position)
+            }
+            {
+                let mut velocity = world.get_mut::<Velocity>(idx).unwrap();
+                velocity.0 = body.velocity;
+            }
+        }
+        let values = world
+            .resource::<NBodyBuffers>()
+            .grav_bodies_buffer
+            .values()
+            .clone();
+        for body in values.iter() {
+            let idx = Entity::from_bits(body.entity);
+            {
+                let mut transform = world.get_mut::<Transform>(idx).unwrap();
+                transform.translation = Vec3::new(body.position.x, body.position.y, 0.0);
+                trace!("grav_bodies.body.position: {:?}", body.position)
+            }
+            {
+                let mut velocity = world.get_mut::<Velocity>(idx).unwrap();
+                velocity.0 = body.velocity;
+            }
+        }
+    }
+
+    fn update_query_from_buffers(
+        mut nbody_buffers: ResMut<NBodyBuffers>,
+        mut no_grav_bodies_query: Query<
+            (Entity, &Mass, &Velocity, &Transform),
+            Without<GravitationalField>,
+        >,
+        mut grav_bodies_query: Query<
+            (Entity, &Mass, &Velocity, &Transform),
+            With<GravitationalField>,
+        >,
+    ) {
+        let values = nbody_buffers.no_grav_bodies_buffer.values().clone();
+        for body in values.iter() {
+            let idx = Entity::from_bits(body.entity);
+            {
+                let mut transform = no_grav_bodies_query
+                    .get_component_mut::<Transform>(idx)
+                    .unwrap();
+                transform.translation = Vec3::new(body.position.x, body.position.y, 0.0);
+                trace!("no_grav_bodies.body.position: {:?}", body.position)
+            }
+            {
+                let mut velocity = no_grav_bodies_query
+                    .get_component_mut::<Velocity>(idx)
+                    .unwrap();
+                velocity.0 = body.velocity;
+            }
+        }
+        let values = nbody_buffers.grav_bodies_buffer.values().clone();
+        for body in values.iter() {
+            let idx = Entity::from_bits(body.entity);
+            {
+                let mut transform = grav_bodies_query
+                    .get_component_mut::<Transform>(idx)
+                    .unwrap();
+                transform.translation = Vec3::new(body.position.x, body.position.y, 0.0);
+                trace!("grav_bodies.body.position: {:?}", body.position)
+            }
+            {
+                let mut velocity = grav_bodies_query
+                    .get_component_mut::<Velocity>(idx)
+                    .unwrap();
+                velocity.0 = body.velocity;
+            }
+        }
+    }
 }
+
+// ==============================
+// Shader Code
+// ==============================
 
 #[derive(Resource)]
 struct NBodyBuffers {
@@ -365,40 +500,7 @@ impl render_graph::Node for NBodyNode {
                 }
             }
             NBodyState::PostRun => {
-                let values = world
-                    .resource::<NBodyBuffers>()
-                    .no_grav_bodies_buffer
-                    .values()
-                    .clone();
-                for body in values.iter() {
-                    let idx = Entity::from_bits(body.entity);
-                    {
-                        let mut transform = world.get_mut::<Transform>(idx).unwrap();
-                        transform.translation = Vec3::new(body.position.x, body.position.y, 0.0);
-                        trace!("no_grav_bodies.body.position: {:?}", body.position)
-                    }
-                    {
-                        let mut velocity = world.get_mut::<Velocity>(idx).unwrap();
-                        velocity.0 = body.velocity;
-                    }
-                }
-                let values = world
-                    .resource::<NBodyBuffers>()
-                    .grav_bodies_buffer
-                    .values()
-                    .clone();
-                for body in values.iter() {
-                    let idx = Entity::from_bits(body.entity);
-                    {
-                        let mut transform = world.get_mut::<Transform>(idx).unwrap();
-                        transform.translation = Vec3::new(body.position.x, body.position.y, 0.0);
-                        trace!("grav_bodies.body.position: {:?}", body.position)
-                    }
-                    {
-                        let mut velocity = world.get_mut::<Velocity>(idx).unwrap();
-                        velocity.0 = body.velocity;
-                    }
-                }
+                update_world_from_buffers(world);
             }
         }
     }

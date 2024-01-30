@@ -69,6 +69,7 @@ fn no_grav_bodies_single_step(id: u32) {
     no_grav_bodies[id] = second_half_step_body;
 }
 
+/// WARNING: It's important that workgroup_size matches the WORKGROUP_SIZE in the nbody.rs file
 @compute @workgroup_size(64)
 fn single_step(@builtin(global_invocation_id) id: vec3<u32>) {
     grav_bodies_single_step(id.x);
