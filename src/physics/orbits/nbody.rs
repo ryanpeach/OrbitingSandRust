@@ -1,17 +1,14 @@
 use std::borrow::Cow;
 
 use bevy::{
-    ecs::{query, world},
     prelude::*,
     render::{
-        self,
         render_graph::{self, RenderGraph},
         render_resource::{
-            AsBindGroupShaderType, BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
-            BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType, Buffer,
-            BufferBinding, BufferBindingType, BufferDescriptor, BufferUsages, BufferVec,
+            BindGroup, BindGroupEntry, BindGroupLayout,
+            BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType, BufferBindingType, BufferUsages, BufferVec,
             CachedComputePipelineId, CachedPipelineState, ComputePassDescriptor,
-            ComputePipelineDescriptor, DynamicUniformBuffer, IntoBinding, PipelineCache,
+            ComputePipelineDescriptor, IntoBinding, PipelineCache,
             ShaderStages, ShaderType, UniformBuffer,
         },
         renderer::{RenderContext, RenderDevice, RenderQueue},
@@ -164,12 +161,12 @@ impl NBodyBuffers {
 }
 
 impl FromWorld for NBodyBuffers {
-    fn from_world(world: &mut World) -> Self {
+    fn from_world(_world: &mut World) -> Self {
         // Create a buffer for grav_bodies
-        let mut grav_bodies_buffer = BufferVec::<Body>::new(BufferUsages::STORAGE);
+        let grav_bodies_buffer = BufferVec::<Body>::new(BufferUsages::STORAGE);
 
         // Create a buffer for no_grav_bodies
-        let mut no_grav_bodies_buffer = BufferVec::<Body>::new(BufferUsages::STORAGE);
+        let no_grav_bodies_buffer = BufferVec::<Body>::new(BufferUsages::STORAGE);
 
         // Create a buffer for uniforms
         let uniform_buffer = Uniforms {
@@ -345,8 +342,8 @@ impl render_graph::Node for NBodyNode {
     fn update(&mut self, world: &mut World) {
         let pipeline = world.resource::<NBodyPipeline>();
         let pipeline_cache = world.resource::<PipelineCache>();
-        let render_device = world.resource::<RenderDevice>();
-        let render_queue = world.resource::<RenderQueue>();
+        let _render_device = world.resource::<RenderDevice>();
+        let _render_queue = world.resource::<RenderQueue>();
 
         // if the corresponding pipeline has loaded, transition to the next stage
         match self.state {
