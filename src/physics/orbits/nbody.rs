@@ -249,7 +249,7 @@ impl NBodyBindGroups {
         let nbody_layouts = NBodyBindGroupLayouts::new(&render_device);
 
         // Create a BindingResource from BufferVec
-        if let None = nbody_buffers.grav_bodies_buffer.buffer() {
+        if nbody_buffers.grav_bodies_buffer.buffer().is_none() {
             return;
         }
         let grav_bodies_buffer_binding = nbody_buffers
