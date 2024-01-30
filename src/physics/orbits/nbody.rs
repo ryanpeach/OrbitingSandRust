@@ -69,6 +69,7 @@ impl Plugin for NBodyPlugin {
     fn finish(&self, app: &mut App) {
         let render_app = app.sub_app_mut(RenderApp);
         render_app.init_resource::<NBodyPipeline>();
+        render_app.add_systems(Update, NBodyPlugin::update_system);
     }
 }
 
@@ -250,6 +251,7 @@ impl NBodyBindGroups {
 
         // Create a BindingResource from BufferVec
         if nbody_buffers.grav_bodies_buffer.buffer().is_none() {
+            error!("grav_bodies_buffer is None");
             return;
         }
         let grav_bodies_buffer_binding = nbody_buffers
@@ -358,6 +360,7 @@ impl render_graph::Node for NBodyNode {
                 if let CachedPipelineState::Ok(_) =
                     pipeline_cache.get_compute_pipeline_state(pipeline.compute_shader)
                 {
+                    trace!("pipeline done running");
                     self.state = NBodyState::PostRun;
                 }
             }
@@ -372,6 +375,7 @@ impl render_graph::Node for NBodyNode {
                     {
                         let mut transform = world.get_mut::<Transform>(idx).unwrap();
                         transform.translation = Vec3::new(body.position.x, body.position.y, 0.0);
+                        trace!("no_grav_bodies.body.position: {:?}", body.position)
                     }
                     {
                         let mut velocity = world.get_mut::<Velocity>(idx).unwrap();
@@ -388,6 +392,7 @@ impl render_graph::Node for NBodyNode {
                     {
                         let mut transform = world.get_mut::<Transform>(idx).unwrap();
                         transform.translation = Vec3::new(body.position.x, body.position.y, 0.0);
+                        trace!("grav_bodies.body.position: {:?}", body.position)
                     }
                     {
                         let mut velocity = world.get_mut::<Velocity>(idx).unwrap();
@@ -405,6 +410,7 @@ impl render_graph::Node for NBodyNode {
         world: &World,
     ) -> Result<(), render_graph::NodeRunError> {
         if !world.contains_resource::<NBodyBindGroups>() {
+            error!("NBodyBindGroups resource not found");
             return Ok(());
         }
         let texture_bind_group = world.resource::<NBodyBindGroups>();
@@ -426,6 +432,7 @@ impl render_graph::Node for NBodyNode {
                     .unwrap();
                 pass.set_pipeline(init_pipeline);
                 pass.dispatch_workgroups(WORKGROUP_SIZE, 1, 1);
+                trace!("dispatched workgroups");
             }
             NBodyState::Running => {}
             NBodyState::PostRun => {}
