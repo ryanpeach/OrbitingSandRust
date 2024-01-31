@@ -18,7 +18,7 @@ fn main() {
         .add_plugins(
             DefaultPlugins
                 .set(LogPlugin {
-                    level: bevy::log::Level::INFO,
+                    level: bevy::log::Level::DEBUG,
                     ..Default::default()
                 })
                 .set(ImagePlugin::default_nearest()),

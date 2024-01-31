@@ -14,6 +14,7 @@ debug = true
 bevy = "0.12.1"
 bevy_egui = "0.24.0"
 bytemuck = "1.14.0"
+handlebars = "5.1.1"
 hashbrown = { version = "0.14.2", features = ["rayon", "ahash"] }
 nabo = "0.3.0"
 quadtree_rs = "0.1.3"
