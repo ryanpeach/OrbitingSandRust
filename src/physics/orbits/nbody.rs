@@ -7,20 +7,17 @@ use bevy::{
     ecs::query::QueryIter,
     prelude::*,
     render::{
-        extract_component::ExtractComponentPlugin,
-        extract_instances::ExtractInstancesPlugin,
         render_graph::{self, RenderGraph},
         render_resource::{
             BindGroup, BindGroupEntry, BindGroupLayout, BindGroupLayoutDescriptor,
             BindGroupLayoutEntry, BindingResource, BindingType, BufferBindingType, BufferUsages,
             BufferVec, CachedComputePipelineId, CachedPipelineState, ComputePassDescriptor,
-            ComputePipelineDescriptor, IntoBinding, PipelineCache, ShaderStages, ShaderType,
+            ComputePipelineDescriptor, PipelineCache, ShaderStages, ShaderType,
             UniformBuffer,
         },
         renderer::{RenderContext, RenderDevice, RenderQueue},
         Extract, Render, RenderApp, RenderSet,
     },
-    transform::commands,
 };
 use bytemuck::{Pod, Zeroable};
 
@@ -486,11 +483,11 @@ impl NBodyBindGroups {
         render_device: Res<RenderDevice>,
         render_queue: Res<RenderQueue>,
         mut nbody_buffers: ResMut<NBodyBuffers>,
-        mut no_grav_entities_query: Query<
+        no_grav_entities_query: Query<
             (Entity, &Mass, &Velocity, &Transform),
             Without<GravitationalField>,
         >,
-        mut grav_entities_query: Query<
+        grav_entities_query: Query<
             (Entity, &Mass, &Velocity, &Transform),
             With<GravitationalField>,
         >,
