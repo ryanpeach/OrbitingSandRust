@@ -21,7 +21,7 @@ use crate::physics::fallingsand::data::element_directory::ElementGridDir;
 use crate::physics::fallingsand::util::image::RawImage;
 
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
-use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
+use crate::physics::orbits::components::{GravitationalField, Mass, OrbitalPosition, Velocity};
 use crate::physics::util::clock::Clock;
 
 #[derive(Component)]
@@ -159,6 +159,7 @@ impl CelestialData {
                         Mass(celestial.get_element_dir().get_total_mass()),
                         velocity,
                         celestial,
+                        OrbitalPosition::new(translation),
                         SpatialBundle::from_transform(Transform::from_translation(
                             translation.extend(0.0),
                         )),
@@ -171,6 +172,7 @@ impl CelestialData {
                         Mass(celestial.get_element_dir().get_total_mass()),
                         velocity,
                         celestial,
+                        OrbitalPosition::new(translation),
                         SpatialBundle::from_transform(Transform::from_translation(
                             translation.extend(0.0),
                         )),

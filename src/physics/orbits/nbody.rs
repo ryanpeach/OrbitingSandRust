@@ -1,12 +1,13 @@
 //! NBody physics simulation
 //! First attempt at using compute shaders in bevy
 
-use std::borrow::Cow;
+use std::{borrow::Cow, ops::Deref};
 
 use bevy::{
     ecs::query::QueryIter,
     prelude::*,
     render::{
+        extract_component::ExtractComponentPlugin,
         render_graph::{self, RenderGraph},
         render_resource::{
             BindGroup, BindGroupEntry, BindGroupLayout, BindGroupLayoutDescriptor,
@@ -20,7 +21,7 @@ use bevy::{
 };
 use bytemuck::{Pod, Zeroable};
 
-use super::components::{GravitationalField, Mass, Velocity};
+use super::components::{GravitationalField, Mass, OrbitalPosition, Velocity};
 
 /// It's important that we don't compute the gravitational force between two bodies that are too
 /// close together, because the force will be very large and the simulation will be unstable.
@@ -30,7 +31,7 @@ const G: f32 = 1.0;
 /// WARNING: It's important that this matches the workgroup size in the compute shader
 const WORKGROUP_SIZE: u32 = 64;
 const MAX_NB_NO_GRAV_BODIES: u32 = 10000;
-const MAX_NB_GRAV_BODIES: u32 = 20;
+const MAX_NB_GRAV_BODIES: u32 = 10;
 
 /// A body in the wgsl code
 #[repr(C)]
@@ -66,16 +67,14 @@ pub struct NBodyPlugin;
 
 impl Plugin for NBodyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            ExtractSchedule,
-            (
-                NBodyPlugin::extract_grav_bodies,
-                NBodyPlugin::extract_no_grav_bodies,
-            ),
-        );
+        app.add_systems(Update, OrbitalPosition::sync_with_transform_system);
+        app.add_plugins(ExtractComponentPlugin::<Mass>::default());
+        app.add_plugins(ExtractComponentPlugin::<Velocity>::default());
+        app.add_plugins(ExtractComponentPlugin::<OrbitalPosition>::default());
+        app.add_plugins(ExtractComponentPlugin::<GravitationalField>::default());
         let render_app = app.sub_app_mut(RenderApp);
         render_app.init_resource::<NBodyBuffers>();
-        // render_app.init_resource::<NBodyReadBuffers>();
+        render_app.init_resource::<NBodyReadBuffers>();
         render_app.add_systems(
             Render,
             NBodyBindGroups::prepare_bind_groups.in_set(RenderSet::PrepareBindGroups),
@@ -92,25 +91,6 @@ impl Plugin for NBodyPlugin {
     }
 }
 
-impl NBodyPlugin {
-    fn extract_grav_bodies(
-        mut commands: Commands,
-        entities: Extract<Query<(&Mass, &Velocity, &Transform), With<GravitationalField>>>,
-    ) {
-        for entity in &entities {
-            commands.spawn((*entity.0, *entity.1, *entity.2, GravitationalField));
-        }
-    }
-
-    fn extract_no_grav_bodies(
-        mut commands: Commands,
-        entities: Extract<Query<(&Mass, &Velocity, &Transform), Without<GravitationalField>>>,
-    ) {
-        for entity in &entities {
-            commands.spawn((*entity.0, *entity.1, *entity.2));
-        }
-    }
-}
 /// Systems that go from buffers to world and back
 /// Made both exclusive systems and query systems to play around with different implementations
 impl NBodyPlugin {
@@ -119,11 +99,11 @@ impl NBodyPlugin {
     //     let render_device = world.resource::<RenderDevice>();
     //     let render_queue = world.resource::<RenderQueue>();
     //     let mut no_grav_bodies_query = world
-    //         .query_filtered::<(Entity, &Mass, &Velocity, &Transform), Without<GravitationalField>>(
+    //         .query_filtered::<(Entity, &Mass, &Velocity, &OrbitalPosition), Without<GravitationalField>>(
     //         );
     //     let no_grav_bodies_vec = Self::bodies_from_no_grav_entities(no_grav_bodies_query.iter(&world));
     //     let mut grav_bodies_query = world
-    //         .query_filtered::<(Entity, &Mass, &Velocity, &Transform), With<GravitationalField>>();
+    //         .query_filtered::<(Entity, &Mass, &Velocity, &OrbitalPosition), With<GravitationalField>>();
     //     let grav_bodies_vec =  Self::bodies_from_grav_entities(grav_bodies_query.iter(&world));
 
     //     let _ = &nbody_buffers.load(
@@ -137,10 +117,10 @@ impl NBodyPlugin {
 
     // fn update_buffers_from_query(
     //     no_grav_bodies_query: Query<
-    //         (Entity, &Mass, &Velocity, &Transform),
+    //         (Entity, &Mass, &Velocity, &OrbitalPosition),
     //         Without<GravitationalField>,
     //     >,
-    //     grav_bodies_query: Query<(Entity, &Mass, &Velocity, &Transform), With<GravitationalField>>,
+    //     grav_bodies_query: Query<(Entity, &Mass, &Velocity, &OrbitalPosition), With<GravitationalField>>,
     //     render_device: Res<RenderDevice>,
     //     render_queue: Res<RenderQueue>,
     //     mut nbody_buffers: ResMut<NBodyBuffers>,
@@ -161,7 +141,7 @@ impl NBodyPlugin {
         entities: QueryIter<
             '_,
             '_,
-            (Entity, &Mass, &Velocity, &Transform),
+            (Entity, &Mass, &Velocity, &OrbitalPosition),
             Without<GravitationalField>,
         >,
     ) -> Vec<Body> {
@@ -170,7 +150,7 @@ impl NBodyPlugin {
                 index: entity.index(),
                 generation: entity.generation(),
                 mass: mass.0,
-                position: transform.translation.truncate(),
+                position: transform.position(),
                 velocity: velocity.0,
             })
             .collect::<Vec<_>>()
@@ -180,7 +160,7 @@ impl NBodyPlugin {
         entities: QueryIter<
             '_,
             '_,
-            (Entity, &Mass, &Velocity, &Transform),
+            (Entity, &Mass, &Velocity, &OrbitalPosition),
             With<GravitationalField>,
         >,
     ) -> Vec<Body> {
@@ -189,7 +169,7 @@ impl NBodyPlugin {
                 index: entity.index(),
                 generation: entity.generation(),
                 mass: mass.0,
-                position: transform.translation.truncate(),
+                position: transform.position(),
                 velocity: velocity.0,
             })
             .collect::<Vec<_>>()
@@ -204,7 +184,7 @@ impl NBodyPlugin {
     //     for body in values.iter() {
     //         let idx = body.entity();
     //         {
-    //             let mut transform = world.get_mut::<Transform>(idx).unwrap();
+    //             let mut transform = world.get_mut::<OrbitalPosition>(idx).unwrap();
     //             transform.translation = Vec3::new(body.position.x, body.position.y, 0.0);
     //             trace!("no_grav_bodies.body.position: {:?}", body.position)
     //         }
@@ -221,7 +201,7 @@ impl NBodyPlugin {
     //     for body in values.iter() {
     //         let idx = body.entity();
     //         {
-    //             let mut transform = world.get_mut::<Transform>(idx).unwrap();
+    //             let mut transform = world.get_mut::<OrbitalPosition>(idx).unwrap();
     //             transform.translation = Vec3::new(body.position.x, body.position.y, 0.0);
     //             trace!("grav_bodies.body.position: {:?}", body.position)
     //         }
@@ -235,11 +215,11 @@ impl NBodyPlugin {
     // fn update_query_from_buffers(
     //     nbody_buffers: ResMut<NBodyReadBuffers>,
     //     mut no_grav_bodies_query: Query<
-    //         (Entity, &Mass, &Velocity, &Transform),
+    //         (Entity, &Mass, &Velocity, &OrbitalPosition),
     //         Without<GravitationalField>,
     //     >,
     //     mut grav_bodies_query: Query<
-    //         (Entity, &Mass, &Velocity, &Transform),
+    //         (Entity, &Mass, &Velocity, &OrbitalPosition),
     //         With<GravitationalField>,
     //     >,
     // ) {
@@ -248,7 +228,7 @@ impl NBodyPlugin {
     //         let idx = body.entity();
     //         {
     //             let mut transform = no_grav_bodies_query
-    //                 .get_component_mut::<Transform>(idx)
+    //                 .get_component_mut::<OrbitalPosition>(idx)
     //                 .unwrap();
     //             transform.translation = Vec3::new(body.position.x, body.position.y, 0.0);
     //             trace!("no_grav_bodies.body.position: {:?}", body.position)
@@ -265,7 +245,7 @@ impl NBodyPlugin {
     //         let idx = body.entity();
     //         {
     //             let mut transform = grav_bodies_query
-    //                 .get_component_mut::<Transform>(idx)
+    //                 .get_component_mut::<OrbitalPosition>(idx)
     //                 .unwrap();
     //             transform.translation = Vec3::new(body.position.x, body.position.y, 0.0);
     //             trace!("grav_bodies.body.position: {:?}", body.position)
@@ -331,12 +311,14 @@ impl NBodyBuffers {
         self.clear();
         self.reserve(render_device);
         if grav_bodies.len() > MAX_NB_GRAV_BODIES as usize {
-            error!("Too many grav_bodies");
-            return;
+            panic!("Too many grav_bodies");
+        } else {
+            trace!("grav_bodies.len(): {}", grav_bodies.len());
         }
         if no_grav_bodies.len() > MAX_NB_NO_GRAV_BODIES as usize {
-            error!("Too many no_grav_bodies");
-            return;
+            panic!("Too many no_grav_bodies");
+        } else {
+            trace!("no_grav_bodies.len(): {}", no_grav_bodies.len());
         }
         self.original_grav_bodies_buffer.extend(grav_bodies.clone());
         self.grav_bodies_buffer.extend(grav_bodies);
@@ -384,33 +366,45 @@ impl FromWorld for NBodyBuffers {
 }
 
 /// These are what you use to read data out of the buffers
-// #[derive(Resource)]
-// struct NBodyReadBuffers {
-//     pub grav_bodies_buffer: BufferVec<Body>,
-//     pub no_grav_bodies_buffer: BufferVec<Body>,
-// }
-
-// impl NBodyReadBuffers {
-//     fn queue_copy(&mut self, render_device: &RenderDevice, render_queue: &RenderQueue, nbody_buffers: &NBodyBuffers) {
-//         todo!()
-//     }
-// }
+#[derive(Resource)]
+struct NBodyReadBuffers {
+    pub grav_bodies_buffer: BufferVec<Body>,
+    pub no_grav_bodies_buffer: BufferVec<Body>,
+}
 
 /// Create the buffers
-// impl FromWorld for NBodyReadBuffers {
-//     fn from_world(_world: &mut World) -> Self {
-//         // Create a buffer for grav_bodies
-//         let grav_bodies_buffer = BufferVec::<Body>::new(BufferUsages::STORAGE | BufferUsages::MAP_WRITE | BufferUsages::MAP_READ);
+impl FromWorld for NBodyReadBuffers {
+    fn from_world(_world: &mut World) -> Self {
+        // Create a buffer for grav_bodies
+        let grav_bodies_buffer = BufferVec::<Body>::new(
+            BufferUsages::STORAGE | BufferUsages::MAP_WRITE | BufferUsages::MAP_READ,
+        );
 
-//         // Create a buffer for no_grav_bodies
-//         let no_grav_bodies_buffer = BufferVec::<Body>::new(BufferUsages::STORAGE | BufferUsages::MAP_WRITE | BufferUsages::MAP_READ);
+        // Create a buffer for no_grav_bodies
+        let no_grav_bodies_buffer = BufferVec::<Body>::new(
+            BufferUsages::STORAGE | BufferUsages::MAP_WRITE | BufferUsages::MAP_READ,
+        );
 
-//         NBodyReadBuffers {
-//             grav_bodies_buffer,
-//             no_grav_bodies_buffer,
-//         }
-//     }
-// }
+        NBodyReadBuffers {
+            grav_bodies_buffer,
+            no_grav_bodies_buffer,
+        }
+    }
+}
+
+impl NBodyReadBuffers {
+    fn clear(&mut self) {
+        self.grav_bodies_buffer.clear();
+        self.no_grav_bodies_buffer.clear();
+    }
+
+    fn reserve(&mut self, render_device: &RenderDevice) {
+        self.grav_bodies_buffer
+            .reserve(MAX_NB_GRAV_BODIES as usize, render_device);
+        self.no_grav_bodies_buffer
+            .reserve(MAX_NB_NO_GRAV_BODIES as usize, render_device);
+    }
+}
 
 /// TODO: Seperate layouts for seperate compute shaders for efficiency
 #[derive(Clone)]
@@ -477,12 +471,13 @@ impl NBodyBindGroups {
         render_device: Res<RenderDevice>,
         render_queue: Res<RenderQueue>,
         mut nbody_buffers: ResMut<NBodyBuffers>,
+        mut read_buffers: ResMut<NBodyReadBuffers>,
         no_grav_entities_query: Query<
-            (Entity, &Mass, &Velocity, &Transform),
+            (Entity, &Mass, &Velocity, &OrbitalPosition),
             Without<GravitationalField>,
         >,
         grav_entities_query: Query<
-            (Entity, &Mass, &Velocity, &Transform),
+            (Entity, &Mass, &Velocity, &OrbitalPosition),
             With<GravitationalField>,
         >,
         time: Res<Time>,
@@ -495,6 +490,7 @@ impl NBodyBindGroups {
             NBodyPlugin::bodies_from_grav_entities(grav_entities_query.iter()),
             time.delta_seconds(),
         );
+        read_buffers.reserve(&render_device);
 
         // Create a BindingResource from BufferVec
         let original_grav_bodies_buffer_binding = nbody_buffers
@@ -596,9 +592,10 @@ impl FromWorld for NBodyPipeline {
 #[derive(Default)]
 enum NBodyState {
     #[default]
-    Loading,
-    Update1,
-    Update2,
+    Loading1,
+    Run1,
+    Loading2,
+    Run2,
     Done,
 }
 
@@ -614,26 +611,25 @@ impl render_graph::Node for NBodyNode {
 
         // if the corresponding pipeline has loaded, transition to the next stage
         match self.state {
-            NBodyState::Loading => {
+            NBodyState::Loading1 => {
                 if let CachedPipelineState::Ok(_) =
                     pipeline_cache.get_compute_pipeline_state(pipeline.grav_bodies_single_step)
                 {
-                    self.state = NBodyState::Update1;
+                    self.state = NBodyState::Run1;
                 }
             }
-            NBodyState::Update1 => {
-                if let CachedPipelineState::Ok(_) =
-                    pipeline_cache.get_compute_pipeline_state(pipeline.grav_bodies_single_step)
-                {
-                    self.state = NBodyState::Update2;
-                }
+            NBodyState::Run1 => {
+                self.state = NBodyState::Loading2;
             }
-            NBodyState::Update2 => {
+            NBodyState::Loading2 => {
                 if let CachedPipelineState::Ok(_) =
                     pipeline_cache.get_compute_pipeline_state(pipeline.no_grav_bodies_single_step)
                 {
-                    self.state = NBodyState::Done;
+                    self.state = NBodyState::Run2;
                 }
+            }
+            NBodyState::Run2 => {
+                self.state = NBodyState::Done;
             }
             NBodyState::Done => {}
         }
@@ -657,15 +653,16 @@ impl render_graph::Node for NBodyNode {
 
         // select the pipeline based on the current state
         match self.state {
-            NBodyState::Loading => {}
-            NBodyState::Update1 => {
+            NBodyState::Loading1 => {}
+            NBodyState::Run1 => {
                 let update_pipeline = pipeline_cache
                     .get_compute_pipeline(pipeline.grav_bodies_single_step)
                     .unwrap();
                 pass.set_pipeline(update_pipeline);
                 pass.dispatch_workgroups(MAX_NB_GRAV_BODIES / WORKGROUP_SIZE, 1, 1)
             }
-            NBodyState::Update2 => {
+            NBodyState::Loading2 => {}
+            NBodyState::Run2 => {
                 let update_pipeline = pipeline_cache
                     .get_compute_pipeline(pipeline.no_grav_bodies_single_step)
                     .unwrap();
