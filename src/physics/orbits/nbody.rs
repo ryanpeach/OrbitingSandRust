@@ -100,9 +100,9 @@ impl NBodyPlugin {
     ) {
         for entity in &entities {
             commands.spawn((
-                entity.0.clone(),
-                entity.1.clone(),
-                entity.2.clone(),
+                *entity.0,
+                *entity.1,
+                *entity.2,
                 GravitationalField,
             ));
         }
@@ -113,7 +113,7 @@ impl NBodyPlugin {
         entities: Extract<Query<(&Mass, &Velocity, &Transform), Without<GravitationalField>>>,
     ) {
         for entity in &entities {
-            commands.spawn((entity.0.clone(), entity.1.clone(), entity.2.clone()));
+            commands.spawn((*entity.0, *entity.1, *entity.2));
         }
     }
 }
@@ -499,7 +499,7 @@ impl NBodyBindGroups {
             &render_queue,
             NBodyPlugin::bodies_from_no_grav_entities(no_grav_entities_query.iter()),
             NBodyPlugin::bodies_from_grav_entities(grav_entities_query.iter()),
-            time.delta_seconds() as f32,
+            time.delta_seconds(),
         );
 
         // Create a BindingResource from BufferVec
