@@ -1,8 +1,9 @@
 //! NBody physics simulation
 //! First attempt at using compute shaders in bevy
 
-use std::borrow::Cow;
+use std::{borrow::Cow, ops::Deref};
 
+use super::components::{GravitationalField, Mass, OrbitalPosition, Velocity};
 use bevy::{
     ecs::query::QueryIter,
     prelude::*,
@@ -12,21 +13,23 @@ use bevy::{
         render_resource::{
             BindGroup, BindGroupEntry, BindGroupLayout, BindGroupLayoutDescriptor,
             BindGroupLayoutEntry, BindingResource, BindingType, BufferBindingType, BufferUsages,
-            BufferVec, CachedComputePipelineId, CachedPipelineState, ComputePassDescriptor,
-            ComputePipelineDescriptor, PipelineCache, ShaderStages, ShaderType, UniformBuffer,
+            BufferVec, CachedComputePipelineId, CachedPipelineState, CommandEncoderDescriptor,
+            ComputePassDescriptor, ComputePipelineDescriptor, MapMode, PipelineCache, ShaderStages,
+            ShaderType, UniformBuffer,
         },
         renderer::{RenderContext, RenderDevice, RenderQueue},
         Render, RenderApp, RenderSet,
     },
+    utils::HashMap,
 };
 use bytemuck::{Pod, Zeroable};
-
-use super::components::{GravitationalField, Mass, OrbitalPosition, Velocity};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use wgpu::Maintain;
 
 /// It's important that we don't compute the gravitational force between two bodies that are too
 /// close together, because the force will be very large and the simulation will be unstable.
-const MIN_DISTANCE_SQUARED: f32 = 1.0;
-const G: f32 = 1.0;
+const MIN_DISTANCE_SQUARED: f32 = 100.0;
+const G: f32 = 1.0e3;
 
 /// WARNING: It's important that this matches the workgroup size in the compute shader
 const WORKGROUP_SIZE: u32 = 64;
@@ -51,6 +54,11 @@ impl Body {
         let bits = (self.generation as u64) << 32 | self.index as u64;
         Entity::from_bits(bits)
     }
+
+    fn convert_bytes(bytes: Vec<u8>) -> Vec<Self> {
+        let slice = bytemuck::cast_slice(&bytes);
+        slice.to_vec()
+    }
 }
 
 /// Uniforms struct which contains most of the parameters for the simulation
@@ -74,7 +82,7 @@ impl Plugin for NBodyPlugin {
         app.add_plugins(ExtractComponentPlugin::<GravitationalField>::default());
         let render_app = app.sub_app_mut(RenderApp);
         render_app.init_resource::<NBodyBuffers>();
-        render_app.init_resource::<NBodyReadBuffers>();
+        render_app.init_resource::<NBodyCopyBuffers>();
         render_app.add_systems(
             Render,
             NBodyBindGroups::prepare_bind_groups.in_set(RenderSet::PrepareBindGroups),
@@ -87,6 +95,7 @@ impl Plugin for NBodyPlugin {
     fn finish(&self, app: &mut App) {
         let render_app = app.sub_app_mut(RenderApp);
         render_app.init_resource::<NBodyPipeline>();
+        render_app.add_systems(Render, NBodyCopyBuffers::copy_system);
         // render_app.add_systems(Update, NBodyPlugin::update_buffers_from_query);
     }
 }
@@ -146,11 +155,11 @@ impl NBodyPlugin {
         >,
     ) -> Vec<Body> {
         entities
-            .map(|(entity, mass, velocity, transform)| Body {
+            .map(|(entity, mass, velocity, position)| Body {
                 index: entity.index(),
                 generation: entity.generation(),
                 mass: mass.0,
-                position: transform.position(),
+                position: position.0,
                 velocity: velocity.0,
             })
             .collect::<Vec<_>>()
@@ -165,11 +174,11 @@ impl NBodyPlugin {
         >,
     ) -> Vec<Body> {
         entities
-            .map(|(entity, mass, velocity, transform)| Body {
+            .map(|(entity, mass, velocity, position)| Body {
                 index: entity.index(),
                 generation: entity.generation(),
                 mass: mass.0,
-                position: transform.position(),
+                position: position.0,
                 velocity: velocity.0,
             })
             .collect::<Vec<_>>()
@@ -335,18 +344,17 @@ impl NBodyBuffers {
 /// Create the buffers
 impl FromWorld for NBodyBuffers {
     fn from_world(_world: &mut World) -> Self {
-        let original_grav_bodies_buffer = BufferVec::<Body>::new(
-            BufferUsages::STORAGE | BufferUsages::MAP_WRITE | BufferUsages::MAP_READ,
-        );
+        let original_grav_bodies_buffer =
+            BufferVec::<Body>::new(BufferUsages::STORAGE | BufferUsages::MAP_WRITE);
 
         // Create a buffer for grav_bodies
         let grav_bodies_buffer = BufferVec::<Body>::new(
-            BufferUsages::STORAGE | BufferUsages::MAP_WRITE | BufferUsages::MAP_READ,
+            BufferUsages::STORAGE | BufferUsages::COPY_SRC | BufferUsages::MAP_WRITE,
         );
 
         // Create a buffer for no_grav_bodies
         let no_grav_bodies_buffer = BufferVec::<Body>::new(
-            BufferUsages::STORAGE | BufferUsages::MAP_WRITE | BufferUsages::MAP_READ,
+            BufferUsages::STORAGE | BufferUsages::COPY_SRC | BufferUsages::MAP_WRITE,
         );
 
         // Create a buffer for uniforms
@@ -367,32 +375,30 @@ impl FromWorld for NBodyBuffers {
 
 /// These are what you use to read data out of the buffers
 #[derive(Resource)]
-struct NBodyReadBuffers {
+struct NBodyCopyBuffers {
     pub grav_bodies_buffer: BufferVec<Body>,
     pub no_grav_bodies_buffer: BufferVec<Body>,
 }
 
 /// Create the buffers
-impl FromWorld for NBodyReadBuffers {
+impl FromWorld for NBodyCopyBuffers {
     fn from_world(_world: &mut World) -> Self {
         // Create a buffer for grav_bodies
-        let grav_bodies_buffer = BufferVec::<Body>::new(
-            BufferUsages::STORAGE | BufferUsages::MAP_WRITE | BufferUsages::MAP_READ,
-        );
+        let grav_bodies_buffer =
+            BufferVec::<Body>::new(BufferUsages::COPY_DST | BufferUsages::MAP_READ);
 
         // Create a buffer for no_grav_bodies
-        let no_grav_bodies_buffer = BufferVec::<Body>::new(
-            BufferUsages::STORAGE | BufferUsages::MAP_WRITE | BufferUsages::MAP_READ,
-        );
+        let no_grav_bodies_buffer =
+            BufferVec::<Body>::new(BufferUsages::COPY_DST | BufferUsages::MAP_READ);
 
-        NBodyReadBuffers {
+        NBodyCopyBuffers {
             grav_bodies_buffer,
             no_grav_bodies_buffer,
         }
     }
 }
 
-impl NBodyReadBuffers {
+impl NBodyCopyBuffers {
     fn clear(&mut self) {
         self.grav_bodies_buffer.clear();
         self.no_grav_bodies_buffer.clear();
@@ -403,6 +409,99 @@ impl NBodyReadBuffers {
             .reserve(MAX_NB_GRAV_BODIES as usize, render_device);
         self.no_grav_bodies_buffer
             .reserve(MAX_NB_NO_GRAV_BODIES as usize, render_device);
+    }
+
+    fn copy_system(
+        nbody_copy_buffers: Res<NBodyCopyBuffers>,
+        nbody_buffers: Res<NBodyBuffers>,
+        mut grav_bodies: Query<
+            (Entity, &mut Velocity, &mut OrbitalPosition),
+            With<GravitationalField>,
+        >,
+        mut no_grav_bodies: Query<
+            (Entity, &mut Velocity, &mut OrbitalPosition),
+            Without<GravitationalField>,
+        >,
+        queue: Res<RenderQueue>,
+        device: Res<RenderDevice>,
+    ) {
+        if nbody_copy_buffers.grav_bodies_buffer.buffer().is_none() {
+            error!("Buffers not loaded yet");
+            return;
+        }
+        let mut encoder = device.create_command_encoder(&CommandEncoderDescriptor { label: None });
+        let grav_bodies_buffer = nbody_buffers.grav_bodies_buffer.buffer().unwrap();
+        let grav_bodies_copy_buffer = nbody_copy_buffers.grav_bodies_buffer.buffer().unwrap();
+        encoder.copy_buffer_to_buffer(
+            grav_bodies_buffer,
+            0,
+            grav_bodies_copy_buffer,
+            0,
+            grav_bodies_buffer.size(),
+        );
+        let no_grav_bodies_buffer = nbody_buffers.no_grav_bodies_buffer.buffer().unwrap();
+        let no_grav_bodies_copy_buffer = nbody_copy_buffers.no_grav_bodies_buffer.buffer().unwrap();
+        encoder.copy_buffer_to_buffer(
+            no_grav_bodies_buffer,
+            0,
+            no_grav_bodies_copy_buffer,
+            0,
+            grav_bodies_buffer.size(),
+        );
+        queue.submit([encoder.finish()]);
+
+        let grav_bodies_copy_buffer_slice = grav_bodies_copy_buffer.slice(..);
+        grav_bodies_copy_buffer_slice.map_async(MapMode::Read, move |result| {
+            let err = result.err();
+            if err.is_some() {
+                panic!("{}", err.unwrap().to_string());
+            }
+        });
+        let no_grav_bodies_copy_buffer_slice = no_grav_bodies_copy_buffer.slice(..);
+        no_grav_bodies_copy_buffer_slice.map_async(MapMode::Read, move |result| {
+            let err = result.err();
+            if err.is_some() {
+                panic!("{}", err.unwrap().to_string());
+            }
+        });
+
+        device.poll(Maintain::Wait);
+
+        let grav_bodies_copy_buffer_data = Body::convert_bytes(Vec::from(
+            grav_bodies_copy_buffer_slice.get_mapped_range().deref(),
+        ));
+        let no_grav_bodies_copy_buffer_data = Body::convert_bytes(Vec::from(
+            no_grav_bodies_copy_buffer_slice.get_mapped_range().deref(),
+        ));
+
+        let grav_bodies_copy_buffer_data_hashmap: HashMap<Entity, Body> =
+            grav_bodies_copy_buffer_data
+                .par_iter()
+                .map(|body| (body.entity(), *body))
+                .collect();
+        let no_grav_bodies_copy_buffer_data_hashmap: HashMap<Entity, Body> =
+            no_grav_bodies_copy_buffer_data
+                .par_iter()
+                .map(|body| (body.entity(), *body))
+                .collect();
+
+        grav_bodies
+            .par_iter_mut()
+            .for_each(|(entity, mut velocity, mut position)| {
+                let body = grav_bodies_copy_buffer_data_hashmap.get(&entity).unwrap();
+                position.0 = body.position;
+                velocity.0 = body.velocity;
+            });
+        no_grav_bodies
+            .par_iter_mut()
+            .for_each(|(entity, mut velocity, mut position)| {
+                if let Some(body) = no_grav_bodies_copy_buffer_data_hashmap.get(&entity) {
+                    position.0 = body.position;
+                    velocity.0 = body.velocity;
+                } else {
+                    error!("No body found for entity: {:?}", entity);
+                }
+            });
     }
 }
 
@@ -466,12 +565,13 @@ impl NBodyBindGroupLayouts {
 struct NBodyBindGroups(pub BindGroup);
 
 impl NBodyBindGroups {
+    #[allow(clippy::too_many_arguments)]
     fn prepare_bind_groups(
         mut commands: Commands,
         render_device: Res<RenderDevice>,
         render_queue: Res<RenderQueue>,
         mut nbody_buffers: ResMut<NBodyBuffers>,
-        mut read_buffers: ResMut<NBodyReadBuffers>,
+        mut read_buffers: ResMut<NBodyCopyBuffers>,
         no_grav_entities_query: Query<
             (Entity, &Mass, &Velocity, &OrbitalPosition),
             Without<GravitationalField>,

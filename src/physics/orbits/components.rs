@@ -17,10 +17,8 @@ pub struct Velocity(pub Vec2);
 /// No need to use this everywhere, Transform will do for most things
 /// But this is useful for the compute shader because it is extractable
 /// A position that is extractable for the compute shader
-/// This inner field should not be public because it should only be updated
-/// via the sync_with_transform_system
 #[derive(ExtractComponent, Component, Debug, Clone, Copy)]
-pub struct OrbitalPosition(Vec2);
+pub struct OrbitalPosition(pub Vec2);
 
 impl OrbitalPosition {
     pub fn new(vec: Vec2) -> Self {
@@ -33,10 +31,6 @@ impl OrbitalPosition {
 
     pub fn transform(&self) -> Transform {
         Transform::from_translation(self.0.extend(0.0))
-    }
-
-    pub fn position(&self) -> Vec2 {
-        self.0
     }
 
     pub fn sync_with_transform_system(mut query: Query<(&OrbitalPosition, &mut Transform)>) {
