@@ -1,7 +1,7 @@
 //! NBody physics simulation
 //! First attempt at using compute shaders in bevy
 
-use std::{borrow::Cow, ops::Deref};
+use std::{borrow::Cow};
 
 use bevy::{
     ecs::query::QueryIter,
@@ -15,8 +15,7 @@ use bevy::{
             BufferVec, CachedComputePipelineId, CachedPipelineState, ComputePassDescriptor,
             ComputePipelineDescriptor, PipelineCache, ShaderStages, ShaderType, UniformBuffer,
         },
-        renderer::{RenderContext, RenderDevice, RenderQueue},
-        Extract, Render, RenderApp, RenderSet,
+        renderer::{RenderContext, RenderDevice, RenderQueue}, Render, RenderApp, RenderSet,
     },
 };
 use bytemuck::{Pod, Zeroable};
