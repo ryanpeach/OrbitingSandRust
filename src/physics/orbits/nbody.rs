@@ -12,8 +12,7 @@ use bevy::{
             BindGroup, BindGroupEntry, BindGroupLayout, BindGroupLayoutDescriptor,
             BindGroupLayoutEntry, BindingResource, BindingType, BufferBindingType, BufferUsages,
             BufferVec, CachedComputePipelineId, CachedPipelineState, ComputePassDescriptor,
-            ComputePipelineDescriptor, PipelineCache, ShaderStages, ShaderType,
-            UniformBuffer,
+            ComputePipelineDescriptor, PipelineCache, ShaderStages, ShaderType, UniformBuffer,
         },
         renderer::{RenderContext, RenderDevice, RenderQueue},
         Extract, Render, RenderApp, RenderSet,
@@ -99,12 +98,7 @@ impl NBodyPlugin {
         entities: Extract<Query<(&Mass, &Velocity, &Transform), With<GravitationalField>>>,
     ) {
         for entity in &entities {
-            commands.spawn((
-                *entity.0,
-                *entity.1,
-                *entity.2,
-                GravitationalField,
-            ));
+            commands.spawn((*entity.0, *entity.1, *entity.2, GravitationalField));
         }
     }
 
