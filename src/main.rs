@@ -1,18 +1,22 @@
+pub mod entities;
+pub mod gui;
+pub mod physics;
+
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy::{core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*};
 use bevy_egui::EguiPlugin;
 
-use orbiting_sand::entities::celestials::sun::SunBuilder;
-use orbiting_sand::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
-use orbiting_sand::entities::EntitiesPluginGroup;
-use orbiting_sand::gui::brush::BrushRadius;
+use crate::entities::celestials::sun::SunBuilder;
+use crate::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
+use crate::entities::EntitiesPluginGroup;
+use crate::gui::brush::BrushRadius;
 
-use orbiting_sand::gui::GuiPluginGroup;
-use orbiting_sand::physics::orbits::components::{Mass, Velocity};
+use crate::gui::GuiPluginGroup;
+use crate::physics::orbits::components::{Mass, Velocity};
 
-use orbiting_sand::physics::PhysicsPluginGroup;
+use crate::physics::PhysicsPluginGroup;
 
 fn main() {
     App::new()

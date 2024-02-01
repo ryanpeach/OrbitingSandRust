@@ -1,5 +1,5 @@
 use crate::physics::fallingsand::util::functions::interpolate_points;
-use crate::physics::fallingsand::util::image::RawImage;
+
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use crate::physics::util::vectors::{RelXyPoint, Vertex};
@@ -297,39 +297,6 @@ impl ChunkCoords {
         }
 
         indices
-    }
-
-    /// Right now we are just going to return a checkerboard texture
-    fn get_texture(&self, _step: usize) -> RawImage {
-        let j_count = self.get_num_concentric_circles();
-        let k_count = self.get_num_radial_lines();
-        let mut pixels: Vec<u8> = Vec::with_capacity(j_count * k_count * 4);
-        let mut i = 0;
-        for _ in 0..j_count {
-            for _ in 0..k_count {
-                let color = if i % 2 == 0 {
-                    Color::YELLOW
-                } else {
-                    Color::BLUE
-                };
-                let rgba = color.as_rgba_u8();
-                pixels.push(rgba[0]);
-                pixels.push(rgba[1]);
-                pixels.push(rgba[2]);
-                pixels.push(rgba[3]);
-                i += 1;
-            }
-            i += 1;
-        }
-        RawImage {
-            pixels,
-            bounds: Rect::new(
-                self.get_start_radial_line() as f32,
-                self.get_start_concentric_circle_absolute() as f32,
-                self.get_start_radial_line() as f32 + k_count as f32,
-                self.get_start_concentric_circle_absolute() as f32 + j_count as f32,
-            ),
-        }
     }
 }
 

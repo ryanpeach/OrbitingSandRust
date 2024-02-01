@@ -192,15 +192,6 @@ fn calculate_ith_has_different_k_bottom_neighbor_targets(
     Parallel(out)
 }
 
-/// This function spreads out a set of chunk idx's into 9 sets
-fn spread(set: HashSet<ChunkIjkVector>, num_frames: usize) -> [HashSet<ChunkIjkVector>; 9] {
-    let mut out: [HashSet<ChunkIjkVector>; 9] = Default::default();
-    for (i, coord) in set.into_iter().enumerate() {
-        out[i % num_frames].insert(coord);
-    }
-    out
-}
-
 /// Pre calculate all the chunk idx's we need to process each frame.
 /// We pregenerate these so that we can test them and so that we don't waste time recalculating them
 #[allow(clippy::needless_range_loop)]
@@ -293,6 +284,7 @@ impl ElementGridDir {
         }
     }
 
+    #[cfg(test)]
     fn get_process_targets(&self) -> ProcessTargets {
         self.process_targets.clone()
     }
