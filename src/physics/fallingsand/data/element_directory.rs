@@ -284,6 +284,11 @@ impl ElementGridDir {
         }
     }
 
+    #[cfg(test)]
+    fn get_process_targets(&self) -> ProcessTargets {
+        self.process_targets.clone()
+    }
+
     // TODO: This needs testing
     fn get_chunk_top_neighbors(&self, coord: ChunkIjkVector) -> TopNeighborIdxs {
         let top_chunk_in_layer = self.coords.get_layer_num_concentric_chunks(coord.i) - 1;
