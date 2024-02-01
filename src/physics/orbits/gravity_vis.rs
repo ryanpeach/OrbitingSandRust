@@ -5,7 +5,7 @@ use bevy::{
     ecs::{
         component::Component,
         entity::Entity,
-        query::{With},
+        query::With,
         system::{Commands, Query, ResMut},
     },
     hierarchy::BuildChildren,
@@ -16,7 +16,7 @@ use bevy::{
         render_resource::{AsBindGroup, ShaderRef},
     },
     sprite::{Material2d, MaterialMesh2dBundle},
-    transform::components::{Transform},
+    transform::components::Transform,
     window::Window,
 };
 
