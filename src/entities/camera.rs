@@ -1,67 +1,134 @@
 //! The bevy camera for the game
 
 use bevy::{
+    app::{App, Plugin, Update},
     core_pipeline::core_2d::Camera2d,
     ecs::{
+        entity::Entity,
         event::EventReader,
-        system::{Query, Res},
+        system::{Commands, Query, Res},
     },
     input::{
         keyboard::KeyCode,
         mouse::{MouseScrollUnit, MouseWheel},
         Input,
     },
-    math::Vec3,
+    math::{Rect, Vec2, Vec3},
+    render::view::Visibility,
     time::Time,
-    transform::components::Transform,
+    transform::components::{GlobalTransform, Transform},
+    window::Window,
 };
 
-/// Bevy Systems
-pub fn zoom_camera_system(
-    time: Res<Time>,
-    mut scroll_evr: EventReader<MouseWheel>,
-    mut query: Query<(&mut Transform, &mut Camera2d)>,
-) {
-    let mut delta = 0.;
-    for ev in scroll_evr.read() {
-        match ev.unit {
-            MouseScrollUnit::Line => {
-                delta += ev.y;
+use crate::physics::fallingsand::util::mesh::MeshBoundingBox;
+
+pub struct CameraPlugin;
+
+impl Plugin for CameraPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, Self::zoom_camera_system);
+        app.add_systems(Update, Self::move_camera_system);
+        app.add_systems(Update, Self::frustum_culling_2d);
+    }
+}
+
+impl CameraPlugin {
+    fn zoom_camera_system(
+        time: Res<Time>,
+        mut scroll_evr: EventReader<MouseWheel>,
+        mut query: Query<(&mut Transform, &mut Camera2d)>,
+    ) {
+        let mut delta = 0.;
+        for ev in scroll_evr.read() {
+            match ev.unit {
+                MouseScrollUnit::Line => {
+                    delta += ev.y;
+                }
+                MouseScrollUnit::Pixel => {
+                    delta += ev.y;
+                }
             }
-            MouseScrollUnit::Pixel => {
-                delta += ev.y;
+        }
+        if delta != 0. {
+            for (mut transform, _) in query.iter_mut() {
+                transform.scale *= 1. + delta * time.delta_seconds() * 0.5;
             }
         }
     }
-    if delta != 0. {
-        for (mut transform, _) in query.iter_mut() {
-            transform.scale *= 1. + delta * time.delta_seconds() * 0.5;
+
+    fn move_camera_system(
+        time: Res<Time>,
+        keyboard_input: Res<Input<KeyCode>>,
+        mut query: Query<(&mut Transform, &mut Camera2d)>,
+    ) {
+        let mut delta = Vec3::ZERO;
+        if keyboard_input.pressed(KeyCode::A) {
+            delta.x -= 1.;
+        }
+        if keyboard_input.pressed(KeyCode::D) {
+            delta.x += 1.;
+        }
+        if keyboard_input.pressed(KeyCode::W) {
+            delta.y += 1.;
+        }
+        if keyboard_input.pressed(KeyCode::S) {
+            delta.y -= 1.;
+        }
+        if delta != Vec3::ZERO {
+            for (mut transform, _) in query.iter_mut() {
+                let scale = transform.scale;
+                transform.translation += delta * time.delta_seconds() * scale * 100.;
+            }
+        }
+    }
+
+    fn frustum_culling_2d(
+        mut commands: Commands,
+        camera: Query<(&Camera2d, &GlobalTransform)>,
+        mut mesh_entities: Query<(Entity, &MeshBoundingBox, &Visibility, &Transform)>,
+        windows: Query<&Window>,
+    ) {
+        let (_, camera_transform) = camera.single();
+        let camera_transform = camera_transform.compute_transform();
+        let window = windows.single();
+
+        let width = window.resolution.width();
+        let height = window.resolution.height();
+
+        // Get the camera rect in world coordinates using the translation and scale
+        let camera_rect = Rect::new(
+            camera_transform.translation.x,
+            camera_transform.translation.y,
+            width * camera_transform.scale.x,
+            height * camera_transform.scale.y,
+        );
+
+        for (entity, mesh_bb, visible, transform) in mesh_entities.iter_mut() {
+            let overlaps = rect_overlaps(
+                &camera_rect,
+                &rect_add(&mesh_bb.0, &transform.translation.truncate()),
+            );
+            if overlaps && *visible == Visibility::Hidden {
+                commands.entity(entity).insert(Visibility::Visible);
+            } else if !overlaps && *visible == Visibility::Visible {
+                commands.entity(entity).insert(Visibility::Hidden);
+            }
         }
     }
 }
 
-pub fn move_camera_system(
-    time: Res<Time>,
-    keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&mut Transform, &mut Camera2d)>,
-) {
-    let mut delta = Vec3::ZERO;
-    if keyboard_input.pressed(KeyCode::A) {
-        delta.x -= 1.;
-    }
-    if keyboard_input.pressed(KeyCode::D) {
-        delta.x += 1.;
-    }
-    if keyboard_input.pressed(KeyCode::W) {
-        delta.y += 1.;
-    }
-    if keyboard_input.pressed(KeyCode::S) {
-        delta.y -= 1.;
-    }
-    if delta != Vec3::ZERO {
-        for (mut transform, _) in query.iter_mut() {
-            let scale = transform.scale;
-            transform.translation += delta * time.delta_seconds() * scale * 100.;
-        }
-    }
+fn rect_overlaps(this: &Rect, other: &Rect) -> bool {
+    this.min.x < other.max.x
+        && this.max.x > other.min.x
+        && this.min.y < other.max.y
+        && this.max.y > other.min.y
+}
+
+fn rect_add(this: &Rect, other: &Vec2) -> Rect {
+    Rect::new(
+        this.min.x + other.x,
+        this.min.y + other.y,
+        this.max.x + other.x,
+        this.max.y + other.y,
+    )
 }

@@ -1,3 +1,4 @@
+use bevy::app::{App, Plugin, Update};
 use bevy::asset::{AssetServer, Assets, Handle};
 use bevy::core::FrameCount;
 use bevy::ecs::component::Component;
@@ -26,6 +27,14 @@ use crate::physics::util::clock::Clock;
 
 #[derive(Component)]
 pub struct CelestialChunkIdk(ChunkIjkVector);
+
+pub struct CelestialDataPlugin;
+
+impl Plugin for CelestialDataPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, CelestialData::process_system);
+    }
+}
 
 /// Acts as a cache for a radial mesh's meshes and textures
 #[derive(Component)]
