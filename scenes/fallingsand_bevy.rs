@@ -9,7 +9,7 @@ use orbiting_sand::entities::celestials::sun::SunBuilder;
 use orbiting_sand::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
 use orbiting_sand::gui::brush::{BrushPlugin, BrushRadius};
 use orbiting_sand::gui::camera_window::CameraWindowPlugin;
-use orbiting_sand::gui::element_picker::{ElementPickerPlugin};
+use orbiting_sand::gui::element_picker::ElementPickerPlugin;
 
 use orbiting_sand::physics::orbits::components::{Mass, Velocity};
 use orbiting_sand::physics::orbits::nbody::NBodyPlugin;
