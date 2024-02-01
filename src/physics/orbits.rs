@@ -2,4 +2,3 @@
 
 pub mod components;
 pub mod nbody;
-pub mod paths;
