@@ -20,7 +20,7 @@ struct Force(Vec2);
 /// It's important that we don't compute the gravitational force between two bodies that are too
 /// close together, because the force will be very large and the simulation will be unstable.
 const MIN_DISTANCE_SQUARED: f32 = 100.0;
-const G: f32 = 1.0e3;
+pub const G: f32 = 1.0e3;
 
 /// Just a namespace for the fundamental gravity functions
 struct GravityCalculations;

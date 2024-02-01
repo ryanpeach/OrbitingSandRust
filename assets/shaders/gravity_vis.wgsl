@@ -3,25 +3,18 @@
 // Bodies which emit gravity effect each other
 // Bodies which do not emit gravity are only effected by bodies which do emit gravity
 
-struct Body {
-    mass: f64,
-    position: vec2<f32>,
+struct GravityField {
+    g: f32;
 };
 
-struct Uniforms {
-    G: f32;
-    MIN_DISTANCE_SQUARED: f32;
-    dt: f32;
-};
+@group(1) @binding(0) var<uniform> material: GravityField;
+@group(1) @binding(1) var<storage, read> positions: array<vec2<f32>>;
+@group(2) @binding(2) var<storage, read> masses: array<f32>;
 
-@group(0) @binding(0) var<storage, read_write> grav_bodies: array<Body>;
-@group(1) @binding(0) var<uniform> myUniforms: Uniforms;
-
-fn computeGravitationalForce(pos1: vec3<f32>, pos2: vec3<f32>, mass2: f32) -> vec2<f32> {
+fn computeGravitationalForce(pos1: vec2<f32>, pos2: vec2<f32>, mass2: f32) -> vec2<f32> {
     let r = pos2.xy - pos1.xy;
-    var distanceSquared = lengthSquared(r);
-    distanceSquared = max(distanceSquared, myUniforms.MIN_DISTANCE_SQUARED);
-    let forceMagnitude = myUniforms.G * mass2 / distanceSquared;
+    let distanceSquared = dot(r, r);
+    let forceMagnitude = material.g * mass2 / distanceSquared;
     let forceDirection = normalize(r);
     return forceDirection * forceMagnitude;
 }

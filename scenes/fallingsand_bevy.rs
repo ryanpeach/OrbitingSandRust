@@ -11,6 +11,7 @@ use orbiting_sand::gui::camera_window::camera_window_system;
 use orbiting_sand::gui::element_picker::ElementSelection;
 use orbiting_sand::physics::fallingsand::util::mesh::MeshBoundingBox;
 use orbiting_sand::physics::orbits::components::{Mass, Velocity};
+use orbiting_sand::physics::orbits::gravity_vis::GravityFieldPlugin;
 use orbiting_sand::physics::orbits::nbody::NBodyPlugin;
 
 fn main() {
@@ -25,6 +26,7 @@ fn main() {
         )
         .add_plugins(EguiPlugin)
         .add_plugins(NBodyPlugin)
+        .add_plugins(GravityFieldPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .insert_resource(ElementSelection::default())
         .add_systems(Startup, setup)
