@@ -2,6 +2,7 @@ use crate::entities::celestials::celestial::CelestialData;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::util::clock::Clock;
 use crate::physics::util::vectors::{mouse_coord_to_world_coord, RelXyPoint, Vertex};
+use bevy::app::{App, Plugin, Update};
 use bevy::core::FrameCount;
 use bevy::core_pipeline::core_2d::Camera2d;
 use bevy::ecs::query::Without;
@@ -23,6 +24,23 @@ use bevy::{
 };
 
 use super::element_picker::ElementSelection;
+
+/// The brush is a circle that can be resized and moved around the screen.
+pub struct BrushPlugin;
+
+impl Plugin for BrushPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (
+                BrushRadius::move_brush_system,
+                BrushRadius::draw_brush_system,
+                BrushRadius::resize_brush_system,
+                BrushRadius::apply_brush_system,
+            ),
+        );
+    }
+}
 
 #[derive(Default, Component, Debug, Clone, Copy)]
 pub struct BrushRadius(pub f32);

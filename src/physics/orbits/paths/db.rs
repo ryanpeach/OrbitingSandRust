@@ -3,9 +3,8 @@
 
 use std::time::Duration;
 
-use bevy::ecs::{component::Component, entity::Entity, system::Resource};
+use bevy::ecs::{component::Component, system::Resource};
 use nabo::{dummy_point::P2, KDTree};
-use quadtree_rs::Quadtree;
 
 use crate::physics::util::clock::Clock;
 
@@ -21,7 +20,6 @@ use crate::physics::util::clock::Clock;
 #[derive(Component)]
 struct PositionDatabase {
     time: Clock,
-    quadtree: Quadtree<u16, Entity>,
     knn: KDTree<f32, P2>,
 }
 
