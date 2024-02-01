@@ -4,13 +4,10 @@ use bevy::sprite::MaterialMesh2dBundle;
 use bevy::{core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*};
 use bevy_egui::EguiPlugin;
 
-
 use orbiting_sand::entities::celestials::sun::SunBuilder;
 use orbiting_sand::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
 use orbiting_sand::entities::EntitiesPluginGroup;
-use orbiting_sand::gui::brush::{BrushRadius};
-
-
+use orbiting_sand::gui::brush::BrushRadius;
 
 use orbiting_sand::gui::GuiPluginGroup;
 use orbiting_sand::physics::orbits::components::{Mass, Velocity};
