@@ -1,25 +1,22 @@
 use bevy::{
     app::{App, Plugin, Startup, Update},
-    asset::{Asset, AssetServer, Assets, Handle},
+    asset::{Asset, Assets},
     core_pipeline::core_2d::Camera2d,
     ecs::{
         component::Component,
         entity::Entity,
-        query::{With, WorldQuery},
-        system::{Commands, Query, Res, ResMut},
+        query::{With},
+        system::{Commands, Query, ResMut},
     },
     hierarchy::BuildChildren,
     math::Vec2,
     reflect::TypePath,
     render::{
-        color::Color,
         mesh::{shape, Mesh},
         render_resource::{AsBindGroup, ShaderRef},
-        texture::Image,
-        view::window,
     },
-    sprite::{Material2d, MaterialMesh2dBundle, Mesh2d, Mesh2dHandle},
-    transform::components::{GlobalTransform, Transform},
+    sprite::{Material2d, MaterialMesh2dBundle},
+    transform::components::{Transform},
     window::Window,
 };
 
@@ -65,9 +62,9 @@ impl Material2d for GravityFieldBindGroup {
     }
 
     fn specialize(
-        descriptor: &mut bevy::render::render_resource::RenderPipelineDescriptor,
-        layout: &bevy::render::mesh::MeshVertexBufferLayout,
-        key: bevy::sprite::Material2dKey<Self>,
+        _descriptor: &mut bevy::render::render_resource::RenderPipelineDescriptor,
+        _layout: &bevy::render::mesh::MeshVertexBufferLayout,
+        _key: bevy::sprite::Material2dKey<Self>,
     ) -> Result<(), bevy::render::render_resource::SpecializedMeshPipelineError> {
         Ok(())
     }
