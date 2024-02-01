@@ -3,18 +3,18 @@ use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy::{core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*};
 use bevy_egui::EguiPlugin;
-use orbiting_sand::entities::camera::CameraPlugin;
-use orbiting_sand::entities::celestials::celestial::CelestialDataPlugin;
+
+
 use orbiting_sand::entities::celestials::sun::SunBuilder;
 use orbiting_sand::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
 use orbiting_sand::entities::EntitiesPluginGroup;
-use orbiting_sand::gui::brush::{BrushPlugin, BrushRadius};
-use orbiting_sand::gui::camera_window::CameraWindowPlugin;
-use orbiting_sand::gui::element_picker::ElementPickerPlugin;
+use orbiting_sand::gui::brush::{BrushRadius};
+
+
 
 use orbiting_sand::gui::GuiPluginGroup;
 use orbiting_sand::physics::orbits::components::{Mass, Velocity};
-use orbiting_sand::physics::orbits::nbody::NBodyPlugin;
+
 use orbiting_sand::physics::PhysicsPluginGroup;
 
 fn main() {
