@@ -1,5 +1,5 @@
 use crate::physics::fallingsand::util::functions::interpolate_points;
-use crate::physics::fallingsand::util::image::RawImage;
+
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use crate::physics::util::vectors::{RelXyPoint, Vertex};
