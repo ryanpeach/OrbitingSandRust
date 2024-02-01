@@ -1,9 +1,9 @@
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 
-use bevy::render::camera::CameraPlugin;
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy::{core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*};
 use bevy_egui::EguiPlugin;
+use orbiting_sand::entities::camera::CameraPlugin;
 use orbiting_sand::entities::celestials::celestial::CelestialDataPlugin;
 use orbiting_sand::entities::celestials::sun::SunBuilder;
 use orbiting_sand::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
