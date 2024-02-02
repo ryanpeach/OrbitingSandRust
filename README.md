@@ -64,12 +64,6 @@ There is no way that most engines could handle the custom physics of this game. 
 * I needed an ECS
 * Many things provided that are already integrated into the ECS
 
-## Challenges with Rust
-
-1. We are not going to use Bevy because it is so alpha. Many of our libraries are alpha.
-2. Bindings - We need to bind to liquidfun, which will be a pain.
-3. Major refactors are a lot of work due to the borrow checker, but at least its always safe
-
 # Installation
 
 ## Ubuntu
