@@ -1,7 +1,5 @@
 # OrbitingSandRust
 
-*Open Source in game development only works when the community supports the developers. Please support this project! If you make a derivative work, please support the original developers as well!*
-
 A resource management and mining game simulating a realistic solar system economy.
 
 # Sand
