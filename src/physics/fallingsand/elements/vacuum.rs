@@ -1,4 +1,3 @@
-
 use bevy::render::color::Color;
 
 use super::element::{

@@ -1,6 +1,3 @@
-
-
-
 use bevy::math::Rect;
 
 use crate::physics::fallingsand::convolution::neighbor_grids::TopNeighborGrids;
