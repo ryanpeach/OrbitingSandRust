@@ -12,11 +12,15 @@ The grid is drawn onto a texture which is projected onto a mesh which is generat
 
 Every frame a random sample of pixels are updated.
 
+![Falling Sand](assets/progress/sand.png)
+
 # Orbits
 
 Orbits should be offloadable into memory so that we can support thousands of simultanous orbiting bodies that may crash into each other at any moment
 
 However, they also are still simple kepler orbits. Not N body.
+
+![Orbits](assets/progress/orbits.png)
 
 # Inspirations
 
