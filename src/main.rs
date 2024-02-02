@@ -93,7 +93,7 @@ fn setup(
 
     // Create a sun
     let sun_data = SunBuilder::new().build();
-    let sun_id = CelestialData::setup(
+    let sun_entity = CelestialData::setup(
         sun_data,
         Velocity(Vec2::new(0., 0.)),
         Vec2::new(0., 0.),
@@ -102,10 +102,10 @@ fn setup(
         &mut materials,
         &asset_server,
     );
-    commands.entity(planet_entity).insert(GravitationalField);
+    commands.entity(sun_entity).insert(GravitationalField);
 
     // Create a bunch of asteroids
-    const NUM_ASTEROIDS: usize = 1000;
+    const NUM_ASTEROIDS: usize = 10000;
     for i in 0..NUM_ASTEROIDS {
         // Put them in a circle around the sun
         // at radius 5000 with a tangent velocity of 600
@@ -127,5 +127,5 @@ fn setup(
     }
 
     // Parent the camera to the sun
-    commands.entity(sun_id).push_children(&[camera]);
+    commands.entity(sun_entity).push_children(&[camera]);
 }

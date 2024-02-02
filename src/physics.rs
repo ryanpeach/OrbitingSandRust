@@ -18,7 +18,8 @@ pub struct PhysicsPluginGroup;
 
 impl PluginGroup for PhysicsPluginGroup {
     fn build(self) -> PluginGroupBuilder {
-        PluginGroupBuilder::start::<Self>().add(orbits::nbody::NBodyPlugin)
-        // .add(GravityFieldPlugin)
+        PluginGroupBuilder::start::<Self>()
+            .add(orbits::nbody::NBodyPlugin)
+            .add(GravityFieldPlugin)
     }
 }

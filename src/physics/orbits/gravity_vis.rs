@@ -4,47 +4,66 @@
 
 use bevy::{
     app::{App, Plugin, Startup, Update},
-    asset::{Asset, Assets, Handle},
+    asset::{load_internal_asset, Asset, AssetApp, AssetServer, Assets, Handle},
     ecs::{
         component::Component,
         event::EventReader,
         query::With,
-        system::{Commands, Query, ResMut},
+        system::{Commands, Query, ResMut, Resource},
     },
     math::Vec2,
+    pbr::{Material, MaterialPlugin},
     reflect::TypePath,
     render::{
         extract_component::ExtractComponentPlugin,
         mesh::{shape, Mesh},
-        render_resource::{AsBindGroup, ShaderRef},
+        render_resource::{AsBindGroup, ShaderRef, ShaderType},
+        Render, RenderApp,
     },
-    sprite::{Material2d, MaterialMesh2dBundle},
+    sprite::{Material2d, Material2dPlugin, MaterialMesh2dBundle},
     transform::components::Transform,
     window::{Window, WindowResized},
 };
+use rand::distributions::uniform;
 
-use super::components::{GravitationalField, Mass, OrbitalPosition};
-
-/// Identifies that this entity is an image to be overlayed on the screen.
-#[derive(Component, Debug, Clone)]
-pub struct ImageOverlay {
-    /// The priority of the image. High numbers are drawn on top of low numbers.
-    pub priority: i32,
-}
+use super::{
+    components::{GravitationalField, Mass, OrbitalPosition},
+    nbody::MIN_DISTANCE_SQUARED,
+};
 
 /// Identifies that this entity is a gravity field.
 #[derive(Component, Debug, Clone)]
 pub struct GravityField;
 
+/// The parameters for the gravity field shader.
+#[derive(Debug, Clone, ShaderType)]
+pub struct Parameters {
+    min_distance: f32,
+    max_mass: f32,
+}
+
+impl Default for Parameters {
+    fn default() -> Self {
+        Self {
+            min_distance: MIN_DISTANCE_SQUARED.sqrt(),
+            max_mass: 1.0,
+        }
+    }
+}
+
 /// Binds the positions and masses of all gravitational bodies to the shader.
-#[derive(AsBindGroup, Default, Debug, Clone, Asset, TypePath)]
+#[derive(Asset, TypePath, AsBindGroup, Debug, Default, Clone)]
 pub struct GravityFieldBindGroup {
+    /// The parameters for the gravity field shader.
+    #[uniform(0)]
+    pub parameters: Parameters,
+
     /// The positions of each gravitational body.
-    #[storage(0)]
+    #[storage(1)]
     pub positions: Vec<Vec2>,
 
     /// The mass of each gravitational body.
-    #[storage(1)]
+    #[storage(2)]
     pub masses: Vec<f32>,
 }
 
@@ -68,9 +87,11 @@ impl Plugin for GravityFieldPlugin {
         app.add_plugins(ExtractComponentPlugin::<GravitationalField>::default());
         app.add_plugins(ExtractComponentPlugin::<Mass>::default());
         app.add_plugins(ExtractComponentPlugin::<OrbitalPosition>::default());
+        app.add_plugins(Material2dPlugin::<GravityFieldBindGroup>::default());
         app.add_systems(Startup, GravityFieldPlugin::setup);
         app.add_systems(Update, OrbitalPosition::follow_transform_system);
         app.add_systems(Update, GravityFieldPlugin::window_resized);
+        app.add_systems(Update, GravityFieldPlugin::update_gravity_well);
     }
 }
 
@@ -78,8 +99,8 @@ impl GravityFieldPlugin {
     /// Create the gravity field entity.
     fn setup(
         mut commands: Commands,
-        mut materials: ResMut<Assets<GravityFieldBindGroup>>,
         mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<GravityFieldBindGroup>>,
         windows: Query<&Window>,
     ) {
         let window = windows.single();
@@ -91,7 +112,6 @@ impl GravityFieldPlugin {
                 ..Default::default()
             },
             GravityField,
-            ImageOverlay { priority: 0 },
         ));
     }
 
@@ -103,12 +123,17 @@ impl GravityFieldPlugin {
         let gravity_field = materials.iter_mut().next().unwrap().1;
         let mut positions = Vec::new();
         let mut masses = Vec::new();
+        let mut max_mass = 1.0;
         for (transform, mass) in gravity_bodies.iter() {
             positions.push(transform.position());
             masses.push(mass.0);
+            if mass.0 > max_mass {
+                max_mass = mass.0;
+            }
         }
         gravity_field.positions = positions;
         gravity_field.masses = masses;
+        gravity_field.parameters.max_mass = max_mass;
     }
 
     /// Update the size of the gravity field overlay when the window is resized.
