@@ -52,12 +52,17 @@ There is no way that most engines could handle the custom physics of this game. 
 2. ECS - Without an engine, we need an ecs to impose some structure on our code. Rust has great ECS libraries.
 3. No Cmake - Need I say more?
 
-## Reaons for choosing GGEZ
+## Reaons for first moving to GGEZ
 
 * I tried godot C#, it didn't have good testing support and I felt it would be too slow or need too many modifications
 * I tried raylib C++, and it didn't have support for a lot of mesh indices
 * I tried rust macroquad, and it didn't have good mesh support
 * Ggez has a lot of support for meshes, uses wgpu and other existing libraries, is 2D native and is based on LOVE. Really a match made in heaven.
+
+## Reasons for moving from GGEZ to Bevy
+
+* I needed an ECS
+* Many things provided that are already integrated into the ECS
 
 ## Challenges with Rust
 
