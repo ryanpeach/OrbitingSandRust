@@ -14,8 +14,7 @@ The grid is drawn onto a texture which is projected onto a mesh which is generat
 
 Orbits should be offloadable into memory so that we can support thousands of simultanous orbiting bodies that may crash into each other at any moment
 
-However, they also are still simple kepler orbits. Not N body.
-
+They are multi-body orbits, meaning that all large bodies emit gravity, but not all bodies are large. This is a good balance between realism and playability.
 ![Orbits](assets/progress/orbits.png)
 
 # Inspirations
@@ -37,6 +36,12 @@ However, they also are still simple kepler orbits. Not N body.
     * [Unlimited Resources From Space – Asteroid Mining](https://www.youtube.com/watch?v=y8XvQNt26KI&t=402s)
     * [How to Move the Sun: Stellar Engines](https://www.youtube.com/watch?v=v3y8AIEX_dU)
 * [Issac Arthur](https://www.youtube.com/@isaacarthurSFIA)
+
+### Technical Tutorials
+
+* [Exploring the Tech and Design of Noita](https://www.youtube.com/watch?v=prXuyMCgbTc&t=623s)
+* [Making an N-Body Simulation](https://youtu.be/L9N7ZbGSckk?si=TnytFCksAtGzpDG1)
+* [A Simple Answer to the Complexity of Spaceflight](https://youtu.be/dhYqflvJMXc?si=D6qNJofNdQbd3W0C)
 
 # Platform Choices
 
