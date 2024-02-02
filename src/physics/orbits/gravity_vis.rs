@@ -22,7 +22,6 @@ use bevy::{
     window::{Window, WindowResized},
 };
 
-
 use super::{
     components::{GravitationalField, Mass, OrbitalPosition},
     nbody::MIN_DISTANCE_SQUARED,

@@ -6,7 +6,7 @@ use bevy::{
     ecs::{component::Component, system::Query},
     math::Vec2,
     render::extract_component::ExtractComponent,
-    transform::components::{GlobalTransform},
+    transform::components::GlobalTransform,
 };
 
 /// Indicates that this entity emits a gravitational field
