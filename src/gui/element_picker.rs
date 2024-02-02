@@ -1,10 +1,23 @@
-use bevy::ecs::system::{ResMut, Resource};
+use bevy::{
+    app::{App, Plugin, Update},
+    ecs::system::{ResMut, Resource},
+};
 use bevy_egui::{
     egui::{self},
     EguiContexts,
 };
 
 use crate::physics::fallingsand::elements::element::ElementType;
+
+/// This is a gui window that lets you select an element to place
+pub struct ElementPickerPlugin;
+
+impl Plugin for ElementPickerPlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(ElementSelection::default());
+        app.add_systems(Update, ElementSelection::element_picker_system);
+    }
+}
 
 /// A window used to select an element to place
 #[derive(Resource, Default)]

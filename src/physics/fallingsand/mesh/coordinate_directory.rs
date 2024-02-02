@@ -15,8 +15,6 @@ use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 /// Useful for drawing the total mesh
 #[derive(Clone)]
 pub struct CoordinateDir {
-    second_num_concentric_circles: usize,
-
     /// Layers on top of the core
     /// Every index in the vec represents a layer
     /// The Grid then represents the chunks in that layer
@@ -221,10 +219,7 @@ impl CoordinateDirBuilder {
 
         debug_assert!(total_concentric_circle_chunks % 3 == 0, "For multithreading purposes, the total number of concentric circle chunks must be a multiple of 3, got {}", total_concentric_circle_chunks);
 
-        let out = CoordinateDir {
-            second_num_concentric_circles: self.second_num_concentric_circles,
-            partial_chunks,
-        };
+        let out = CoordinateDir { partial_chunks };
         debug_assert!(out.get_total_number_concentric_chunks() % 3 == 0);
         out
     }

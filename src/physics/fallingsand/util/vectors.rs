@@ -101,17 +101,6 @@ pub struct Vertex {
     pub color: Color,
 }
 
-/// A rectangle
-/// Originally from ggez
-/// TODO: Replace with bevy::math::Rect
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Rect {
-    pub x: f32,
-    pub y: f32,
-    pub w: f32,
-    pub h: f32,
-}
-
 /// The ijk coordinates of a chunk within an element grid directory
 /// In this case Ijk relate to the index of the chunk itself, not
 /// perportional to the cells within the chunk

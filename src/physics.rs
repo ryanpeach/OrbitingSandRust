@@ -6,6 +6,16 @@
 //!   Please use internal types as much as possible.
 //! * Physics should be highly unit tested.
 
+use bevy::app::{PluginGroup, PluginGroupBuilder};
+
 pub mod fallingsand;
 pub mod orbits;
 pub mod util;
+
+pub struct PhysicsPluginGroup;
+
+impl PluginGroup for PhysicsPluginGroup {
+    fn build(self) -> PluginGroupBuilder {
+        PluginGroupBuilder::start::<Self>().add(orbits::nbody::NBodyPlugin)
+    }
+}
