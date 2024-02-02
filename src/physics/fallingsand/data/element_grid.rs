@@ -294,6 +294,35 @@ impl ElementGrid {
         }
     }
 
+    /// Get the texture of the grid as to its heat
+    /// max_temp is the maximum temperature of the entire directory
+    pub fn get_heat_texture(&self, max_temp: ThermodynamicTemperature) -> RawImage {
+        let mut out = Vec::with_capacity(
+            self.coords.get_num_radial_lines() * self.coords.get_num_concentric_circles() * 4,
+        );
+        for j in 0..self.coords.get_num_concentric_circles() {
+            for k in 0..self.coords.get_num_radial_lines() {
+                let element = self.grid.get(JkVector { j, k });
+                let color = element.get_temperature().color(max_temp).as_rgba_u8();
+                out.push(color[0]);
+                out.push(color[1]);
+                out.push(color[2]);
+                out.push(color[3]);
+            }
+        }
+        RawImage {
+            pixels: out,
+            bounds: Rect::new(
+                self.coords.get_start_radial_line() as f32,
+                self.coords.get_start_concentric_circle_absolute() as f32,
+                self.coords.get_start_radial_line() as f32
+                    + self.coords.get_num_radial_lines() as f32,
+                self.coords.get_start_concentric_circle_absolute() as f32
+                    + self.coords.get_num_concentric_circles() as f32,
+            ),
+        }
+    }
+
     // /// Save the grid
     // /// dir_path is the path to the directory where the grid will be saved WITHOUT a trailing slash
     // pub fn save(&self, ctx: &mut ggez::Context, dir_path: &str) -> Result<(), ggez::GameError> {

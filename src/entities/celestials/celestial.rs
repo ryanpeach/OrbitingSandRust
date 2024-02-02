@@ -1,3 +1,6 @@
+#![warn(missing_docs)]
+#![warn(clippy::missing_docs_in_private_items)]
+
 use bevy::app::{App, Plugin, Update};
 use bevy::asset::{AssetServer, Assets, Handle};
 use bevy::core::FrameCount;
@@ -25,9 +28,19 @@ use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
 use crate::physics::util::clock::Clock;
 
-#[derive(Component)]
+/// A component that represents a chunk by its index in the directory
+#[derive(Component, Debug, Clone, Copy)]
 pub struct CelestialChunkIdk(ChunkIjkVector);
 
+/// Put this alongside the mesh that represents the heat map
+#[derive(Component, Debug, Clone, Copy)]
+pub struct HeatMapMaterial;
+
+/// Put this alongside the mesh that represents the falling sand itself
+#[derive(Component, Debug, Clone, Copy)]
+pub struct FallingSandMaterial;
+
+/// A plugin that adds the CelestialData system
 pub struct CelestialDataPlugin;
 
 impl Plugin for CelestialDataPlugin {
@@ -43,6 +56,7 @@ pub struct CelestialData {
 }
 
 impl CelestialData {
+    /// Creates a new CelestialData
     pub fn new(element_grid_dir: ElementGridDir) -> Self {
         // In testing we found that the resolution doesn't matter, so make it infinite
         // a misnomer is the fact that in this case, big "res" is fewer mesh cells
@@ -106,9 +120,12 @@ impl CelestialData {
         self.element_grid_dir.get_textures()
     }
 
+    /// Retrieves the element directory
     pub fn get_element_dir(&self) -> &ElementGridDir {
         &self.element_grid_dir
     }
+
+    /// Retrieves the element directory mutably
     pub fn get_element_dir_mut(&mut self) -> &mut ElementGridDir {
         &mut self.element_grid_dir
     }
@@ -134,6 +151,7 @@ impl CelestialData {
         let element_dir = celestial.get_element_dir();
         let coordinate_dir = element_dir.get_coordinate_dir();
         let mut textures = element_dir.get_textures();
+        let mut heat_textures = element_dir.get_heat_textures();
         for i in 0..coordinate_dir.get_num_layers() {
             for j in 0..coordinate_dir.get_layer_num_concentric_chunks(i) {
                 for k in 0..coordinate_dir.get_layer_num_radial_chunks(i) {
@@ -143,19 +161,43 @@ impl CelestialData {
                         .get_chunk_at_idx(chunk_ijk)
                         .calc_chunk_meshdata()
                         .load_bevy_mesh(meshes);
+
+                    // Create the falling sand material
                     let material = textures.remove(&chunk_ijk).unwrap().to_bevy_image();
                     let chunk = commands
                         .spawn((
-                            celestial_chunk_id,
+                            celestial_chunk_id.clone(),
                             MaterialMesh2dBundle {
                                 mesh: mesh.into(),
                                 material: materials.add(asset_server.add(material).into()),
                                 ..Default::default()
                             },
+                            FallingSandMaterial,
                         ))
                         .id();
+
+                    // Now create the heat map
+                    // TODO: This could be optimized by just using the outline
+                    let mesh = coordinate_dir
+                        .get_chunk_at_idx(chunk_ijk)
+                        .calc_chunk_meshdata()
+                        .load_bevy_mesh(meshes);
+                    let heat_material = heat_textures.remove(&chunk_ijk).unwrap().to_bevy_image();
+                    let heat_chunk = commands
+                        .spawn((
+                            celestial_chunk_id,
+                            MaterialMesh2dBundle {
+                                mesh: mesh.into(),
+                                material: materials.add(asset_server.add(heat_material).into()),
+                                ..Default::default()
+                            },
+                            HeatMapMaterial,
+                        ))
+                        .id();
+
                     // Parent celestial to chunk
                     children.push(chunk);
+                    children.push(heat_chunk);
                 }
             }
         }
@@ -209,7 +251,6 @@ impl CelestialData {
             let mut new_textures =
                 celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
             mass.0 = celestial.get_element_dir().get_total_mass().0;
-            debug_assert_ne!(mass.0, 0.0);
             for (parent, material_handle, chunk_ijk) in chunks.iter_mut() {
                 if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
                     let material = materials.get_mut(&*material_handle).unwrap();

@@ -6,7 +6,7 @@ use crate::physics::fallingsand::convolution::neighbor_identifiers::ConvolutionI
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
-use crate::physics::heat::components::{HeatCapacity, HeatEnergy};
+use crate::physics::heat::components::{HeatCapacity, HeatEnergy, ThermodynamicTemperature};
 use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
@@ -85,6 +85,9 @@ pub trait Element: Send + Sync {
     fn get_heat(&self) -> HeatEnergy;
     fn set_heat(&mut self, heat: HeatEnergy) -> Result<(), SetHeatOnZeroHeatCapacityError>;
     fn get_heat_capacity(&self) -> HeatCapacity;
+    fn get_temperature(&self) -> ThermodynamicTemperature {
+        self.get_heat().temperature(self.get_heat_capacity())
+    }
     fn get_density(&self) -> Density;
     fn get_mass(&self, cell_width: f32) -> Mass {
         Mass(self.get_density().0 * cell_width.powi(2))

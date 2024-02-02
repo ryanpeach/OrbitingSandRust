@@ -1,5 +1,6 @@
 use hashbrown::{HashMap, HashSet};
 
+use crate::physics::heat::components::ThermodynamicTemperature;
 use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 
@@ -777,10 +778,7 @@ impl ElementGridDir {
     }
 
     /// Where filter is true, get the textures
-    pub fn get_textures_filtered(
-        &self,
-        filter: &[Grid<bool>],
-    ) -> HashMap<ChunkIjkVector, RawImage> {
+    fn get_textures_filtered(&self, filter: &[Grid<bool>]) -> HashMap<ChunkIjkVector, RawImage> {
         let mut out = HashMap::new();
         for (i, item) in filter.iter().enumerate() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
@@ -792,6 +790,67 @@ impl ElementGridDir {
                     }
                     let coord = ChunkIjkVector { i, j, k };
                     let tex = self.get_chunk_by_chunk_ijk(coord).get_texture();
+                    out.insert(coord, tex);
+                }
+            }
+        }
+        out
+    }
+
+    /// Get all heat textures
+    pub fn get_heat_textures(&self) -> HashMap<ChunkIjkVector, RawImage> {
+        // Create a filter with all true
+        let mut filter: Vec<Grid<bool>> = Vec::with_capacity(self.coords.get_num_layers());
+        for i in 0..self.coords.get_num_layers() {
+            let j_size = self.coords.get_layer_num_concentric_chunks(i);
+            let k_size = self.coords.get_layer_num_radial_chunks(i);
+            let layer = Grid::new(k_size, j_size, vec![true; k_size * j_size]);
+            filter.push(layer);
+        }
+
+        // Call the filtered version
+        self.get_heat_textures_filtered(&filter)
+    }
+
+    /// Get the maximum temperature in the directory
+    pub fn get_max_temp(&self) -> ThermodynamicTemperature {
+        let mut max_temp = ThermodynamicTemperature(0.0);
+        for i in 0..self.coords.get_num_layers() {
+            let j_size = self.coords.get_layer_num_concentric_chunks(i);
+            let k_size = self.coords.get_layer_num_radial_chunks(i);
+            for j in 0..j_size {
+                for k in 0..k_size {
+                    let coord = ChunkIjkVector { i, j, k };
+                    let chunk = self.get_chunk_by_chunk_ijk(coord);
+                    let temp = chunk.get_temperature();
+                    if temp > max_temp {
+                        max_temp = temp;
+                    }
+                }
+            }
+        }
+        max_temp
+    }
+
+    /// Where filter is true, get the heat textures
+    fn get_heat_textures_filtered(
+        &self,
+        filter: &[Grid<bool>],
+    ) -> HashMap<ChunkIjkVector, RawImage> {
+        let mut out = HashMap::new();
+        let max_temp = self.get_max_temp();
+        for (i, item) in filter.iter().enumerate() {
+            let j_size = self.coords.get_layer_num_concentric_chunks(i);
+            let k_size = self.coords.get_layer_num_radial_chunks(i);
+            for j in 0..j_size {
+                for k in 0..k_size {
+                    if !item.get(JkVector { j, k }) {
+                        continue;
+                    }
+                    let coord = ChunkIjkVector { i, j, k };
+                    let tex = self
+                        .get_chunk_by_chunk_ijk(coord)
+                        .get_heat_texture(max_temp);
                     out.insert(coord, tex);
                 }
             }
