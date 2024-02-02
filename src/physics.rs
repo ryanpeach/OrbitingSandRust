@@ -3,6 +3,7 @@
 use bevy::app::{PluginGroup, PluginGroupBuilder};
 
 pub mod fallingsand;
+pub mod heat;
 pub mod orbits;
 pub mod util;
 

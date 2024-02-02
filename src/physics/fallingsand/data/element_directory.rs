@@ -1,5 +1,6 @@
 use hashbrown::{HashMap, HashSet};
 
+use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 
 use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
@@ -684,8 +685,8 @@ impl ElementGridDir {
     }
 
     /// Get the total mass of the directory
-    pub fn get_total_mass(&self) -> f32 {
-        let mut out = 0.0;
+    pub fn get_total_mass(&self) -> Mass {
+        let mut out = Mass(0.0);
         for i in 0..self.coords.get_num_layers() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
             let k_size = self.coords.get_layer_num_radial_chunks(i);

@@ -31,8 +31,8 @@ use super::{
 };
 
 pub struct ElementGridConvolutionNeighbors {
-    chunk_idxs: ElementGridConvolutionNeighborIdxs,
-    grids: ElementGridConvolutionNeighborGrids,
+    pub chunk_idxs: ElementGridConvolutionNeighborIdxs,
+    pub grids: ElementGridConvolutionNeighborGrids,
 }
 
 /// Instantiation

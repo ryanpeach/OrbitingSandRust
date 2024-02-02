@@ -1,8 +1,12 @@
-use super::element::{Element, ElementTakeOptions, ElementType, StateOfMatter};
+use super::element::{
+    Density, Element, ElementTakeOptions, ElementType, SetHeatOnZeroHeatCapacityError,
+    StateOfMatter,
+};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
+use crate::physics::heat::components::{Energy, HeatCapacity};
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
 
@@ -10,14 +14,15 @@ use bevy::render::color::Color;
 #[derive(Default, Copy, Clone, Debug)]
 pub struct Stone {
     last_processed: Clock,
+    heat: Energy,
 }
 
 impl Element for Stone {
     fn get_type(&self) -> ElementType {
         ElementType::Stone
     }
-    fn get_density(&self) -> f32 {
-        1.0
+    fn get_density(&self) -> Density {
+        Density(1.0)
     }
     fn get_last_processed(&self) -> Clock {
         self.last_processed
@@ -45,6 +50,18 @@ impl Element for Stone {
     }
     fn box_clone(&self) -> Box<dyn Element> {
         Box::new(*self)
+    }
+
+    fn get_heat(&self) -> Energy {
+        self.heat
+    }
+    fn set_heat(&mut self, heat: Energy) -> Result<(), SetHeatOnZeroHeatCapacityError> {
+        self.heat = heat;
+        Ok(())
+    }
+
+    fn get_heat_capacity(&self) -> HeatCapacity {
+        HeatCapacity(1.0)
     }
 }
 

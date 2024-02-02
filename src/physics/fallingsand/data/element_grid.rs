@@ -1,8 +1,14 @@
+use std::default;
+
+use bevy::ecs::component::Component;
 use bevy::math::Rect;
 
+use crate::physics::fallingsand::convolution::neighbor_grids::TopNeighborGrids;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
+use crate::physics::heat::components::{Energy, HeatCapacity, ThermodynamicTemperature};
+use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 
 use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
@@ -16,7 +22,12 @@ use super::super::util::image::RawImage;
 pub struct ElementGrid {
     grid: Grid<Box<dyn Element>>,
     coords: ChunkCoords,
-    mass_cache: f32,
+
+    /// Some low resolution data about the world
+    total_mass: Mass, // Total mass in kilograms
+    total_mass_above: Mass, // Total mass above a certain point, in kilograms
+    total_heat: Energy,     // Total heat in joules
+    total_heat_capacity_at_atp: HeatCapacity, // Total heat capacity at ATP in joules per kelvin
 
     /// This deals with a lock during convolution
     already_processed: bool,
@@ -59,7 +70,12 @@ impl ElementGrid {
             coords: chunk_coords,
             already_processed: false,
             last_set: Clock::default(),
-            mass_cache: 1.0,
+
+            // These will get calculated in the process function
+            total_mass: Mass(0.0),
+            total_mass_above: Mass(0.0),
+            total_heat: Energy(0.0),
+            total_heat_capacity_at_atp: HeatCapacity(0.0),
         }
     }
 }
@@ -86,18 +102,37 @@ impl ElementGrid {
     pub fn get_last_set(&self) -> Clock {
         self.last_set
     }
-    #[allow(clippy::borrowed_box)]
     pub fn get_chunk_coords(&self) -> &ChunkCoords {
         &self.coords
     }
     pub fn get_grid(&self) -> &Grid<Box<dyn Element>> {
         &self.grid
     }
+    /// Does not calculate the total mass, just gets the set value of it
+    pub fn get_total_mass(&self) -> Mass {
+        self.total_mass
+    }
+    /// Does not calculate the total mass, just gets the set value of it
+    pub fn get_total_mass_above(&self) -> Mass {
+        self.total_mass_above
+    }
+    /// Calculate the total heat capacity at the given pressure
+    /// Using a linear model
+    /// TODO: Experiment with a more complex model
+    pub fn get_total_heat_capacity_at_pressure(&self) -> HeatCapacity {
+        HeatCapacity(self.get_total_heat_capacity_at_atp().0 * self.total_mass_above.0 * 1.0e-5)
+    }
+    /// Simple getter
+    pub fn get_total_heat_capacity_at_atp(&self) -> HeatCapacity {
+        self.total_heat_capacity_at_atp
+    }
+    /// Get temperature
+    /// Assume total_mass_above correlates to pressure
+    pub fn get_temperature(&self) -> ThermodynamicTemperature {
+        ThermodynamicTemperature(self.total_heat.0 / self.get_total_heat_capacity_at_pressure().0)
+    }
     pub fn get_process_unneeded(&self, current_time: Clock) -> bool {
         self.last_set.get_current_frame() < current_time.get_current_frame() - 1
-    }
-    pub fn get_total_mass(&self) -> f32 {
-        self.mass_cache
     }
 }
 
@@ -152,7 +187,14 @@ impl ElementGrid {
         // if locked {
         //     return;
         // }
-        let mut mass = 0.0;
+        let cell_width = coord_dir.get_cell_width();
+
+        // Process the cells in the grid
+        self.total_mass = Mass(0.0);
+        self.total_heat_capacity_at_atp = HeatCapacity(0.0);
+
+        // Calculate the mass of the grid as we go
+        let mut mass = Mass(0.0);
         let already_processed = self.get_already_processed();
         debug_assert!(!already_processed, "Already processed");
         for j in 0..self.coords.get_num_concentric_circles() {
@@ -188,17 +230,37 @@ impl ElementGrid {
                 match res {
                     ElementTakeOptions::PutBack => {
                         mass += element.get_mass(self.coords.get_cell_width());
+                        self.total_heat_capacity_at_atp += element.get_heat_capacity();
+                        self.total_mass += element.get_mass(cell_width);
                         self.grid.replace(pos, element);
                     }
                     ElementTakeOptions::ReplaceWith(new_element) => {
                         mass += new_element.get_mass(self.coords.get_cell_width());
+                        self.total_heat_capacity_at_atp += new_element.get_heat_capacity();
+                        self.total_mass += new_element.get_mass(cell_width);
                         self.grid.replace(pos, new_element);
                     }
                     ElementTakeOptions::DoNothing => {}
                 }
             }
         }
-        self.mass_cache = mass;
+
+        // Process the grid itself
+        self.total_mass_above = {
+            match &element_grid_conv_neigh.grids.top {
+                TopNeighborGrids::Normal { t, .. } => t.get_total_mass_above() + t.get_total_mass(),
+                TopNeighborGrids::LayerTransition { tl, tr, .. } => {
+                    tl.get_total_mass_above()
+                        + tl.get_total_mass()
+                        + tr.get_total_mass_above()
+                        + tr.get_total_mass()
+                }
+                TopNeighborGrids::TopOfGrid => Mass(0.0),
+            }
+        };
+
+        // TODO: Run the heat equation on the convolution one frame
+        self.total_mass = mass;
     }
 }
 

@@ -165,7 +165,7 @@ impl CelestialData {
             if gravitational {
                 commands
                     .spawn((
-                        Mass(celestial.get_element_dir().get_total_mass()),
+                        celestial.get_element_dir().get_total_mass(),
                         velocity,
                         celestial,
                         SpatialBundle::from_transform(Transform::from_translation(
@@ -177,7 +177,7 @@ impl CelestialData {
             } else {
                 commands
                     .spawn((
-                        Mass(celestial.get_element_dir().get_total_mass()),
+                        celestial.get_element_dir().get_total_mass(),
                         velocity,
                         celestial,
                         SpatialBundle::from_transform(Transform::from_translation(
@@ -208,7 +208,7 @@ impl CelestialData {
         for (celestial_id, mut celestial, mut mass) in celestial.iter_mut() {
             let mut new_textures =
                 celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
-            mass.0 = celestial.get_element_dir().get_total_mass();
+            mass.0 = celestial.get_element_dir().get_total_mass().0;
             debug_assert_ne!(mass.0, 0.0);
             for (parent, material_handle, chunk_ijk) in chunks.iter_mut() {
                 if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
