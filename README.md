@@ -8,8 +8,6 @@ Planets are circular falling sand simulations taking place on a radial grid that
 
 The grid is drawn onto a texture which is projected onto a mesh which is generated proceedurally.
 
-Every frame a random sample of pixels are updated.
-
 ![Falling Sand](assets/progress/sand.png)
 
 # Orbits
