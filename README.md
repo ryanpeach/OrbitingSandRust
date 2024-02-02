@@ -1,7 +1,5 @@
 # OrbitingSandRust
 
-*Open Source in game development only works when the community supports the developers. Please support this project! If you make a derivative work, please support the original developers as well!*
-
 A resource management and mining game simulating a realistic solar system economy.
 
 # Sand
@@ -10,13 +8,14 @@ Planets are circular falling sand simulations taking place on a radial grid that
 
 The grid is drawn onto a texture which is projected onto a mesh which is generated proceedurally.
 
-Every frame a random sample of pixels are updated.
+![Falling Sand](assets/progress/sand.png)
 
 # Orbits
 
 Orbits should be offloadable into memory so that we can support thousands of simultanous orbiting bodies that may crash into each other at any moment
 
-However, they also are still simple kepler orbits. Not N body.
+They are multi-body orbits, meaning that all large bodies emit gravity, but not all bodies are large. This is a good balance between realism and playability.
+![Orbits](assets/progress/orbits.png)
 
 # Inspirations
 
@@ -38,6 +37,12 @@ However, they also are still simple kepler orbits. Not N body.
     * [How to Move the Sun: Stellar Engines](https://www.youtube.com/watch?v=v3y8AIEX_dU)
 * [Issac Arthur](https://www.youtube.com/@isaacarthurSFIA)
 
+### Technical Tutorials
+
+* [Exploring the Tech and Design of Noita](https://www.youtube.com/watch?v=prXuyMCgbTc&t=623s)
+* [Making an N-Body Simulation](https://youtu.be/L9N7ZbGSckk?si=TnytFCksAtGzpDG1)
+* [A Simple Answer to the Complexity of Spaceflight](https://youtu.be/dhYqflvJMXc?si=D6qNJofNdQbd3W0C)
+
 # Platform Choices
 
 ## Why not use an engine
@@ -50,18 +55,17 @@ There is no way that most engines could handle the custom physics of this game. 
 2. ECS - Without an engine, we need an ecs to impose some structure on our code. Rust has great ECS libraries.
 3. No Cmake - Need I say more?
 
-## Reaons for choosing GGEZ
+## Reaons for first moving to GGEZ
 
 * I tried godot C#, it didn't have good testing support and I felt it would be too slow or need too many modifications
 * I tried raylib C++, and it didn't have support for a lot of mesh indices
 * I tried rust macroquad, and it didn't have good mesh support
 * Ggez has a lot of support for meshes, uses wgpu and other existing libraries, is 2D native and is based on LOVE. Really a match made in heaven.
 
-## Challenges with Rust
+## Reasons for moving from GGEZ to Bevy
 
-1. We are not going to use Bevy because it is so alpha. Many of our libraries are alpha.
-2. Bindings - We need to bind to liquidfun, which will be a pain.
-3. Major refactors are a lot of work due to the borrow checker, but at least its always safe
+* I needed an ECS
+* Many things provided that are already integrated into the ECS
 
 # Installation
 

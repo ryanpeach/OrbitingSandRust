@@ -33,11 +33,12 @@ fn main() {
         .add_plugins(GuiPluginGroup)
         .add_plugins(PhysicsPluginGroup)
         .add_plugins(EntitiesPluginGroup)
-        .add_systems(Startup, setup)
+        .add_systems(Startup, solar_system_setup)
         .run();
 }
 
-fn setup(
+/// Creates a solar system with a sun, earth, and a bunch of asteroids.
+fn solar_system_setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
@@ -128,4 +129,53 @@ fn setup(
 
     // Parent the camera to the sun
     commands.entity(sun_id).push_children(&[camera]);
+}
+
+/// Creates just a planet
+#[allow(dead_code)]
+fn planet_only_setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    asset_server: Res<AssetServer>,
+) {
+    // Create a 2D camera
+    let camera = commands
+        .spawn(Camera2dBundle {
+            camera_2d: Camera2d {
+                clear_color: ClearColorConfig::Custom(Color::rgb(0.0, 0.0, 0.0)),
+            },
+            transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0) * 100.0),
+            ..Default::default()
+        })
+        .id();
+
+    // Create the brush
+    let brush = commands
+        .spawn((
+            BrushRadius(0.5),
+            Transform::from_translation(Vec3::new(0., 0., 0.)),
+        ))
+        .id();
+
+    // Parent the brush to the camera
+    commands.entity(camera).push_children(&[brush]);
+
+    // Create earth
+    let planet_data = EarthLikeBuilder::new().build();
+    let planet_id = CelestialData::setup(
+        planet_data,
+        // Velocity(Vec2::new(0., 1200.)),
+        // Vec2::new(-10000., 0.),
+        Velocity(Vec2::new(0., 0.)),
+        Vec2::new(0., 0.),
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+        &asset_server,
+        true,
+    );
+
+    // Parent the camera to the sun
+    commands.entity(planet_id).push_children(&[camera]);
 }
