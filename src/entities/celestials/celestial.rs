@@ -22,7 +22,7 @@ use crate::physics::fallingsand::data::element_directory::ElementGridDir;
 use crate::physics::fallingsand::util::image::RawImage;
 
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
-use crate::physics::orbits::components::{GravitationalField, Mass, OrbitalPosition, Velocity};
+use crate::physics::orbits::components::{Mass, OrbitalPosition, Velocity};
 use crate::physics::util::clock::Clock;
 
 #[derive(Component)]

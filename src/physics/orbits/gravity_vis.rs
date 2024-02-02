@@ -4,27 +4,24 @@
 
 use bevy::{
     app::{App, Plugin, Startup, Update},
-    asset::{load_internal_asset, Asset, AssetApp, AssetServer, Assets, Handle},
+    asset::{Asset, Assets, Handle},
     ecs::{
         component::Component,
         event::EventReader,
         query::With,
-        system::{Commands, Query, ResMut, Resource},
+        system::{Commands, Query, ResMut},
     },
     math::Vec2,
-    pbr::{Material, MaterialPlugin},
     reflect::TypePath,
     render::{
         extract_component::ExtractComponentPlugin,
         mesh::{shape, Mesh},
         render_resource::{AsBindGroup, ShaderRef, ShaderType},
-        Render, RenderApp,
     },
     sprite::{Material2d, Material2dPlugin, MaterialMesh2dBundle},
-    transform::components::Transform,
     window::{Window, WindowResized},
 };
-use rand::distributions::uniform;
+
 
 use super::{
     components::{GravitationalField, Mass, OrbitalPosition},
