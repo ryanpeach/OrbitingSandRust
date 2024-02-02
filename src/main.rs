@@ -7,7 +7,7 @@ use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy::{core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*};
 use bevy_egui::EguiPlugin;
-use physics::light::types::PointLightSource;
+use physics::light::components::PointLightSource;
 
 use crate::entities::celestials::sun::SunBuilder;
 use crate::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
@@ -15,7 +15,7 @@ use crate::entities::EntitiesPluginGroup;
 use crate::gui::brush::BrushRadius;
 
 use crate::gui::GuiPluginGroup;
-use crate::physics::light::types::SphereOccluder;
+use crate::physics::light::components::SphereOccluder;
 use crate::physics::orbits::components::{Mass, Velocity};
 
 use crate::physics::PhysicsPluginGroup;

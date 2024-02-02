@@ -1,22 +1,20 @@
-//! Types for light physics.
-
-use bevy::{ecs::component::Component, render::color::Color};
-
-/// An occluder in the shape of a circle.
-/// It should be UV'd to look like a lit sphere.
-#[derive(Component, Debug, Clone)]
-pub struct SphereOccluder {
-    /// The radius of the sphere.
-    pub radius: f32,
-}
+use bevy::math::{Vec2, Vec3, Vec4};
+use bytemuck::{Pod, Zeroable};
 
 /// A light source that emits light in all directions from a single point.
-#[derive(Component, Debug, Clone)]
-pub struct PointLightSource {
-    /// Color of the light.
-    pub color: Color,
-    /// The intensity of the light.
-    pub intensity: f32,
-    /// The falloff of the light as a multiplier.
-    pub falloff: f32,
+#[repr(C)]
+#[derive(Clone, Copy, Pod, Zeroable)]
+pub struct LightSource {
+    center: Vec2,
+    intensity: f32,
+    color: Vec3,
+    falloff: Vec3,
+}
+
+/// An occluder in the shape of a circle.
+#[repr(C)]
+#[derive(Clone, Copy, Pod, Zeroable)]
+pub struct LightOccluder {
+    center: Vec2,
+    radius: f32,
 }
