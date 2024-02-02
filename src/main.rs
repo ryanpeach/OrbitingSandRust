@@ -12,9 +12,8 @@ use crate::entities::celestials::sun::SunBuilder;
 use crate::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
 use crate::entities::EntitiesPluginGroup;
 use crate::gui::brush::BrushRadius;
-
 use crate::gui::GuiPluginGroup;
-use crate::physics::orbits::components::{Mass, Velocity};
+use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
 
 use crate::physics::PhysicsPluginGroup;
 
@@ -44,6 +43,7 @@ fn solar_system_setup(
     mut materials: ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
+    // Create a render image
     // Create a 2D camera
     let camera = commands
         .spawn(Camera2dBundle {
@@ -68,7 +68,7 @@ fn solar_system_setup(
 
     // Create earth
     let planet_data = EarthLikeBuilder::new().build();
-    CelestialData::setup(
+    let planet_entity = CelestialData::setup(
         planet_data,
         Velocity(Vec2::new(0., 1200.)),
         Vec2::new(-10000., 0.),
@@ -76,12 +76,12 @@ fn solar_system_setup(
         &mut meshes,
         &mut materials,
         &asset_server,
-        true,
     );
+    commands.entity(planet_entity).insert(GravitationalField);
 
     // Create earth2
     let planet_data = EarthLikeBuilder::new().build();
-    CelestialData::setup(
+    let planet_entity = CelestialData::setup(
         planet_data,
         Velocity(Vec2::new(0., -1200.)),
         Vec2::new(10000., 0.),
@@ -89,12 +89,12 @@ fn solar_system_setup(
         &mut meshes,
         &mut materials,
         &asset_server,
-        true,
     );
+    commands.entity(planet_entity).insert(GravitationalField);
 
     // Create a sun
     let sun_data = SunBuilder::new().build();
-    let sun_id = CelestialData::setup(
+    let sun_entity = CelestialData::setup(
         sun_data,
         Velocity(Vec2::new(0., 0.)),
         Vec2::new(0., 0.),
@@ -102,8 +102,8 @@ fn solar_system_setup(
         &mut meshes,
         &mut materials,
         &asset_server,
-        true,
     );
+    commands.entity(sun_entity).insert(GravitationalField);
 
     // Create a bunch of asteroids
     const NUM_ASTEROIDS: usize = 10000;
@@ -128,7 +128,7 @@ fn solar_system_setup(
     }
 
     // Parent the camera to the sun
-    commands.entity(sun_id).push_children(&[camera]);
+    commands.entity(sun_entity).push_children(&[camera]);
 }
 
 /// Creates just a planet
