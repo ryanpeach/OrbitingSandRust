@@ -8,7 +8,7 @@ use derive_more::{Add, AddAssign, Sub, SubAssign};
 pub struct HeatCapacity(pub f32);
 
 #[derive(Component, Default, Clone, Copy, Debug, Add, Sub, AddAssign, SubAssign)]
-pub struct Energy(pub f32);
+pub struct HeatEnergy(pub f32);
 
 #[derive(Component, Default, Clone, Copy, Debug, Add, Sub, AddAssign, SubAssign)]
 pub struct ThermodynamicTemperature(pub f32);

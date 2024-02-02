@@ -7,7 +7,7 @@ use crate::physics::fallingsand::convolution::neighbor_identifiers::ConvolutionI
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
-use crate::physics::heat::components::{Energy, HeatCapacity};
+use crate::physics::heat::components::{HeatCapacity, HeatEnergy};
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
 use rand::Rng;
@@ -16,7 +16,7 @@ use rand::Rng;
 #[derive(Default, Copy, Clone, Debug)]
 pub struct Sand {
     last_processed: Clock,
-    heat: Energy,
+    heat: HeatEnergy,
 }
 
 impl Element for Sand {
@@ -183,7 +183,7 @@ impl Element for Sand {
         Box::new(*self)
     }
 
-    fn get_heat(&self) -> Energy {
+    fn get_heat(&self) -> HeatEnergy {
         self.heat
     }
 
@@ -191,7 +191,7 @@ impl Element for Sand {
         HeatCapacity(1.0)
     }
 
-    fn set_heat(&mut self, heat: Energy) -> Result<(), SetHeatOnZeroHeatCapacityError> {
+    fn set_heat(&mut self, heat: HeatEnergy) -> Result<(), SetHeatOnZeroHeatCapacityError> {
         self.heat = heat;
         Ok(())
     }

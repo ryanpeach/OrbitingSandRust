@@ -7,7 +7,7 @@ use crate::physics::fallingsand::convolution::neighbor_grids::TopNeighborGrids;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
-use crate::physics::heat::components::{Energy, HeatCapacity, ThermodynamicTemperature};
+use crate::physics::heat::components::{HeatCapacity, HeatEnergy, ThermodynamicTemperature};
 use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 
@@ -26,7 +26,7 @@ pub struct ElementGrid {
     /// Some low resolution data about the world
     total_mass: Mass, // Total mass in kilograms
     total_mass_above: Mass, // Total mass above a certain point, in kilograms
-    total_heat: Energy,     // Total heat in joules
+    total_heat: HeatEnergy, // Total heat in joules
     total_heat_capacity_at_atp: HeatCapacity, // Total heat capacity at ATP in joules per kelvin
 
     /// This deals with a lock during convolution
@@ -74,7 +74,7 @@ impl ElementGrid {
             // These will get calculated in the process function
             total_mass: Mass(0.0),
             total_mass_above: Mass(0.0),
-            total_heat: Energy(0.0),
+            total_heat: HeatEnergy(0.0),
             total_heat_capacity_at_atp: HeatCapacity(0.0),
         }
     }
