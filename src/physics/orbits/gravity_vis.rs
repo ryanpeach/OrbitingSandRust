@@ -14,6 +14,7 @@ use bevy::{
     math::Vec2,
     reflect::TypePath,
     render::{
+        extract_component::ExtractComponentPlugin,
         mesh::{shape, Mesh},
         render_resource::{AsBindGroup, ShaderRef},
     },
@@ -22,7 +23,7 @@ use bevy::{
     window::{Window, WindowResized},
 };
 
-use super::components::{GravitationalField, Mass};
+use super::components::{GravitationalField, Mass, OrbitalPosition};
 
 /// Identifies that this entity is an image to be overlayed on the screen.
 #[derive(Component, Debug, Clone)]
@@ -39,11 +40,11 @@ pub struct GravityField;
 #[derive(AsBindGroup, Default, Debug, Clone, Asset, TypePath)]
 pub struct GravityFieldBindGroup {
     /// The positions of each gravitational body.
-    #[storage(1)]
+    #[storage(0)]
     pub positions: Vec<Vec2>,
 
     /// The mass of each gravitational body.
-    #[storage(2)]
+    #[storage(1)]
     pub masses: Vec<f32>,
 }
 
@@ -64,8 +65,11 @@ pub struct GravityFieldPlugin;
 
 impl Plugin for GravityFieldPlugin {
     fn build(&self, app: &mut App) {
+        app.add_plugins(ExtractComponentPlugin::<GravitationalField>::default());
+        app.add_plugins(ExtractComponentPlugin::<Mass>::default());
+        app.add_plugins(ExtractComponentPlugin::<OrbitalPosition>::default());
         app.add_systems(Startup, GravityFieldPlugin::setup);
-        app.add_systems(Update, GravityFieldPlugin::update_gravity_well);
+        app.add_systems(Update, OrbitalPosition::follow_transform_system);
         app.add_systems(Update, GravityFieldPlugin::window_resized);
     }
 }
@@ -94,13 +98,13 @@ impl GravityFieldPlugin {
     /// Update the gravity field overlay with the positions and masses of all gravitational bodies.
     fn update_gravity_well(
         mut materials: ResMut<Assets<GravityFieldBindGroup>>,
-        gravity_bodies: Query<(&Transform, &Mass), With<GravitationalField>>,
+        gravity_bodies: Query<(&OrbitalPosition, &Mass), With<GravitationalField>>,
     ) {
         let gravity_field = materials.iter_mut().next().unwrap().1;
         let mut positions = Vec::new();
         let mut masses = Vec::new();
         for (transform, mass) in gravity_bodies.iter() {
-            positions.push(transform.translation.truncate());
+            positions.push(transform.position());
             masses.push(mass.0);
         }
         gravity_field.positions = positions;

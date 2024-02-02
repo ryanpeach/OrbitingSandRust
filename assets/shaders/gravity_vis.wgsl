@@ -5,8 +5,8 @@
 
 #import orbiting_sand_rust::math::fast_length_2d;
 
-@group(1) @binding(0) var<storage, read> positions: array<vec2<f32>>;
-@group(2) @binding(1) var<storage, read> masses: array<f32>;
+@group(0) @binding(0) var<storage, read> positions: array<vec2<f32>>;
+@group(0) @binding(1) var<storage, read> masses: array<f32>;
 
 fn computeGravitationalVector(pos1: vec2<f32>, pos2: vec2<f32>, mass2: f32) -> vec2<f32> {
     let r = pos2.xy - pos1.xy;

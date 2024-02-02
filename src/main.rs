@@ -12,9 +12,8 @@ use crate::entities::celestials::sun::SunBuilder;
 use crate::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
 use crate::entities::EntitiesPluginGroup;
 use crate::gui::brush::BrushRadius;
-
 use crate::gui::GuiPluginGroup;
-use crate::physics::orbits::components::{Mass, Velocity};
+use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
 
 use crate::physics::PhysicsPluginGroup;
 
@@ -68,7 +67,7 @@ fn setup(
 
     // Create earth
     let planet_data = EarthLikeBuilder::new().build();
-    CelestialData::setup(
+    let planet_entity = CelestialData::setup(
         planet_data,
         Velocity(Vec2::new(0., 1200.)),
         Vec2::new(-10000., 0.),
@@ -76,12 +75,12 @@ fn setup(
         &mut meshes,
         &mut materials,
         &asset_server,
-        true,
     );
+    commands.entity(planet_entity).insert(GravitationalField);
 
     // Create earth2
     let planet_data = EarthLikeBuilder::new().build();
-    CelestialData::setup(
+    let planet_entity = CelestialData::setup(
         planet_data,
         Velocity(Vec2::new(0., -1200.)),
         Vec2::new(10000., 0.),
@@ -89,8 +88,8 @@ fn setup(
         &mut meshes,
         &mut materials,
         &asset_server,
-        true,
     );
+    commands.entity(planet_entity).insert(GravitationalField);
 
     // Create a sun
     let sun_data = SunBuilder::new().build();
@@ -102,11 +101,11 @@ fn setup(
         &mut meshes,
         &mut materials,
         &asset_server,
-        true,
     );
+    commands.entity(planet_entity).insert(GravitationalField);
 
     // Create a bunch of asteroids
-    const NUM_ASTEROIDS: usize = 10000;
+    const NUM_ASTEROIDS: usize = 1000;
     for i in 0..NUM_ASTEROIDS {
         // Put them in a circle around the sun
         // at radius 5000 with a tangent velocity of 600
