@@ -1,12 +1,14 @@
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::elements::element::{
-    Element, ElementTakeOptions, ElementType, StateOfMatter,
+    Density, Element, ElementTakeOptions, ElementType, SetHeatOnZeroHeatCapacityError,
+    StateOfMatter,
 };
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
+use crate::physics::heat::components::{Energy, HeatCapacity};
 use crate::physics::util::clock::Clock;
-use ggez::graphics::Color;
+use bevy::render::color::Color;
 
 /// Literally nothing
 #[derive(Default, Copy, Clone, Debug)]
@@ -18,6 +20,9 @@ impl Element for DownFlier {
     fn get_type(&self) -> ElementType {
         ElementType::DownFlier
     }
+    fn get_density(&self) -> Density {
+        Density(0.0)
+    }
     fn get_last_processed(&self) -> Clock {
         self.last_processed
     }
@@ -28,7 +33,7 @@ impl Element for DownFlier {
         StateOfMatter::Solid
     }
     fn get_color(&self) -> Color {
-        Color::from_rgb(255, 255, 255)
+        Color::rgb_u8(255, 255, 255)
     }
     fn _process(
         &mut self,
@@ -62,6 +67,18 @@ impl Element for DownFlier {
     }
     fn box_clone(&self) -> Box<dyn Element> {
         Box::new(*self)
+    }
+
+    fn get_heat(&self) -> Energy {
+        Energy(0.0)
+    }
+
+    fn set_heat(&mut self, heat: Energy) -> Result<(), SetHeatOnZeroHeatCapacityError> {
+        Err(SetHeatOnZeroHeatCapacityError)
+    }
+
+    fn get_heat_capacity(&self) -> HeatCapacity {
+        HeatCapacity(0.0)
     }
 }
 
@@ -101,7 +118,7 @@ mod tests {
             loc1: (ChunkIjkVector, JkVector),
             loc2: (ChunkIjkVector, JkVector),
         ) {
-            let mut clock = Clock::new();
+            let mut clock = Clock::default();
 
             // Set the bottom right to sand
             {

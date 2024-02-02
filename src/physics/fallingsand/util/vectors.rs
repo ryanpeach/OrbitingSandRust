@@ -1,3 +1,5 @@
+use bevy::{math::Vec2, render::color::Color};
+
 /// My personal coordinate type
 /// j is the "concentric circle" axis, kinda like y,
 ///   towards the core is 0
@@ -88,6 +90,15 @@ impl IjkVector {
             k: self.k,
         }
     }
+}
+
+/// A vertex in a mesh
+/// Originally from ggez
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct Vertex {
+    pub position: Vec2,
+    pub uv: Vec2,
+    pub color: Color,
 }
 
 /// The ijk coordinates of a chunk within an element grid directory

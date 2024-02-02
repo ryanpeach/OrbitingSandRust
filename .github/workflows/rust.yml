@@ -37,9 +37,6 @@ jobs:
     - name: Build
       run: cargo build --verbose
 
-    - name: Test that the bench builds
-      run: cargo build --bench bench_main
-
     # - name: Generate Documentation
     #   run: cargo doc --no-deps --document-private-items --all-features
 

@@ -74,6 +74,7 @@ impl LeftRightNeighborGrids {
     }
 }
 
+#[allow(clippy::large_enum_variant)]
 pub enum TopNeighborGrids {
     Normal {
         tl: ElementGrid,
@@ -357,6 +358,7 @@ impl TopNeighborGrids {
     }
 }
 
+#[allow(clippy::large_enum_variant)]
 pub enum BottomNeighborGrids {
     Normal {
         bl: ElementGrid,

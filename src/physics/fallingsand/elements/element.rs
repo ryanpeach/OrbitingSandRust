@@ -1,34 +1,45 @@
+#![warn(missing_docs)]
+#![warn(clippy::missing_docs_in_private_items)]
+
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::convolution::neighbor_identifiers::ConvolutionIdx;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
+use crate::physics::heat::components::{Energy, HeatCapacity};
+use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
-use ggez::graphics::Color;
+use bevy::render::color::Color;
 use strum_macros::EnumIter;
-use uom::si::f64::{HeatCapacity, Energy, Mass};
 
 use super::fliers::down::DownFlier;
 use super::fliers::left::LeftFlier;
 use super::fliers::right::RightFlier;
 use super::sand::Sand;
+use super::solarplasma::SolarPlasma;
 use super::stone::Stone;
 use super::vacuum::Vacuum;
 use super::water::Water;
+
+#[derive(Default)]
+pub struct Density(pub f32);
 
 /// What to do after process is called on the elementgrid
 /// The element grid takes the element out of the grid so that it can't
 /// self reference in the process operation for thread safety.
 /// However, we shouldn't put it back if the element has moved, instead
 /// we will ask the element itself to clone itself and put the clone somewhere else
+#[derive(Default)]
 pub enum ElementTakeOptions {
+    #[default]
     PutBack,
     DoNothing,
     ReplaceWith(Box<dyn Element>),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter, PartialOrd, Ord)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter, PartialOrd, Ord)]
 pub enum StateOfMatter {
+    #[default]
     Empty,
     Gas,
     Liquid,
@@ -36,12 +47,14 @@ pub enum StateOfMatter {
 }
 
 /// Useful for match statements
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter)]
 pub enum ElementType {
+    #[default]
     Vacuum,
     Sand,
     Stone,
     Water,
+    SolarPlasma,
     DownFlier,
     LeftFlier,
     RightFlier,
@@ -56,18 +69,26 @@ impl ElementType {
             ElementType::LeftFlier => Box::<LeftFlier>::default(),
             ElementType::RightFlier => Box::<RightFlier>::default(),
             ElementType::Stone => Box::<Stone>::default(),
+            ElementType::SolarPlasma => Box::<SolarPlasma>::default(),
             ElementType::Water => Box::<Water>::default(),
         }
     }
 }
+
+/// If something has 0 heat capacity, you should not set its heat
+pub struct SetHeatOnZeroHeatCapacityError;
 
 pub trait Element: Send + Sync {
     fn get_type(&self) -> ElementType;
     fn get_last_processed(&self) -> Clock;
     fn get_color(&self) -> Color;
     fn get_heat(&self) -> Energy;
+    fn set_heat(&mut self, heat: Energy) -> Result<(), SetHeatOnZeroHeatCapacityError>;
     fn get_heat_capacity(&self) -> HeatCapacity;
-    fn get_mass(&self) -> Mass;
+    fn get_density(&self) -> Density;
+    fn get_mass(&self, cell_width: f32) -> Mass {
+        Mass(self.get_density().0 * cell_width.powi(2))
+    }
     fn get_state_of_matter(&self) -> StateOfMatter;
     fn process(
         &mut self,
@@ -126,7 +147,7 @@ pub trait Element: Send + Sync {
 
 #[cfg(test)]
 mod tests {
-    use ggez::graphics::Color;
+    use bevy::render::color::Color;
     use strum::IntoEnumIterator;
 
     use super::ElementType;

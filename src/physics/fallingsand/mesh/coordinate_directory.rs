@@ -1,22 +1,20 @@
 use std::f32::consts::PI;
 
+use bevy::math::{Rect, Vec2};
+
 use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
-use crate::physics::util::vectors::RelXyPoint;
+use crate::physics::util::vectors::{RelXyPoint, Vertex};
 
 use super::chunk_coords::PartialLayerChunkCoordsBuilder;
 use super::chunk_coords::{ChunkCoords, VertexMode};
 use crate::physics::fallingsand::util::enums::MeshDrawMode;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
-use ggez::glam::Vec2;
-use ggez::graphics::{Rect, Vertex};
 
 /// A structure that contains all the chunk coordinates for a celestial body
 /// Useful for drawing the total mesh
 #[derive(Clone)]
 pub struct CoordinateDir {
-    second_num_concentric_circles: usize,
-
     /// Layers on top of the core
     /// Every index in the vec represents a layer
     /// The Grid then represents the chunks in that layer
@@ -221,10 +219,7 @@ impl CoordinateDirBuilder {
 
         debug_assert!(total_concentric_circle_chunks % 3 == 0, "For multithreading purposes, the total number of concentric circle chunks must be a multiple of 3, got {}", total_concentric_circle_chunks);
 
-        let out = CoordinateDir {
-            second_num_concentric_circles: self.second_num_concentric_circles,
-            partial_chunks,
-        };
+        let out = CoordinateDir { partial_chunks };
         debug_assert!(out.get_total_number_concentric_chunks() % 3 == 0);
         out
     }

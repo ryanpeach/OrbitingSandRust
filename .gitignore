@@ -19,3 +19,6 @@ Cargo.lock
 
 # perf
 perf.data
+
+# Save data
+save/

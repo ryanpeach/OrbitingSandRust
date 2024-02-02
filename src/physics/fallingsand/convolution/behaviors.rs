@@ -167,35 +167,6 @@ impl ElementGridConvolutionNeighbors {
         }
     }
 
-    /// Does not return the target_chunk in the case of the center chunk. Unwrap if you dont think this is possible.
-    /// Otherwise check if none and just use the target_chunk when its None.
-    /// Might be a bit slower than the other methods because it involves a lot of match statements
-    fn get_chunk_by_chunk_ijk(
-        &self,
-        idx: ChunkIjkVector,
-        target_chunk: &ElementGrid,
-    ) -> Option<(Option<&ElementGrid>, ConvolutionIdentifier)> {
-        let this_chunk_idx = target_chunk.get_chunk_coords().get_chunk_idx();
-        if idx == this_chunk_idx {
-            Some((None, ConvolutionIdentifier::Center))
-        } else if idx.i < this_chunk_idx.i || idx.j < this_chunk_idx.j {
-            self.grids
-                .bottom
-                .get_chunk_by_chunk_ijk(idx)
-                .map(|(chunk, id)| (Some(chunk), ConvolutionIdentifier::Bottom(id)))
-        } else if idx.i > this_chunk_idx.i || idx.j > this_chunk_idx.j {
-            self.grids
-                .top
-                .get_chunk_by_chunk_ijk(idx)
-                .map(|(chunk, id)| (Some(chunk), ConvolutionIdentifier::Top(id)))
-        } else {
-            self.grids
-                .left_right
-                .get_chunk_by_chunk_ijk(idx)
-                .map(|(chunk, id)| (Some(chunk), ConvolutionIdentifier::LR(id)))
-        }
-    }
-
     /// Positive k is left, counter clockwise
     /// Negative k is right, clockwise
     pub fn get_left_right_idx_from_center(

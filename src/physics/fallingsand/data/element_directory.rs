@@ -1,5 +1,6 @@
 use hashbrown::{HashMap, HashSet};
 
+use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 
 use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
@@ -192,15 +193,6 @@ fn calculate_ith_has_different_k_bottom_neighbor_targets(
     Parallel(out)
 }
 
-/// This function spreads out a set of chunk idx's into 9 sets
-fn spread(set: HashSet<ChunkIjkVector>, num_frames: usize) -> [HashSet<ChunkIjkVector>; 9] {
-    let mut out: [HashSet<ChunkIjkVector>; 9] = Default::default();
-    for (i, coord) in set.into_iter().enumerate() {
-        out[i % num_frames].insert(coord);
-    }
-    out
-}
-
 /// Pre calculate all the chunk idx's we need to process each frame.
 /// We pregenerate these so that we can test them and so that we don't waste time recalculating them
 #[allow(clippy::needless_range_loop)]
@@ -293,6 +285,7 @@ impl ElementGridDir {
         }
     }
 
+    #[cfg(test)]
     fn get_process_targets(&self) -> ProcessTargets {
         self.process_targets.clone()
     }
@@ -691,6 +684,22 @@ impl ElementGridDir {
         out
     }
 
+    /// Get the total mass of the directory
+    pub fn get_total_mass(&self) -> Mass {
+        let mut out = Mass(0.0);
+        for i in 0..self.coords.get_num_layers() {
+            let j_size = self.coords.get_layer_num_concentric_chunks(i);
+            let k_size = self.coords.get_layer_num_radial_chunks(i);
+            for j in 0..j_size {
+                for k in 0..k_size {
+                    let coord = ChunkIjkVector { i, j, k };
+                    out += self.get_chunk_by_chunk_ijk(coord).get_total_mass();
+                }
+            }
+        }
+        out
+    }
+
     /// Gets the chunk at the given index
     /// Errors if it is currently borrowed
     pub fn get_chunk_by_chunk_ijk(&self, coord: ChunkIjkVector) -> &ElementGrid {
@@ -737,20 +746,20 @@ impl ElementGridDir {
     }
 
     /// Save all chunks
-    pub fn save(&self, ctx: &mut ggez::Context, dir_path: &str) -> Result<(), ggez::GameError> {
-        for i in 0..self.coords.get_num_layers() {
-            let j_size = self.coords.get_layer_num_concentric_chunks(i);
-            let k_size = self.coords.get_layer_num_radial_chunks(i);
-            for j in 0..j_size {
-                for k in 0..k_size {
-                    let coord = ChunkIjkVector { i, j, k };
-                    let chunk = self.get_chunk_by_chunk_ijk(coord);
-                    chunk.save(ctx, dir_path)?;
-                }
-            }
-        }
-        Ok(())
-    }
+    // pub fn save(&self, ctx: &mut ggez::Context, dir_path: &str) -> Result<(), ggez::GameError> {
+    //     for i in 0..self.coords.get_num_layers() {
+    //         let j_size = self.coords.get_layer_num_concentric_chunks(i);
+    //         let k_size = self.coords.get_layer_num_radial_chunks(i);
+    //         for j in 0..j_size {
+    //             for k in 0..k_size {
+    //                 let coord = ChunkIjkVector { i, j, k };
+    //                 let chunk = self.get_chunk_by_chunk_ijk(coord);
+    //                 chunk.save(ctx, dir_path)?;
+    //             }
+    //         }
+    //     }
+    //     Ok(())
+    // }
 
     /// Get all textures
     pub fn get_textures(&self) -> HashMap<ChunkIjkVector, RawImage> {

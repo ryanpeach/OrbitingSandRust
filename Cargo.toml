@@ -5,40 +5,27 @@ edition = "2021"
 
 [profile.dev]
 opt-level = 0
+debug = true
 
 [profile.release]
 opt-level = 3
-debug = true
+debug = false
 
 [dependencies]
-ggegui = "0.3.7"
-ggez = "0.9.3"
+bevy = "0.12.1"
+bevy_egui = "0.24.0"
+bytemuck = "1.14.0"
+derive_more = "0.99.17"
 hashbrown = { version = "0.14.2", features = ["rayon", "ahash"] }
-mint = "0.5.9"
+nabo = "0.3.0"
 rand = "0.8.5"
 rayon = "1.8.0"
-serde = "1.0.189"
-serde_yaml = "0.9.25"
 strum = "0.25.0"
 strum_macros = "0.25.3"
-uom = "0.35.0"
-
-[patch.crates-io]
-ggez = { git="https://github.com/ryanpeach/ggez.git", branch="feature/fix-image-master" }
 
 [dev-dependencies]
 criterion = { version = "0.4", features = ["html_reports"] }
-
-[[bench]]
-name    = "bench_main"
-harness = false
-
-[lib]
-path = "src/lib.rs"
-
-[[bin]]
-name = "daemon"
-path = "scenes/fallingsand.rs"
+just = "1.23.0"
 
 [net]
 git-fetch-with-cli = true
