@@ -1,4 +1,4 @@
-use bevy::log::error;
+
 use bevy::render::color::Color;
 
 use super::element::{
@@ -54,7 +54,7 @@ impl Element for Vacuum {
     fn get_heat(&self) -> HeatEnergy {
         HeatEnergy(0.0)
     }
-    fn set_heat(&mut self, heat: HeatEnergy) -> Result<(), SetHeatOnZeroHeatCapacityError> {
+    fn set_heat(&mut self, _heat: HeatEnergy) -> Result<(), SetHeatOnZeroHeatCapacityError> {
         Err(SetHeatOnZeroHeatCapacityError)
     }
 

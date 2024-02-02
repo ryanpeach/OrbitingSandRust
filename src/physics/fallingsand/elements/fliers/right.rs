@@ -72,7 +72,7 @@ impl Element for RightFlier {
         HeatEnergy(0.0)
     }
 
-    fn set_heat(&mut self, heat: HeatEnergy) -> Result<(), SetHeatOnZeroHeatCapacityError> {
+    fn set_heat(&mut self, _heat: HeatEnergy) -> Result<(), SetHeatOnZeroHeatCapacityError> {
         Err(SetHeatOnZeroHeatCapacityError)
     }
 
