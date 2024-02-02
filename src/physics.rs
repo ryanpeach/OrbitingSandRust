@@ -8,7 +8,10 @@
 
 use bevy::app::{PluginGroup, PluginGroupBuilder};
 
+use self::light::LightPlugin;
+
 pub mod fallingsand;
+pub mod light;
 pub mod orbits;
 pub mod util;
 
@@ -16,6 +19,8 @@ pub struct PhysicsPluginGroup;
 
 impl PluginGroup for PhysicsPluginGroup {
     fn build(self) -> PluginGroupBuilder {
-        PluginGroupBuilder::start::<Self>().add(orbits::nbody::NBodyPlugin)
+        PluginGroupBuilder::start::<Self>()
+            .add(orbits::nbody::NBodyPlugin)
+            .add(LightPlugin)
     }
 }

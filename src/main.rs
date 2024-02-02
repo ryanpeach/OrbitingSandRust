@@ -7,6 +7,7 @@ use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy::{core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*};
 use bevy_egui::EguiPlugin;
+use physics::light::components::PointLightSource;
 
 use crate::entities::celestials::sun::SunBuilder;
 use crate::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
@@ -14,6 +15,7 @@ use crate::entities::EntitiesPluginGroup;
 use crate::gui::brush::BrushRadius;
 
 use crate::gui::GuiPluginGroup;
+use crate::physics::light::components::SphereOccluder;
 use crate::physics::orbits::components::{Mass, Velocity};
 
 use crate::physics::PhysicsPluginGroup;
@@ -67,7 +69,11 @@ fn setup(
 
     // Create earth
     let planet_data = EarthLikeBuilder::new().build();
-    CelestialData::setup(
+    let r = planet_data
+        .get_element_dir()
+        .get_coordinate_dir()
+        .get_full_radius();
+    let planet_id = CelestialData::setup(
         planet_data,
         Velocity(Vec2::new(0., 1200.)),
         Vec2::new(-10000., 0.),
@@ -77,10 +83,17 @@ fn setup(
         &asset_server,
         true,
     );
+    commands
+        .entity(planet_id)
+        .insert(SphereOccluder { radius: r });
 
     // Create earth2
     let planet_data = EarthLikeBuilder::new().build();
-    CelestialData::setup(
+    let r = planet_data
+        .get_element_dir()
+        .get_coordinate_dir()
+        .get_full_radius();
+    let planet_id = CelestialData::setup(
         planet_data,
         Velocity(Vec2::new(0., -1200.)),
         Vec2::new(10000., 0.),
@@ -90,6 +103,9 @@ fn setup(
         &asset_server,
         true,
     );
+    commands
+        .entity(planet_id)
+        .insert(SphereOccluder { radius: r });
 
     // Create a sun
     let sun_data = SunBuilder::new().build();
@@ -103,6 +119,11 @@ fn setup(
         &asset_server,
         true,
     );
+    commands.entity(sun_id).insert(PointLightSource {
+        color: Color::WHITE,
+        intensity: 100.0,
+        falloff: 1.0,
+    });
 
     // Create a bunch of asteroids
     const NUM_ASTEROIDS: usize = 10000;

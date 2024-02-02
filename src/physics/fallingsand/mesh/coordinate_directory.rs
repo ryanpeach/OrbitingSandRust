@@ -507,6 +507,10 @@ impl CoordinateDir {
     pub fn get_partial_chunks(&self, _layer_num: usize) -> &Vec<Grid<ChunkCoords>> {
         &self.partial_chunks
     }
+    /// The total radius of the entire circle
+    pub fn get_full_radius(&self) -> f32 {
+        self.get_layer_end_radius(self.get_num_layers() - 1)
+    }
     /// The number of concentric circles in a given layer
     /// Always 2x the previous layer except for the first and second layers
     pub fn get_layer_num_concentric_circles(&self, layer_num: usize) -> usize {
