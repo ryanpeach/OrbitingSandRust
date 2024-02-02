@@ -166,7 +166,7 @@ impl CelestialData {
                     let material = textures.remove(&chunk_ijk).unwrap().to_bevy_image();
                     let chunk = commands
                         .spawn((
-                            celestial_chunk_id.clone(),
+                            celestial_chunk_id,
                             MaterialMesh2dBundle {
                                 mesh: mesh.into(),
                                 material: materials.add(asset_server.add(material).into()),
