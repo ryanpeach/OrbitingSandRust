@@ -34,7 +34,11 @@ pub struct GravityField;
 /// The parameters for the gravity field shader.
 #[derive(Debug, Clone, ShaderType)]
 pub struct Parameters {
+    /// The minimum distance between any two gravitational bodies.
+    /// This is just a constant decided by the programmer.
     min_distance: f32,
+    /// The maximum mass of any gravitational body.
+    /// This is computed dynamically.
     max_mass: f32,
 }
 
