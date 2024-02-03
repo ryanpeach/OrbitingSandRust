@@ -6,7 +6,7 @@ use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionN
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
-use crate::physics::heat::components::{HeatCapacity, HeatEnergy};
+use crate::physics::heat::components::{HeatCapacity, HeatEnergy, ThermodynamicTemperature};
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
 use rand::Rng;
@@ -152,9 +152,14 @@ impl Element for SolarPlasma {
     fn get_heat(&self) -> HeatEnergy {
         self.heat
     }
+
     fn set_heat(&mut self, heat: HeatEnergy) -> Result<(), SetHeatOnZeroHeatCapacityError> {
         self.heat = heat;
         Ok(())
+    }
+
+    fn get_default_temperature(&self) -> ThermodynamicTemperature {
+        ThermodynamicTemperature(10000.0)
     }
 
     fn get_heat_capacity(&self) -> HeatCapacity {

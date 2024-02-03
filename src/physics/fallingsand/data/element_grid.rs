@@ -54,9 +54,17 @@ impl ElementGrid {
         let mut grid: Vec<Box<dyn Element>> = Vec::with_capacity(
             chunk_coords.get_num_radial_lines() * chunk_coords.get_num_concentric_circles(),
         );
+        let mut total_mass = Mass(0.0);
+        let mut total_heat_capacity_at_atp = HeatCapacity(0.0);
+        let mut total_heat = HeatEnergy(0.0);
         for _ in 0..chunk_coords.get_num_radial_lines() * chunk_coords.get_num_concentric_circles()
         {
             grid.push(fill.box_clone());
+            total_mass += fill.get_mass(chunk_coords.get_cell_width());
+            total_heat_capacity_at_atp += fill.get_heat_capacity();
+            total_heat += fill
+                .get_default_temperature()
+                .heat_energy(fill.get_heat_capacity());
         }
         Self {
             grid: Grid::new(
@@ -67,12 +75,12 @@ impl ElementGrid {
             coords: chunk_coords,
             already_processed: false,
             last_set: Clock::default(),
+            total_mass: total_mass,
+            total_heat_capacity_at_atp: total_heat_capacity_at_atp,
+            total_heat: total_heat,
 
             // These will get calculated in the process function
-            total_mass: Mass(0.0),
             total_mass_above: Mass(0.0),
-            total_heat: HeatEnergy(0.0),
-            total_heat_capacity_at_atp: HeatCapacity(0.0),
         }
     }
 }
@@ -300,7 +308,11 @@ impl ElementGrid {
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {
                 let element = self.grid.get(JkVector { j, k });
-                let color = element.get_temperature().color(max_temp).as_rgba_u8();
+                let color = element
+                    .get_heat()
+                    .temperature(element.get_heat_capacity())
+                    .color(max_temp)
+                    .as_rgba_u8();
                 out.push(color[0]);
                 out.push(color[1]);
                 out.push(color[2]);

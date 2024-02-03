@@ -1,3 +1,6 @@
+//! This module contains the trait Element and associated types
+//! This is the trait that all elements must implement
+//! It also contains info about states of matter and other useful enums and components
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
@@ -20,9 +23,19 @@ use super::solarplasma::SolarPlasma;
 use super::stone::Stone;
 use super::vacuum::Vacuum;
 use super::water::Water;
+use derive_more::{Add, Sub};
 
-#[derive(Default)]
+/// The density of the element relative to the cell width
+/// In units of kg/m^2
+#[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd, Add, Sub)]
 pub struct Density(pub f32);
+
+impl Density {
+    /// This gets the mass of the element based on the cell_width
+    pub fn get_mass(&self, cell_width: f32) -> Mass {
+        Mass(self.0 * cell_width.powi(2))
+    }
+}
 
 /// What to do after process is called on the elementgrid
 /// The element grid takes the element out of the grid so that it can't
@@ -46,7 +59,8 @@ pub enum StateOfMatter {
     Solid,
 }
 
-/// Useful for match statements
+/// Allows you to match on the type of element
+/// each element impl has a unique item in this enum
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter)]
 pub enum ElementType {
     #[default]
@@ -61,6 +75,7 @@ pub enum ElementType {
 }
 
 impl ElementType {
+    /// This gets the default element of the type
     pub fn get_element(&self) -> Box<dyn Element> {
         match self {
             ElementType::Vacuum => Box::<Vacuum>::default(),
@@ -78,21 +93,44 @@ impl ElementType {
 /// If something has 0 heat capacity, you should not set its heat
 pub struct SetHeatOnZeroHeatCapacityError;
 
+/// This is the trait that all elements must implement
 pub trait Element: Send + Sync {
+    /// This gets the type of the element
+    /// Converts between the trait and the enum
     fn get_type(&self) -> ElementType;
+    /// This gets the last time the element was processed
+    /// Useful for physics calculations by getting the dt between now and then
     fn get_last_processed(&self) -> Clock;
+    /// This gets the color of the element
+    /// Always constant and unique for each element, so that we can process them
+    /// in fragment shaders knowing their type just by their color
+    /// You can map them to other colors and add effects using the fragment shader
     fn get_color(&self) -> Color;
+    /// This gets the heat of the element
     fn get_heat(&self) -> HeatEnergy;
+    /// This sets the heat of the element
+    /// Do not call this if the heat capacity is 0
     fn set_heat(&mut self, heat: HeatEnergy) -> Result<(), SetHeatOnZeroHeatCapacityError>;
+    /// This gets the heat capacity of the element at atp
+    /// Usually constant
     fn get_heat_capacity(&self) -> HeatCapacity;
-    fn get_temperature(&self) -> ThermodynamicTemperature {
-        self.get_heat().temperature(self.get_heat_capacity())
-    }
+    /// This is a convienence function that gets the "default" temperature of an element
+    /// For example, lava should start out hot, ice cold, etc.
+    /// This answers the question "how hot is the element when it is created?"
+    /// Usually constant
+    fn get_default_temperature(&self) -> ThermodynamicTemperature;
+    /// This gets the density of the element relative to the cell_width
+    /// This is so bigger cells have more mass, so we don't have to have as many cells
+    /// for simpler bodies, like gas giants or the sun
     fn get_density(&self) -> Density;
+    /// This gets the mass of the element based on the density and the cell_width
     fn get_mass(&self, cell_width: f32) -> Mass {
-        Mass(self.get_density().0 * cell_width.powi(2))
+        self.get_density().get_mass(cell_width)
     }
+    /// This gets the state of matter of the element
     fn get_state_of_matter(&self) -> StateOfMatter;
+    /// This is the "public" process method, that calls the private _process method
+    /// makes sure that _set_last_processed is called
     fn process(
         &mut self,
         pos: JkVector,
@@ -111,6 +149,7 @@ pub trait Element: Send + Sync {
         self._set_last_processed(current_time);
         out
     }
+    /// This is the way we implement clone for a trait object
     fn box_clone(&self) -> Box<dyn Element>;
 
     /// Instructs the loop to swap the element with the element at pos1
@@ -137,6 +176,14 @@ pub trait Element: Send + Sync {
     // Private elements
     // TODO: Figure out how to make these private
     //       Until then rely on pythonic naming convention
+
+    /// This is the private process method to be implemented by the element
+    /// Takes in the position of the element in the grid
+    /// The coordinate grid which gives us information about the celestial body
+    /// The target chunk which is the element grid this element was a part of
+    /// The element grid convolution neighbors which gives you the ability to move
+    ///    and look around at neighboring chunks
+    /// The current time
     fn _process(
         &mut self,
         pos: JkVector,
@@ -145,6 +192,9 @@ pub trait Element: Send + Sync {
         element_grid_conv: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) -> ElementTakeOptions;
+
+    /// Set the last time the element was processed
+    /// No need to call this publicly, it is called by the public process method
     fn _set_last_processed(&mut self, current_time: Clock);
 }
 
@@ -155,6 +205,8 @@ mod tests {
 
     use super::ElementType;
 
+    /// This tests that all elements have different colors
+    /// This is important because we use the color to identify the element in shaders
     #[test]
     fn test_all_elements_have_different_color() {
         let mut colors = Vec::<Color>::new();
@@ -167,6 +219,34 @@ mod tests {
                 element_type
             );
             colors.push(color);
+        }
+    }
+
+    /// This tests that all elements have different types
+    #[test]
+    fn test_all_elements_have_different_type() {
+        let mut types = Vec::<ElementType>::new();
+        for element_type in ElementType::iter() {
+            assert!(
+                !types.contains(&element_type),
+                "Element type {:?} is not unique",
+                element_type
+            );
+            types.push(element_type);
+        }
+    }
+
+    /// This tests that all enums and elements refer to each other
+    #[test]
+    fn test_all_types_and_elements_correspond() {
+        for element_type in ElementType::iter() {
+            let element = element_type.get_element();
+            assert_eq!(
+                element_type,
+                element.get_type(),
+                "Element type {:?} does not match the type of the element",
+                element_type
+            );
         }
     }
 }

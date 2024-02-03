@@ -8,7 +8,7 @@ use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionN
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
-use crate::physics::heat::components::{HeatCapacity, HeatEnergy};
+use crate::physics::heat::components::{HeatCapacity, HeatEnergy, ThermodynamicTemperature};
 use crate::physics::util::clock::Clock;
 
 /// Literally nothing
@@ -50,10 +50,15 @@ impl Element for Vacuum {
         Box::new(*self)
     }
 
+    fn get_default_temperature(&self) -> ThermodynamicTemperature {
+        ThermodynamicTemperature(0.0)
+    }
+
     fn get_heat(&self) -> HeatEnergy {
         HeatEnergy(0.0)
     }
-    fn set_heat(&mut self, _heat: HeatEnergy) -> Result<(), SetHeatOnZeroHeatCapacityError> {
+
+    fn set_heat(&mut self, heat: HeatEnergy) -> Result<(), SetHeatOnZeroHeatCapacityError> {
         Err(SetHeatOnZeroHeatCapacityError)
     }
 

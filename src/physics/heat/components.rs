@@ -23,6 +23,7 @@ impl HeatEnergy {
 
 /// The temperature of a system.
 /// Measured in Kelvin.
+/// This should be represented in "real" units, physically similar to the real world.
 #[derive(
     Component, Default, Clone, Copy, Debug, Add, Sub, AddAssign, SubAssign, PartialEq, PartialOrd,
 )]
@@ -35,4 +36,12 @@ impl ThermodynamicTemperature {
         let alpha = self.0 / max_temp.0;
         Color::rgba(red, 0.0, 0.0, alpha)
     }
+
+    /// Returns the heat energy of the system.
+    pub fn heat_energy(&self, heat_capacity: HeatCapacity) -> HeatEnergy {
+        HeatEnergy(self.0 * heat_capacity.0)
+    }
 }
+
+/// The temperature in kelvin of room temperature.
+pub const ROOM_TEMPERATURE_K: ThermodynamicTemperature = ThermodynamicTemperature(293.15);
