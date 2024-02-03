@@ -23,7 +23,7 @@ fn main() {
         .add_plugins((
             DefaultPlugins
                 .set(LogPlugin {
-                    level: bevy::log::Level::INFO,
+                    level: bevy::log::Level::TRACE,
                     ..Default::default()
                 })
                 .set(ImagePlugin::default_nearest()),

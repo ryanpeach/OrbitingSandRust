@@ -22,6 +22,14 @@ use rayon::prelude::*;
 /// The number of frames it takes to fully process the directory
 const FRAMES_PER_FULL_PROCESS: usize = 9;
 
+/// A struct of textures for use in rendering
+pub struct Textures {
+    /// The actual texture of the elements
+    pub texture: RawImage,
+    /// The texture of the heat
+    pub heat_texture: RawImage,
+}
+
 /// Useful for indicating at compile time that an iterable should be ran in parallel
 #[derive(Clone, Default)]
 struct Parallel<T>(T);
@@ -226,6 +234,8 @@ pub struct ElementGridDir {
     chunks: Vec<Grid<Option<ElementGrid>>>,
     process_targets: ProcessTargets,
     process_count: usize,
+    total_mass: Mass,
+    max_temp: ThermodynamicTemperature,
 }
 
 impl ElementGridDir {
@@ -248,9 +258,11 @@ impl ElementGridDir {
         let process_targets = pregen_process_targets(&coords);
         Self {
             coords,
-            chunks,
             process_targets,
             process_count: 0,
+            total_mass: Self::calc_total_mass(&chunks),
+            max_temp: Self::calc_max_temp(&chunks),
+            chunks,
         }
     }
 
@@ -280,9 +292,11 @@ impl ElementGridDir {
         let process_targets = pregen_process_targets(&coords);
         Self {
             coords,
-            chunks,
             process_targets,
             process_count: 0,
+            total_mass: Self::calc_total_mass(&chunks),
+            max_temp: Self::calc_max_temp(&chunks),
+            chunks,
         }
     }
 
@@ -608,7 +622,7 @@ impl ElementGridDir {
     }
 
     /// Gets the textures of the targets updated in the last call to process
-    pub fn get_updated_target_textures(&self) -> HashMap<ChunkIjkVector, RawImage> {
+    pub fn get_updated_target_textures(&self) -> HashMap<ChunkIjkVector, Textures> {
         // You should call this function only AFTER calling process
         let process_count = self.process_count - 1;
         let targets1 = self.process_targets.standard_convolution[process_count % 9].clone();
@@ -620,11 +634,18 @@ impl ElementGridDir {
             .chain(targets2.0)
             .chain(targets3.0)
             .collect();
+        let max_temp = self.get_max_temp();
         all_targets
             .into_par_iter()
             .map(|target| {
                 let chunk = self.get_chunk_by_chunk_ijk(target);
-                (target, chunk.get_texture())
+                (
+                    target,
+                    Textures {
+                        texture: chunk.get_texture(),
+                        heat_texture: chunk.get_heat_texture(max_temp),
+                    },
+                )
             })
             .collect()
     }
@@ -687,14 +708,49 @@ impl ElementGridDir {
 
     /// Get the total mass of the directory
     pub fn get_total_mass(&self) -> Mass {
+        self.total_mass
+    }
+
+    /// Recalculate the total mass of the directory
+    pub fn recalculate_total_mass(&mut self) -> Mass {
+        self.total_mass = Self::calc_total_mass(&self.chunks);
+        self.total_mass
+    }
+
+    /// Calculate the maximum temperature in the directory
+    pub fn calc_total_mass(chunks: &Vec<Grid<Option<ElementGrid>>>) -> Mass {
         let mut out = Mass(0.0);
-        for i in 0..self.coords.get_num_layers() {
-            let j_size = self.coords.get_layer_num_concentric_chunks(i);
-            let k_size = self.coords.get_layer_num_radial_chunks(i);
-            for j in 0..j_size {
-                for k in 0..k_size {
-                    let coord = ChunkIjkVector { i, j, k };
-                    out += self.get_chunk_by_chunk_ijk(coord).get_total_mass();
+        for layer in chunks {
+            for chunk in layer.into_iter() {
+                if let Some(chunk) = chunk {
+                    out += chunk.get_total_mass();
+                }
+            }
+        }
+        out
+    }
+
+    /// Get the maximum temperature in the directory
+    pub fn get_max_temp(&self) -> ThermodynamicTemperature {
+        self.max_temp
+    }
+
+    /// Recalculate the maximum temperature in the directory
+    pub fn recalculate_max_temp(&mut self) -> ThermodynamicTemperature {
+        self.max_temp = Self::calc_max_temp(&self.chunks);
+        self.max_temp
+    }
+
+    /// Calculate the maximum temperature in the directory
+    pub fn calc_max_temp(chunks: &Vec<Grid<Option<ElementGrid>>>) -> ThermodynamicTemperature {
+        let mut out = ThermodynamicTemperature(0.0);
+        for layer in chunks {
+            for chunk in layer.into_iter() {
+                if let Some(chunk) = chunk {
+                    let temp = chunk.get_temperature();
+                    if temp > out {
+                        out = temp;
+                    }
                 }
             }
         }
@@ -763,7 +819,7 @@ impl ElementGridDir {
     // }
 
     /// Get all textures
-    pub fn get_textures(&self) -> HashMap<ChunkIjkVector, RawImage> {
+    pub fn get_textures(&self) -> HashMap<ChunkIjkVector, Textures> {
         // Create a filter with all true
         let mut filter: Vec<Grid<bool>> = Vec::with_capacity(self.coords.get_num_layers());
         for i in 0..self.coords.get_num_layers() {
@@ -778,8 +834,9 @@ impl ElementGridDir {
     }
 
     /// Where filter is true, get the textures
-    fn get_textures_filtered(&self, filter: &[Grid<bool>]) -> HashMap<ChunkIjkVector, RawImage> {
+    fn get_textures_filtered(&self, filter: &[Grid<bool>]) -> HashMap<ChunkIjkVector, Textures> {
         let mut out = HashMap::new();
+        let max_temp = self.get_max_temp();
         for (i, item) in filter.iter().enumerate() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
             let k_size = self.coords.get_layer_num_radial_chunks(i);
@@ -790,7 +847,16 @@ impl ElementGridDir {
                     }
                     let coord = ChunkIjkVector { i, j, k };
                     let tex = self.get_chunk_by_chunk_ijk(coord).get_texture();
-                    out.insert(coord, tex);
+                    let heat_tex = self
+                        .get_chunk_by_chunk_ijk(coord)
+                        .get_heat_texture(max_temp);
+                    out.insert(
+                        coord,
+                        Textures {
+                            texture: tex,
+                            heat_texture: heat_tex,
+                        },
+                    );
                 }
             }
         }
@@ -810,26 +876,6 @@ impl ElementGridDir {
 
         // Call the filtered version
         self.get_heat_textures_filtered(&filter)
-    }
-
-    /// Get the maximum temperature in the directory
-    pub fn get_max_temp(&self) -> ThermodynamicTemperature {
-        let mut max_temp = ThermodynamicTemperature(0.0);
-        for i in 0..self.coords.get_num_layers() {
-            let j_size = self.coords.get_layer_num_concentric_chunks(i);
-            let k_size = self.coords.get_layer_num_radial_chunks(i);
-            for j in 0..j_size {
-                for k in 0..k_size {
-                    let coord = ChunkIjkVector { i, j, k };
-                    let chunk = self.get_chunk_by_chunk_ijk(coord);
-                    let temp = chunk.get_temperature();
-                    if temp > max_temp {
-                        max_temp = temp;
-                    }
-                }
-            }
-        }
-        max_temp
     }
 
     /// Where filter is true, get the heat textures

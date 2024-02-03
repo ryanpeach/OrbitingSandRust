@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
-use bevy::{ecs::component::Component, render::color::Color};
+use bevy::{ecs::component::Component, log::trace, render::color::Color, utils::error};
 use derive_more::{Add, AddAssign, Sub, SubAssign};
 
 /// The amount of heat energy required to raise the temperature of a system by one degree.
@@ -33,6 +33,7 @@ impl ThermodynamicTemperature {
     /// Returns the color of the system.
     pub fn color(&self, max_temp: ThermodynamicTemperature) -> Color {
         let red = 1.0;
+        debug_assert_ne!(max_temp.0, 0.0, "max_temp cannot be zero");
         let alpha = self.0 / max_temp.0;
         Color::rgba(red, 0.0, 0.0, alpha)
     }

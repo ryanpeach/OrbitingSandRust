@@ -8,6 +8,7 @@ use bevy::ecs::component::Component;
 
 use bevy::ecs::entity::Entity;
 
+use bevy::ecs::query::{With, Without};
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
@@ -19,9 +20,10 @@ use bevy::sprite::{ColorMaterial, MaterialMesh2dBundle};
 use bevy::time::Time;
 
 use bevy::transform::components::Transform;
+use bevy_egui::egui::text;
 use hashbrown::HashMap;
 
-use crate::physics::fallingsand::data::element_directory::ElementGridDir;
+use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 use crate::physics::fallingsand::util::image::RawImage;
 
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
@@ -57,9 +59,8 @@ pub struct CelestialData {
 
 impl CelestialData {
     /// Creates a new CelestialData
-    pub fn new(element_grid_dir: ElementGridDir) -> Self {
-        // In testing we found that the resolution doesn't matter, so make it infinite
-        // a misnomer is the fact that in this case, big "res" is fewer mesh cells
+    pub fn new(mut element_grid_dir: ElementGridDir) -> Self {
+        element_grid_dir.recalculate_total_mass();
         Self { element_grid_dir }
     }
 
@@ -108,14 +109,14 @@ impl CelestialData {
     /// Something to call every frame
     /// This calculates only 1/9th of the grid each frame
     /// for maximum performance
-    pub fn process(&mut self, current_time: Clock) -> HashMap<ChunkIjkVector, RawImage> {
+    pub fn process(&mut self, current_time: Clock) -> HashMap<ChunkIjkVector, Textures> {
         self.element_grid_dir.process(current_time);
         self.element_grid_dir.get_updated_target_textures()
     }
 
     /// Something to call every frame
     /// This is the same as process, but it processes the entire grid
-    pub fn process_full(&mut self, current_time: Clock) -> HashMap<ChunkIjkVector, RawImage> {
+    pub fn process_full(&mut self, current_time: Clock) -> HashMap<ChunkIjkVector, Textures> {
         self.element_grid_dir.process_full(current_time);
         self.element_grid_dir.get_textures()
     }
@@ -151,7 +152,6 @@ impl CelestialData {
         let element_dir = celestial.get_element_dir();
         let coordinate_dir = element_dir.get_coordinate_dir();
         let mut textures = element_dir.get_textures();
-        let mut heat_textures = element_dir.get_heat_textures();
         for i in 0..coordinate_dir.get_num_layers() {
             for j in 0..coordinate_dir.get_layer_num_concentric_chunks(i) {
                 for k in 0..coordinate_dir.get_layer_num_radial_chunks(i) {
@@ -162,14 +162,17 @@ impl CelestialData {
                         .calc_chunk_meshdata()
                         .load_bevy_mesh(meshes);
 
+                    let textures = textures.remove(&chunk_ijk).unwrap();
+                    let heat_material = textures.heat_texture.to_bevy_image();
+                    let sand_material = textures.texture.to_bevy_image();
+
                     // Create the falling sand material
-                    let material = textures.remove(&chunk_ijk).unwrap().to_bevy_image();
                     let chunk = commands
                         .spawn((
                             celestial_chunk_id,
                             MaterialMesh2dBundle {
                                 mesh: mesh.into(),
-                                material: materials.add(asset_server.add(material).into()),
+                                material: materials.add(asset_server.add(sand_material).into()),
                                 ..Default::default()
                             },
                             FallingSandMaterial,
@@ -182,7 +185,6 @@ impl CelestialData {
                         .get_chunk_at_idx(chunk_ijk)
                         .calc_chunk_meshdata()
                         .load_bevy_mesh(meshes);
-                    let heat_material = heat_textures.remove(&chunk_ijk).unwrap().to_bevy_image();
                     let heat_chunk = commands
                         .spawn((
                             celestial_chunk_id,
@@ -239,9 +241,17 @@ impl CelestialData {
         celestial_id
     }
 
+    /// Run this system every frame to update the celestial
     pub fn process_system(
         mut celestial: Query<(Entity, &mut CelestialData, &mut Mass)>,
-        mut chunks: Query<(&Parent, &mut Handle<ColorMaterial>, &CelestialChunkIdk)>,
+        mut falling_sand_materials: Query<
+            (&Parent, &mut Handle<ColorMaterial>, &CelestialChunkIdk),
+            With<FallingSandMaterial>,
+        >,
+        mut heat_materials: Query<
+            (&Parent, &mut Handle<ColorMaterial>, &CelestialChunkIdk),
+            (With<HeatMapMaterial>, Without<FallingSandMaterial>),
+        >,
         mut materials: ResMut<Assets<ColorMaterial>>,
         asset_server: Res<AssetServer>,
         time: Res<Time>,
@@ -252,10 +262,29 @@ impl CelestialData {
                 celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
             mass.0 = celestial.get_element_dir().get_total_mass().0;
             debug_assert_ne!(mass.0, 0.0, "Celestial mass is 0");
-            for (parent, material_handle, chunk_ijk) in chunks.iter_mut() {
+
+            // Update the falling sand materials
+            for (parent, material_handle, chunk_ijk) in falling_sand_materials.iter_mut() {
                 if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
                     let material = materials.get_mut(&*material_handle).unwrap();
-                    let new_texture = new_textures.remove(&chunk_ijk.0).unwrap().to_bevy_image();
+                    let new_texture = new_textures
+                        .remove(&chunk_ijk.0)
+                        .unwrap()
+                        .texture
+                        .to_bevy_image();
+                    material.texture = Some(asset_server.add(new_texture));
+                }
+            }
+
+            // Update the heat textures
+            for (parent, material_handle, chunk_ijk) in heat_materials.iter_mut() {
+                if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
+                    let material = materials.get_mut(&*material_handle).unwrap();
+                    let new_texture = new_textures
+                        .remove(&chunk_ijk.0)
+                        .unwrap()
+                        .heat_texture
+                        .to_bevy_image();
                     material.texture = Some(asset_server.add(new_texture));
                 }
             }

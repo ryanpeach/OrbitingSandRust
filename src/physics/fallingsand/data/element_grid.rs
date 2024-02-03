@@ -75,9 +75,9 @@ impl ElementGrid {
             coords: chunk_coords,
             already_processed: false,
             last_set: Clock::default(),
-            total_mass: total_mass,
-            total_heat_capacity_at_atp: total_heat_capacity_at_atp,
-            total_heat: total_heat,
+            total_mass,
+            total_heat_capacity_at_atp,
+            total_heat,
 
             // These will get calculated in the process function
             total_mass_above: Mass(0.0),
@@ -117,24 +117,35 @@ impl ElementGrid {
     pub fn get_total_mass(&self) -> Mass {
         self.total_mass
     }
+
+    /// Recalculate the total mass
+    pub fn recalculate_total_mass(&mut self) -> Mass {
+        let mut mass = Mass(0.0);
+        for j in 0..self.coords.get_num_concentric_circles() {
+            for k in 0..self.coords.get_num_radial_lines() {
+                let pos = JkVector { j, k };
+                mass += self.grid.get(pos).get_mass(self.coords.get_cell_width());
+            }
+        }
+        self.total_mass = mass;
+        self.total_mass
+    }
+
     /// Does not calculate the total mass, just gets the set value of it
     pub fn get_total_mass_above(&self) -> Mass {
         self.total_mass_above
     }
+
     /// Calculate the total heat capacity at the given pressure
     /// Using a linear model
     /// TODO: Experiment with a more complex model
-    pub fn get_total_heat_capacity_at_pressure(&self) -> HeatCapacity {
-        HeatCapacity(self.get_total_heat_capacity_at_atp().0 * self.total_mass_above.0 * 1.0e-5)
-    }
-    /// Simple getter
-    pub fn get_total_heat_capacity_at_atp(&self) -> HeatCapacity {
-        self.total_heat_capacity_at_atp
+    pub fn get_total_heat_capacity(&self) -> HeatCapacity {
+        HeatCapacity(self.total_heat_capacity_at_atp.0 * self.total_mass_above.0 * 1.0e-5)
     }
     /// Get temperature
     /// Assume total_mass_above correlates to pressure
     pub fn get_temperature(&self) -> ThermodynamicTemperature {
-        ThermodynamicTemperature(self.total_heat.0 / self.get_total_heat_capacity_at_pressure().0)
+        ThermodynamicTemperature(self.total_heat.0 / self.get_total_heat_capacity().0)
     }
     pub fn get_process_unneeded(&self, current_time: Clock) -> bool {
         self.last_set.get_current_frame() < current_time.get_current_frame() - 1
