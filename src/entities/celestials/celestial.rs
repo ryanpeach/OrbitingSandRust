@@ -12,7 +12,7 @@ use bevy::ecs::query::{With, Without};
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
-use bevy::math::Vec2;
+use bevy::math::{Vec2, Vec3};
 use bevy::prelude::SpatialBundle;
 use bevy::render::mesh::Mesh;
 
@@ -23,6 +23,7 @@ use bevy::transform::components::Transform;
 use bevy_egui::egui::text;
 use hashbrown::HashMap;
 
+use crate::entities::camera::OverlayLayer1;
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 use crate::physics::fallingsand::util::image::RawImage;
 
@@ -191,9 +192,12 @@ impl CelestialData {
                             MaterialMesh2dBundle {
                                 mesh: mesh.into(),
                                 material: materials.add(asset_server.add(heat_material).into()),
+                                // Move the heat map to the front
+                                transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
                                 ..Default::default()
                             },
                             HeatMapMaterial,
+                            OverlayLayer1,
                         ))
                         .id();
 
