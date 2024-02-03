@@ -60,7 +60,7 @@ pub struct CelestialData {
 impl CelestialData {
     /// Creates a new CelestialData
     pub fn new(mut element_grid_dir: ElementGridDir) -> Self {
-        element_grid_dir.recalculate_total_mass();
+        element_grid_dir.recalculate_everything();
         Self { element_grid_dir }
     }
 
@@ -138,7 +138,7 @@ impl CelestialData {
     /// TODO: Should this be a system
     #[allow(clippy::too_many_arguments)]
     pub fn setup(
-        celestial: CelestialData,
+        mut celestial: CelestialData,
         velocity: Velocity,
         translation: Vec2,
         commands: &mut Commands,
@@ -149,7 +149,7 @@ impl CelestialData {
     ) -> Entity {
         // Create all the chunk meshes as pairs of ChunkIjkVector and Mesh2dBundle
         let mut children = Vec::new();
-        let element_dir = celestial.get_element_dir();
+        let element_dir = celestial.get_element_dir_mut();
         let coordinate_dir = element_dir.get_coordinate_dir();
         let mut textures = element_dir.get_textures();
         for i in 0..coordinate_dir.get_num_layers() {

@@ -597,7 +597,14 @@ impl ElementGridDir {
                 self.get_unprocessed_chunk_idxs()
             );
             self.unlock_all_chunks();
+            self.recalculate_everything();
         }
+    }
+
+    /// Recalculates all the saved values
+    pub fn recalculate_everything(&mut self) {
+        self.recalculate_max_temp();
+        self.recalculate_total_mass();
     }
 
     /// Run process FRAMES_PER_FULL_PROCESS times
@@ -712,9 +719,8 @@ impl ElementGridDir {
     }
 
     /// Recalculate the total mass of the directory
-    pub fn recalculate_total_mass(&mut self) -> Mass {
+    fn recalculate_total_mass(&mut self) {
         self.total_mass = Self::calc_total_mass(&self.chunks);
-        self.total_mass
     }
 
     /// Calculate the maximum temperature in the directory
@@ -736,9 +742,8 @@ impl ElementGridDir {
     }
 
     /// Recalculate the maximum temperature in the directory
-    pub fn recalculate_max_temp(&mut self) -> ThermodynamicTemperature {
+    fn recalculate_max_temp(&mut self) {
         self.max_temp = Self::calc_max_temp(&self.chunks);
-        self.max_temp
     }
 
     /// Calculate the maximum temperature in the directory
