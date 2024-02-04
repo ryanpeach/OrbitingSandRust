@@ -16,6 +16,7 @@ use crate::physics::orbits::components::Mass;
 use crate::physics::orbits::nbody::{Force, G};
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
+use ndarray::Array2;
 use strum_macros::EnumIter;
 
 use super::fliers::down::DownFlier;
@@ -35,8 +36,13 @@ pub struct Density(pub f32);
 
 impl Density {
     /// This gets the mass of the element based on the cell_width
-    pub fn get_mass(&self, cell_width: Length) -> Mass {
+    pub fn mass(&self, cell_width: Length) -> Mass {
         Mass(self.0 * cell_width.area().0)
+    }
+
+    /// This gets the mass of the element based on the cell_width in matrix form
+    pub fn matrix_mass(density_matrix: &Array2<f32>, cell_width: Length) -> Array2<f32> {
+        density_matrix * cell_width.area().0
     }
 }
 
@@ -46,6 +52,9 @@ impl Density {
 pub struct Compressability(pub f32);
 
 impl Compressability {
+    /// This perportions the density of the element based on the mass above it
+    const PERPORTIONALITY_CONSTANT: f32 = 1.0;
+
     /// This gets the density of the element based on the force applied to it
     pub fn get_density(&self, original_density: Density, force: Force) -> Density {
         original_density + Density(force.0 * self.0)
@@ -54,8 +63,16 @@ impl Compressability {
     /// by proxy of using the mass of the elements above it and a perportionality constant
     /// Very much an approximation, but much faster for the simulation
     pub fn get_density_from_mass(&self, original_density: Density, mass_above: Mass) -> Density {
-        const PERPORTIONALITY_CONSTANT: f32 = 1.0;
-        original_density + Density(mass_above.0 * self.0 * PERPORTIONALITY_CONSTANT)
+        original_density + Density(mass_above.0 * self.0 * Self::PERPORTIONALITY_CONSTANT)
+    }
+
+    /// This is a matrix equivalent of the get_density_from_mass function
+    pub fn matrix_get_density_from_mass(
+        compressability_matrix: &Array2<f32>,
+        original_density: &Array2<f32>,
+        mass_above: Mass,
+    ) -> Array2<f32> {
+        original_density + mass_above.0 * compressability_matrix * Self::PERPORTIONALITY_CONSTANT
     }
 }
 
@@ -113,6 +130,7 @@ impl ElementType {
 }
 
 /// If something has 0 heat capacity or specific heat, you should not set its heat
+#[derive(Default, Debug)]
 pub struct SetHeatOnZeroSpecificHeatError;
 
 /// This is the trait that all elements must implement
@@ -154,7 +172,7 @@ pub trait Element: Send + Sync {
     fn get_compressability(&self) -> Compressability;
     /// This gets the mass of the element based on the density and the cell_width
     fn get_mass(&self, cell_width: Length) -> Mass {
-        self.get_density().get_mass(cell_width)
+        self.get_density().mass(cell_width)
     }
     /// This gets the state of matter of the element
     fn get_state_of_matter(&self) -> StateOfMatter;

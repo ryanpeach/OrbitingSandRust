@@ -7,6 +7,7 @@ use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::heat::components::{
     HeatCapacity, HeatEnergy, SpecificHeat, ThermodynamicTemperature,
 };
+use crate::physics::heat::math::PropogateHeatBuilder;
 use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 
@@ -162,6 +163,10 @@ impl ElementGrid {
     pub fn checked_get(&self, jk: JkVector) -> Result<&Box<dyn Element>, GridOutOfBoundsError> {
         self.grid.checked_get(jk)
     }
+    #[allow(clippy::borrowed_box)]
+    pub fn get_mut(&mut self, jk: JkVector) -> &mut Box<dyn Element> {
+        self.grid.get_mut(jk)
+    }
     pub fn set(&mut self, jk: JkVector, element: Box<dyn Element>, time: Clock) {
         self.replace(jk, element, time);
     }
@@ -212,6 +217,13 @@ impl ElementGrid {
         // Calculate the mass of the grid as we go
         let mut mass = Mass(0.0);
         let already_processed = self.get_already_processed();
+        let avg_neigh_temp = element_grid_conv_neigh.get_avg_temp();
+        let mut propogate_heat_builder = PropogateHeatBuilder::new(
+            self.coords.get_num_radial_lines(),
+            self.coords.get_num_concentric_circles(),
+            self.coords.get_cell_width(),
+            avg_neigh_temp,
+        );
         debug_assert!(!already_processed, "Already processed");
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {
@@ -250,6 +262,7 @@ impl ElementGrid {
                         self.total_heat_capacity_at_atp +=
                             element.get_specific_heat().heat_capacity(this_mass);
                         self.total_mass += element.get_mass(cell_width);
+                        propogate_heat_builder.add(pos, &element);
                         self.grid.replace(pos, element);
                     }
                     ElementTakeOptions::ReplaceWith(new_element) => {
@@ -258,6 +271,7 @@ impl ElementGrid {
                         self.total_heat_capacity_at_atp +=
                             new_element.get_specific_heat().heat_capacity(this_mass);
                         self.total_mass += new_element.get_mass(cell_width);
+                        propogate_heat_builder.add(pos, &new_element);
                         self.grid.replace(pos, new_element);
                     }
                     ElementTakeOptions::DoNothing => {}
@@ -279,7 +293,12 @@ impl ElementGrid {
             }
         };
 
-        // TODO: Run the heat equation on the convolution one frame
+        // Propogate heat
+        propogate_heat_builder.total_mass_above(self.total_mass_above);
+        let propogate_heat = propogate_heat_builder.build();
+        propogate_heat.propagate_heat(self);
+
+        // Set the total mass
         self.total_mass = mass;
     }
 }

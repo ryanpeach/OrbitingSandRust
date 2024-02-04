@@ -5,6 +5,7 @@ use std::time::Duration;
 
 use bevy::{ecs::component::Component, render::color::Color};
 use derive_more::{Add, AddAssign, From, Into, Sub, SubAssign};
+use ndarray::Array2;
 
 use crate::physics::orbits::components::Mass;
 
@@ -39,6 +40,11 @@ impl SpecificHeat {
     /// Returns the heat capacity of the system.
     pub fn heat_capacity(&self, mass: Mass) -> HeatCapacity {
         HeatCapacity(self.0 * mass.0)
+    }
+
+    /// Returns the heat capacity of the system.
+    pub fn matrix_heat_capacity(specific_heat: &Array2<f32>, mass: &Array2<f32>) -> Array2<f32> {
+        specific_heat * mass
     }
 }
 
@@ -99,6 +105,14 @@ impl ThermodynamicTemperature {
     /// Returns the heat energy of the system.
     pub fn heat_energy(&self, heat_capacity: HeatCapacity) -> HeatEnergy {
         HeatEnergy(self.0 * heat_capacity.0)
+    }
+
+    /// Returns the heat energy of the system.
+    pub fn matrix_heat_energy(
+        temperature: &Array2<f32>,
+        heat_capacity: &Array2<f32>,
+    ) -> Array2<f32> {
+        temperature * heat_capacity
     }
 }
 

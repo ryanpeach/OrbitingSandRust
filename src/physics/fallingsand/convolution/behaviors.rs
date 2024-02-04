@@ -10,6 +10,7 @@ use crate::physics::{
             vectors::{ChunkIjkVector, JkVector},
         },
     },
+    heat::components::ThermodynamicTemperature,
     util::clock::Clock,
 };
 
@@ -53,6 +54,11 @@ impl ElementGridConvolutionNeighbors {
             },
         }
     }
+
+    /// Get the number of chunks
+    pub fn len(&self) -> usize {
+        self.chunk_idxs.iter().count()
+    }
 }
 
 /// Iteration
@@ -60,12 +66,12 @@ impl ElementGridConvolutionNeighbors {
 /// To do this we will use the into_hashmap method on the neighbor grids
 /// and the iter method on the neighbor indexes
 /// taking from the hashmap on each iteration of the iter
-pub struct ElementGridConvolutionNeighborsIter {
+pub struct ElementGridConvolutionNeighborsIntoIter {
     chunk_idxs_iter: ElementGridConvolutionNeighborIdxsIter,
     grids: HashMap<ChunkIjkVector, ElementGrid>,
 }
 
-impl Iterator for ElementGridConvolutionNeighborsIter {
+impl Iterator for ElementGridConvolutionNeighborsIntoIter {
     type Item = (ChunkIjkVector, ElementGrid);
     fn next(&mut self) -> Option<Self::Item> {
         match self.chunk_idxs_iter.next() {
@@ -80,12 +86,58 @@ impl Iterator for ElementGridConvolutionNeighborsIter {
 
 impl IntoIterator for ElementGridConvolutionNeighbors {
     type Item = (ChunkIjkVector, ElementGrid);
-    type IntoIter = ElementGridConvolutionNeighborsIter;
+    type IntoIter = ElementGridConvolutionNeighborsIntoIter;
     fn into_iter(self) -> Self::IntoIter {
-        ElementGridConvolutionNeighborsIter {
+        ElementGridConvolutionNeighborsIntoIter {
             chunk_idxs_iter: self.chunk_idxs.iter(),
             grids: self.grids.into_hashmap(),
         }
+    }
+}
+
+impl ElementGridConvolutionNeighbors {
+    pub fn get_avg_temp(&self) -> ThermodynamicTemperature {
+        let mut sum = ThermodynamicTemperature(0.0);
+        let mut count = 0;
+        match &self.grids.top {
+            TopNeighborGrids::Normal { t, tl, tr } => {
+                sum += t.get_temperature();
+                sum += tl.get_temperature();
+                sum += tr.get_temperature();
+                count += 3;
+            }
+            TopNeighborGrids::LayerTransition { t0, t1, tl, tr } => {
+                sum += t0.get_temperature();
+                sum += t1.get_temperature();
+                sum += tl.get_temperature();
+                sum += tr.get_temperature();
+                count += 4;
+            }
+            TopNeighborGrids::TopOfGrid => {}
+        }
+        match &self.grids.bottom {
+            BottomNeighborGrids::Normal { b, bl, br } => {
+                sum += b.get_temperature();
+                sum += bl.get_temperature();
+                sum += br.get_temperature();
+                count += 3;
+            }
+            BottomNeighborGrids::LayerTransition { bl, br } => {
+                sum += bl.get_temperature();
+                sum += br.get_temperature();
+                count += 2;
+            }
+            BottomNeighborGrids::BottomOfGrid => {}
+        }
+        match &self.grids.left_right {
+            LeftRightNeighborGrids::LR { l, r } => {
+                sum += l.get_temperature();
+                sum += r.get_temperature();
+                count += 2;
+            }
+            LeftRightNeighborGrids::SingleChunkLayer => {}
+        }
+        ThermodynamicTemperature(sum.0 / count as f32)
     }
 }
 
