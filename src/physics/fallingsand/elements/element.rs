@@ -22,6 +22,7 @@ use strum_macros::EnumIter;
 use super::fliers::down::DownFlier;
 use super::fliers::left::LeftFlier;
 use super::fliers::right::RightFlier;
+use super::lava::Lava;
 use super::sand::Sand;
 use super::solarplasma::SolarPlasma;
 use super::stone::Stone;
@@ -106,6 +107,7 @@ pub enum ElementType {
     Vacuum,
     Sand,
     Stone,
+    Lava,
     Water,
     SolarPlasma,
     DownFlier,
@@ -125,6 +127,7 @@ impl ElementType {
             ElementType::Stone => Box::<Stone>::new(Stone::new(cell_width)),
             ElementType::Water => Box::<Water>::new(Water::new(cell_width)),
             ElementType::SolarPlasma => Box::<SolarPlasma>::new(SolarPlasma::new(cell_width)),
+            ElementType::Lava => Box::<Lava>::new(Lava::new(cell_width)),
         }
     }
 }
@@ -150,7 +153,11 @@ pub trait Element: Send + Sync {
     fn get_heat(&self) -> HeatEnergy;
     /// This sets the heat of the element
     /// Do not call this if the heat capacity is 0
-    fn set_heat(&mut self, heat: HeatEnergy) -> Result<(), SetHeatOnZeroSpecificHeatError>;
+    fn set_heat(
+        &mut self,
+        heat: HeatEnergy,
+        current_time: Clock,
+    ) -> Result<(), SetHeatOnZeroSpecificHeatError>;
     /// This gets the specific heat capacity of the element at atp
     /// Usually constant
     fn get_specific_heat(&self) -> SpecificHeat;
@@ -163,6 +170,13 @@ pub trait Element: Send + Sync {
     /// This answers the question "how hot is the element when it is created?"
     /// Usually constant
     fn get_default_temperature(&self) -> ThermodynamicTemperature;
+    /// Get the actual temperature of the element
+    fn get_temperature(&self, cell_width: Length) -> ThermodynamicTemperature {
+        self.get_heat().temperature(
+            self.get_specific_heat()
+                .heat_capacity(self.get_mass(cell_width)),
+        )
+    }
     /// This gets the density of the element relative to the cell_width
     /// This is so bigger cells have more mass, so we don't have to have as many cells
     /// for simpler bodies, like gas giants or the sun

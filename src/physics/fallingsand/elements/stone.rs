@@ -2,6 +2,7 @@ use super::element::{
     Compressability, Density, Element, ElementTakeOptions, ElementType,
     SetHeatOnZeroSpecificHeatError, StateOfMatter,
 };
+use super::lava::{Lava, LAVA_STATE_TRANSITION_TEMPERATURE_K};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
@@ -32,6 +33,7 @@ impl Stone {
                 out.get_specific_heat()
                     .heat_capacity(out.get_density().mass(cell_width)),
             ),
+            Clock::default(),
         );
         out
     }
@@ -66,7 +68,13 @@ impl Element for Stone {
         _element_grid_conv: &mut ElementGridConvolutionNeighbors,
         _current_time: Clock,
     ) -> ElementTakeOptions {
-        ElementTakeOptions::PutBack
+        if self.get_temperature(_coord_dir.get_cell_width()) > LAVA_STATE_TRANSITION_TEMPERATURE_K {
+            let mut lava = Lava::new(_coord_dir.get_cell_width());
+            lava.set_heat(self.heat, _current_time);
+            ElementTakeOptions::ReplaceWith(Box::new(lava))
+        } else {
+            ElementTakeOptions::PutBack
+        }
     }
     fn box_clone(&self) -> Box<dyn Element> {
         Box::new(*self)
@@ -80,8 +88,13 @@ impl Element for Stone {
         self.heat
     }
 
-    fn set_heat(&mut self, heat: HeatEnergy) -> Result<(), SetHeatOnZeroSpecificHeatError> {
+    fn set_heat(
+        &mut self,
+        heat: HeatEnergy,
+        current_time: Clock,
+    ) -> Result<(), SetHeatOnZeroSpecificHeatError> {
         self.heat = heat;
+        self._set_last_processed(current_time);
         Ok(())
     }
 

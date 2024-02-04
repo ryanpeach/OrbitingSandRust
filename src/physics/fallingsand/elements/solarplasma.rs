@@ -32,6 +32,7 @@ impl SolarPlasma {
                 out.get_specific_heat()
                     .heat_capacity(out.get_density().mass(cell_width)),
             ),
+            Clock::default(),
         );
         out
     }
@@ -172,8 +173,13 @@ impl Element for SolarPlasma {
         self.heat
     }
 
-    fn set_heat(&mut self, heat: HeatEnergy) -> Result<(), SetHeatOnZeroSpecificHeatError> {
+    fn set_heat(
+        &mut self,
+        heat: HeatEnergy,
+        current_time: Clock,
+    ) -> Result<(), SetHeatOnZeroSpecificHeatError> {
         self.heat = heat;
+        self._set_last_processed(current_time);
         Ok(())
     }
 

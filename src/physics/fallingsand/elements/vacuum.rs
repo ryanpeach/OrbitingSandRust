@@ -60,7 +60,11 @@ impl Element for Vacuum {
         HeatEnergy(0.0)
     }
 
-    fn set_heat(&mut self, heat: HeatEnergy) -> Result<(), SetHeatOnZeroSpecificHeatError> {
+    fn set_heat(
+        &mut self,
+        heat: HeatEnergy,
+        current_time: Clock,
+    ) -> Result<(), SetHeatOnZeroSpecificHeatError> {
         Err(SetHeatOnZeroSpecificHeatError)
     }
 

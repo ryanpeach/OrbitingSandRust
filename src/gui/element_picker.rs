@@ -52,6 +52,7 @@ impl ElementSelection {
             ui.radio_value(&mut element_selection.0, ElementType::Vacuum, "Vacuum");
             ui.radio_value(&mut element_selection.0, ElementType::Sand, "Sand");
             ui.radio_value(&mut element_selection.0, ElementType::Stone, "Stone");
+            ui.radio_value(&mut element_selection.0, ElementType::Lava, "Lava");
             ui.radio_value(&mut element_selection.0, ElementType::Water, "Water");
         });
     }

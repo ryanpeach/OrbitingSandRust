@@ -33,7 +33,7 @@ fn main() {
         .add_plugins(GuiPluginGroup)
         .add_plugins(PhysicsPluginGroup)
         .add_plugins(EntitiesPluginGroup)
-        .add_systems(Startup, solar_system_setup)
+        .add_systems(Startup, planet_only_setup)
         .run();
 }
 

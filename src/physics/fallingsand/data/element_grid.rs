@@ -235,7 +235,7 @@ impl ElementGrid {
         current_time: Clock,
     ) {
         self.process_elements(coord_dir, element_grid_conv_neigh, current_time);
-        self.process_heat(element_grid_conv_neigh);
+        self.process_heat(element_grid_conv_neigh, current_time);
         self.process_mass(element_grid_conv_neigh);
     }
 
@@ -294,7 +294,11 @@ impl ElementGrid {
     }
 
     /// Process the heat of the grid
-    fn process_heat(&mut self, element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors) {
+    fn process_heat(
+        &mut self,
+        element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
+        current_time: Clock,
+    ) {
         self.total_heat = HeatEnergy(0.0);
         self.total_heat_capacity_at_atp = HeatCapacity(0.0);
         let mut propogate_heat_builder = PropogateHeatBuilder::new(
@@ -325,7 +329,7 @@ impl ElementGrid {
 
         // Now build and propogate updates to the element grid
         let propogate_heat = propogate_heat_builder.build();
-        propogate_heat.propagate_heat(self);
+        propogate_heat.propagate_heat(self, current_time);
     }
 
     /// Process the mass of the grid and the mass above the grid

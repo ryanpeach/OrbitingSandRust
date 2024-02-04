@@ -3,6 +3,7 @@ use super::element::{
     SetHeatOnZeroSpecificHeatError, StateOfMatter,
 };
 use super::movement::fluid::fluid_process;
+use super::stone::Stone;
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
@@ -13,17 +14,20 @@ use crate::physics::heat::components::{
 };
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
-use rand::Rng;
+
+/// The temperature at which lava transitions to a solid or vice versa
+pub const LAVA_STATE_TRANSITION_TEMPERATURE_K: ThermodynamicTemperature =
+    ThermodynamicTemperature(1000.0);
 
 /// Literally nothing
 #[derive(Copy, Clone, Debug)]
-pub struct Water {
+pub struct Lava {
     last_processed: Clock,
     heat: HeatEnergy,
 }
 
-impl Water {
-    /// Create a new Water
+impl Lava {
+    /// Create a new Stone
     pub fn new(cell_width: Length) -> Self {
         let mut out = Self {
             last_processed: Clock::default(),
@@ -40,9 +44,9 @@ impl Water {
     }
 }
 
-impl Element for Water {
+impl Element for Lava {
     fn get_type(&self) -> ElementType {
-        ElementType::Water
+        ElementType::Lava
     }
     fn get_density(&self) -> Density {
         Density(1.0)
@@ -56,9 +60,11 @@ impl Element for Water {
     fn get_state_of_matter(&self) -> StateOfMatter {
         StateOfMatter::Liquid
     }
+    // Gray
     fn get_color(&self) -> Color {
-        Color::BLUE
+        Color::RED
     }
+    // Stone does nothing
     fn _process(
         &mut self,
         pos: JkVector,
@@ -67,21 +73,27 @@ impl Element for Water {
         element_grid_conv: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) -> ElementTakeOptions {
-        fluid_process(
-            self,
-            pos,
-            coord_dir,
-            target_chunk,
-            element_grid_conv,
-            current_time,
-        )
+        if self.get_temperature(coord_dir.get_cell_width()) < LAVA_STATE_TRANSITION_TEMPERATURE_K {
+            let mut stone = Stone::new(coord_dir.get_cell_width());
+            stone.set_heat(self.heat, current_time);
+            ElementTakeOptions::ReplaceWith(Box::new(stone))
+        } else {
+            fluid_process(
+                self,
+                pos,
+                coord_dir,
+                target_chunk,
+                element_grid_conv,
+                current_time,
+            )
+        }
     }
     fn box_clone(&self) -> Box<dyn Element> {
         Box::new(*self)
     }
 
     fn get_default_temperature(&self) -> ThermodynamicTemperature {
-        ROOM_TEMPERATURE_K
+        ThermodynamicTemperature(1500.0)
     }
 
     fn get_heat(&self) -> HeatEnergy {
@@ -99,14 +111,14 @@ impl Element for Water {
     }
 
     fn get_specific_heat(&self) -> SpecificHeat {
-        SpecificHeat(4.186)
+        SpecificHeat(840.0)
     }
 
     fn get_thermal_conductivity(&self) -> ThermalConductivity {
-        ThermalConductivity(0.606)
+        ThermalConductivity(1.0)
     }
 
     fn get_compressability(&self) -> Compressability {
-        Compressability(0.0)
+        Compressability(0.001)
     }
 }

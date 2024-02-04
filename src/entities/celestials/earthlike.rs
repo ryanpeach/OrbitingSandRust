@@ -105,7 +105,10 @@ impl EarthLikeBuilder {
                     let chunk_idx = ChunkIjkVector::new(layer_num, j, k);
                     let element_grid = element_grid_dir.get_chunk_by_chunk_ijk_mut(chunk_idx);
                     match total_j {
-                        0..=9 => {
+                        0..=3 => {
+                            element_grid.fill(ElementType::Lava);
+                        }
+                        4..=9 => {
                             element_grid.fill(ElementType::Stone);
                         }
                         10..=12 => {

@@ -203,7 +203,7 @@ pub struct PropogateHeat {
 
 impl PropogateHeat {
     /// Propogate the heat in the grid
-    pub fn propagate_heat(&self, element_grid: &mut ElementGrid) {
+    pub fn propagate_heat(&self, element_grid: &mut ElementGrid, current_time: Clock) {
         // Define the convolution kernel
         let laplace_kernel = Array2::from_shape_vec(
             (3, 3),
@@ -258,18 +258,19 @@ impl PropogateHeat {
         );
 
         // Apply the new heat energy to the elements
-        self.apply(element_grid, new_heat_energy);
+        self.apply(element_grid, new_heat_energy, current_time);
     }
 
     /// Apply the new heat energy grid to the elements
-    fn apply(&self, chunk: &mut ElementGrid, new_heat_energy: Array2<f32>) {
+    fn apply(&self, chunk: &mut ElementGrid, new_heat_energy: Array2<f32>, current_time: Clock) {
         for j in 0..self.temperature.dim().0 - 2 {
             for k in 0..self.temperature.dim().1 - 2 {
                 let elem = chunk.get_mut(JkVector::new(j, k));
                 if elem.get_specific_heat().0 == 0.0 {
                     continue;
                 }
-                elem.set_heat(HeatEnergy(new_heat_energy[[j, k]])).unwrap();
+                elem.set_heat(HeatEnergy(new_heat_energy[[j, k]]), current_time)
+                    .unwrap();
             }
         }
     }
