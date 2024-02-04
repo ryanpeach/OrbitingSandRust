@@ -1,4 +1,5 @@
 use bevy::math::Rect;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::physics::fallingsand::convolution::neighbor_grids::TopNeighborGrids;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
@@ -204,26 +205,21 @@ impl ElementGrid {
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) {
-        // let locked = self.get_process_unneeded(current_time);
-        // if locked {
-        //     return;
-        // }
-        let cell_width = coord_dir.get_cell_width();
+        self.process_elements(coord_dir, element_grid_conv_neigh, current_time);
+        self.process_heat(element_grid_conv_neigh);
+        self.process_mass(element_grid_conv_neigh);
+    }
 
-        // Process the cells in the grid
-        self.total_mass = Mass(0.0);
-        self.total_heat_capacity_at_atp = HeatCapacity(0.0);
-
+    /// Run each elements process method
+    #[allow(clippy::mem_replace_with_default)]
+    fn process_elements(
+        &mut self,
+        coord_dir: &CoordinateDir,
+        element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
+        current_time: Clock,
+    ) {
         // Calculate the mass of the grid as we go
-        let mut mass = Mass(0.0);
         let already_processed = self.get_already_processed();
-        let avg_neigh_temp = element_grid_conv_neigh.get_avg_temp();
-        let mut propogate_heat_builder = PropogateHeatBuilder::new(
-            self.coords.get_num_radial_lines(),
-            self.coords.get_num_concentric_circles(),
-            self.coords.get_cell_width(),
-            avg_neigh_temp,
-        );
         debug_assert!(!already_processed, "Already processed");
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {
@@ -257,29 +253,54 @@ impl ElementGrid {
                 //
                 match res {
                     ElementTakeOptions::PutBack => {
-                        let this_mass = element.get_mass(self.coords.get_cell_width());
-                        mass += this_mass;
-                        self.total_heat_capacity_at_atp +=
-                            element.get_specific_heat().heat_capacity(this_mass);
-                        self.total_mass += element.get_mass(cell_width);
-                        propogate_heat_builder.add(pos, &element);
                         self.grid.replace(pos, element);
                     }
                     ElementTakeOptions::ReplaceWith(new_element) => {
-                        let this_mass = new_element.get_mass(self.coords.get_cell_width());
-                        mass += this_mass;
-                        self.total_heat_capacity_at_atp +=
-                            new_element.get_specific_heat().heat_capacity(this_mass);
-                        self.total_mass += new_element.get_mass(cell_width);
-                        propogate_heat_builder.add(pos, &new_element);
                         self.grid.replace(pos, new_element);
                     }
                     ElementTakeOptions::DoNothing => {}
                 }
             }
         }
+    }
 
-        // Process the grid itself
+    /// Process the heat of the grid
+    fn process_heat(&mut self, element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors) {
+        self.total_heat = HeatEnergy(0.0);
+        self.total_heat_capacity_at_atp = HeatCapacity(0.0);
+        let avg_neigh_temp = element_grid_conv_neigh.get_avg_temp();
+        let mut propogate_heat_builder = PropogateHeatBuilder::new(
+            self.coords.get_num_radial_lines(),
+            self.coords.get_num_concentric_circles(),
+            self.coords.get_cell_width(),
+            avg_neigh_temp,
+        );
+        for j in 0..self.coords.get_num_concentric_circles() {
+            for k in 0..self.coords.get_num_radial_lines() {
+                let pos = JkVector { j, k };
+                let element = self.grid.get(pos);
+                let mass = element.get_mass(self.coords.get_cell_width());
+                let heat_capacity = element.get_specific_heat().heat_capacity(mass);
+                let heat = element.get_heat();
+
+                // Add to the top level variables
+                self.total_heat += heat;
+                self.total_heat_capacity_at_atp += heat_capacity;
+
+                // Add to the propogate heat builder
+                propogate_heat_builder.add(pos, element);
+            }
+        }
+        // Set the total mass above
+        propogate_heat_builder.total_mass_above(self.total_mass_above);
+
+        // Now build and propogate updates to the element grid
+        let propogate_heat = propogate_heat_builder.build();
+        propogate_heat.propagate_heat(self);
+    }
+
+    /// Process the mass of the grid and the mass above the grid
+    fn process_mass(&mut self, element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors) {
         self.total_mass_above = {
             match &element_grid_conv_neigh.grids.top {
                 TopNeighborGrids::Normal { t, .. } => t.get_total_mass_above() + t.get_total_mass(),
@@ -292,14 +313,20 @@ impl ElementGrid {
                 TopNeighborGrids::TopOfGrid => Mass(0.0),
             }
         };
-
-        // Propogate heat
-        propogate_heat_builder.total_mass_above(self.total_mass_above);
-        let propogate_heat = propogate_heat_builder.build();
-        propogate_heat.propagate_heat(self);
-
-        // Set the total mass
-        self.total_mass = mass;
+        self.total_mass = (0..self.coords.get_num_concentric_circles())
+            .into_par_iter()
+            .map(|j| -> Mass {
+                (0..self.coords.get_num_radial_lines())
+                    .into_par_iter()
+                    .map(|k| {
+                        let pos = JkVector { j, k };
+                        let element = self.grid.get(pos);
+                        let mass = element.get_mass(self.coords.get_cell_width());
+                        mass
+                    })
+                    .sum()
+            })
+            .sum()
     }
 }
 
