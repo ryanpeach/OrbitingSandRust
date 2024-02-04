@@ -234,11 +234,11 @@ impl CoordinateDir {
     pub fn get_outlines(&self) -> Vec<Grid<Vec<Vec2>>> {
         let mut outlines = Vec::new();
         for layer in &self.partial_chunks {
-            let new_grid = Grid::new(
+            let new_grid = Grid::new_from_vec(
                 layer.get_width(),
                 layer.get_height(),
                 layer
-                    .get_data()
+                    .get_data_slice()
                     .iter()
                     .map(|partial_chunk| partial_chunk.get_outline())
                     .collect(),
@@ -250,11 +250,11 @@ impl CoordinateDir {
     pub fn get_vertexes(&self, mode: VertexMode) -> Vec<Grid<Vec<Vertex>>> {
         let mut vertexes = Vec::new();
         for layer in &self.partial_chunks {
-            let new_grid = Grid::new(
+            let new_grid = Grid::new_from_vec(
                 layer.get_width(),
                 layer.get_height(),
                 layer
-                    .get_data()
+                    .get_data_slice()
                     .iter()
                     .map(|partial_chunk| partial_chunk.get_vertices(mode))
                     .collect(),
@@ -267,11 +267,11 @@ impl CoordinateDir {
     pub fn get_positions(&self, mode: VertexMode) -> Vec<Grid<Vec<Vec2>>> {
         let mut positions = Vec::new();
         for layer in &self.partial_chunks {
-            let new_grid = Grid::new(
+            let new_grid = Grid::new_from_vec(
                 layer.get_width(),
                 layer.get_height(),
                 layer
-                    .get_data()
+                    .get_data_slice()
                     .iter()
                     .map(|partial_chunk| partial_chunk.get_positions(mode))
                     .collect(),
@@ -284,11 +284,11 @@ impl CoordinateDir {
     pub fn get_uvs(&self, mode: VertexMode) -> Vec<Grid<Vec<Vec2>>> {
         let mut uvs = Vec::new();
         for layer in &self.partial_chunks {
-            let new_grid = Grid::new(
+            let new_grid = Grid::new_from_vec(
                 layer.get_width(),
                 layer.get_height(),
                 layer
-                    .get_data()
+                    .get_data_slice()
                     .iter()
                     .map(|partial_chunk| partial_chunk.get_uvs(mode))
                     .collect(),
@@ -301,11 +301,11 @@ impl CoordinateDir {
     pub fn get_indices(&self, mode: VertexMode) -> Vec<Grid<Vec<u32>>> {
         let mut indices = Vec::new();
         for layer in &self.partial_chunks {
-            let new_grid = Grid::new(
+            let new_grid = Grid::new_from_vec(
                 layer.get_width(),
                 layer.get_height(),
                 layer
-                    .get_data()
+                    .get_data_slice()
                     .iter()
                     .map(|partial_chunk| partial_chunk.get_indices(mode))
                     .collect(),
@@ -318,11 +318,11 @@ impl CoordinateDir {
     pub fn get_chunk_bounding_boxes(&self) -> Vec<Grid<Rect>> {
         let mut bounding_boxes = Vec::new();
         for layer in &self.partial_chunks {
-            let new_grid = Grid::new(
+            let new_grid = Grid::new_from_vec(
                 layer.get_width(),
                 layer.get_height(),
                 layer
-                    .get_data()
+                    .get_data_slice()
                     .iter()
                     .map(|partial_chunk| partial_chunk.get_bounding_box())
                     .collect(),
@@ -655,11 +655,11 @@ impl CoordinateDir {
 
         // Get the data for partial_chunks
         for layer in &self.partial_chunks {
-            let new_grid = Grid::new(
+            let new_grid = Grid::new_from_vec(
                 layer.get_width(),
                 layer.get_height(),
                 layer
-                    .get_data()
+                    .get_data_slice()
                     .iter()
                     .map(|chunk| match draw_mode {
                         MeshDrawMode::TexturedMesh => chunk.calc_chunk_meshdata(),

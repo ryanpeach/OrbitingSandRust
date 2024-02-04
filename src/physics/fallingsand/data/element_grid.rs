@@ -67,7 +67,7 @@ impl ElementGrid {
                 .heat_energy(fill.get_heat_capacity());
         }
         Self {
-            grid: Grid::new(
+            grid: Grid::new_from_vec(
                 chunk_coords.get_num_radial_lines(),
                 chunk_coords.get_num_concentric_circles(),
                 grid,
