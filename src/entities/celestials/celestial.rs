@@ -12,6 +12,7 @@ use bevy::ecs::query::{With, Without};
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
+use bevy::log::trace;
 use bevy::math::{Vec2, Vec3};
 use bevy::prelude::SpatialBundle;
 use bevy::render::mesh::Mesh;
@@ -164,8 +165,8 @@ impl CelestialData {
                         .load_bevy_mesh(meshes);
 
                     let textures = textures.remove(&chunk_ijk).unwrap();
-                    let heat_material = textures.heat_texture.to_bevy_image();
-                    let sand_material = textures.texture.to_bevy_image();
+                    let heat_material = textures.heat_texture.unwrap().to_bevy_image();
+                    let sand_material = textures.texture.unwrap().to_bevy_image();
 
                     // Create the falling sand material
                     let chunk = commands
@@ -262,7 +263,7 @@ impl CelestialData {
         frame: Res<FrameCount>,
     ) {
         for (celestial_id, mut celestial, mut mass) in celestial.iter_mut() {
-            let mut new_textures =
+            let mut new_textures: HashMap<ChunkIjkVector, Textures> =
                 celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
             mass.0 = celestial.get_element_dir().get_total_mass().0;
             debug_assert_ne!(mass.0, 0.0, "Celestial mass is 0");
@@ -272,9 +273,11 @@ impl CelestialData {
                 if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
                     let material = materials.get_mut(&*material_handle).unwrap();
                     let new_texture = new_textures
-                        .remove(&chunk_ijk.0)
+                        .get_mut(&chunk_ijk.0)
                         .unwrap()
                         .texture
+                        .take()
+                        .unwrap()
                         .to_bevy_image();
                     material.texture = Some(asset_server.add(new_texture));
                 }
@@ -285,9 +288,11 @@ impl CelestialData {
                 if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
                     let material = materials.get_mut(&*material_handle).unwrap();
                     let new_texture = new_textures
-                        .remove(&chunk_ijk.0)
+                        .get_mut(&chunk_ijk.0)
                         .unwrap()
                         .heat_texture
+                        .take()
+                        .unwrap()
                         .to_bevy_image();
                     material.texture = Some(asset_server.add(new_texture));
                 }

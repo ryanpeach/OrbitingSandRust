@@ -23,11 +23,12 @@ use rayon::prelude::*;
 const FRAMES_PER_FULL_PROCESS: usize = 9;
 
 /// A struct of textures for use in rendering
+/// These are options so you can take them out of the struct and use them elsewhere
 pub struct Textures {
     /// The actual texture of the elements
-    pub texture: RawImage,
+    pub texture: Option<RawImage>,
     /// The texture of the heat
-    pub heat_texture: RawImage,
+    pub heat_texture: Option<RawImage>,
 }
 
 /// Useful for indicating at compile time that an iterable should be ran in parallel
@@ -650,8 +651,8 @@ impl ElementGridDir {
                 (
                     target,
                     Textures {
-                        texture: chunk.get_texture(),
-                        heat_texture: chunk.get_heat_texture(max_temp),
+                        texture: Some(chunk.get_texture()),
+                        heat_texture: Some(chunk.get_heat_texture(max_temp)),
                     },
                 )
             })
@@ -861,8 +862,8 @@ impl ElementGridDir {
                     out.insert(
                         coord,
                         Textures {
-                            texture: tex,
-                            heat_texture: heat_tex,
+                            texture: Some(tex),
+                            heat_texture: Some(heat_tex),
                         },
                     );
                 }
