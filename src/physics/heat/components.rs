@@ -100,7 +100,7 @@ impl HeatEnergy {
 pub struct ThermodynamicTemperature(pub f32);
 
 impl ThermodynamicTemperature {
-    const MIN_RED: f32 = 0.1;
+    const MIN_RED: f32 = 0.5;
     const MAX_RED: f32 = 1.0;
 
     /// Returns the color of the system.
@@ -129,7 +129,7 @@ impl ThermodynamicTemperature {
         // Interpolate the red value logarithmically between MIN_RED and MAX_RED
         let red = Self::MIN_RED + (Self::MAX_RED - Self::MIN_RED) * normalized_log_pos;
 
-        Color::rgba(red, 0.0, 0.0, 1.0)
+        Color::rgba(1.0, 0.0, 0.0, red)
     }
 
     /// Returns the heat energy of the system.
