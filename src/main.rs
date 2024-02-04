@@ -145,7 +145,7 @@ fn planet_only_setup(
             camera_2d: Camera2d {
                 clear_color: ClearColorConfig::Custom(Color::rgb(0.0, 0.0, 0.0)),
             },
-            transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0) * 100.0),
+            transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0) * 1.0),
             ..Default::default()
         })
         .id();

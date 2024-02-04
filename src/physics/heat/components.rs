@@ -3,7 +3,7 @@
 
 use std::time::Duration;
 
-use bevy::{ecs::component::Component, render::color::Color};
+use bevy::{ecs::component::Component, render::color::Color, ui::debug};
 use derive_more::{Add, AddAssign, From, Into, Sub, SubAssign};
 use ndarray::Array2;
 
@@ -100,16 +100,36 @@ impl HeatEnergy {
 pub struct ThermodynamicTemperature(pub f32);
 
 impl ThermodynamicTemperature {
-    /// The maximum alpha value for the color of the system.
-    /// So you can see the material behind it
-    const TEMP_MAX_ALPHA: f32 = 0.5;
+    const MIN_RED: f32 = 0.1;
+    const MAX_RED: f32 = 1.0;
 
     /// Returns the color of the system.
-    pub fn color(&self, max_temp: ThermodynamicTemperature) -> Color {
-        let red = 1.0;
+    pub fn color(
+        &self,
+        max_temp: ThermodynamicTemperature,
+        min_temp: ThermodynamicTemperature,
+    ) -> Color {
         debug_assert_ne!(max_temp.0, 0.0, "max_temp cannot be zero");
-        let alpha = self.0 / max_temp.0;
-        Color::rgba(red, 0.0, 0.0, alpha * Self::TEMP_MAX_ALPHA)
+        debug_assert_ne!(min_temp.0, 0.0, "min_temp cannot be zero");
+        debug_assert!(
+            max_temp.0 > min_temp.0,
+            "max_temp must be greater than min_temp"
+        );
+        if self.0 == 0.0 {
+            return Color::rgba(0.0, 0.0, 0.0, 0.0);
+        }
+
+        let min_temp_log = min_temp.0.log(10.0);
+        let max_temp_log = max_temp.0.log(10.0);
+        let temp_log = self.0.log(10.0);
+
+        // Calculate the normalized logarithmic position of the system's temperature
+        let normalized_log_pos = (temp_log - min_temp_log) / (max_temp_log - min_temp_log);
+
+        // Interpolate the red value logarithmically between MIN_RED and MAX_RED
+        let red = Self::MIN_RED + (Self::MAX_RED - Self::MIN_RED) * normalized_log_pos;
+
+        Color::rgba(red, 0.0, 0.0, 1.0)
     }
 
     /// Returns the heat energy of the system.

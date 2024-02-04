@@ -395,7 +395,12 @@ impl ElementGrid {
 
     /// Get the texture of the grid as to its heat
     /// max_temp is the maximum temperature of the entire directory
-    pub fn get_heat_texture(&self, max_temp: ThermodynamicTemperature) -> RawImage {
+    /// min_temp is the minimum temperature of the entire directory
+    pub fn get_heat_texture(
+        &self,
+        max_temp: ThermodynamicTemperature,
+        min_temp: ThermodynamicTemperature,
+    ) -> RawImage {
         let mut out = Vec::with_capacity(
             self.coords.get_num_radial_lines() * self.coords.get_num_concentric_circles() * 4,
         );
@@ -406,7 +411,7 @@ impl ElementGrid {
                 let color = element
                     .get_heat()
                     .temperature(element.get_specific_heat().heat_capacity(mass))
-                    .color(max_temp)
+                    .color(max_temp, min_temp)
                     .as_rgba_u8();
                 out.push(color[0]);
                 out.push(color[1]);
