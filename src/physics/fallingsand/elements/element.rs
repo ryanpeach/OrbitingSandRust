@@ -115,16 +115,16 @@ pub enum ElementType {
 
 impl ElementType {
     /// This gets the default element of the type
-    pub fn get_element(&self) -> Box<dyn Element> {
+    pub fn get_element(&self, cell_width: Length) -> Box<dyn Element> {
         match self {
             ElementType::Vacuum => Box::<Vacuum>::default(),
-            ElementType::Sand => Box::<Sand>::default(),
             ElementType::DownFlier => Box::<DownFlier>::default(),
             ElementType::LeftFlier => Box::<LeftFlier>::default(),
             ElementType::RightFlier => Box::<RightFlier>::default(),
-            ElementType::Stone => Box::<Stone>::default(),
-            ElementType::SolarPlasma => Box::<SolarPlasma>::default(),
-            ElementType::Water => Box::<Water>::default(),
+            ElementType::Sand => Box::<Sand>::new(Sand::new(cell_width)),
+            ElementType::Stone => Box::<Stone>::new(Stone::new(cell_width)),
+            ElementType::Water => Box::<Water>::new(Water::new(cell_width)),
+            ElementType::SolarPlasma => Box::<SolarPlasma>::new(SolarPlasma::new(cell_width)),
         }
     }
 }
@@ -250,6 +250,8 @@ mod tests {
     use bevy::render::color::Color;
     use strum::IntoEnumIterator;
 
+    use crate::physics::heat::components::Length;
+
     use super::ElementType;
 
     /// This tests that all elements have different colors
@@ -258,7 +260,7 @@ mod tests {
     fn test_all_elements_have_different_color() {
         let mut colors = Vec::<Color>::new();
         for element_type in ElementType::iter() {
-            let color = element_type.get_element().get_color();
+            let color = element_type.get_element(Length(1.0)).get_color();
             assert!(
                 !colors.contains(&color),
                 "Color {:?} of element {:?} is not unique",
@@ -287,7 +289,7 @@ mod tests {
     #[test]
     fn test_all_types_and_elements_correspond() {
         for element_type in ElementType::iter() {
-            let element = element_type.get_element();
+            let element = element_type.get_element(Length(1.0));
             assert_eq!(
                 element_type,
                 element.get_type(),

@@ -2,7 +2,7 @@
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
-use bevy::{time::Time, ui::debug};
+use bevy::{log::trace, time::Time, ui::debug};
 use ndarray::{s, Array2};
 use ndarray_conv::*;
 
@@ -21,7 +21,7 @@ use crate::physics::{
     util::clock::Clock,
 };
 
-use super::components::{Length, ThermodynamicTemperature};
+use super::components::{HeatEnergy, Length, ThermodynamicTemperature};
 
 pub struct PropogateHeatBuilder {
     cell_width: Length,
@@ -37,12 +37,12 @@ pub struct PropogateHeatBuilder {
 impl PropogateHeatBuilder {
     /// Create a new heat propogation system with the given width and height
     /// All the arrays will be initialized to 0
-    pub fn new(width: usize, height: usize, cell_width: Length) -> Self {
-        let temperature = Array2::from_elem((width + 2, height + 2), 0.0);
-        let thermal_conductivity = Array2::from_elem((width, height), 0.0);
-        let specific_heat_capacity = Array2::from_elem((width, height), 0.0);
-        let density = Array2::from_elem((width, height), 0.0);
-        let compressability = Array2::from_elem((width, height), 0.0);
+    pub fn new(height: usize, width: usize, cell_width: Length) -> Self {
+        let temperature = Array2::from_elem((height + 2, width + 2), 0.0);
+        let thermal_conductivity = Array2::from_elem((height, width), 0.0);
+        let specific_heat_capacity = Array2::from_elem((height, width), 0.0);
+        let density = Array2::from_elem((height, width), 0.0);
+        let compressability = Array2::from_elem((height, width), 0.0);
         let time = Clock::default();
         Self {
             cell_width,
@@ -57,12 +57,13 @@ impl PropogateHeatBuilder {
         }
     }
 
+    /// Add an element to the heat propogation system
     pub fn add(&mut self, jk_vector: JkVector, elem: &Box<dyn Element>) {
         let density = elem.get_density();
         let specific_heat = elem.get_specific_heat();
         let mass = density.mass(self.cell_width);
         let heat_capacity = specific_heat.heat_capacity(mass);
-        self.temperature[[jk_vector.j as usize, jk_vector.k as usize]] =
+        self.temperature[[jk_vector.j as usize + 1, jk_vector.k as usize + 1]] =
             elem.get_heat().temperature(heat_capacity).0;
         self.thermal_conductivity[[jk_vector.j as usize, jk_vector.k as usize]] =
             elem.get_thermal_conductivity().0;
@@ -233,6 +234,8 @@ impl PropogateHeat {
                     &self.density,
                     self.total_mass_above,
                 ));
+        // Replace all Nans with zero because anything that has specific heat capacity 0 also has 0 thermal conductivity
+        let alpha = alpha.mapv(|x| if x.is_finite() { x } else { 0.0 });
         let delta_temperature =
             alpha * second_gradient_temperature * self.time.get_last_delta().as_secs_f32();
 
@@ -243,7 +246,7 @@ impl PropogateHeat {
         );
 
         // calculate the new temperature
-        let new_temp = &self.temperature + &delta_temperature;
+        let new_temp = &self.temperature.slice(s![1..-1, 1..-1]) + &delta_temperature;
 
         // Convert to heat
         let new_heat_energy = ThermodynamicTemperature::matrix_heat_energy(
@@ -260,17 +263,13 @@ impl PropogateHeat {
 
     /// Apply the new heat energy grid to the elements
     fn apply(&self, chunk: &mut ElementGrid, new_heat_energy: Array2<f32>) {
-        for j in 0..self.temperature.dim().0 {
-            for k in 0..self.temperature.dim().1 {
+        for j in 0..self.temperature.dim().0 - 2 {
+            for k in 0..self.temperature.dim().1 - 2 {
                 let elem = chunk.get_mut(JkVector::new(j, k));
-                let specific_heat = elem.get_specific_heat();
-                if specific_heat.0 == 0.0 {
+                if elem.get_specific_heat().0 == 0.0 {
                     continue;
                 }
-                let temperature = ThermodynamicTemperature(self.temperature[[j, k]]);
-                let mass = elem.get_density().mass(self.cell_width);
-                let heat = temperature.heat_energy(specific_heat.heat_capacity(mass));
-                elem.set_heat(heat).unwrap();
+                elem.set_heat(HeatEnergy(new_heat_energy[[j, k]])).unwrap();
             }
         }
     }

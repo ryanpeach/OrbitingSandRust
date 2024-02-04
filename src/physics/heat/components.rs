@@ -69,6 +69,9 @@ pub struct HeatCapacity(pub f32);
 impl HeatCapacity {
     /// Returns the temperature of the system.
     pub fn temperature(&self, heat_energy: HeatEnergy) -> ThermodynamicTemperature {
+        if self.0 == 0.0 {
+            return ThermodynamicTemperature(0.0);
+        }
         ThermodynamicTemperature(heat_energy.0 / self.0)
     }
 }
@@ -81,6 +84,9 @@ pub struct HeatEnergy(pub f32);
 impl HeatEnergy {
     /// Returns the temperature of the system.
     pub fn temperature(&self, heat_capacity: HeatCapacity) -> ThermodynamicTemperature {
+        if heat_capacity.0 == 0.0 {
+            return ThermodynamicTemperature(0.0);
+        }
         ThermodynamicTemperature(self.0 / heat_capacity.0)
     }
 }
@@ -94,12 +100,16 @@ impl HeatEnergy {
 pub struct ThermodynamicTemperature(pub f32);
 
 impl ThermodynamicTemperature {
+    /// The maximum alpha value for the color of the system.
+    /// So you can see the material behind it
+    const TEMP_MAX_ALPHA: f32 = 0.5;
+
     /// Returns the color of the system.
     pub fn color(&self, max_temp: ThermodynamicTemperature) -> Color {
         let red = 1.0;
         debug_assert_ne!(max_temp.0, 0.0, "max_temp cannot be zero");
         let alpha = self.0 / max_temp.0;
-        Color::rgba(red, 0.0, 0.0, alpha)
+        Color::rgba(red, 0.0, 0.0, alpha * Self::TEMP_MAX_ALPHA)
     }
 
     /// Returns the heat energy of the system.

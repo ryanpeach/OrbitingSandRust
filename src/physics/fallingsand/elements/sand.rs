@@ -8,17 +8,35 @@ use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::heat::components::{
-    HeatEnergy, SpecificHeat, ThermalConductivity, ThermodynamicTemperature, ROOM_TEMPERATURE_K,
+    HeatEnergy, Length, SpecificHeat, ThermalConductivity, ThermodynamicTemperature,
+    ROOM_TEMPERATURE_K,
 };
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
 use rand::Rng;
 
 /// Literally nothing
-#[derive(Default, Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct Sand {
     last_processed: Clock,
     heat: HeatEnergy,
+}
+
+impl Sand {
+    /// Create a new sand element
+    pub fn new(cell_width: Length) -> Self {
+        let mut out = Self {
+            last_processed: Clock::default(),
+            heat: HeatEnergy::default(),
+        };
+        out.set_heat(
+            out.get_default_temperature().heat_energy(
+                out.get_specific_heat()
+                    .heat_capacity(out.get_density().mass(cell_width)),
+            ),
+        );
+        out
+    }
 }
 
 impl Element for Sand {
@@ -257,7 +275,7 @@ mod tests {
             // Set the bottom right to sand
             {
                 let chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc1.0);
-                let sand = Sand::default();
+                let sand = Sand::new(Length(1.0));
                 chunk.set(loc1.1, Box::new(sand), clock);
             }
 

@@ -1,3 +1,4 @@
+use bevy::log::error;
 use bevy::math::Rect;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
@@ -58,19 +59,11 @@ impl ElementGrid {
         let mut grid: Vec<Box<dyn Element>> = Vec::with_capacity(
             chunk_coords.get_num_radial_lines() * chunk_coords.get_num_concentric_circles(),
         );
-        let mut total_mass = Mass(0.0);
-        let mut total_heat_capacity_at_atp = HeatCapacity(0.0);
-        let mut total_heat = HeatEnergy(0.0);
         for _ in 0..chunk_coords.get_num_radial_lines() * chunk_coords.get_num_concentric_circles()
         {
             grid.push(fill.box_clone());
-            let mass = fill.get_mass(chunk_coords.get_cell_width());
-            total_mass += mass;
-            let heat_capacity = fill.get_specific_heat().heat_capacity(mass);
-            total_heat_capacity_at_atp += heat_capacity;
-            total_heat += fill.get_default_temperature().heat_energy(heat_capacity);
         }
-        Self {
+        let mut out = Self {
             grid: Grid::new_from_vec(
                 chunk_coords.get_num_radial_lines(),
                 chunk_coords.get_num_concentric_circles(),
@@ -79,13 +72,13 @@ impl ElementGrid {
             coords: chunk_coords,
             already_processed: false,
             last_set: Clock::default(),
-            total_mass,
-            total_heat_capacity_at_atp,
-            total_heat,
-
-            // These will get calculated in the process function
+            total_mass: Mass(0.0),
+            total_heat_capacity_at_atp: HeatCapacity(0.0),
+            total_heat: HeatEnergy(0.0),
             total_mass_above: Mass(0.0),
-        }
+        };
+        out.recalculate_everything();
+        out
     }
 }
 
@@ -123,7 +116,7 @@ impl ElementGrid {
     }
 
     /// Recalculate the total mass
-    pub fn recalculate_total_mass(&mut self) -> Mass {
+    pub fn recalculate_total_mass(&mut self) {
         let mut mass = Mass(0.0);
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {
@@ -132,7 +125,33 @@ impl ElementGrid {
             }
         }
         self.total_mass = mass;
-        self.total_mass
+    }
+
+    /// Recalculate the heat values
+    pub fn recalculate_heat(&mut self) {
+        let mut heat = HeatEnergy(0.0);
+        let mut heat_capacity = HeatCapacity(0.0);
+        for j in 0..self.coords.get_num_concentric_circles() {
+            for k in 0..self.coords.get_num_radial_lines() {
+                let pos = JkVector { j, k };
+                let element = self.grid.get(pos);
+                let mass = element.get_mass(self.coords.get_cell_width());
+                let this_heat_capacity = element.get_specific_heat().heat_capacity(mass);
+                let this_heat = element.get_heat();
+
+                // Add to the top level variables
+                heat += this_heat;
+                heat_capacity += this_heat_capacity;
+            }
+        }
+        self.total_heat = heat;
+        self.total_heat_capacity_at_atp = heat_capacity;
+    }
+
+    /// Recalculate everything without processing
+    pub fn recalculate_everything(&mut self) {
+        self.recalculate_total_mass();
+        self.recalculate_heat();
     }
 
     /// Does not calculate the total mass, just gets the set value of it
@@ -144,10 +163,19 @@ impl ElementGrid {
     pub fn get_total_heat_capacity(&self) -> HeatCapacity {
         self.total_heat_capacity_at_atp
     }
+
+    /// Get the total heat
+    pub fn get_total_heat(&self) -> HeatEnergy {
+        self.total_heat
+    }
+
     /// Get temperature
     /// Assume total_mass_above correlates to pressure
     pub fn get_temperature(&self) -> ThermodynamicTemperature {
-        ThermodynamicTemperature(self.total_heat.0 / self.get_total_heat_capacity().0)
+        if self.get_total_heat_capacity().0 == 0.0 {
+            return ThermodynamicTemperature(0.0);
+        }
+        ThermodynamicTemperature(self.get_total_heat().0 / self.get_total_heat_capacity().0)
     }
     pub fn get_process_unneeded(&self, current_time: Clock) -> bool {
         self.last_set.get_current_frame() < current_time.get_current_frame() - 1
@@ -189,7 +217,8 @@ impl ElementGrid {
         for j in 0..self.get_chunk_coords().get_num_concentric_circles() {
             for k in 0..self.get_chunk_coords().get_num_radial_lines() {
                 let pos = JkVector { j, k };
-                self.grid.replace(pos, element.get_element());
+                self.grid
+                    .replace(pos, element.get_element(self.coords.get_cell_width()));
             }
         }
     }
@@ -269,8 +298,8 @@ impl ElementGrid {
         self.total_heat = HeatEnergy(0.0);
         self.total_heat_capacity_at_atp = HeatCapacity(0.0);
         let mut propogate_heat_builder = PropogateHeatBuilder::new(
-            self.coords.get_num_radial_lines(),
             self.coords.get_num_concentric_circles(),
+            self.coords.get_num_radial_lines(),
             self.coords.get_cell_width(),
         );
         let avg_neigh_temp = element_grid_conv_neigh.get_avg_temp();

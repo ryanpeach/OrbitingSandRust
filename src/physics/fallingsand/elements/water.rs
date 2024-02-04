@@ -7,17 +7,35 @@ use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::heat::components::{
-    HeatEnergy, SpecificHeat, ThermalConductivity, ThermodynamicTemperature, ROOM_TEMPERATURE_K,
+    HeatEnergy, Length, SpecificHeat, ThermalConductivity, ThermodynamicTemperature,
+    ROOM_TEMPERATURE_K,
 };
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
 use rand::Rng;
 
 /// Literally nothing
-#[derive(Default, Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct Water {
     last_processed: Clock,
     heat: HeatEnergy,
+}
+
+impl Water {
+    /// Create a new Water
+    pub fn new(cell_width: Length) -> Self {
+        let mut out = Self {
+            last_processed: Clock::default(),
+            heat: HeatEnergy::default(),
+        };
+        out.set_heat(
+            out.get_default_temperature().heat_energy(
+                out.get_specific_heat()
+                    .heat_capacity(out.get_density().mass(cell_width)),
+            ),
+        );
+        out
+    }
 }
 
 impl Element for Water {
