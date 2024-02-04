@@ -9,8 +9,11 @@ use crate::physics::fallingsand::convolution::neighbor_identifiers::ConvolutionI
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
-use crate::physics::heat::components::{HeatCapacity, HeatEnergy, ThermodynamicTemperature};
+use crate::physics::heat::components::{
+    HeatEnergy, Length, SpecificHeat, ThermalConductivity, ThermodynamicTemperature,
+};
 use crate::physics::orbits::components::Mass;
+use crate::physics::orbits::nbody::{Force, G};
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
 use strum_macros::EnumIter;
@@ -32,8 +35,27 @@ pub struct Density(pub f32);
 
 impl Density {
     /// This gets the mass of the element based on the cell_width
-    pub fn get_mass(&self, cell_width: f32) -> Mass {
-        Mass(self.0 * cell_width.powi(2))
+    pub fn get_mass(&self, cell_width: Length) -> Mass {
+        Mass(self.0 * cell_width.area().0)
+    }
+}
+
+/// The compressability of the element
+/// In units of dm^2/N
+#[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd, Add, Sub)]
+pub struct Compressability(pub f32);
+
+impl Compressability {
+    /// This gets the density of the element based on the force applied to it
+    pub fn get_density(&self, original_density: Density, force: Force) -> Density {
+        original_density + Density(force.0 * self.0)
+    }
+    /// This gets the density of the element based on the force applied to it
+    /// by proxy of using the mass of the elements above it and a perportionality constant
+    /// Very much an approximation, but much faster for the simulation
+    pub fn get_density_from_mass(&self, original_density: Density, mass_above: Mass) -> Density {
+        const PERPORTIONALITY_CONSTANT: f32 = 1.0;
+        original_density + Density(mass_above.0 * self.0 * PERPORTIONALITY_CONSTANT)
     }
 }
 
@@ -90,8 +112,8 @@ impl ElementType {
     }
 }
 
-/// If something has 0 heat capacity, you should not set its heat
-pub struct SetHeatOnZeroHeatCapacityError;
+/// If something has 0 heat capacity or specific heat, you should not set its heat
+pub struct SetHeatOnZeroSpecificHeatError;
 
 /// This is the trait that all elements must implement
 pub trait Element: Send + Sync {
@@ -110,10 +132,14 @@ pub trait Element: Send + Sync {
     fn get_heat(&self) -> HeatEnergy;
     /// This sets the heat of the element
     /// Do not call this if the heat capacity is 0
-    fn set_heat(&mut self, heat: HeatEnergy) -> Result<(), SetHeatOnZeroHeatCapacityError>;
-    /// This gets the heat capacity of the element at atp
+    fn set_heat(&mut self, heat: HeatEnergy) -> Result<(), SetHeatOnZeroSpecificHeatError>;
+    /// This gets the specific heat capacity of the element at atp
     /// Usually constant
-    fn get_heat_capacity(&self) -> HeatCapacity;
+    fn get_specific_heat(&self) -> SpecificHeat;
+    /// This gets the thermal conductivity of the element at atp
+    /// Usually constant
+    /// Source: https://www.engineeringtoolbox.com/thermal-conductivity-d_429.html
+    fn get_thermal_conductivity(&self) -> ThermalConductivity;
     /// This is a convienence function that gets the "default" temperature of an element
     /// For example, lava should start out hot, ice cold, etc.
     /// This answers the question "how hot is the element when it is created?"
@@ -123,8 +149,11 @@ pub trait Element: Send + Sync {
     /// This is so bigger cells have more mass, so we don't have to have as many cells
     /// for simpler bodies, like gas giants or the sun
     fn get_density(&self) -> Density;
+    /// This gets the compressibility of the element under pressure
+    /// Usually constant
+    fn get_compressability(&self) -> Compressability;
     /// This gets the mass of the element based on the density and the cell_width
-    fn get_mass(&self, cell_width: f32) -> Mass {
+    fn get_mass(&self, cell_width: Length) -> Mass {
         self.get_density().get_mass(cell_width)
     }
     /// This gets the state of matter of the element

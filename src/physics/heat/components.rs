@@ -1,13 +1,71 @@
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
-use bevy::{ecs::component::Component, log::trace, render::color::Color, utils::error};
-use derive_more::{Add, AddAssign, Sub, SubAssign};
+use std::time::Duration;
 
-/// The amount of heat energy required to raise the temperature of a system by one degree.
-/// Measured in joules per Kelvin.
+use bevy::{ecs::component::Component, render::color::Color};
+use derive_more::{Add, AddAssign, From, Into, Sub, SubAssign};
+
+use crate::physics::orbits::components::Mass;
+
+/// The length of a system in meters.
+#[derive(Component, Default, Clone, Copy, Debug, Add, Sub, AddAssign, SubAssign, From, Into)]
+pub struct Length(pub f32);
+
+impl Length {
+    /// Returns the volume of the system.
+    pub fn area(&self) -> Area {
+        Area(self.0 * self.0)
+    }
+}
+
+/// The area of a system in square meters.
+#[derive(Component, Default, Clone, Copy, Debug, Add, Sub, AddAssign, SubAssign)]
+pub struct Area(pub f32);
+
+impl Area {
+    /// Returns the volume of the system.
+    pub fn from_length(length: Length) -> Self {
+        Area(length.0 * length.0)
+    }
+}
+
+/// The amount of heat energy required to raise 1 kilogram of the substance by one degree.
+/// Measured in joules per kilogram per degree celsius.
+#[derive(Component, Default, Clone, Copy, Debug, Add, Sub, AddAssign, SubAssign)]
+pub struct SpecificHeat(pub f32);
+
+impl SpecificHeat {
+    /// Returns the heat capacity of the system.
+    pub fn heat_capacity(&self, mass: Mass) -> HeatCapacity {
+        HeatCapacity(self.0 * mass.0)
+    }
+}
+
+/// Thermal Conductivity
+/// The ability of a material to conduct heat.
+/// Measured in watts per meter per degree celsius.
+#[derive(Component, Default, Clone, Copy, Debug, Add, Sub, AddAssign, SubAssign)]
+pub struct ThermalConductivity(pub f32);
+
+impl ThermalConductivity {
+    /// Returns the heat capacity of the system.
+    pub fn heat_capacity(&self, cell_width: Length, dt: Duration) -> HeatCapacity {
+        HeatCapacity(self.0 * cell_width.0 * dt.as_secs_f32())
+    }
+}
+
+/// The amount of heat energy required to raise the temperature of a system.
+/// Measured in joules per degree celsius.
 #[derive(Component, Default, Clone, Copy, Debug, Add, Sub, AddAssign, SubAssign)]
 pub struct HeatCapacity(pub f32);
+
+impl HeatCapacity {
+    /// Returns the temperature of the system.
+    pub fn temperature(&self, heat_energy: HeatEnergy) -> ThermodynamicTemperature {
+        ThermodynamicTemperature(heat_energy.0 / self.0)
+    }
+}
 
 /// The amount of heat energy in a system.
 /// Measured in joules.

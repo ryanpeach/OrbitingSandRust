@@ -1,12 +1,14 @@
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::elements::element::{
-    Density, Element, ElementTakeOptions, ElementType, SetHeatOnZeroHeatCapacityError,
-    StateOfMatter,
+    Compressability, Density, Element, ElementTakeOptions, ElementType,
+    SetHeatOnZeroSpecificHeatError, StateOfMatter,
 };
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
-use crate::physics::heat::components::{HeatCapacity, HeatEnergy, ThermodynamicTemperature};
+use crate::physics::heat::components::{
+    HeatEnergy, SpecificHeat, ThermalConductivity, ThermodynamicTemperature,
+};
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
 
@@ -72,22 +74,34 @@ impl Element for RightFlier {
         HeatEnergy(0.0)
     }
 
-    fn set_heat(&mut self, heat: HeatEnergy) -> Result<(), SetHeatOnZeroHeatCapacityError> {
-        Err(SetHeatOnZeroHeatCapacityError)
+    fn set_heat(&mut self, heat: HeatEnergy) -> Result<(), SetHeatOnZeroSpecificHeatError> {
+        Err(SetHeatOnZeroSpecificHeatError)
     }
 
     fn get_default_temperature(&self) -> ThermodynamicTemperature {
         ThermodynamicTemperature(0.0)
     }
-    fn get_heat_capacity(&self) -> HeatCapacity {
-        HeatCapacity(0.0)
+    fn get_specific_heat(&self) -> SpecificHeat {
+        SpecificHeat(0.0)
+    }
+
+    fn get_thermal_conductivity(&self) -> ThermalConductivity {
+        ThermalConductivity(0.0)
+    }
+
+    fn get_compressability(&self) -> Compressability {
+        Compressability(0.0)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::physics::fallingsand::{
-        data::element_directory::ElementGridDir, mesh::coordinate_directory::CoordinateDirBuilder,
+    use crate::physics::{
+        self,
+        fallingsand::{
+            data::element_directory::ElementGridDir,
+            mesh::coordinate_directory::CoordinateDirBuilder,
+        },
     };
 
     use super::*;
@@ -95,7 +109,7 @@ mod tests {
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {
         let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(1.0)
+            .cell_radius(physics::heat::components::Length(1.0))
             .num_layers(7)
             .first_num_radial_lines(12)
             .second_num_concentric_circles(3)

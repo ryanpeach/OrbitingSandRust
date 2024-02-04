@@ -2,6 +2,7 @@ use crate::physics::fallingsand::util::functions::interpolate_points;
 
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
+use crate::physics::heat::components::Length;
 use crate::physics::util::vectors::{RelXyPoint, Vertex};
 use bevy::math::{Rect, Vec2};
 use bevy::render::color::Color;
@@ -21,7 +22,7 @@ pub enum VertexMode {
 /// It doesn't split itself in either the radial or concentric directions.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ChunkCoords {
-    width: f32,
+    width: Length,
     chunk_idx: ChunkIjkVector,
     start_concentric_circle_layer_relative: usize,
     start_concentric_circle_absolute: usize,
@@ -32,7 +33,7 @@ pub struct ChunkCoords {
 }
 
 pub struct PartialLayerChunkCoordsBuilder {
-    cell_radius: f32,
+    cell_width: Length,
     chunk_idx: ChunkIjkVector,
     start_concentric_circle_layer_relative: usize,
     start_concentric_circle_absolute: usize,
@@ -52,7 +53,7 @@ impl PartialLayerChunkCoordsBuilder {
     /// Defaults to first layer defaults
     pub fn new() -> PartialLayerChunkCoordsBuilder {
         PartialLayerChunkCoordsBuilder {
-            cell_radius: 1.0,
+            cell_width: Length(1.0),
             chunk_idx: ChunkIjkVector::ZERO,
             start_concentric_circle_layer_relative: 0,
             start_concentric_circle_absolute: 0,
@@ -63,9 +64,9 @@ impl PartialLayerChunkCoordsBuilder {
         }
     }
 
-    pub fn cell_radius(mut self, cell_radius: f32) -> PartialLayerChunkCoordsBuilder {
-        debug_assert!(cell_radius > 0.0);
-        self.cell_radius = cell_radius;
+    pub fn cell_radius(mut self, cell_radius: Length) -> PartialLayerChunkCoordsBuilder {
+        debug_assert!(cell_radius.0 > 0.0);
+        self.cell_width = cell_radius;
         self
     }
 
@@ -125,7 +126,7 @@ impl PartialLayerChunkCoordsBuilder {
         debug_assert_ne!(self.layer_num_radial_lines, 0);
         debug_assert_ne!(self.end_radial_line, 0);
         ChunkCoords {
-            width: self.cell_radius,
+            width: self.cell_width,
             start_concentric_circle_layer_relative: self.start_concentric_circle_layer_relative,
             start_concentric_circle_absolute: self.start_concentric_circle_absolute,
             start_radial_line: self.start_radial_line,
@@ -304,14 +305,14 @@ impl ChunkCoords {
     pub fn total_size(&self) -> usize {
         self.get_num_radial_lines() * self.get_num_concentric_circles()
     }
-    pub fn get_cell_width(&self) -> f32 {
+    pub fn get_cell_width(&self) -> Length {
         self.width
     }
     pub fn get_start_radius(&self) -> f32 {
-        self.start_concentric_circle_absolute as f32 * self.width
+        self.start_concentric_circle_absolute as f32 * self.width.0
     }
     pub fn get_end_radius(&self) -> f32 {
-        self.get_start_radius() + self.width * (self.num_concentric_circles as f32)
+        self.get_start_radius() + self.width.0 * (self.num_concentric_circles as f32)
     }
     pub fn get_num_radial_lines(&self) -> usize {
         self.end_radial_line - self.start_radial_line
@@ -389,7 +390,7 @@ impl ChunkCoords {
             .iter()
             .zip(uvs.iter())
             .map(|(p, uv)| Vertex {
-                position: Vec2::new(p.x, p.y) * self.get_cell_width(),
+                position: Vec2::new(p.x, p.y) * self.get_cell_width().0,
                 uv: Vec2::new(uv.x, uv.y),
                 color: Color::rgba(1.0, 1.0, 1.0, 1.0),
             })
@@ -401,7 +402,7 @@ impl ChunkCoords {
         let mut vertices = Vec::with_capacity(positions.len());
         for pos in positions {
             vertices.push(Vertex {
-                position: pos * self.get_cell_width(),
+                position: pos * self.get_cell_width().0,
                 uv: Vec2::new(0.0, 0.0),
                 color: Color::rgba(1.0, 1.0, 1.0, 1.0),
             });
@@ -563,6 +564,7 @@ impl ChunkCoords {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::physics;
     use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
     use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
     use crate::physics::util::vectors::RelXyPoint;
@@ -572,7 +574,7 @@ mod tests {
     #[test]
     fn test_rel_pos_to_cell_idx() {
         let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(1.0)
+            .cell_radius(physics::heat::components::Length(1.0))
             .num_layers(8)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
@@ -588,7 +590,7 @@ mod tests {
             core_chunks.get_width() * core_chunks.get(JkVector::ZERO).get_num_radial_lines();
         for k in 0..num_radial_lines {
             // This radius and theta should define the midpoint of each cell
-            let radius = coordinate_dir.get_cell_width() / 2.0;
+            let radius = coordinate_dir.get_cell_width().0 / 2.0;
             let theta = -2.0 * PI / num_radial_lines as f32 * (k as f32 + 0.5);
             let xycoord = RelXyPoint(Vec2 {
                 x: radius * theta.cos(),
@@ -640,7 +642,7 @@ mod tests {
     #[test]
     fn test_cell_idx_to_chunk_idx() {
         let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(1.0)
+            .cell_radius(physics::heat::components::Length(1.0))
             .num_layers(8)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
@@ -725,7 +727,7 @@ mod tests {
         use super::*;
 
         const FIRST_LAYER: ChunkCoords = ChunkCoords {
-            width: 1.0,
+            width: physics::heat::components::Length(1.0),
             num_concentric_circles: 2,
             chunk_idx: ChunkIjkVector { i: 1, j: 0, k: 0 },
             start_concentric_circle_layer_relative: 0,
@@ -994,7 +996,7 @@ mod tests {
         use super::*;
 
         const FIRST_LAYER_PARTIAL: ChunkCoords = ChunkCoords {
-            width: 1.0,
+            width: physics::heat::components::Length(1.0),
             num_concentric_circles: 1,
             chunk_idx: ChunkIjkVector { i: 1, j: 0, k: 0 },
             start_concentric_circle_layer_relative: 1,

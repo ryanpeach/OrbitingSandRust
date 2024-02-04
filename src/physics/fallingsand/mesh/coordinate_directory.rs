@@ -4,6 +4,7 @@ use bevy::math::{Rect, Vec2};
 
 use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
+use crate::physics::heat::components::Length;
 use crate::physics::util::vectors::{RelXyPoint, Vertex};
 
 use super::chunk_coords::PartialLayerChunkCoordsBuilder;
@@ -26,7 +27,7 @@ pub struct CoordinateDir {
 /// it assembles the chunks whereas CoordinateDir can re-derive
 /// these parameters from the chunks themselves
 pub struct CoordinateDirBuilder {
-    cell_radius: f32,
+    cell_radius: Length,
     num_layers: usize,
     first_num_radial_lines: usize,
     second_num_concentric_circles: usize,
@@ -47,7 +48,7 @@ impl CoordinateDirBuilder {
     /// Start here
     pub fn new() -> Self {
         Self {
-            cell_radius: 1.0,
+            cell_radius: Length(1.0),
             num_layers: 1,
             first_num_radial_lines: 6,
             first_num_radial_chunks: 3,
@@ -57,7 +58,7 @@ impl CoordinateDirBuilder {
         }
     }
     /// The radius of each cell in the circle
-    pub fn cell_radius(mut self, cell_radius: f32) -> Self {
+    pub fn cell_radius(mut self, cell_radius: Length) -> Self {
         self.cell_radius = cell_radius;
         self
     }
@@ -492,7 +493,7 @@ impl CoordinateDir {
         total_size
     }
     /// Cell radius is constant for all chunks
-    pub fn get_cell_width(&self) -> f32 {
+    pub fn get_cell_width(&self) -> Length {
         self.get_core_chunks().get(JkVector::ZERO).get_cell_width()
     }
     /// The number of layers in the circle
@@ -677,6 +678,8 @@ impl CoordinateDir {
 
 #[cfg(test)]
 mod tests {
+    use crate::physics;
+
     use super::*;
 
     macro_rules! assert_approx_eq {
@@ -699,7 +702,7 @@ mod tests {
 
         fn default_coordinate_dir() -> CoordinateDir {
             CoordinateDirBuilder::new()
-                .cell_radius(1.0)
+                .cell_radius(Length(1.0))
                 .num_layers(9)
                 .first_num_radial_lines(6)
                 .second_num_concentric_circles(3)
@@ -861,7 +864,7 @@ mod tests {
             #[test]
             fn test_rel_pos_to_cell_idx() {
                 let coordinate_dir = CoordinateDirBuilder::new()
-                    .cell_radius(1.0)
+                    .cell_radius(physics::heat::components::Length(1.0))
                     .num_layers(8)
                     .first_num_radial_lines(6)
                     .second_num_concentric_circles(3)
@@ -876,7 +879,7 @@ mod tests {
                 for k in 0..num_radial_lines {
                     let chunk_k = k / core_chunks.get(JkVector::ZERO).get_num_radial_lines();
                     // This radius and theta should define the midpoint of each cell
-                    let radius = coordinate_dir.get_cell_width() / 2.0;
+                    let radius = coordinate_dir.get_cell_width().0 / 2.0;
                     let theta = -2.0 * PI / num_radial_lines as f32 * (k as f32 + 0.5);
                     let xycoord = RelXyPoint(Vec2 {
                         x: radius * theta.cos(),
@@ -946,7 +949,7 @@ mod tests {
             #[test]
             fn test_cell_idx_to_chunk_idx() {
                 let coordinate_dir = CoordinateDirBuilder::new()
-                    .cell_radius(1.0)
+                    .cell_radius(physics::heat::components::Length(1.0))
                     .num_layers(8)
                     .first_num_radial_lines(6)
                     .second_num_concentric_circles(3)
@@ -1023,7 +1026,7 @@ mod tests {
     #[test]
     fn test_radial_mesh_chunk_sizes_manual() {
         let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(1.0)
+            .cell_radius(physics::heat::components::Length(1.0))
             .num_layers(8)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)

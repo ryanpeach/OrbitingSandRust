@@ -4,7 +4,9 @@ use crate::physics::fallingsand::convolution::neighbor_grids::TopNeighborGrids;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
-use crate::physics::heat::components::{HeatCapacity, HeatEnergy, ThermodynamicTemperature};
+use crate::physics::heat::components::{
+    HeatCapacity, HeatEnergy, SpecificHeat, ThermodynamicTemperature,
+};
 use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 
@@ -60,11 +62,11 @@ impl ElementGrid {
         for _ in 0..chunk_coords.get_num_radial_lines() * chunk_coords.get_num_concentric_circles()
         {
             grid.push(fill.box_clone());
-            total_mass += fill.get_mass(chunk_coords.get_cell_width());
-            total_heat_capacity_at_atp += fill.get_heat_capacity();
-            total_heat += fill
-                .get_default_temperature()
-                .heat_energy(fill.get_heat_capacity());
+            let mass = fill.get_mass(chunk_coords.get_cell_width());
+            total_mass += mass;
+            let heat_capacity = fill.get_specific_heat().heat_capacity(mass);
+            total_heat_capacity_at_atp += heat_capacity;
+            total_heat += fill.get_default_temperature().heat_energy(heat_capacity);
         }
         Self {
             grid: Grid::new_from_vec(
@@ -136,11 +138,9 @@ impl ElementGrid {
         self.total_mass_above
     }
 
-    /// Calculate the total heat capacity at the given pressure
-    /// Using a linear model
-    /// TODO: Experiment with a more complex model
+    /// Get the total heat capacity at ATP
     pub fn get_total_heat_capacity(&self) -> HeatCapacity {
-        HeatCapacity(self.total_heat_capacity_at_atp.0 * self.total_mass_above.0 * 1.0e-5)
+        self.total_heat_capacity_at_atp
     }
     /// Get temperature
     /// Assume total_mass_above correlates to pressure
@@ -245,14 +245,18 @@ impl ElementGrid {
                 //
                 match res {
                     ElementTakeOptions::PutBack => {
-                        mass += element.get_mass(self.coords.get_cell_width());
-                        self.total_heat_capacity_at_atp += element.get_heat_capacity();
+                        let this_mass = element.get_mass(self.coords.get_cell_width());
+                        mass += this_mass;
+                        self.total_heat_capacity_at_atp +=
+                            element.get_specific_heat().heat_capacity(this_mass);
                         self.total_mass += element.get_mass(cell_width);
                         self.grid.replace(pos, element);
                     }
                     ElementTakeOptions::ReplaceWith(new_element) => {
-                        mass += new_element.get_mass(self.coords.get_cell_width());
-                        self.total_heat_capacity_at_atp += new_element.get_heat_capacity();
+                        let this_mass = new_element.get_mass(self.coords.get_cell_width());
+                        mass += this_mass;
+                        self.total_heat_capacity_at_atp +=
+                            new_element.get_specific_heat().heat_capacity(this_mass);
                         self.total_mass += new_element.get_mass(cell_width);
                         self.grid.replace(pos, new_element);
                     }
@@ -319,9 +323,10 @@ impl ElementGrid {
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {
                 let element = self.grid.get(JkVector { j, k });
+                let mass = element.get_mass(self.coords.get_cell_width());
                 let color = element
                     .get_heat()
-                    .temperature(element.get_heat_capacity())
+                    .temperature(element.get_specific_heat().heat_capacity(mass))
                     .color(max_temp)
                     .as_rgba_u8();
                 out.push(color[0]);

@@ -875,7 +875,7 @@ impl ElementGridDir {
         for i in 0..self.coords.get_num_layers() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
             let k_size = self.coords.get_layer_num_radial_chunks(i);
-            let layer = Grid::new(k_size, j_size, vec![true; k_size * j_size]);
+            let layer = Grid::new_from_vec(k_size, j_size, vec![true; k_size * j_size]);
             filter.push(layer);
         }
 
@@ -912,14 +912,14 @@ impl ElementGridDir {
 
 #[cfg(test)]
 mod tests {
-    use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
+    use crate::physics::{self, fallingsand::mesh::coordinate_directory::CoordinateDirBuilder};
 
     use super::*;
 
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {
         let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(1.0)
+            .cell_radius(physics::heat::components::Length(1.0))
             .num_layers(9)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)

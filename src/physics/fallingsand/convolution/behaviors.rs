@@ -537,12 +537,12 @@ mod tests {
 
     mod get_below_idx_from_center {
         use super::*;
-        use crate::physics::fallingsand::util::vectors::IjkVector;
+        use crate::physics::{self, fallingsand::util::vectors::IjkVector};
 
         /// The default element grid directory for testing
         fn get_element_grid_dir() -> ElementGridDir {
             let coordinate_dir = CoordinateDirBuilder::new()
-                .cell_radius(1.0)
+                .cell_radius(physics::heat::components::Length(1.0))
                 .num_layers(10)
                 .first_num_radial_lines(6)
                 .second_num_concentric_circles(3)
@@ -638,12 +638,12 @@ mod tests {
 
     mod get_left_right_idx_from_center {
         use super::*;
-        use crate::physics::fallingsand::util::vectors::IjkVector;
+        use crate::physics::{self, fallingsand::util::vectors::IjkVector};
 
         /// The default element grid directory for testing
         fn get_element_grid_dir() -> ElementGridDir {
             let coordinate_dir = CoordinateDirBuilder::new()
-                .cell_radius(1.0)
+                .cell_radius(physics::heat::components::Length(1.0))
                 .num_layers(7)
                 .first_num_radial_lines(12)
                 .second_num_concentric_circles(3)
