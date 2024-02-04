@@ -355,9 +355,10 @@ impl ElementGridDir {
     // TODO: This needs testing
     fn get_chunk_left_right_neighbors(&self, coord: ChunkIjkVector) -> LeftRightNeighborIdxs {
         let num_radial_chunks = self.coords.get_layer_num_radial_chunks(coord.i);
-        if num_radial_chunks == 1 {
-            return LeftRightNeighborIdxs::SingleChunkLayer;
-        }
+        debug_assert!(
+            num_radial_chunks > 0,
+            "Number of radial chunks must be greater than 0"
+        );
         let left = ChunkIjkVector {
             i: coord.i,
             j: coord.j,

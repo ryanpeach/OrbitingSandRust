@@ -8,46 +8,44 @@ use ndarray_conv::*;
 
 use crate::physics::{
     fallingsand::{
+        convolution::{
+            behaviors::ElementGridConvolutionNeighborTemperatures,
+            neighbor_grids::ElementGridConvolutionNeighborGrids,
+        },
         data::element_grid::ElementGrid,
         elements::element::{Compressability, Density, Element},
         util::vectors::JkVector,
     },
     heat::components::{HeatCapacity, SpecificHeat},
     orbits::components::Mass,
+    util::clock::Clock,
 };
 
 use super::components::{Length, ThermodynamicTemperature};
 
 pub struct PropogateHeatBuilder {
     cell_width: Length,
-    surrounding_average_temperature: ThermodynamicTemperature,
     temperature: Array2<f32>,
     thermal_conductivity: Array2<f32>,
     specific_heat_capacity: Array2<f32>,
     density: Array2<f32>,
     compressability: Array2<f32>,
-    time: Time,
+    time: Clock,
     total_mass_above: Mass,
 }
 
 impl PropogateHeatBuilder {
     /// Create a new heat propogation system with the given width and height
     /// All the arrays will be initialized to 0
-    pub fn new(
-        width: usize,
-        height: usize,
-        cell_width: Length,
-        surrounding_average_temperature: ThermodynamicTemperature,
-    ) -> Self {
-        let temperature = Array2::from_elem((width, height), 0.0);
+    pub fn new(width: usize, height: usize, cell_width: Length) -> Self {
+        let temperature = Array2::from_elem((width + 2, height + 2), 0.0);
         let thermal_conductivity = Array2::from_elem((width, height), 0.0);
         let specific_heat_capacity = Array2::from_elem((width, height), 0.0);
         let density = Array2::from_elem((width, height), 0.0);
         let compressability = Array2::from_elem((width, height), 0.0);
-        let time = Time::default();
+        let time = Clock::default();
         Self {
             cell_width,
-            surrounding_average_temperature,
             temperature,
             thermal_conductivity,
             specific_heat_capacity,
@@ -74,8 +72,40 @@ impl PropogateHeatBuilder {
             elem.get_compressability().0;
     }
 
+    /// Simple setter for the total mass above the chunk
     pub fn total_mass_above(&mut self, total_mass_above: Mass) {
         self.total_mass_above = total_mass_above;
+    }
+
+    /// Set the temperature of the border cells based on the convolved neighbor temperatures
+    pub fn border_temperatures(
+        &mut self,
+        neighbor_temperatures: ElementGridConvolutionNeighborTemperatures,
+    ) {
+        self.temperature
+            .slice_mut(s![.., 0])
+            .fill(neighbor_temperatures.left.0);
+        self.temperature
+            .slice_mut(s![.., -1])
+            .fill(neighbor_temperatures.right.0);
+        if let Some(top) = neighbor_temperatures.top {
+            self.temperature.slice_mut(s![0, ..]).fill(top.0);
+            self.temperature
+                .slice_mut(s![0, 0])
+                .fill((top.0 + neighbor_temperatures.left.0) / 2.0);
+            self.temperature
+                .slice_mut(s![0, -1])
+                .fill((top.0 + neighbor_temperatures.right.0) / 2.0);
+        }
+        if let Some(bottom) = neighbor_temperatures.bottom {
+            self.temperature.slice_mut(s![-1, ..]).fill(bottom.0);
+            self.temperature
+                .slice_mut(s![-1, 0])
+                .fill((bottom.0 + neighbor_temperatures.left.0) / 2.0);
+            self.temperature
+                .slice_mut(s![-1, -1])
+                .fill((bottom.0 + neighbor_temperatures.right.0) / 2.0);
+        }
     }
 
     pub fn build(self) -> PropogateHeat {
@@ -92,18 +122,18 @@ impl PropogateHeatBuilder {
         );
         debug_assert_eq!(
             self.temperature.dim().0,
-            self.thermal_conductivity.dim().0 + 4,
+            self.thermal_conductivity.dim().0 + 2,
             "Temperature must be the size of the thermal conductivity + 4 on both hight and width"
         );
         debug_assert_eq!(
             self.temperature.dim().1,
-            self.thermal_conductivity.dim().1 + 4,
+            self.thermal_conductivity.dim().1 + 2,
             "Temperature must be the size of the thermal conductivity + 4 on both hight and width"
         );
         debug_assert_eq!(
-            self.temperature.dim().0,
-            self.compressability.dim().0 + 4,
-            "Temperature must be the size of the compressability + 4 on both hight and width"
+            self.compressability.dim(),
+            self.thermal_conductivity.dim(),
+            "Compressability must be the same size as the thermal conductivity"
         );
         debug_assert!(
             self.cell_width.0 >= 0.0,
@@ -138,7 +168,6 @@ impl PropogateHeatBuilder {
             cell_width: self.cell_width,
             temperature: self.temperature,
             total_mass_above: self.total_mass_above,
-            surrounding_average_temperature: self.surrounding_average_temperature,
             thermal_conductivity: self.thermal_conductivity,
             specific_heat_capacity: self.specific_heat_capacity,
             density: self.density,
@@ -155,9 +184,6 @@ pub struct PropogateHeat {
     temperature: Array2<f32>,
     /// The total mass above the chunk
     total_mass_above: Mass,
-    /// This is the average temperature of all the surrounding cells
-    /// This is used for a very rough approximation of between-chunk heat transfer
-    surrounding_average_temperature: ThermodynamicTemperature,
     /// The thermal conductivity of each cell in the chunk
     /// Should be the size of the chunk
     thermal_conductivity: Array2<f32>,
@@ -170,15 +196,15 @@ pub struct PropogateHeat {
     /// Compressability of each cell in the chunk
     /// Should be the size of the chunk
     compressability: Array2<f32>,
-    /// The time step
-    time: Time,
+    /// The time since last processed
+    time: Clock,
 }
 
 impl PropogateHeat {
     /// Propogate the heat in the grid
     pub fn propagate_heat(&self, element_grid: &mut ElementGrid) {
         // Define the convolution kernel
-        let delta_kernel = Array2::from_shape_vec(
+        let laplace_kernel = Array2::from_shape_vec(
             (3, 3),
             vec![
                 0.125, 0.125, 0.125, //
@@ -187,21 +213,16 @@ impl PropogateHeat {
             ],
         )
         .unwrap();
-        debug_assert_eq!(delta_kernel.sum(), 0.0, "Kernel must sum to 0");
+        debug_assert_eq!(laplace_kernel.sum(), 0.0, "Kernel must sum to 0");
 
         // Convolve the temperature with the kernel to get the gradient
-        let gradient_temperature = self
+        let second_gradient_temperature = self
             .temperature
             .conv_2d_fft(
-                &delta_kernel,
-                PaddingSize::Same,
-                PaddingMode::Const(self.surrounding_average_temperature.0),
+                &laplace_kernel,
+                PaddingSize::Valid,
+                PaddingMode::Reflect, // Doesn't matter in Valid mode
             )
-            .unwrap();
-
-        // Get the second order gradient
-        let second_gradient_temperature = gradient_temperature
-            .conv_2d_fft(&delta_kernel, PaddingSize::Same, PaddingMode::Zeros)
             .unwrap();
 
         // Get the alpha grid
@@ -212,7 +233,8 @@ impl PropogateHeat {
                     &self.density,
                     self.total_mass_above,
                 ));
-        let delta_temperature = alpha * second_gradient_temperature * self.time.delta_seconds();
+        let delta_temperature =
+            alpha * second_gradient_temperature * self.time.get_last_delta().as_secs_f32();
 
         // Check everything is finite
         debug_assert!(

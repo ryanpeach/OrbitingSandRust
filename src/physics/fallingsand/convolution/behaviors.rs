@@ -95,49 +95,63 @@ impl IntoIterator for ElementGridConvolutionNeighbors {
     }
 }
 
+/// The average temperature of the neighbors
+#[derive(Copy, Clone, Debug, Default)]
+pub struct ElementGridConvolutionNeighborTemperatures {
+    pub top: Option<ThermodynamicTemperature>,
+    pub bottom: Option<ThermodynamicTemperature>,
+    pub left: ThermodynamicTemperature,
+    pub right: ThermodynamicTemperature,
+}
+
 impl ElementGridConvolutionNeighbors {
-    pub fn get_avg_temp(&self) -> ThermodynamicTemperature {
-        let mut sum = ThermodynamicTemperature(0.0);
-        let mut count = 0;
+    pub fn get_avg_temp(&self) -> ElementGridConvolutionNeighborTemperatures {
+        let mut out = ElementGridConvolutionNeighborTemperatures::default();
         match &self.grids.top {
             TopNeighborGrids::Normal { t, tl, tr } => {
+                let mut sum = ThermodynamicTemperature(0.0);
                 sum += t.get_temperature();
                 sum += tl.get_temperature();
                 sum += tr.get_temperature();
-                count += 3;
+                out.top = Some(ThermodynamicTemperature(sum.0 / 3.0));
             }
             TopNeighborGrids::LayerTransition { t0, t1, tl, tr } => {
+                let mut sum = ThermodynamicTemperature(0.0);
                 sum += t0.get_temperature();
                 sum += t1.get_temperature();
                 sum += tl.get_temperature();
                 sum += tr.get_temperature();
-                count += 4;
+                out.top = Some(ThermodynamicTemperature(sum.0 / 4.0));
             }
-            TopNeighborGrids::TopOfGrid => {}
+            TopNeighborGrids::TopOfGrid => {
+                out.top = None;
+            }
         }
         match &self.grids.bottom {
             BottomNeighborGrids::Normal { b, bl, br } => {
+                let mut sum = ThermodynamicTemperature(0.0);
                 sum += b.get_temperature();
                 sum += bl.get_temperature();
                 sum += br.get_temperature();
-                count += 3;
+                out.bottom = Some(ThermodynamicTemperature(sum.0 / 3.0));
             }
             BottomNeighborGrids::LayerTransition { bl, br } => {
+                let mut sum = ThermodynamicTemperature(0.0);
                 sum += bl.get_temperature();
                 sum += br.get_temperature();
-                count += 2;
+                out.bottom = Some(ThermodynamicTemperature(sum.0 / 2.0));
             }
-            BottomNeighborGrids::BottomOfGrid => {}
+            BottomNeighborGrids::BottomOfGrid => {
+                out.bottom = None;
+            }
         }
         match &self.grids.left_right {
             LeftRightNeighborGrids::LR { l, r } => {
-                sum += l.get_temperature();
-                sum += r.get_temperature();
-                count += 2;
+                out.left = l.get_temperature();
+                out.right = r.get_temperature();
             }
-            LeftRightNeighborGrids::SingleChunkLayer => {}
         }
-        ThermodynamicTemperature(sum.0 / count as f32)
+        out
     }
 }
 

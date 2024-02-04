@@ -268,13 +268,13 @@ impl ElementGrid {
     fn process_heat(&mut self, element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors) {
         self.total_heat = HeatEnergy(0.0);
         self.total_heat_capacity_at_atp = HeatCapacity(0.0);
-        let avg_neigh_temp = element_grid_conv_neigh.get_avg_temp();
         let mut propogate_heat_builder = PropogateHeatBuilder::new(
             self.coords.get_num_radial_lines(),
             self.coords.get_num_concentric_circles(),
             self.coords.get_cell_width(),
-            avg_neigh_temp,
         );
+        let avg_neigh_temp = element_grid_conv_neigh.get_avg_temp();
+        propogate_heat_builder.border_temperatures(avg_neigh_temp);
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {
                 let pos = JkVector { j, k };

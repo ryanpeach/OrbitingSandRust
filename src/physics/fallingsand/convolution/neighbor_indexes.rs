@@ -6,7 +6,6 @@ pub enum LeftRightNeighborIdxs {
         l: ChunkIjkVector,
         r: ChunkIjkVector,
     },
-    SingleChunkLayer,
 }
 
 pub struct LeftRightNeighborIdxsIter {
