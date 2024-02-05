@@ -246,6 +246,7 @@ impl CelestialData {
     }
 
     /// Run this system every frame to update the celestial
+    #[allow(clippy::type_complexity)]
     pub fn process_system(
         mut celestial: Query<(Entity, &mut CelestialData, &mut Mass)>,
         mut falling_sand_materials: Query<

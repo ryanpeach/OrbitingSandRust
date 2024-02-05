@@ -734,11 +734,9 @@ impl ElementGridDir {
     pub fn calc_total_mass(chunks: &mut Vec<Grid<Option<ElementGrid>>>) -> Mass {
         let mut out = Mass(0.0);
         for layer in chunks {
-            for chunk in layer.into_iter() {
-                if let Some(chunk) = chunk {
-                    chunk.recalculate_total_mass();
-                    out += chunk.get_total_mass();
-                }
+            for chunk in layer.into_iter().flatten() {
+                chunk.recalculate_total_mass();
+                out += chunk.get_total_mass();
             }
         }
         out
@@ -761,17 +759,15 @@ impl ElementGridDir {
         let mut max = ThermodynamicTemperature(0.0);
         let mut min = ThermodynamicTemperature(f32::INFINITY);
         for layer in chunks {
-            for chunk in layer.into_iter() {
-                if let Some(chunk) = chunk {
-                    chunk.recalculate_heat();
-                    let temp = chunk.get_temperature();
-                    if temp > max {
-                        max = temp;
-                    }
-                    // Min temperature should be greater than 0
-                    if temp < min && temp > ThermodynamicTemperature(0.0) {
-                        min = temp;
-                    }
+            for chunk in layer.into_iter().flatten() {
+                chunk.recalculate_heat();
+                let temp = chunk.get_temperature();
+                if temp > max {
+                    max = temp;
+                }
+                // Min temperature should be greater than 0
+                if temp < min && temp > ThermodynamicTemperature(0.0) {
+                    min = temp;
                 }
             }
         }

@@ -59,6 +59,10 @@ impl ElementGridConvolutionNeighbors {
     pub fn len(&self) -> usize {
         self.chunk_idxs.iter().count()
     }
+    /// Checks if there are no chunks
+    pub fn is_empty(&self) -> bool {
+        self.chunk_idxs.iter().count() == 0
+    }
 }
 
 /// Iteration

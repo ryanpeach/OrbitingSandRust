@@ -100,7 +100,9 @@ impl HeatEnergy {
 pub struct ThermodynamicTemperature(pub f32);
 
 impl ThermodynamicTemperature {
+    /// The minimum color alpha for the visualization of the temperature.
     const MIN_RED: f32 = 0.5;
+    /// The maximum color alpha for the visualization of the temperature.
     const MAX_RED: f32 = 1.0;
 
     /// Returns the color of the system.

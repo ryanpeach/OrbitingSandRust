@@ -21,13 +21,19 @@ use super::components::{HeatEnergy, Length, ThermodynamicTemperature};
 
 /// The builder of the inputs to the heat propogation system
 pub struct PropogateHeatBuilder {
+    /// The width of each cell
     cell_width: Length,
+    /// The temperature of each cell in the chunk
     temperature: Array2<f32>,
+    /// The thermal conductivity of each cell in the chunk
     thermal_conductivity: Array2<f32>,
+    /// The specific heat capacity of each cell in the chunk
     specific_heat_capacity: Array2<f32>,
+    /// The density of each cell in the chunk
     density: Array2<f32>,
     // compressability: Array2<f32>,
     // total_mass_above: Mass,
+    /// A useful bool to check that you have set the border temperatures before calling build
     has_set_border_temperatures: bool,
 }
 
@@ -54,6 +60,7 @@ impl PropogateHeatBuilder {
     }
 
     /// Add an element to the heat propogation system
+    #[allow(clippy::borrowed_box)]
     pub fn add(&mut self, jk_vector: JkVector, elem: &Box<dyn Element>) {
         let density = elem.get_density();
         let specific_heat = elem.get_specific_heat();
@@ -205,6 +212,7 @@ pub struct PropogateHeat {
 
 impl PropogateHeat {
     /// Propogate the heat in the grid
+    #[allow(clippy::reversed_empty_ranges)] // REF: https://github.com/rust-lang/rust-clippy/issues/5808
     pub fn propagate_heat(&self, element_grid: &mut ElementGrid, current_time: Clock) {
         if current_time.get_last_delta().as_secs_f32() == 0.0 {
             warn!("Delta time is 0, not processing heat. May just be the first frame.");
