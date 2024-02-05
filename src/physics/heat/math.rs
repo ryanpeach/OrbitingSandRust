@@ -182,11 +182,11 @@ impl PropogateHeatBuilder {
         PropogateHeat {
             cell_width: self.cell_width,
             temperature: self.temperature,
-            total_mass_above: self.total_mass_above,
+            // total_mass_above: self.total_mass_above,
             thermal_conductivity: self.thermal_conductivity,
             specific_heat_capacity: self.specific_heat_capacity,
             density: self.density,
-            compressability: self.compressability,
+            // compressability: self.compressability,
         }
     }
 }
@@ -196,8 +196,8 @@ pub struct PropogateHeat {
     cell_width: Length,
     /// The temperature of each cell in the chunk
     temperature: Array2<f32>,
-    /// The total mass above the chunk
-    total_mass_above: Mass,
+    // The total mass above the chunk
+    // total_mass_above: Mass,
     /// The thermal conductivity of each cell in the chunk
     /// Should be the size of the chunk
     thermal_conductivity: Array2<f32>,
@@ -207,9 +207,9 @@ pub struct PropogateHeat {
     /// The density of each cell in the chunk
     /// Should be the size of the chunk
     density: Array2<f32>,
-    /// Compressability of each cell in the chunk
-    /// Should be the size of the chunk
-    compressability: Array2<f32>,
+    // Compressability of each cell in the chunk
+    // Should be the size of the chunk
+    // compressability: Array2<f32>,
 }
 
 impl PropogateHeat {
@@ -246,14 +246,14 @@ impl PropogateHeat {
         // Get the alpha grid
         // trace!("Thermal conductivity: {}", self.thermal_conductivity.sum());
         // trace!("Specific heat capacity: {}", self.specific_heat_capacity.sum());
-        let matrix_get_density_from_mass = Compressability::matrix_get_density_from_mass(
-            &self.compressability,
-            &self.density,
-            self.total_mass_above,
-        );
+        // Turned off compressibility for now
+        // let matrix_get_density_from_mass = Compressability::matrix_get_density_from_mass(
+        //     &self.compressability,
+        //     &self.density,
+        //     self.total_mass_above,
+        // );
         // trace!("Density: {}", matrix_get_density_from_mass.sum());
-        let alpha = &self.thermal_conductivity
-            / (&self.specific_heat_capacity * matrix_get_density_from_mass);
+        let alpha = &self.thermal_conductivity / (&self.specific_heat_capacity * &self.density);
         // Replace all Nans with zero because anything that has specific heat capacity 0 also has 0 thermal conductivity
         let alpha = alpha.mapv(|x| if x.is_finite() { x } else { 0.0 });
         // trace!("Apha sum: {}", alpha.sum());

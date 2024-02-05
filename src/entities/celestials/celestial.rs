@@ -17,6 +17,7 @@ use bevy::math::{Vec2, Vec3};
 use bevy::prelude::SpatialBundle;
 use bevy::render::mesh::Mesh;
 
+use bevy::render::view::Visibility;
 use bevy::sprite::{ColorMaterial, MaterialMesh2dBundle};
 use bevy::time::Time;
 
@@ -195,6 +196,8 @@ impl CelestialData {
                                 material: materials.add(asset_server.add(heat_material).into()),
                                 // Move the heat map to the front
                                 transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
+                                // Turning off the heat map for now
+                                visibility: Visibility::Hidden,
                                 ..Default::default()
                             },
                             HeatMapMaterial,
