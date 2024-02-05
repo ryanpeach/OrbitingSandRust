@@ -354,8 +354,8 @@ impl ElementGrid {
                     .map(|k| {
                         let pos = JkVector { j, k };
                         let element = self.grid.get(pos);
-                        let mass = element.get_mass(self.coords.get_cell_width());
-                        mass
+                        
+                        element.get_mass(self.coords.get_cell_width())
                     })
                     .sum()
             })

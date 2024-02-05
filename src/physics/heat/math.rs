@@ -63,13 +63,13 @@ impl PropogateHeatBuilder {
         let specific_heat = elem.get_specific_heat();
         let mass = density.mass(self.cell_width);
         let heat_capacity = specific_heat.heat_capacity(mass);
-        self.temperature[[jk_vector.j as usize + 1, jk_vector.k as usize + 1]] =
+        self.temperature[[jk_vector.j + 1, jk_vector.k + 1]] =
             elem.get_heat().temperature(heat_capacity).0;
-        self.thermal_conductivity[[jk_vector.j as usize, jk_vector.k as usize]] =
+        self.thermal_conductivity[[jk_vector.j, jk_vector.k]] =
             elem.get_thermal_conductivity().0;
-        self.specific_heat_capacity[[jk_vector.j as usize, jk_vector.k as usize]] = specific_heat.0;
-        self.density[[jk_vector.j as usize, jk_vector.k as usize]] = density.0;
-        self.compressability[[jk_vector.j as usize, jk_vector.k as usize]] =
+        self.specific_heat_capacity[[jk_vector.j, jk_vector.k]] = specific_heat.0;
+        self.density[[jk_vector.j, jk_vector.k]] = density.0;
+        self.compressability[[jk_vector.j, jk_vector.k]] =
             elem.get_compressability().0;
     }
 
