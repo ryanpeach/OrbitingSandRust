@@ -28,7 +28,6 @@ use hashbrown::HashMap;
 use crate::entities::camera::OverlayLayer1;
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
-
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
 use crate::physics::util::clock::Clock;

@@ -2,22 +2,18 @@
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
-use bevy::{
-    log::{trace, warn},
-};
+use bevy::log::{trace, warn};
 use ndarray::{s, Array2};
 use ndarray_conv::*;
 
 use crate::physics::{
     fallingsand::{
-        convolution::{
-            behaviors::ElementGridConvolutionNeighborTemperatures,
-        },
+        convolution::behaviors::ElementGridConvolutionNeighborTemperatures,
         data::element_grid::ElementGrid,
         elements::element::{Density, Element},
         util::vectors::JkVector,
     },
-    heat::components::{SpecificHeat},
+    heat::components::SpecificHeat,
     orbits::components::Mass,
     util::clock::Clock,
 };
@@ -65,12 +61,10 @@ impl PropogateHeatBuilder {
         let heat_capacity = specific_heat.heat_capacity(mass);
         self.temperature[[jk_vector.j + 1, jk_vector.k + 1]] =
             elem.get_heat().temperature(heat_capacity).0;
-        self.thermal_conductivity[[jk_vector.j, jk_vector.k]] =
-            elem.get_thermal_conductivity().0;
+        self.thermal_conductivity[[jk_vector.j, jk_vector.k]] = elem.get_thermal_conductivity().0;
         self.specific_heat_capacity[[jk_vector.j, jk_vector.k]] = specific_heat.0;
         self.density[[jk_vector.j, jk_vector.k]] = density.0;
-        self.compressability[[jk_vector.j, jk_vector.k]] =
-            elem.get_compressability().0;
+        self.compressability[[jk_vector.j, jk_vector.k]] = elem.get_compressability().0;
     }
 
     /// Simple setter for the total mass above the chunk

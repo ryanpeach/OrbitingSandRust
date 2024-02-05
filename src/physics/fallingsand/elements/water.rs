@@ -14,7 +14,6 @@ use crate::physics::heat::components::{
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
 
-
 /// Literally nothing
 #[derive(Copy, Clone, Debug)]
 pub struct Water {
