@@ -13,7 +13,7 @@ use crate::physics::heat::components::{
     HeatEnergy, Length, SpecificHeat, ThermalConductivity, ThermodynamicTemperature,
 };
 use crate::physics::orbits::components::Mass;
-use crate::physics::orbits::nbody::{Force, G};
+use crate::physics::orbits::nbody::{Force};
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
 use ndarray::Array2;

@@ -3,7 +3,7 @@
 
 use std::time::Duration;
 
-use bevy::{ecs::component::Component, render::color::Color, ui::debug};
+use bevy::{ecs::component::Component, render::color::Color};
 use derive_more::{Add, AddAssign, From, Into, Sub, SubAssign};
 use ndarray::Array2;
 

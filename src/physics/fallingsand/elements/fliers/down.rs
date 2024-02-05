@@ -77,8 +77,8 @@ impl Element for DownFlier {
 
     fn set_heat(
         &mut self,
-        heat: HeatEnergy,
-        current_time: Clock,
+        _heat: HeatEnergy,
+        _current_time: Clock,
     ) -> Result<(), SetHeatOnZeroSpecificHeatError> {
         Err(SetHeatOnZeroSpecificHeatError)
     }

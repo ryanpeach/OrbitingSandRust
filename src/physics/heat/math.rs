@@ -3,9 +3,7 @@
 #![warn(clippy::missing_docs_in_private_items)]
 
 use bevy::{
-    log::{error, trace, warn},
-    time::Time,
-    ui::debug,
+    log::{trace, warn},
 };
 use ndarray::{s, Array2};
 use ndarray_conv::*;
@@ -14,13 +12,12 @@ use crate::physics::{
     fallingsand::{
         convolution::{
             behaviors::ElementGridConvolutionNeighborTemperatures,
-            neighbor_grids::ElementGridConvolutionNeighborGrids,
         },
         data::element_grid::ElementGrid,
-        elements::element::{Compressability, Density, Element},
+        elements::element::{Density, Element},
         util::vectors::JkVector,
     },
-    heat::components::{HeatCapacity, SpecificHeat},
+    heat::components::{SpecificHeat},
     orbits::components::Mass,
     util::clock::Clock,
 };

@@ -10,7 +10,6 @@ use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::heat::components::{
     HeatEnergy, Length, SpecificHeat, ThermalConductivity, ThermodynamicTemperature,
-    ROOM_TEMPERATURE_K,
 };
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;

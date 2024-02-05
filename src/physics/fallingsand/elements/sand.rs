@@ -4,7 +4,7 @@ use super::element::{
 };
 use super::movement::solid::solid_process;
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
-use crate::physics::fallingsand::convolution::neighbor_identifiers::ConvolutionIdentifier;
+
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
@@ -14,7 +14,7 @@ use crate::physics::heat::components::{
 };
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
-use rand::Rng;
+
 
 /// Literally nothing
 #[derive(Copy, Clone, Debug)]

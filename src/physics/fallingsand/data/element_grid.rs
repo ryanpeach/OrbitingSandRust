@@ -1,4 +1,4 @@
-use bevy::log::error;
+
 use bevy::math::Rect;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
@@ -7,7 +7,7 @@ use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::heat::components::{
-    HeatCapacity, HeatEnergy, SpecificHeat, ThermodynamicTemperature,
+    HeatCapacity, HeatEnergy, ThermodynamicTemperature,
 };
 use crate::physics::heat::math::PropogateHeatBuilder;
 use crate::physics::orbits::components::Mass;

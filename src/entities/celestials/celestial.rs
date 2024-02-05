@@ -12,7 +12,7 @@ use bevy::ecs::query::{With, Without};
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
-use bevy::log::trace;
+
 use bevy::math::{Vec2, Vec3};
 use bevy::prelude::SpatialBundle;
 use bevy::render::mesh::Mesh;
@@ -22,12 +22,12 @@ use bevy::sprite::{ColorMaterial, MaterialMesh2dBundle};
 use bevy::time::Time;
 
 use bevy::transform::components::Transform;
-use bevy_egui::egui::text;
+
 use hashbrown::HashMap;
 
 use crate::entities::camera::OverlayLayer1;
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
-use crate::physics::fallingsand::util::image::RawImage;
+
 
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
