@@ -37,6 +37,7 @@ impl From<ForceVec> for Force {
 }
 
 impl Force {
+    /// Returns the force applied to the entity by gravitation
     pub fn from_mass(mass: Mass, acceleration: GravitationalAcceleration) -> Self {
         Force(mass.0 * acceleration.0)
     }
@@ -44,9 +45,10 @@ impl Force {
 
 /// The acceleration due to gravity
 #[derive(Component, Debug, Clone, Copy)]
-struct GravitationalAcceleration(pub f32);
+pub struct GravitationalAcceleration(pub f32);
 
 impl GravitationalAcceleration {
+    /// Returns the acceleration due to gravity towards a mass
     pub fn from_total_mass(total_mass: Mass) -> Self {
         GravitationalAcceleration(G * total_mass.0)
     }

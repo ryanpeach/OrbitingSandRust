@@ -38,6 +38,7 @@ fn main() {
 }
 
 /// Creates a solar system with a sun, earth, and a bunch of asteroids.
+#[allow(dead_code)]
 fn solar_system_setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,

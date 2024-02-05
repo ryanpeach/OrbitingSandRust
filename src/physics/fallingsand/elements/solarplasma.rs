@@ -33,7 +33,8 @@ impl SolarPlasma {
                     .heat_capacity(out.get_density().mass(cell_width)),
             ),
             Clock::default(),
-        );
+        )
+        .unwrap();
         out
     }
 }

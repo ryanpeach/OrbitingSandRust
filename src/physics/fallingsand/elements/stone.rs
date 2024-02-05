@@ -34,7 +34,8 @@ impl Stone {
                     .heat_capacity(out.get_density().mass(cell_width)),
             ),
             Clock::default(),
-        );
+        )
+        .unwrap();
         out
     }
 }
@@ -70,7 +71,7 @@ impl Element for Stone {
     ) -> ElementTakeOptions {
         if self.get_temperature(_coord_dir.get_cell_width()) > LAVA_STATE_TRANSITION_TEMPERATURE_K {
             let mut lava = Lava::new(_coord_dir.get_cell_width());
-            lava.set_heat(self.heat, _current_time);
+            lava.set_heat(self.heat, _current_time).unwrap();
             ElementTakeOptions::ReplaceWith(Box::new(lava))
         } else {
             ElementTakeOptions::PutBack

@@ -13,6 +13,7 @@ use crate::physics::{
     util::clock::Clock,
 };
 
+/// Default solid element behavior
 pub fn solid_process(
     self_element: &mut dyn Element,
     pos: JkVector,

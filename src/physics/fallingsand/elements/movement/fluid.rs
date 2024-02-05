@@ -11,6 +11,7 @@ use crate::physics::{
     util::clock::Clock,
 };
 
+/// Default fluid behavior
 pub fn fluid_process(
     self_element: &mut dyn Element,
     pos: JkVector,

@@ -1,8 +1,6 @@
 //! This module contains the trait Element and associated types
 //! This is the trait that all elements must implement
 //! It also contains info about states of matter and other useful enums and components
-#![warn(missing_docs)]
-#![warn(clippy::missing_docs_in_private_items)]
 
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::convolution::neighbor_identifiers::ConvolutionIdx;

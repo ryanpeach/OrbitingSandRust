@@ -1,6 +1,3 @@
-#![warn(missing_docs)]
-#![warn(clippy::missing_docs_in_private_items)]
-
 use bevy::app::{App, Plugin, Update};
 use bevy::asset::{AssetServer, Assets, Handle};
 use bevy::core::FrameCount;

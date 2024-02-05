@@ -403,18 +403,12 @@ impl ElementGridConvolutionNeighbors {
             },
             ConvolutionIdentifier::LR(lr_id) => match lr_id {
                 LeftRightNeighborIdentifier::Left { .. } => {
-                    if let LeftRightNeighborGrids::LR { l, .. } = &mut self.grids.left_right {
-                        Ok(l)
-                    } else {
-                        panic!("Tried to get l chunk that doesn't exist")
-                    }
+                    let LeftRightNeighborGrids::LR { l, .. } = &mut self.grids.left_right;
+                    Ok(l)
                 }
                 LeftRightNeighborIdentifier::Right { .. } => {
-                    if let LeftRightNeighborGrids::LR { r, .. } = &mut self.grids.left_right {
-                        Ok(r)
-                    } else {
-                        panic!("Tried to get r chunk that doesn't exist")
-                    }
+                    let LeftRightNeighborGrids::LR { r, .. } = &mut self.grids.left_right;
+                    Ok(r)
                 }
             },
             ConvolutionIdentifier::Center => Err(GetChunkErr::CenterChunk),
@@ -529,18 +523,12 @@ impl ElementGridConvolutionNeighbors {
             },
             ConvolutionIdentifier::LR(lr_id) => match lr_id {
                 LeftRightNeighborIdentifier::Left { .. } => {
-                    if let LeftRightNeighborGrids::LR { l, .. } = &self.grids.left_right {
-                        Ok(l)
-                    } else {
-                        panic!("Tried to get l chunk that doesn't exist")
-                    }
+                    let LeftRightNeighborGrids::LR { l, .. } = &self.grids.left_right;
+                    Ok(l)
                 }
                 LeftRightNeighborIdentifier::Right { .. } => {
-                    if let LeftRightNeighborGrids::LR { r, .. } = &self.grids.left_right {
-                        Ok(r)
-                    } else {
-                        panic!("Tried to get r chunk that doesn't exist")
-                    }
+                    let LeftRightNeighborGrids::LR { r, .. } = &self.grids.left_right;
+                    Ok(r)
                 }
             },
             ConvolutionIdentifier::Center => Err(GetChunkErr::CenterChunk),

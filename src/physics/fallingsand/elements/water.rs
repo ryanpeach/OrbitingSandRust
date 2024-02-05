@@ -34,7 +34,8 @@ impl Water {
                     .heat_capacity(out.get_density().mass(cell_width)),
             ),
             Clock::default(),
-        );
+        )
+        .unwrap();
         out
     }
 }

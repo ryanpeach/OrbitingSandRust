@@ -14,20 +14,20 @@ use crate::physics::{
         util::vectors::JkVector,
     },
     heat::components::SpecificHeat,
-    orbits::components::Mass,
     util::clock::Clock,
 };
 
 use super::components::{HeatEnergy, Length, ThermodynamicTemperature};
 
+/// The builder of the inputs to the heat propogation system
 pub struct PropogateHeatBuilder {
     cell_width: Length,
     temperature: Array2<f32>,
     thermal_conductivity: Array2<f32>,
     specific_heat_capacity: Array2<f32>,
     density: Array2<f32>,
-    compressability: Array2<f32>,
-    total_mass_above: Mass,
+    // compressability: Array2<f32>,
+    // total_mass_above: Mass,
     has_set_border_temperatures: bool,
 }
 
@@ -39,17 +39,17 @@ impl PropogateHeatBuilder {
         let thermal_conductivity = Array2::from_elem((height, width), 0.0);
         let specific_heat_capacity = Array2::from_elem((height, width), 0.0);
         let density = Array2::from_elem((height, width), 0.0);
-        let compressability = Array2::from_elem((height, width), 0.0);
+        // let compressability = Array2::from_elem((height, width), 0.0);
         Self {
             cell_width,
             temperature,
             thermal_conductivity,
             specific_heat_capacity,
             density,
-            compressability,
+            // compressability,
             // To be set later
             has_set_border_temperatures: false,
-            total_mass_above: Mass(-1.0),
+            // total_mass_above: Mass(-1.0),
         }
     }
 
@@ -64,13 +64,13 @@ impl PropogateHeatBuilder {
         self.thermal_conductivity[[jk_vector.j, jk_vector.k]] = elem.get_thermal_conductivity().0;
         self.specific_heat_capacity[[jk_vector.j, jk_vector.k]] = specific_heat.0;
         self.density[[jk_vector.j, jk_vector.k]] = density.0;
-        self.compressability[[jk_vector.j, jk_vector.k]] = elem.get_compressability().0;
+        // self.compressability[[jk_vector.j, jk_vector.k]] = elem.get_compressability().0;
     }
 
     /// Simple setter for the total mass above the chunk
-    pub fn total_mass_above(&mut self, total_mass_above: Mass) {
-        self.total_mass_above = total_mass_above;
-    }
+    // pub fn total_mass_above(&mut self, total_mass_above: Mass) {
+    //     self.total_mass_above = total_mass_above;
+    // }
 
     /// Set the temperature of the border cells based on the convolved neighbor temperatures
     pub fn border_temperatures(
@@ -107,10 +107,10 @@ impl PropogateHeatBuilder {
     /// Create the structure and test all the values
     pub fn build(self) -> PropogateHeat {
         // Check you called the methods
-        debug_assert!(
-            self.total_mass_above.0 >= 0.0,
-            "Total mass above must be greater than or equal to 0. Did you set it?"
-        );
+        // debug_assert!(
+        //     self.total_mass_above.0 >= 0.0,
+        //     "Total mass above must be greater than or equal to 0. Did you set it?"
+        // );
         debug_assert!(
             self.has_set_border_temperatures,
             "You must set the border temperatures"
@@ -136,19 +136,19 @@ impl PropogateHeatBuilder {
             self.thermal_conductivity.dim().1 + 2,
             "Temperature must be the size of the thermal conductivity + 4 on both hight and width"
         );
-        debug_assert_eq!(
-            self.compressability.dim(),
-            self.thermal_conductivity.dim(),
-            "Compressability must be the same size as the thermal conductivity"
-        );
+        // debug_assert_eq!(
+        //     self.compressability.dim(),
+        //     self.thermal_conductivity.dim(),
+        //     "Compressability must be the same size as the thermal conductivity"
+        // );
         debug_assert!(
             self.cell_width.0 >= 0.0,
             "Cell width must be greater than 0"
         );
-        debug_assert!(
-            self.total_mass_above.0 >= 0.0,
-            "Total mass above must be greater than or equal to 0. Did you set it?"
-        );
+        // debug_assert!(
+        //     self.total_mass_above.0 >= 0.0,
+        //     "Total mass above must be greater than or equal to 0. Did you set it?"
+        // );
         // Check everything is finite
         debug_assert!(
             self.temperature.iter().all(|&x| x.is_finite()),
@@ -166,10 +166,10 @@ impl PropogateHeatBuilder {
             self.density.iter().all(|&x| x.is_finite()),
             "Density must be finite"
         );
-        debug_assert!(
-            self.compressability.iter().all(|&x| x.is_finite()),
-            "Compressability must be finite"
-        );
+        // debug_assert!(
+        //     self.compressability.iter().all(|&x| x.is_finite()),
+        //     "Compressability must be finite"
+        // );
         PropogateHeat {
             cell_width: self.cell_width,
             temperature: self.temperature,
