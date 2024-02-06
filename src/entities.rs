@@ -5,6 +5,7 @@ use bevy::app::{PluginGroup, PluginGroupBuilder};
 
 pub mod camera;
 pub mod celestials;
+pub mod utils;
 
 pub struct EntitiesPluginGroup;
 

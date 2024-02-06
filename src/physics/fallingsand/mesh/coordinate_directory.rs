@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::math::{Rect, Vec2};
 
-use crate::entities::celestials::celestial::Radius;
+use crate::entities::utils::Radius;
 use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use crate::physics::heat::components::Length;

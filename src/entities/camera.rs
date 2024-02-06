@@ -4,27 +4,37 @@
 #![warn(clippy::missing_docs_in_private_items)]
 
 use bevy::{
-    app::{App, Plugin, Update},
-    core_pipeline::core_2d::Camera2d,
+    app::{App, Plugin, Startup, Update},
+    core_pipeline::{
+        clear_color::ClearColorConfig,
+        core_2d::{Camera2d, Camera2dBundle},
+    },
     ecs::{
         component::Component,
         entity::Entity,
         event::EventReader,
+        query::With,
         system::{Commands, Query, Res},
     },
     input::{
         keyboard::KeyCode,
-        mouse::{MouseScrollUnit, MouseWheel},
+        mouse::{MouseButton, MouseScrollUnit, MouseWheel},
         Input,
     },
     math::{Rect, Vec2, Vec3},
-    render::view::Visibility,
+    render::{color::Color, view::Visibility},
     time::Time,
     transform::components::{GlobalTransform, Transform},
-    window::Window,
+    window::{PrimaryWindow, Window},
 };
 
 use crate::physics::fallingsand::util::mesh::MeshBoundingBox;
+
+use super::{celestials::celestial::CelestialData, utils::Radius};
+
+/// Used to help identify our main camera
+#[derive(Component)]
+pub struct MainCamera;
 
 /// A layer in front of the game. Z-index = 1
 #[derive(Component, Debug, Default)]
@@ -36,6 +46,7 @@ pub struct CameraPlugin;
 impl Plugin for CameraPlugin {
     /// Build the camera plugin
     fn build(&self, app: &mut App) {
+        app.add_systems(Startup, Self::setup_main_camera);
         app.add_systems(Update, Self::zoom_camera_system);
         app.add_systems(Update, Self::move_camera_system);
         app.add_systems(Update, Self::frustum_culling_2d);
@@ -43,6 +54,34 @@ impl Plugin for CameraPlugin {
 }
 
 impl CameraPlugin {
+    /// Setup the main camera
+    pub fn setup_main_camera(mut commands: Commands) {
+        commands.spawn((
+            Camera2dBundle {
+                camera_2d: Camera2d {
+                    clear_color: ClearColorConfig::Custom(Color::rgb(0.0, 0.0, 0.0)),
+                },
+                transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0) * 100.0),
+                ..Default::default()
+            },
+            MainCamera,
+        ));
+    }
+
+    /// Select celestial bodies focus with the mouse
+    /// Uses the celestials transform, radius, and the mouse position for the collision
+    fn select_celestial_focus(
+        mut commands: Commands,
+        mut celestials: Query<(Entity, &Transform, &Radius), With<CelestialData>>,
+        mouse_buttons: Res<Input<MouseButton>>,
+        q_windows: Query<&Window, With<PrimaryWindow>>,
+    ) {
+        // Games typically only have one window (the primary window)
+        if let Some(position) = q_windows.single().cursor_position() {
+            let world_position = Vec2::new(position.x as f32, position.y as f32);
+        }
+    }
+
     /// Zoom the camera based on mouse wheel scroll
     fn zoom_camera_system(
         time: Res<Time>,

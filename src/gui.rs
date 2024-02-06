@@ -12,8 +12,8 @@ pub struct GuiPluginGroup;
 impl PluginGroup for GuiPluginGroup {
     fn build(self) -> PluginGroupBuilder {
         PluginGroupBuilder::start::<Self>()
-            .add(brush::BrushPlugin)
             .add(camera_window::CameraWindowPlugin)
+            .add(brush::BrushPlugin)
             .add(element_picker::ElementPickerPlugin)
     }
 }

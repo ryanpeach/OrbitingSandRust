@@ -4,14 +4,15 @@ pub mod physics;
 
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 
+use bevy::render::camera;
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy::{core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*};
 use bevy_egui::EguiPlugin;
+use entities::camera::MainCamera;
 
 use crate::entities::celestials::sun::SunBuilder;
 use crate::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
 use crate::entities::EntitiesPluginGroup;
-use crate::gui::brush::BrushRadius;
 
 use crate::gui::GuiPluginGroup;
 use crate::physics::orbits::components::{Mass, Velocity};
@@ -45,28 +46,6 @@ fn solar_system_setup(
     mut materials: ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
-    // Create a 2D camera
-    let camera = commands
-        .spawn(Camera2dBundle {
-            camera_2d: Camera2d {
-                clear_color: ClearColorConfig::Custom(Color::rgb(0.0, 0.0, 0.0)),
-            },
-            transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0) * 100.0),
-            ..Default::default()
-        })
-        .id();
-
-    // Create the brush
-    let brush = commands
-        .spawn((
-            BrushRadius(0.5),
-            Transform::from_translation(Vec3::new(0., 0., 0.)),
-        ))
-        .id();
-
-    // Parent the brush to the camera
-    commands.entity(camera).push_children(&[brush]);
-
     // Create earth
     let planet_data = EarthLikeBuilder::new().build();
     CelestialData::setup(
@@ -135,30 +114,9 @@ fn planet_only_setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    camera: Query<Entity, With<MainCamera>>,
     asset_server: Res<AssetServer>,
 ) {
-    // Create a 2D camera
-    let camera = commands
-        .spawn(Camera2dBundle {
-            camera_2d: Camera2d {
-                clear_color: ClearColorConfig::Custom(Color::rgb(0.0, 0.0, 0.0)),
-            },
-            transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0) * 1.0),
-            ..Default::default()
-        })
-        .id();
-
-    // Create the brush
-    let brush = commands
-        .spawn((
-            BrushRadius(0.5),
-            Transform::from_translation(Vec3::new(0., 0., 0.)),
-        ))
-        .id();
-
-    // Parent the brush to the camera
-    commands.entity(camera).push_children(&[brush]);
-
     // Create earth
     let planet_data = EarthLikeBuilder::new().build();
     let planet_id = CelestialData::setup(
@@ -175,5 +133,5 @@ fn planet_only_setup(
     );
 
     // Parent the camera to the sun
-    commands.entity(planet_id).push_children(&[camera]);
+    commands.entity(planet_id).push_children(&[camera.single()]);
 }

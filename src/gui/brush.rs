@@ -1,18 +1,25 @@
+#![warn(missing_docs)]
+#![warn(clippy::missing_docs_in_private_items)]
+
+use crate::entities::camera::{CameraPlugin, MainCamera};
 use crate::entities::celestials::celestial::CelestialData;
+use crate::entities::utils::Radius;
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::util::clock::Clock;
 use crate::physics::util::vectors::{mouse_coord_to_world_coord, RelXyPoint, Vertex};
-use bevy::app::{App, Plugin, Update};
+use bevy::app::{App, Plugin, Startup, Update};
 use bevy::core::FrameCount;
 use bevy::core_pipeline::core_2d::Camera2d;
+use bevy::ecs::entity::Entity;
 use bevy::ecs::query::Without;
-use bevy::ecs::system::Res;
-use bevy::hierarchy::Parent;
+use bevy::ecs::schedule::IntoSystemConfigs;
+use bevy::ecs::system::{Commands, Res};
+use bevy::hierarchy::{BuildChildren, Parent};
 use bevy::input::keyboard::KeyCode;
 use bevy::input::mouse::MouseButton;
 use bevy::input::Input;
 use bevy::log::debug;
-use bevy::math::Vec2;
+use bevy::math::{Vec2, Vec3};
 use bevy::prelude::Window;
 use bevy::time::Time;
 use bevy::{
@@ -25,52 +32,52 @@ use bevy::{
 
 use super::element_picker::ElementSelection;
 
+/// Identifies the brush
+#[derive(Component)]
+pub struct BrushComponent;
+
 /// The brush is a circle that can be resized and moved around the screen.
 pub struct BrushPlugin;
 
 impl Plugin for BrushPlugin {
     fn build(&self, app: &mut App) {
+        app.add_systems(Startup, Self::setup.after(CameraPlugin::setup_main_camera));
         app.add_systems(
             Update,
             (
-                BrushRadius::move_brush_system,
-                BrushRadius::draw_brush_system,
-                BrushRadius::resize_brush_system,
-                BrushRadius::apply_brush_system,
+                Self::move_brush_system,
+                Self::draw_brush_system,
+                Self::resize_brush_system,
+                Self::apply_brush_system,
             ),
         );
     }
 }
 
-#[derive(Default, Component, Debug, Clone, Copy)]
-pub struct BrushRadius(pub f32);
-
-impl BrushRadius {
-    pub fn calc_mesh(self) -> OwnedMeshData {
-        const NB_VERTICES: usize = 100;
-        let mut vertices: Vec<Vertex> = Vec::with_capacity(NB_VERTICES);
-        let mut indices: Vec<u32> = Vec::with_capacity(NB_VERTICES);
-        for i in 0..NB_VERTICES {
-            let angle = 2.0 * std::f32::consts::PI * (i as f32) / (NB_VERTICES as f32);
-            let x = self.0 * angle.cos();
-            let y = self.0 * angle.sin();
-            vertices.push(Vertex {
-                position: Vec2::new(x, y),
-                uv: Vec2::new(0.0, 0.0),
-                color: Color::rgba(0.0, 0.0, 0.0, 1.0),
-            });
-            indices.push(i as u32);
-        }
-        OwnedMeshData::new(vertices, indices)
-    }
-}
-
 /// Bevy Systems
-impl BrushRadius {
+impl BrushPlugin {
+    /// Setup the brush
+    pub fn setup(mut commands: Commands, camera: Query<Entity, With<MainCamera>>) {
+        let camera = camera.single();
+
+        // Create the brush
+        let brush = commands
+            .spawn((
+                Radius(0.5),
+                BrushComponent,
+                Transform::from_translation(Vec3::new(0., 0., 0.)),
+            ))
+            .id();
+
+        // Parent the brush to the camera
+        commands.entity(camera).push_children(&[brush]);
+    }
+
+    /// Move the brush with the mouse
     pub fn move_brush_system(
         windows: Query<&mut Window>,
         mut cursor_moved_events: EventReader<CursorMoved>,
-        mut query: Query<&mut Transform, With<BrushRadius>>,
+        mut query: Query<&mut Transform, With<BrushComponent>>,
     ) {
         for event in cursor_moved_events.read() {
             let mouse_transform = mouse_coord_to_world_coord(&windows, event);
@@ -82,14 +89,22 @@ impl BrushRadius {
         }
     }
 
-    pub fn draw_brush_system(query: Query<(&Transform, &BrushRadius)>, mut gizmos: Gizmos) {
+    /// Draw the brush circle
+    pub fn draw_brush_system(
+        query: Query<(&Transform, &Radius), With<BrushComponent>>,
+        mut gizmos: Gizmos,
+    ) {
         for (transform, brush_radius) in query.iter() {
             let mesh = brush_radius.calc_mesh();
             mesh.draw_bevy_gizmo_outline(&mut gizmos, transform);
         }
     }
 
-    pub fn resize_brush_system(keys: Res<Input<KeyCode>>, mut query: Query<&mut BrushRadius>) {
+    /// Resize the brush with + and -
+    pub fn resize_brush_system(
+        keys: Res<Input<KeyCode>>,
+        mut query: Query<&mut Radius, With<BrushComponent>>,
+    ) {
         for mut brush_radius in query.iter_mut() {
             if keys.just_pressed(KeyCode::Equals) {
                 brush_radius.0 *= 2.0;
@@ -102,16 +117,16 @@ impl BrushRadius {
             }
         }
     }
-}
 
-/// Brush Radius Effect
-impl BrushRadius {
     /// Based on the brush radius and the celestial cell size, return a list of
     /// points in relative xy coordinates that the brush will affect.
     pub fn apply_brush_system(
         mouse: Res<Input<MouseButton>>,
-        mut brush: Query<(&Parent, &mut Transform, &BrushRadius)>,
-        mut camera: Query<(&Parent, &mut Transform, &mut Camera2d), Without<BrushRadius>>,
+        mut brush: Query<(&Parent, &mut Transform, &Radius), With<BrushComponent>>,
+        mut camera: Query<
+            (&Parent, &mut Transform, &mut Camera2d, &MainCamera),
+            Without<BrushComponent>,
+        >,
         mut celestial: Query<&mut CelestialData>,
         element_picker: Res<ElementSelection>,
         current_time: Res<Time>,
@@ -122,7 +137,7 @@ impl BrushRadius {
         }
         debug!("Applying brush");
         let (brush_parent, brush_transform, radius) = brush.single_mut();
-        let (camera_parent, camera_transform, _) = camera.get_mut(brush_parent.get()).unwrap();
+        let (camera_parent, camera_transform, _, _) = camera.get_mut(brush_parent.get()).unwrap();
         let mut celestial = celestial.get_mut(camera_parent.get()).unwrap();
         let begin_at = RelXyPoint::new(
             radius.0 + brush_transform.translation.x + camera_transform.translation.x,
