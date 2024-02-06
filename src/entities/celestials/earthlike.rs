@@ -3,16 +3,16 @@ use bevy::log::info;
 use crate::{
     entities::celestials::celestial::CelestialData,
     physics::{
-        self,
         fallingsand::{
             data::element_directory::ElementGridDir, elements::element::ElementType,
             mesh::coordinate_directory::CoordinateDirBuilder, util::vectors::ChunkIjkVector,
         },
+        heat::components::Length,
     },
 };
 
 pub struct EarthLikeBuilder {
-    cell_radius: f32,
+    cell_radius: Length,
     num_layers: usize,
     first_num_radial_lines: usize,
     second_num_concentric_circles: usize,
@@ -30,7 +30,7 @@ impl Default for EarthLikeBuilder {
 impl EarthLikeBuilder {
     pub fn new() -> Self {
         Self {
-            cell_radius: 1.0,
+            cell_radius: Length(1.0),
             num_layers: 8,
             first_num_radial_lines: 12,
             second_num_concentric_circles: 3,
@@ -40,7 +40,7 @@ impl EarthLikeBuilder {
         }
     }
 
-    pub fn cell_radius(mut self, cell_radius: f32) -> Self {
+    pub fn cell_radius(mut self, cell_radius: Length) -> Self {
         self.cell_radius = cell_radius;
         self
     }
@@ -80,7 +80,7 @@ impl EarthLikeBuilder {
 
     pub fn build(&self) -> CelestialData {
         let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(physics::heat::components::Length(self.cell_radius))
+            .cell_radius(self.cell_radius)
             .num_layers(self.num_layers)
             .first_num_radial_lines(self.first_num_radial_lines)
             .second_num_concentric_circles(self.second_num_concentric_circles)
