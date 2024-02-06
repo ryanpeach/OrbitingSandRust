@@ -33,7 +33,7 @@ fn main() {
         .add_plugins(GuiPluginGroup)
         .add_plugins(PhysicsPluginGroup)
         .add_plugins(EntitiesPluginGroup)
-        .add_systems(Startup, planet_only_setup)
+        .add_systems(Startup, solar_system_setup)
         .run();
 }
 
@@ -95,7 +95,7 @@ fn solar_system_setup(
 
     // Create a sun
     let sun_data = SunBuilder::new().build();
-    let sun_id = CelestialData::setup(
+    CelestialData::setup(
         sun_data,
         Velocity(Vec2::new(0., 0.)),
         Vec2::new(0., 0.),
@@ -127,9 +127,6 @@ fn solar_system_setup(
             },
         ));
     }
-
-    // Parent the camera to the sun
-    commands.entity(sun_id).push_children(&[camera]);
 }
 
 /// Creates just a planet
