@@ -2,6 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::math::{Rect, Vec2};
 
+use crate::entities::celestials::celestial::Radius;
 use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use crate::physics::heat::components::Length;
@@ -554,6 +555,11 @@ impl CoordinateDir {
                 k: 0,
             })
             .get_end_radius()
+    }
+
+    /// Gets the radius of the entire coordinate directory
+    pub fn get_radius(&self) -> Radius {
+        Radius(self.get_layer_end_radius(self.get_num_layers() - 1))
     }
 }
 

@@ -27,6 +27,10 @@ use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
 use crate::physics::util::clock::Clock;
 
+/// Radius of the celestial
+#[derive(Component, Debug, Clone, Copy)]
+pub struct Radius(pub f32);
+
 /// A component that represents a chunk by its index in the directory
 #[derive(Component, Debug, Clone, Copy)]
 pub struct CelestialChunkIdk(ChunkIjkVector);
@@ -211,6 +215,7 @@ impl CelestialData {
             if gravitational {
                 commands
                     .spawn((
+                        coordinate_dir.get_radius(),
                         celestial.get_element_dir().get_total_mass(),
                         velocity,
                         celestial,
@@ -223,6 +228,7 @@ impl CelestialData {
             } else {
                 commands
                     .spawn((
+                        coordinate_dir.get_radius(),
                         celestial.get_element_dir().get_total_mass(),
                         velocity,
                         celestial,
