@@ -1,24 +1,50 @@
-use super::element::{Element, ElementTakeOptions, ElementType, StateOfMatter};
+use super::element::{
+    Compressability, Density, Element, ElementTakeOptions, ElementType,
+    SetHeatOnZeroSpecificHeatError, StateOfMatter,
+};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
+use crate::physics::heat::components::{
+    HeatEnergy, Length, SpecificHeat, ThermalConductivity, ThermodynamicTemperature,
+};
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
 use rand::Rng;
 
 /// Literally nothing
-#[derive(Default, Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct SolarPlasma {
     last_processed: Clock,
+    heat: HeatEnergy,
+}
+
+impl SolarPlasma {
+    /// Create a new SolarPlasma
+    pub fn new(cell_width: Length) -> Self {
+        let mut out = Self {
+            last_processed: Clock::default(),
+            heat: HeatEnergy::default(),
+        };
+        out.set_heat(
+            out.get_default_temperature().heat_energy(
+                out.get_specific_heat()
+                    .heat_capacity(out.get_density().mass(cell_width)),
+            ),
+            Clock::default(),
+        )
+        .unwrap();
+        out
+    }
 }
 
 impl Element for SolarPlasma {
     fn get_type(&self) -> ElementType {
         ElementType::Water
     }
-    fn get_density(&self) -> f32 {
-        100.0
+    fn get_density(&self) -> Density {
+        Density(100.0)
     }
     fn get_last_processed(&self) -> Clock {
         self.last_processed
@@ -142,5 +168,35 @@ impl Element for SolarPlasma {
     }
     fn box_clone(&self) -> Box<dyn Element> {
         Box::new(*self)
+    }
+
+    fn get_heat(&self) -> HeatEnergy {
+        self.heat
+    }
+
+    fn set_heat(
+        &mut self,
+        heat: HeatEnergy,
+        current_time: Clock,
+    ) -> Result<(), SetHeatOnZeroSpecificHeatError> {
+        self.heat = heat;
+        self._set_last_processed(current_time);
+        Ok(())
+    }
+
+    fn get_default_temperature(&self) -> ThermodynamicTemperature {
+        ThermodynamicTemperature(10000.0)
+    }
+
+    fn get_specific_heat(&self) -> SpecificHeat {
+        SpecificHeat(0.05)
+    }
+
+    fn get_thermal_conductivity(&self) -> ThermalConductivity {
+        ThermalConductivity(100.0)
+    }
+
+    fn get_compressability(&self) -> Compressability {
+        Compressability(100.0)
     }
 }

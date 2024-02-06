@@ -23,7 +23,7 @@ fn main() {
         .add_plugins((
             DefaultPlugins
                 .set(LogPlugin {
-                    level: bevy::log::Level::INFO,
+                    level: bevy::log::Level::TRACE,
                     ..Default::default()
                 })
                 .set(ImagePlugin::default_nearest()),
@@ -33,11 +33,12 @@ fn main() {
         .add_plugins(GuiPluginGroup)
         .add_plugins(PhysicsPluginGroup)
         .add_plugins(EntitiesPluginGroup)
-        .add_systems(Startup, solar_system_setup)
+        .add_systems(Startup, planet_only_setup)
         .run();
 }
 
 /// Creates a solar system with a sun, earth, and a bunch of asteroids.
+#[allow(dead_code)]
 fn solar_system_setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -145,7 +146,7 @@ fn planet_only_setup(
             camera_2d: Camera2d {
                 clear_color: ClearColorConfig::Custom(Color::rgb(0.0, 0.0, 0.0)),
             },
-            transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0) * 100.0),
+            transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0) * 1.0),
             ..Default::default()
         })
         .id();

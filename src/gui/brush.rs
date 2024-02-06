@@ -138,6 +138,7 @@ impl BrushRadius {
                 .element_grid_dir
                 .get_coordinate_dir()
                 .get_cell_width()
+                .0
                 / 2.0;
         while x < end_at.0.x {
             let mut y = begin_at.0.y
@@ -145,6 +146,7 @@ impl BrushRadius {
                     .element_grid_dir
                     .get_coordinate_dir()
                     .get_cell_width()
+                    .0
                     / 2.0;
             while y < end_at.0.y {
                 let pos = RelXyPoint::new(x, y);
@@ -154,12 +156,14 @@ impl BrushRadius {
                 y += celestial
                     .element_grid_dir
                     .get_coordinate_dir()
-                    .get_cell_width();
+                    .get_cell_width()
+                    .0;
             }
             x += celestial
                 .element_grid_dir
                 .get_coordinate_dir()
-                .get_cell_width();
+                .get_cell_width()
+                .0;
         }
 
         // Now apply the brush to the celestial
@@ -169,7 +173,11 @@ impl BrushRadius {
             let coord_dir = element_dir.get_coordinate_dir();
             let conversion = coord_dir.rel_pos_to_cell_idx(pos);
             if let Ok(coords) = conversion {
-                element_dir.set_element(coords, element_picker.0.get_element(), current_time);
+                element_dir.set_element(
+                    coords,
+                    element_picker.0.get_element(coord_dir.get_cell_width()),
+                    current_time,
+                );
             }
         }
     }

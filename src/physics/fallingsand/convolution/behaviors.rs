@@ -10,6 +10,7 @@ use crate::physics::{
             vectors::{ChunkIjkVector, JkVector},
         },
     },
+    heat::components::ThermodynamicTemperature,
     util::clock::Clock,
 };
 
@@ -31,8 +32,8 @@ use super::{
 };
 
 pub struct ElementGridConvolutionNeighbors {
-    chunk_idxs: ElementGridConvolutionNeighborIdxs,
-    grids: ElementGridConvolutionNeighborGrids,
+    pub chunk_idxs: ElementGridConvolutionNeighborIdxs,
+    pub grids: ElementGridConvolutionNeighborGrids,
 }
 
 /// Instantiation
@@ -53,6 +54,15 @@ impl ElementGridConvolutionNeighbors {
             },
         }
     }
+
+    /// Get the number of chunks
+    pub fn len(&self) -> usize {
+        self.chunk_idxs.iter().count()
+    }
+    /// Checks if there are no chunks
+    pub fn is_empty(&self) -> bool {
+        self.chunk_idxs.iter().count() == 0
+    }
 }
 
 /// Iteration
@@ -60,12 +70,12 @@ impl ElementGridConvolutionNeighbors {
 /// To do this we will use the into_hashmap method on the neighbor grids
 /// and the iter method on the neighbor indexes
 /// taking from the hashmap on each iteration of the iter
-pub struct ElementGridConvolutionNeighborsIter {
+pub struct ElementGridConvolutionNeighborsIntoIter {
     chunk_idxs_iter: ElementGridConvolutionNeighborIdxsIter,
     grids: HashMap<ChunkIjkVector, ElementGrid>,
 }
 
-impl Iterator for ElementGridConvolutionNeighborsIter {
+impl Iterator for ElementGridConvolutionNeighborsIntoIter {
     type Item = (ChunkIjkVector, ElementGrid);
     fn next(&mut self) -> Option<Self::Item> {
         match self.chunk_idxs_iter.next() {
@@ -80,12 +90,72 @@ impl Iterator for ElementGridConvolutionNeighborsIter {
 
 impl IntoIterator for ElementGridConvolutionNeighbors {
     type Item = (ChunkIjkVector, ElementGrid);
-    type IntoIter = ElementGridConvolutionNeighborsIter;
+    type IntoIter = ElementGridConvolutionNeighborsIntoIter;
     fn into_iter(self) -> Self::IntoIter {
-        ElementGridConvolutionNeighborsIter {
+        ElementGridConvolutionNeighborsIntoIter {
             chunk_idxs_iter: self.chunk_idxs.iter(),
             grids: self.grids.into_hashmap(),
         }
+    }
+}
+
+/// The average temperature of the neighbors
+#[derive(Copy, Clone, Debug, Default)]
+pub struct ElementGridConvolutionNeighborTemperatures {
+    pub top: Option<ThermodynamicTemperature>,
+    pub bottom: Option<ThermodynamicTemperature>,
+    pub left: ThermodynamicTemperature,
+    pub right: ThermodynamicTemperature,
+}
+
+impl ElementGridConvolutionNeighbors {
+    pub fn get_avg_temp(&self) -> ElementGridConvolutionNeighborTemperatures {
+        let mut out = ElementGridConvolutionNeighborTemperatures::default();
+        match &self.grids.top {
+            TopNeighborGrids::Normal { t, tl, tr } => {
+                let mut sum = ThermodynamicTemperature(0.0);
+                sum += t.get_temperature();
+                sum += tl.get_temperature();
+                sum += tr.get_temperature();
+                out.top = Some(ThermodynamicTemperature(sum.0 / 3.0));
+            }
+            TopNeighborGrids::LayerTransition { t0, t1, tl, tr } => {
+                let mut sum = ThermodynamicTemperature(0.0);
+                sum += t0.get_temperature();
+                sum += t1.get_temperature();
+                sum += tl.get_temperature();
+                sum += tr.get_temperature();
+                out.top = Some(ThermodynamicTemperature(sum.0 / 4.0));
+            }
+            TopNeighborGrids::TopOfGrid => {
+                out.top = None;
+            }
+        }
+        match &self.grids.bottom {
+            BottomNeighborGrids::Normal { b, bl, br } => {
+                let mut sum = ThermodynamicTemperature(0.0);
+                sum += b.get_temperature();
+                sum += bl.get_temperature();
+                sum += br.get_temperature();
+                out.bottom = Some(ThermodynamicTemperature(sum.0 / 3.0));
+            }
+            BottomNeighborGrids::LayerTransition { bl, br } => {
+                let mut sum = ThermodynamicTemperature(0.0);
+                sum += bl.get_temperature();
+                sum += br.get_temperature();
+                out.bottom = Some(ThermodynamicTemperature(sum.0 / 2.0));
+            }
+            BottomNeighborGrids::BottomOfGrid => {
+                out.bottom = None;
+            }
+        }
+        match &self.grids.left_right {
+            LeftRightNeighborGrids::LR { l, r } => {
+                out.left = l.get_temperature();
+                out.right = r.get_temperature();
+            }
+        }
+        out
     }
 }
 
@@ -337,18 +407,12 @@ impl ElementGridConvolutionNeighbors {
             },
             ConvolutionIdentifier::LR(lr_id) => match lr_id {
                 LeftRightNeighborIdentifier::Left { .. } => {
-                    if let LeftRightNeighborGrids::LR { l, .. } = &mut self.grids.left_right {
-                        Ok(l)
-                    } else {
-                        panic!("Tried to get l chunk that doesn't exist")
-                    }
+                    let LeftRightNeighborGrids::LR { l, .. } = &mut self.grids.left_right;
+                    Ok(l)
                 }
                 LeftRightNeighborIdentifier::Right { .. } => {
-                    if let LeftRightNeighborGrids::LR { r, .. } = &mut self.grids.left_right {
-                        Ok(r)
-                    } else {
-                        panic!("Tried to get r chunk that doesn't exist")
-                    }
+                    let LeftRightNeighborGrids::LR { r, .. } = &mut self.grids.left_right;
+                    Ok(r)
                 }
             },
             ConvolutionIdentifier::Center => Err(GetChunkErr::CenterChunk),
@@ -463,18 +527,12 @@ impl ElementGridConvolutionNeighbors {
             },
             ConvolutionIdentifier::LR(lr_id) => match lr_id {
                 LeftRightNeighborIdentifier::Left { .. } => {
-                    if let LeftRightNeighborGrids::LR { l, .. } = &self.grids.left_right {
-                        Ok(l)
-                    } else {
-                        panic!("Tried to get l chunk that doesn't exist")
-                    }
+                    let LeftRightNeighborGrids::LR { l, .. } = &self.grids.left_right;
+                    Ok(l)
                 }
                 LeftRightNeighborIdentifier::Right { .. } => {
-                    if let LeftRightNeighborGrids::LR { r, .. } = &self.grids.left_right {
-                        Ok(r)
-                    } else {
-                        panic!("Tried to get r chunk that doesn't exist")
-                    }
+                    let LeftRightNeighborGrids::LR { r, .. } = &self.grids.left_right;
+                    Ok(r)
                 }
             },
             ConvolutionIdentifier::Center => Err(GetChunkErr::CenterChunk),
@@ -537,12 +595,12 @@ mod tests {
 
     mod get_below_idx_from_center {
         use super::*;
-        use crate::physics::fallingsand::util::vectors::IjkVector;
+        use crate::physics::{self, fallingsand::util::vectors::IjkVector};
 
         /// The default element grid directory for testing
         fn get_element_grid_dir() -> ElementGridDir {
             let coordinate_dir = CoordinateDirBuilder::new()
-                .cell_radius(1.0)
+                .cell_radius(physics::heat::components::Length(1.0))
                 .num_layers(10)
                 .first_num_radial_lines(6)
                 .second_num_concentric_circles(3)
@@ -638,12 +696,12 @@ mod tests {
 
     mod get_left_right_idx_from_center {
         use super::*;
-        use crate::physics::fallingsand::util::vectors::IjkVector;
+        use crate::physics::{self, fallingsand::util::vectors::IjkVector};
 
         /// The default element grid directory for testing
         fn get_element_grid_dir() -> ElementGridDir {
             let coordinate_dir = CoordinateDirBuilder::new()
-                .cell_radius(1.0)
+                .cell_radius(physics::heat::components::Length(1.0))
                 .num_layers(7)
                 .first_num_radial_lines(12)
                 .second_num_concentric_circles(3)

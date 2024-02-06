@@ -2,9 +2,12 @@ use bevy::log::info;
 
 use crate::{
     entities::celestials::celestial::CelestialData,
-    physics::fallingsand::{
-        data::element_directory::ElementGridDir, elements::element::ElementType,
-        mesh::coordinate_directory::CoordinateDirBuilder, util::vectors::ChunkIjkVector,
+    physics::{
+        self,
+        fallingsand::{
+            data::element_directory::ElementGridDir, elements::element::ElementType,
+            mesh::coordinate_directory::CoordinateDirBuilder, util::vectors::ChunkIjkVector,
+        },
     },
 };
 
@@ -77,7 +80,7 @@ impl SunBuilder {
 
     pub fn build(&self) -> CelestialData {
         let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(self.cell_radius)
+            .cell_radius(physics::heat::components::Length(self.cell_radius))
             .num_layers(self.num_layers)
             .first_num_radial_lines(self.first_num_radial_lines)
             .second_num_concentric_circles(self.second_num_concentric_circles)

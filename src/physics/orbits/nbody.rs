@@ -14,13 +14,45 @@ use bevy::{
 
 use super::components::{GravitationalField, Mass, Velocity};
 
-#[derive(Component, Debug, Clone, Copy)]
-struct Force(Vec2);
-
 /// It's important that we don't compute the gravitational force between two bodies that are too
 /// close together, because the force will be very large and the simulation will be unstable.
-const MIN_DISTANCE_SQUARED: f32 = 100.0;
-const G: f32 = 1.0e3;
+pub const MIN_DISTANCE_SQUARED: f32 = 100.0;
+/// The gravitational constant
+/// N⋅m^2/kg^2
+pub const G: f32 = 1.0e3;
+
+/// The force applied to an entity with its direction
+#[derive(Component, Debug, Clone, Copy)]
+pub struct ForceVec(pub Vec2);
+
+/// The force applied to an entity
+#[derive(Component, Debug, Clone, Copy)]
+pub struct Force(pub f32);
+
+/// The force applied to an entity
+impl From<ForceVec> for Force {
+    fn from(force_vec: ForceVec) -> Self {
+        Force(force_vec.0.length())
+    }
+}
+
+impl Force {
+    /// Returns the force applied to the entity by gravitation
+    pub fn from_mass(mass: Mass, acceleration: GravitationalAcceleration) -> Self {
+        Force(mass.0 * acceleration.0)
+    }
+}
+
+/// The acceleration due to gravity
+#[derive(Component, Debug, Clone, Copy)]
+pub struct GravitationalAcceleration(pub f32);
+
+impl GravitationalAcceleration {
+    /// Returns the acceleration due to gravity towards a mass
+    pub fn from_total_mass(total_mass: Mass) -> Self {
+        GravitationalAcceleration(G * total_mass.0)
+    }
+}
 
 /// Just a namespace for the fundamental gravity functions
 struct GravityCalculations;
@@ -31,7 +63,7 @@ impl GravityCalculations {
         mass1: &Mass,
         pos2: &Transform,
         mass2: &Mass,
-    ) -> Force {
+    ) -> ForceVec {
         let r = pos2.translation - pos1.translation;
         let mut distance_squared = r.length_squared();
         distance_squared = distance_squared.max(MIN_DISTANCE_SQUARED);
@@ -44,7 +76,7 @@ impl GravityCalculations {
         let force_direction = r.normalize();
 
         // The final force vector is the direction scaled by the force magnitude
-        Force((force_direction * force_magnitude).xy())
+        ForceVec((force_direction * force_magnitude).xy())
     }
 
     /// Updates the velocity of the entity one half step

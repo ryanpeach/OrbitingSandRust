@@ -2,14 +2,17 @@ use bevy::log::info;
 
 use crate::{
     entities::celestials::celestial::CelestialData,
-    physics::fallingsand::{
-        data::element_directory::ElementGridDir, elements::element::ElementType,
-        mesh::coordinate_directory::CoordinateDirBuilder, util::vectors::ChunkIjkVector,
+    physics::{
+        fallingsand::{
+            data::element_directory::ElementGridDir, elements::element::ElementType,
+            mesh::coordinate_directory::CoordinateDirBuilder, util::vectors::ChunkIjkVector,
+        },
+        heat::components::Length,
     },
 };
 
 pub struct EarthLikeBuilder {
-    cell_radius: f32,
+    cell_radius: Length,
     num_layers: usize,
     first_num_radial_lines: usize,
     second_num_concentric_circles: usize,
@@ -27,7 +30,7 @@ impl Default for EarthLikeBuilder {
 impl EarthLikeBuilder {
     pub fn new() -> Self {
         Self {
-            cell_radius: 1.0,
+            cell_radius: Length(1.0),
             num_layers: 8,
             first_num_radial_lines: 12,
             second_num_concentric_circles: 3,
@@ -37,7 +40,7 @@ impl EarthLikeBuilder {
         }
     }
 
-    pub fn cell_radius(mut self, cell_radius: f32) -> Self {
+    pub fn cell_radius(mut self, cell_radius: Length) -> Self {
         self.cell_radius = cell_radius;
         self
     }
@@ -102,7 +105,10 @@ impl EarthLikeBuilder {
                     let chunk_idx = ChunkIjkVector::new(layer_num, j, k);
                     let element_grid = element_grid_dir.get_chunk_by_chunk_ijk_mut(chunk_idx);
                     match total_j {
-                        0..=9 => {
+                        0..=3 => {
+                            element_grid.fill(ElementType::Lava);
+                        }
+                        4..=9 => {
                             element_grid.fill(ElementType::Stone);
                         }
                         10..=12 => {

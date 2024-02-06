@@ -26,7 +26,6 @@ impl fmt::Display for ConvOutOfBoundsError {
 #[allow(clippy::large_enum_variant)]
 pub enum LeftRightNeighborGrids {
     LR { l: ElementGrid, r: ElementGrid },
-    SingleChunkLayer,
 }
 
 impl LeftRightNeighborGrids {
@@ -38,7 +37,6 @@ impl LeftRightNeighborGrids {
                 map.insert(r.get_chunk_coords().get_chunk_idx(), r);
                 map
             }
-            LeftRightNeighborGrids::SingleChunkLayer => HashMap::new(),
         }
     }
 
@@ -51,7 +49,6 @@ impl LeftRightNeighborGrids {
                 l: grids.remove(l).unwrap(),
                 r: grids.remove(r).unwrap(),
             },
-            LeftRightNeighborIdxs::SingleChunkLayer => LeftRightNeighborGrids::SingleChunkLayer,
         }
     }
 
@@ -69,7 +66,6 @@ impl LeftRightNeighborGrids {
                     None
                 }
             }
-            LeftRightNeighborGrids::SingleChunkLayer => None,
         }
     }
 }

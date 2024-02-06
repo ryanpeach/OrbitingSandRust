@@ -4,6 +4,7 @@ use bevy::{
     app::{App, Plugin, Update},
     core_pipeline::core_2d::Camera2d,
     ecs::{
+        component::Component,
         entity::Entity,
         event::EventReader,
         system::{Commands, Query, Res},
@@ -21,6 +22,10 @@ use bevy::{
 };
 
 use crate::physics::fallingsand::util::mesh::MeshBoundingBox;
+
+/// A layer in front of the game. Z-index = 1
+#[derive(Component, Debug, Default)]
+pub struct OverlayLayer1;
 
 pub struct CameraPlugin;
 
