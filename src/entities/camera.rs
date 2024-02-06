@@ -1,5 +1,8 @@
 //! The bevy camera for the game
 
+#![warn(missing_docs)]
+#![warn(clippy::missing_docs_in_private_items)]
+
 use bevy::{
     app::{App, Plugin, Update},
     core_pipeline::core_2d::Camera2d,
@@ -27,9 +30,11 @@ use crate::physics::fallingsand::util::mesh::MeshBoundingBox;
 #[derive(Component, Debug, Default)]
 pub struct OverlayLayer1;
 
+/// The plugin for the camera system
 pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
+    /// Build the camera plugin
     fn build(&self, app: &mut App) {
         app.add_systems(Update, Self::zoom_camera_system);
         app.add_systems(Update, Self::move_camera_system);
@@ -38,6 +43,7 @@ impl Plugin for CameraPlugin {
 }
 
 impl CameraPlugin {
+    /// Zoom the camera based on mouse wheel scroll
     fn zoom_camera_system(
         time: Res<Time>,
         mut scroll_evr: EventReader<MouseWheel>,
@@ -61,6 +67,7 @@ impl CameraPlugin {
         }
     }
 
+    /// Move the camera based on keyboard input
     fn move_camera_system(
         time: Res<Time>,
         keyboard_input: Res<Input<KeyCode>>,
@@ -87,6 +94,8 @@ impl CameraPlugin {
         }
     }
 
+    /// Don't render entities that are not in the camera's frustum
+    /// Uses the Visibility component to hide and show entities
     fn frustum_culling_2d(
         mut commands: Commands,
         camera: Query<(&Camera2d, &GlobalTransform)>,
@@ -122,6 +131,7 @@ impl CameraPlugin {
     }
 }
 
+/// Check if two rectangles overlap
 fn rect_overlaps(this: &Rect, other: &Rect) -> bool {
     this.min.x < other.max.x
         && this.max.x > other.min.x
@@ -129,6 +139,7 @@ fn rect_overlaps(this: &Rect, other: &Rect) -> bool {
         && this.max.y > other.min.y
 }
 
+/// Add a vector to every corner of a rectangle
 fn rect_add(this: &Rect, other: &Vec2) -> Rect {
     Rect::new(
         this.min.x + other.x,
