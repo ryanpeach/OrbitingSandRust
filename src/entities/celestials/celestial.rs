@@ -4,10 +4,10 @@ use bevy::core::FrameCount;
 use bevy::ecs::component::Component;
 
 use bevy::ecs::entity::Entity;
-use bevy::ecs::event::Event;
+
 
 use bevy::prelude::*;
-use bevy_eventlistener::prelude::*;
+
 
 use bevy_mod_picking::prelude::*;
 
@@ -16,12 +16,12 @@ use bevy::ecs::query::{With, Without};
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
-use bevy::math::{Vec2, Vec3};
+use bevy::math::{Vec2};
 
 use bevy::prelude::SpatialBundle;
 use bevy::render::mesh::Mesh;
 
-use bevy_eventlistener::callbacks::ListenerInput;
+
 use bevy_eventlistener::event_listener::On;
 use bevy_mod_picking::events::Pointer;
 use bevy_mod_picking::PickableBundle;
@@ -33,7 +33,7 @@ use bevy::transform::components::Transform;
 
 use hashbrown::HashMap;
 
-use crate::gui::camera::{CelestialIdx, MainCamera, SelectCelestial};
+use crate::gui::camera::{CelestialIdx, SelectCelestial};
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;

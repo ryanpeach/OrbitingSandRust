@@ -19,22 +19,21 @@ use bevy::{
     hierarchy::{BuildChildren, Parent},
     input::{
         keyboard::KeyCode,
-        mouse::{MouseButton, MouseScrollUnit, MouseWheel},
+        mouse::{MouseScrollUnit, MouseWheel},
         Input,
     },
     math::{Rect, Vec2, Vec3},
     render::{color::Color, view::Visibility},
     time::Time,
     transform::components::{GlobalTransform, Transform},
-    window::{PrimaryWindow, Window},
+    window::{Window},
 };
 use bevy_eventlistener::callbacks::ListenerInput;
 use bevy_mod_picking::events::{Down, Pointer};
 
 use crate::{
     entities::{
-        celestials::celestial::{CelestialChunkIdk, CelestialData},
-        utils::Radius,
+        celestials::celestial::{CelestialChunkIdk},
     },
     physics::fallingsand::util::mesh::MeshBoundingBox,
 };
