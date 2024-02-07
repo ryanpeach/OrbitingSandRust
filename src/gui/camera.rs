@@ -26,15 +26,13 @@ use bevy::{
     render::{color::Color, view::Visibility},
     time::Time,
     transform::components::{GlobalTransform, Transform},
-    window::{Window},
+    window::Window,
 };
 use bevy_eventlistener::callbacks::ListenerInput;
 use bevy_mod_picking::events::{Down, Pointer};
 
 use crate::{
-    entities::{
-        celestials::celestial::{CelestialChunkIdk},
-    },
+    entities::celestials::celestial::CelestialChunkIdk,
     physics::fallingsand::util::mesh::MeshBoundingBox,
 };
 

@@ -5,9 +5,7 @@ use bevy::ecs::component::Component;
 
 use bevy::ecs::entity::Entity;
 
-
 use bevy::prelude::*;
-
 
 use bevy_mod_picking::prelude::*;
 
@@ -16,11 +14,10 @@ use bevy::ecs::query::{With, Without};
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
-use bevy::math::{Vec2};
+use bevy::math::Vec2;
 
 use bevy::prelude::SpatialBundle;
 use bevy::render::mesh::Mesh;
-
 
 use bevy_eventlistener::event_listener::On;
 use bevy_mod_picking::events::Pointer;
