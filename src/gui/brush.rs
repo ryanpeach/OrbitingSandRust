@@ -1,18 +1,18 @@
+//! The brush is a circle that can be resized and moved around the screen.
+//! It can be used to apply elements to a celestial.
+
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
-use crate::entities::camera::{CameraPlugin, MainCamera};
 use crate::entities::celestials::celestial::CelestialData;
 use crate::entities::utils::Radius;
-use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::util::clock::Clock;
-use crate::physics::util::vectors::{mouse_coord_to_world_coord, RelXyPoint, Vertex};
-use bevy::app::{App, Plugin, Startup, Update};
+use crate::physics::util::vectors::{mouse_coord_to_world_coord, RelXyPoint};
+use bevy::app::{App, Plugin, Update};
 use bevy::core::FrameCount;
 use bevy::core_pipeline::core_2d::Camera2d;
 use bevy::ecs::entity::Entity;
 use bevy::ecs::query::Without;
-use bevy::ecs::schedule::IntoSystemConfigs;
 use bevy::ecs::system::{Commands, Res};
 use bevy::hierarchy::{BuildChildren, Parent};
 use bevy::input::keyboard::KeyCode;
@@ -25,11 +25,11 @@ use bevy::time::Time;
 use bevy::{
     ecs::{component::Component, event::EventReader, query::With, system::Query},
     gizmos::gizmos::Gizmos,
-    render::color::Color,
     transform::components::Transform,
     window::CursorMoved,
 };
 
+use super::camera::MainCamera;
 use super::element_picker::ElementSelection;
 
 /// Identifies the brush
@@ -41,25 +41,24 @@ pub struct BrushPlugin;
 
 impl Plugin for BrushPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, Self::setup.after(CameraPlugin::setup_main_camera));
         app.add_systems(
             Update,
             (
                 Self::move_brush_system,
                 Self::draw_brush_system,
                 Self::resize_brush_system,
-                Self::apply_brush_system,
+                // Self::apply_brush_system,
             ),
         );
     }
 }
 
-/// Bevy Systems
+/// Startup functions
+/// These are not systems, rather are written as function to be applied
+/// to the GuiUnifiedPlugin
 impl BrushPlugin {
-    /// Setup the brush
-    pub fn setup(mut commands: Commands, camera: Query<Entity, With<MainCamera>>) {
-        let camera = camera.single();
-
+    /// Create the brush
+    pub fn create_brush(commands: &mut Commands, camera: Entity) -> Entity {
         // Create the brush
         let brush = commands
             .spawn((
@@ -71,8 +70,13 @@ impl BrushPlugin {
 
         // Parent the brush to the camera
         commands.entity(camera).push_children(&[brush]);
-    }
 
+        brush
+    }
+}
+
+/// Update functions
+impl BrushPlugin {
     /// Move the brush with the mouse
     pub fn move_brush_system(
         windows: Query<&mut Window>,

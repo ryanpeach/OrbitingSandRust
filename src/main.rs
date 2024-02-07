@@ -4,16 +4,18 @@ pub mod physics;
 
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 
-use bevy::render::camera;
-use bevy::sprite::MaterialMesh2dBundle;
-use bevy::{core_pipeline::clear_color::ClearColorConfig, log::LogPlugin, prelude::*};
-use bevy_egui::EguiPlugin;
-use entities::camera::MainCamera;
-
+use crate::entities::celestials::celestial::CelestialDataPlugin;
 use crate::entities::celestials::sun::SunBuilder;
 use crate::entities::celestials::{celestial::CelestialData, earthlike::EarthLikeBuilder};
 use crate::entities::EntitiesPluginGroup;
+use bevy::sprite::MaterialMesh2dBundle;
+use bevy::{log::LogPlugin, prelude::*};
+use bevy_egui::EguiPlugin;
+use bevy_mod_picking::low_latency_window_plugin;
+use bevy_mod_picking::DefaultPickingPlugins;
+use gui::camera::MainCamera;
 
+use crate::gui::camera::BackgroundLayer1;
 use crate::gui::GuiPluginGroup;
 use crate::physics::orbits::components::{Mass, Velocity};
 
@@ -27,14 +29,16 @@ fn main() {
                     level: bevy::log::Level::TRACE,
                     ..Default::default()
                 })
-                .set(ImagePlugin::default_nearest()),
+                .set(ImagePlugin::default_nearest())
+                .set(low_latency_window_plugin()),
             FrameTimeDiagnosticsPlugin,
             EguiPlugin,
+            DefaultPickingPlugins,
         ))
         .add_plugins(GuiPluginGroup)
         .add_plugins(PhysicsPluginGroup)
         .add_plugins(EntitiesPluginGroup)
-        .add_systems(Startup, solar_system_setup)
+        .add_systems(PostStartup, solar_system_setup)
         .run();
 }
 
@@ -48,7 +52,7 @@ fn solar_system_setup(
 ) {
     // Create earth
     let planet_data = EarthLikeBuilder::new().build();
-    CelestialData::setup(
+    CelestialDataPlugin::setup(
         planet_data,
         Velocity(Vec2::new(0., 1200.)),
         Vec2::new(-10000., 0.),
@@ -56,12 +60,13 @@ fn solar_system_setup(
         &mut meshes,
         &mut materials,
         &asset_server,
+        0,
         true,
     );
 
     // Create earth2
     let planet_data = EarthLikeBuilder::new().build();
-    CelestialData::setup(
+    CelestialDataPlugin::setup(
         planet_data,
         Velocity(Vec2::new(0., -1200.)),
         Vec2::new(10000., 0.),
@@ -69,12 +74,13 @@ fn solar_system_setup(
         &mut meshes,
         &mut materials,
         &asset_server,
+        1,
         true,
     );
 
     // Create a sun
     let sun_data = SunBuilder::new().build();
-    CelestialData::setup(
+    CelestialDataPlugin::setup(
         sun_data,
         Velocity(Vec2::new(0., 0.)),
         Vec2::new(0., 0.),
@@ -82,6 +88,7 @@ fn solar_system_setup(
         &mut meshes,
         &mut materials,
         &asset_server,
+        2,
         true,
     );
 
@@ -98,10 +105,11 @@ fn solar_system_setup(
         commands.spawn((
             Velocity(vel),
             Mass(1.0),
+            BackgroundLayer1,
             MaterialMesh2dBundle {
                 mesh: meshes.add(shape::Circle::new(20.).into()).into(),
                 material: materials.add(ColorMaterial::from(Color::PURPLE)),
-                transform: Transform::from_translation(pos.extend(0.0)),
+                transform: Transform::from_translation(pos.extend(-1.0)),
                 ..default()
             },
         ));
@@ -119,7 +127,7 @@ fn planet_only_setup(
 ) {
     // Create earth
     let planet_data = EarthLikeBuilder::new().build();
-    let planet_id = CelestialData::setup(
+    let planet_id = CelestialDataPlugin::setup(
         planet_data,
         // Velocity(Vec2::new(0., 1200.)),
         // Vec2::new(-10000., 0.),
@@ -129,6 +137,7 @@ fn planet_only_setup(
         &mut meshes,
         &mut materials,
         &asset_server,
+        0,
         true,
     );
 

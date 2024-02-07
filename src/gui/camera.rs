@@ -28,9 +28,10 @@ use bevy::{
     window::{PrimaryWindow, Window},
 };
 
-use crate::physics::fallingsand::util::mesh::MeshBoundingBox;
-
-use super::{celestials::celestial::CelestialData, utils::Radius};
+use crate::{
+    entities::{celestials::celestial::CelestialData, utils::Radius},
+    physics::fallingsand::util::mesh::MeshBoundingBox,
+};
 
 /// Used to help identify our main camera
 #[derive(Component)]
@@ -40,34 +41,45 @@ pub struct MainCamera;
 #[derive(Component, Debug, Default)]
 pub struct OverlayLayer1;
 
+/// A layer behind the game. Z-index = -1
+#[derive(Component, Debug, Default)]
+pub struct BackgroundLayer1;
+
 /// The plugin for the camera system
 pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     /// Build the camera plugin
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, Self::setup_main_camera);
         app.add_systems(Update, Self::zoom_camera_system);
         app.add_systems(Update, Self::move_camera_system);
         app.add_systems(Update, Self::frustum_culling_2d);
     }
 }
 
+/// Startup functions
+/// These are not systems, rather are written as function to be applied
+/// to the GuiUnifiedPlugin
 impl CameraPlugin {
     /// Setup the main camera
-    pub fn setup_main_camera(mut commands: Commands) {
-        commands.spawn((
-            Camera2dBundle {
-                camera_2d: Camera2d {
-                    clear_color: ClearColorConfig::Custom(Color::rgb(0.0, 0.0, 0.0)),
+    pub fn setup_main_camera(commands: &mut Commands) -> Entity {
+        commands
+            .spawn((
+                Camera2dBundle {
+                    camera_2d: Camera2d {
+                        clear_color: ClearColorConfig::Custom(Color::rgb(0.0, 0.0, 0.0)),
+                    },
+                    transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0) * 100.0),
+                    ..Default::default()
                 },
-                transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0) * 100.0),
-                ..Default::default()
-            },
-            MainCamera,
-        ));
+                MainCamera,
+            ))
+            .id()
     }
+}
 
+/// Update functions
+impl CameraPlugin {
     /// Select celestial bodies focus with the mouse
     /// Uses the celestials transform, radius, and the mouse position for the collision
     fn select_celestial_focus(

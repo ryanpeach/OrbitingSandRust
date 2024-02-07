@@ -4,23 +4,40 @@ use bevy::core::FrameCount;
 use bevy::ecs::component::Component;
 
 use bevy::ecs::entity::Entity;
-
+use bevy::ecs::event::Event;
+use bevy::render::camera;
+use bevy::render::color::Color;
+use bevy::render::texture::Image;
+use bevy::render::view::Visibility;
+use bevy::{ecs::system::EntityCommands, prelude::*};
+use bevy_eventlistener::prelude::*;
+use bevy_eventlistener::prelude::*;
+use bevy_mod_picking::prelude::*;
+use bevy_mod_picking::prelude::*;
+// use bevy_mod_picking::PickableBundle;
 use bevy::ecs::query::{With, Without};
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
-
-use bevy::math::Vec2;
+use bevy::math::{Vec2, Vec3};
+use bevy::pbr::PbrBundle;
 use bevy::prelude::SpatialBundle;
 use bevy::render::mesh::Mesh;
+use bevy_egui::egui::style::Spacing;
+use bevy_eventlistener::callbacks::ListenerInput;
+use bevy_eventlistener::event_listener::On;
+use bevy_mod_picking::events::{Click, Pointer};
+use bevy_mod_picking::PickableBundle;
 
-use bevy::sprite::{ColorMaterial, MaterialMesh2dBundle};
+use bevy::sprite::{ColorMaterial, ColorMesh2dBundle, MaterialMesh2dBundle};
 use bevy::time::Time;
 
 use bevy::transform::components::Transform;
 
 use hashbrown::HashMap;
 
+use crate::entities::utils::Radius;
+use crate::gui::camera::MainCamera;
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
@@ -40,12 +57,70 @@ pub struct HeatMapMaterial;
 #[derive(Component, Debug, Clone, Copy)]
 pub struct FallingSandMaterial;
 
+/// A component that allows us to enumerate over all the celestials
+#[derive(Component, Debug, Clone, Copy)]
+pub struct CelestialIdx(pub usize);
+
+impl CelestialIdx {
+    /// Returns the selected celestials index
+    pub fn get_selected_celestial(
+        celestials: &Vec<(Entity, &CelestialIdx)>,
+        camera: (&Parent, Entity),
+    ) -> CelestialIdx {
+        if cfg!(debug_assertions) {
+            let max_idx = celestials.iter().map(|(_, idx)| idx.0).max().unwrap();
+            let min_idx = celestials.iter().map(|(_, idx)| idx.0).min().unwrap();
+            debug_assert_ne!(max_idx, min_idx);
+            // Check all the indices are unique
+            let mut indices = celestials.iter().map(|(_, idx)| idx.0).collect::<Vec<_>>();
+            indices.sort();
+            indices.dedup();
+            debug_assert_eq!(indices.len(), celestials.iter().count());
+            // Check that the indices start at 0 and end at len - 1
+            let mut indices = indices.into_iter();
+            let mut idx = 0;
+            while let Some(i) = indices.next() {
+                debug_assert_eq!(i, idx);
+                idx += 1;
+            }
+        }
+        let parent = camera.0;
+        let celestial = celestials
+            .iter()
+            .find(|(entity, _)| *entity == **parent)
+            .unwrap();
+        celestial.1.clone()
+    }
+
+    /// Gets the next index
+    pub fn next(&self, celestials: Vec<&CelestialIdx>) -> CelestialIdx {
+        let mut idx = self.0 + 1;
+        if idx >= celestials.iter().count() {
+            idx = 0;
+        }
+        CelestialIdx(idx)
+    }
+
+    /// Gets the previous index
+    pub fn prev(&self, celestials: Vec<&CelestialIdx>) -> CelestialIdx {
+        let mut idx = self.0 as i32 - 1;
+        if idx < 0 {
+            idx = celestials.iter().count() as i32 - 1;
+        }
+        CelestialIdx(idx as usize)
+    }
+}
+
 /// A plugin that adds the CelestialData system
 pub struct CelestialDataPlugin;
 
 impl Plugin for CelestialDataPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, CelestialData::process_system);
+        app.add_systems(Update, Self::process_system);
+        app.add_event::<SelectCelestial>();
+        app.add_systems(Update, Self::select_celestial_focus);
+        app.add_systems(Update, Self::cycle_celestial_focus);
+        app.add_systems(Update, Self::first_celestial_focus);
     }
 }
 
@@ -131,7 +206,7 @@ impl CelestialData {
 }
 
 /// Bevy Systems
-impl CelestialData {
+impl CelestialDataPlugin {
     /// Draws all the chunks and sets them up as child entities of the celestial
     /// TODO: Should this be a system
     #[allow(clippy::too_many_arguments)]
@@ -143,6 +218,7 @@ impl CelestialData {
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<ColorMaterial>>,
         asset_server: &Res<AssetServer>,
+        celestial_idx: usize,
         gravitational: bool,
     ) -> Entity {
         // Create all the chunk meshes as pairs of ChunkIjkVector and Mesh2dBundle
@@ -173,6 +249,7 @@ impl CelestialData {
                                 material: materials.add(asset_server.add(sand_material).into()),
                                 ..Default::default()
                             },
+                            PickableBundle::default(), // Makes the entity pickable
                             FallingSandMaterial,
                         ))
                         .id();
@@ -209,38 +286,37 @@ impl CelestialData {
 
         // Create a Celestial
         let celestial_id = {
-            if gravitational {
-                commands
-                    .spawn((
-                        coordinate_dir.get_radius(),
-                        celestial.get_element_dir().get_total_mass(),
-                        velocity,
-                        celestial,
-                        SpatialBundle::from_transform(Transform::from_translation(
-                            translation.extend(0.0),
-                        )),
-                        GravitationalField,
-                    ))
-                    .id()
-            } else {
-                commands
-                    .spawn((
-                        coordinate_dir.get_radius(),
-                        celestial.get_element_dir().get_total_mass(),
-                        velocity,
-                        celestial,
-                        SpatialBundle::from_transform(Transform::from_translation(
-                            translation.extend(0.0),
-                        )),
-                    ))
-                    .id()
-            }
+            commands
+                .spawn((
+                    // Physics
+                    celestial
+                        .get_element_dir()
+                        .get_coordinate_dir()
+                        .get_radius(),
+                    celestial.get_element_dir().get_total_mass(),
+                    velocity,
+                    celestial,
+                    CelestialIdx(celestial_idx),
+                    SpatialBundle {
+                        transform: Transform::from_translation(translation.extend(0.0)),
+                        ..Default::default()
+                    },
+                ))
+                .id()
         };
+        if gravitational {
+            commands.entity(celestial_id).insert(GravitationalField);
+        }
 
         // Parent the celestial to all the chunks
         commands
             .entity(celestial_id)
             .push_children(children.as_slice());
+
+        // And create events
+        commands
+            .entity(celestial_id)
+            .insert(On::<Pointer<Down>>::send_event::<SelectCelestial>());
 
         // Return the celestial
         celestial_id
@@ -300,4 +376,113 @@ impl CelestialData {
             }
         }
     }
+
+    /// If you press "[" or "]", you can cycle through the celestials
+    pub fn cycle_celestial_focus(
+        mut commands: Commands,
+        celestials: Query<(Entity, &CelestialIdx)>,
+        mut camera: Query<(&Parent, Entity, &mut Transform), With<MainCamera>>,
+        mut input: ResMut<Input<KeyCode>>,
+    ) {
+        if let Ok((parent, camera, mut transform)) = camera.get_single_mut() {
+            let celestials_vec = celestials.iter().collect::<Vec<_>>();
+            let idx = CelestialIdx::get_selected_celestial(&celestials_vec, (parent, camera));
+            let next_idx = {
+                if input.just_pressed(KeyCode::BracketLeft) {
+                    input.reset(KeyCode::BracketLeft);
+                    idx.prev(
+                        celestials_vec
+                            .clone()
+                            .into_iter()
+                            .map(|(_, idx)| idx)
+                            .collect::<Vec<_>>(),
+                    )
+                } else if input.just_pressed(KeyCode::BracketRight) {
+                    input.reset(KeyCode::BracketRight);
+                    idx.next(
+                        celestials_vec
+                            .clone()
+                            .into_iter()
+                            .map(|(_, idx)| idx)
+                            .collect::<Vec<_>>(),
+                    )
+                } else {
+                    return;
+                }
+            };
+            let next_celestial = celestials_vec
+                .into_iter()
+                .find(|(_, idx)| idx.0 == next_idx.0)
+                .unwrap()
+                .0;
+            focus_celestial(&mut commands, (&camera, &mut transform), &next_celestial);
+        }
+    }
+
+    /// Same as the above, but for when the camera doesn't have a parent yet
+    pub fn first_celestial_focus(
+        mut commands: Commands,
+        celestials: Query<(Entity, &CelestialIdx)>,
+        mut camera: Query<(Entity, &mut Transform), (With<MainCamera>, Without<Parent>)>,
+        mut input: ResMut<Input<KeyCode>>,
+    ) {
+        if input.just_pressed(KeyCode::BracketLeft) || input.just_pressed(KeyCode::BracketRight) {
+            input.reset(KeyCode::BracketLeft);
+            input.reset(KeyCode::BracketRight);
+            if let Ok((camera, mut transform)) = camera.get_single_mut() {
+                let next_celestial = celestials
+                    .into_iter()
+                    .find(|(_, idx)| idx.0 == 0)
+                    .unwrap()
+                    .0;
+                focus_celestial(&mut commands, (&camera, &mut transform), &next_celestial);
+            }
+        }
+    }
+}
+
+/// An event that indicates that a celestial has been selected by the user
+#[derive(Event, Debug, Clone, Copy)]
+pub struct SelectCelestial(Entity);
+
+impl From<ListenerInput<Pointer<Down>>> for SelectCelestial {
+    /// Converts a click event into a SelectCelestial event by saving the target of the click
+    fn from(event: ListenerInput<Pointer<Down>>) -> Self {
+        Self(event.target)
+    }
+}
+
+/// Event Handler Systems
+impl CelestialDataPlugin {
+    /// If the celestial is clicked on:
+    ///   1. Parent the main camera to the celestial
+    ///   2. Zero the camera's translation
+    ///   3. Scale the camera to the celestial's radius
+    pub fn select_celestial_focus(
+        mut commands: Commands,
+        chunks: Query<(&Parent, Entity), With<CelestialChunkIdk>>,
+        mut camera: Query<(Entity, &mut Transform), With<MainCamera>>,
+        mut click_events: EventReader<SelectCelestial>,
+    ) {
+        let mut camera = camera.single_mut();
+        if let Some(event) = click_events.read().next() {
+            let parent = chunks
+                .iter()
+                .find(|(_, chunk_id)| *chunk_id == event.0)
+                .unwrap()
+                .0;
+            focus_celestial(&mut commands, (&camera.0, &mut camera.1), parent);
+            return;
+        }
+    }
+}
+
+// Helper Functions
+/// Parent the camera to the celestial
+fn focus_celestial(commands: &mut Commands, camera: (&Entity, &mut Transform), parent: &Entity) {
+    // Parent the camera to the celestial
+    commands.entity(*camera.0).set_parent(*parent);
+    // Zero the camera's translation
+    // Scale the camera to the celestial's radius
+    camera.1.translation = Vec3::new(0.0, 0.0, 0.0);
 }
