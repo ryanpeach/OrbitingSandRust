@@ -75,11 +75,11 @@ impl CelestialIdx {
             let mut indices = celestials.iter().map(|(_, idx)| idx.0).collect::<Vec<_>>();
             indices.sort();
             indices.dedup();
-            debug_assert_eq!(indices.len(), celestials.iter().count());
+            debug_assert_eq!(indices.len(), celestials.len());
             // Check that the indices start at 0 and end at len - 1
-            let mut indices = indices.into_iter();
+            let indices = indices.into_iter();
             let mut idx = 0;
-            while let Some(i) = indices.next() {
+            for i in indices {
                 debug_assert_eq!(i, idx);
                 idx += 1;
             }
@@ -89,13 +89,13 @@ impl CelestialIdx {
             .iter()
             .find(|(entity, _)| *entity == **parent)
             .unwrap();
-        celestial.1.clone()
+        *celestial.1
     }
 
     /// Gets the next index
     pub fn next(&self, celestials: Vec<&CelestialIdx>) -> CelestialIdx {
         let mut idx = self.0 + 1;
-        if idx >= celestials.iter().count() {
+        if idx >= celestials.len() {
             idx = 0;
         }
         CelestialIdx(idx)
@@ -105,7 +105,7 @@ impl CelestialIdx {
     pub fn prev(&self, celestials: Vec<&CelestialIdx>) -> CelestialIdx {
         let mut idx = self.0 as i32 - 1;
         if idx < 0 {
-            idx = celestials.iter().count() as i32 - 1;
+            idx = celestials.len() as i32 - 1;
         }
         CelestialIdx(idx as usize)
     }
@@ -472,7 +472,6 @@ impl CelestialDataPlugin {
                 .unwrap()
                 .0;
             focus_celestial(&mut commands, (&camera.0, &mut camera.1), parent);
-            return;
         }
     }
 }

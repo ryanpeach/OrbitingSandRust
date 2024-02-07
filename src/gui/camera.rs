@@ -90,7 +90,7 @@ impl CameraPlugin {
     ) {
         // Games typically only have one window (the primary window)
         if let Some(position) = q_windows.single().cursor_position() {
-            let _world_position = Vec2::new(position.x as f32, position.y as f32);
+            let _world_position = Vec2::new(position.x, position.y);
         }
     }
 
