@@ -5,8 +5,6 @@ use bevy::ecs::component::Component;
 
 use bevy::ecs::entity::Entity;
 
-use bevy::prelude::*;
-
 use bevy_mod_picking::prelude::*;
 
 // use bevy_mod_picking::PickableBundle;

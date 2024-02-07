@@ -289,6 +289,7 @@ impl CameraPlugin {
     }
 
     /// Same as the above, but for when the camera doesn't have a parent yet
+    #[allow(clippy::type_complexity)]
     pub fn first_celestial_focus(
         mut commands: Commands,
         celestials: Query<(Entity, &CelestialIdx)>,

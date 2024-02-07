@@ -41,7 +41,7 @@ impl SolarPlasma {
 
 impl Element for SolarPlasma {
     fn get_type(&self) -> ElementType {
-        ElementType::Water
+        ElementType::SolarPlasma
     }
     fn get_density(&self) -> Density {
         Density(100.0)
