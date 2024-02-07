@@ -5,8 +5,8 @@ pub mod physics;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 
 use crate::entities::celestials::celestial::CelestialDataPlugin;
+use crate::entities::celestials::earthlike::EarthLikeBuilder;
 use crate::entities::celestials::sun::SunBuilder;
-use crate::entities::celestials::{earthlike::EarthLikeBuilder};
 use crate::entities::EntitiesPluginGroup;
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy::{log::LogPlugin, prelude::*};

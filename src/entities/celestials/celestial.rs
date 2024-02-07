@@ -6,10 +6,7 @@ use bevy::ecs::component::Component;
 use bevy::ecs::entity::Entity;
 use bevy::ecs::event::Event;
 
-
-
-
-use bevy::{prelude::*};
+use bevy::prelude::*;
 use bevy_eventlistener::prelude::*;
 
 use bevy_mod_picking::prelude::*;
@@ -26,7 +23,7 @@ use bevy::render::mesh::Mesh;
 
 use bevy_eventlistener::callbacks::ListenerInput;
 use bevy_eventlistener::event_listener::On;
-use bevy_mod_picking::events::{Pointer};
+use bevy_mod_picking::events::Pointer;
 use bevy_mod_picking::PickableBundle;
 
 use bevy::sprite::{ColorMaterial, MaterialMesh2dBundle};
@@ -36,10 +33,8 @@ use bevy::transform::components::Transform;
 
 use hashbrown::HashMap;
 
-
 use crate::gui::camera::MainCamera;
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
-
 
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
