@@ -1,3 +1,4 @@
+#[allow(clippy::type_complexity)] // Bevy types are complex
 pub mod entities;
 pub mod gui;
 pub mod physics;
