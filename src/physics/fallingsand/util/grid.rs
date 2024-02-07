@@ -87,7 +87,7 @@ impl<T> Grid<T> {
     }
     /// Gets the value at the given coordinate, or returns an error if the coordinate is out of bounds
     pub fn checked_get(&self, coord: JkVector) -> Result<&T, GridOutOfBoundsError> {
-        if coord.j >= self.get_width() || coord.k >= self.get_height() {
+        if coord.j >= self.get_height() || coord.k >= self.get_width() {
             return Err(GridOutOfBoundsError(coord));
         }
         Ok(self.get(coord))
@@ -103,25 +103,6 @@ impl<T> Grid<T> {
     /// Like set, but gives you ownership of the original value
     pub fn replace(&mut self, coord: JkVector, replacement: T) -> T {
         std::mem::replace(&mut self.0[[coord.j, coord.k]], replacement)
-    }
-}
-
-/* ==================================
- * Coordinate Transforms
- * ================================== */
-impl<T> Grid<T> {
-    /// Convert the flat vector coordinate to the grid specific coordinate
-    /// Opposite of jk_coord_to_flat_idx
-    pub fn flat_idx_to_jk_coord(&self, flat_idx: usize) -> JkVector {
-        let j = flat_idx / self.get_width();
-        let k = flat_idx % self.get_height();
-        JkVector { j, k }
-    }
-
-    /// Convert the grid specific coordinate to a flat vector coordinate
-    /// Opposite of flat_idx_to_jk_coord
-    pub fn jk_coord_to_flat_idx(&self, coord: JkVector) -> usize {
-        coord.j * self.get_width() + coord.k
     }
 }
 
@@ -205,95 +186,5 @@ mod tests {
         }
 
         assert_eq!(grid.get_data_slice(), &[2, 4, 6, 8, 10, 12]);
-    }
-
-    #[test]
-    fn test_flat_idx_to_jk_coord() {
-        let grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]);
-
-        assert_eq!(grid.flat_idx_to_jk_coord(0), JkVector { j: 0, k: 0 });
-        assert_eq!(grid.flat_idx_to_jk_coord(1), JkVector { j: 0, k: 1 });
-        assert_eq!(grid.flat_idx_to_jk_coord(2), JkVector { j: 1, k: 0 });
-        assert_eq!(grid.flat_idx_to_jk_coord(4), JkVector { j: 2, k: 0 });
-    }
-
-    #[test]
-    fn test_jk_coord_to_flat_idx() {
-        let grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]);
-
-        assert_eq!(grid.jk_coord_to_flat_idx(JkVector { j: 0, k: 0 }), 0);
-        assert_eq!(grid.jk_coord_to_flat_idx(JkVector { j: 0, k: 1 }), 1);
-        assert_eq!(grid.jk_coord_to_flat_idx(JkVector { j: 1, k: 0 }), 2);
-        assert_eq!(grid.jk_coord_to_flat_idx(JkVector { j: 2, k: 0 }), 4);
-    }
-
-    #[test]
-    fn test_coord_conversion_inverse() {
-        let grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]);
-
-        for flat_idx in 0..grid.total_size() {
-            let coord = grid.flat_idx_to_jk_coord(flat_idx);
-            assert_eq!(grid.jk_coord_to_flat_idx(coord), flat_idx);
-        }
-    }
-
-    #[test]
-    fn test_flat_idx_conversion_inverse() {
-        let grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]);
-
-        let coords = [
-            JkVector { j: 0, k: 0 },
-            JkVector { j: 0, k: 1 },
-            JkVector { j: 1, k: 0 },
-            JkVector { j: 1, k: 1 },
-            JkVector { j: 2, k: 0 },
-            JkVector { j: 2, k: 1 },
-        ];
-
-        for &coord in coords.iter() {
-            let flat_idx = grid.jk_coord_to_flat_idx(coord);
-            assert_eq!(grid.flat_idx_to_jk_coord(flat_idx), coord);
-        }
-    }
-
-    #[test]
-    fn test_coord_flat_idx_consistency() {
-        let grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]);
-
-        for flat_idx in 0..grid.total_size() {
-            let coord = grid.flat_idx_to_jk_coord(flat_idx);
-            let direct_access = &grid.get_data_slice()[flat_idx];
-            let coord_access = grid.get(coord);
-            assert_eq!(
-                direct_access, coord_access,
-                "Mismatch at flat_idx: {}",
-                flat_idx
-            );
-        }
-    }
-
-    #[test]
-    fn test_flat_idx_coord_consistency() {
-        let grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]);
-
-        let coords = [
-            JkVector { j: 0, k: 0 },
-            JkVector { j: 0, k: 1 },
-            JkVector { j: 1, k: 0 },
-            JkVector { j: 1, k: 1 },
-            JkVector { j: 2, k: 0 },
-            JkVector { j: 2, k: 1 },
-        ];
-
-        for &coord in coords.iter() {
-            let flat_idx = grid.jk_coord_to_flat_idx(coord);
-            let direct_access = &grid.get_data_slice()[flat_idx];
-            let coord_access = grid.get(coord);
-            assert_eq!(
-                direct_access, coord_access,
-                "Mismatch at coord: ({}, {})",
-                coord.j, coord.k
-            );
-        }
     }
 }

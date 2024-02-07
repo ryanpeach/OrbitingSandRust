@@ -234,7 +234,7 @@ impl ElementGrid {
         current_time: Clock,
     ) {
         self.process_elements(coord_dir, element_grid_conv_neigh, current_time);
-        // self.process_heat(element_grid_conv_neigh, current_time);
+        self.process_heat(element_grid_conv_neigh, current_time);
         self.process_mass(element_grid_conv_neigh);
     }
 
@@ -331,7 +331,7 @@ impl ElementGrid {
             }
         }
         // Set the total mass above
-        // propogate_heat_builder.total_mass_above(self.total_mass_above);
+        propogate_heat_builder.total_mass_above(self.total_mass_above);
 
         // Now build and propogate updates to the element grid
         let propogate_heat = propogate_heat_builder.build();
@@ -417,7 +417,7 @@ impl ElementGrid {
                 let color = element
                     .get_heat()
                     .temperature(element.get_specific_heat().heat_capacity(mass))
-                    .color(max_temp, min_temp)
+                    .linear_color(max_temp, min_temp)
                     .as_rgba_u8();
                 out.push(color[0]);
                 out.push(color[1]);

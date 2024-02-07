@@ -648,7 +648,7 @@ impl ElementGridDir {
             .chain(targets2.0)
             .chain(targets3.0)
             .collect();
-        // let (max_temp, min_temp) = self.get_max_min_temp();
+        let (max_temp, min_temp) = self.get_max_min_temp();
         all_targets
             .into_par_iter()
             .map(|target| {
@@ -657,8 +657,7 @@ impl ElementGridDir {
                     target,
                     Textures {
                         texture: Some(chunk.get_texture()),
-                        // heat_texture: Some(chunk.get_heat_texture(max_temp, min_temp)),
-                        heat_texture: None,
+                        heat_texture: Some(chunk.get_heat_texture(max_temp, min_temp)),
                     },
                 )
             })
@@ -838,7 +837,7 @@ impl ElementGridDir {
     /// Where filter is true, get the textures
     fn get_textures_filtered(&self, filter: &[Grid<bool>]) -> HashMap<ChunkIjkVector, Textures> {
         let mut out = HashMap::new();
-        // let (max_temp, min_temp) = self.get_max_min_temp();
+        let (max_temp, min_temp) = self.get_max_min_temp();
         for (i, item) in filter.iter().enumerate() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
             let k_size = self.coords.get_layer_num_radial_chunks(i);
@@ -849,14 +848,14 @@ impl ElementGridDir {
                     }
                     let coord = ChunkIjkVector { i, j, k };
                     let tex = self.get_chunk_by_chunk_ijk(coord).get_texture();
-                    // let heat_tex = self
-                    //     .get_chunk_by_chunk_ijk(coord)
-                    //     .get_heat_texture(max_temp, min_temp);
+                    let heat_tex = self
+                        .get_chunk_by_chunk_ijk(coord)
+                        .get_heat_texture(max_temp, min_temp);
                     out.insert(
                         coord,
                         Textures {
                             texture: Some(tex),
-                            heat_texture: None,
+                            heat_texture: Some(heat_tex),
                         },
                     );
                 }

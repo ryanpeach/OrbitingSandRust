@@ -5,8 +5,7 @@ use bevy::ecs::component::Component;
 
 use bevy::ecs::entity::Entity;
 
-use bevy::prelude::*;
-
+use bevy::render::view::Visibility;
 use bevy_mod_picking::prelude::*;
 
 // use bevy_mod_picking::PickableBundle;
@@ -14,7 +13,7 @@ use bevy::ecs::query::{With, Without};
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
-use bevy::math::Vec2;
+use bevy::math::{Vec2, Vec3};
 
 use bevy::prelude::SpatialBundle;
 use bevy::render::mesh::Mesh;
@@ -30,7 +29,7 @@ use bevy::transform::components::Transform;
 
 use hashbrown::HashMap;
 
-use crate::gui::camera::{CelestialIdx, SelectCelestial};
+use crate::gui::camera::{CelestialIdx, OverlayLayer1, SelectCelestial};
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
@@ -172,7 +171,7 @@ impl CelestialDataPlugin {
                         .load_bevy_mesh(meshes);
 
                     let textures = textures.remove(&chunk_ijk).unwrap();
-                    // let heat_material = textures.heat_texture.unwrap().to_bevy_image();
+                    let heat_material = textures.heat_texture.unwrap().to_bevy_image();
                     let sand_material = textures.texture.unwrap().to_bevy_image();
 
                     // Create the falling sand material
@@ -191,30 +190,30 @@ impl CelestialDataPlugin {
 
                     // Now create the heat map
                     // TODO: This could be optimized by just using the outline
-                    // let mesh = coordinate_dir
-                    //     .get_chunk_at_idx(chunk_ijk)
-                    //     .calc_chunk_meshdata()
-                    //     .load_bevy_mesh(meshes);
-                    // let heat_chunk = commands
-                    //     .spawn((
-                    //         celestial_chunk_id,
-                    //         MaterialMesh2dBundle {
-                    //             mesh: mesh.into(),
-                    //             material: materials.add(asset_server.add(heat_material).into()),
-                    //             // Move the heat map to the front
-                    //             transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
-                    //             // Turning off the heat map for now
-                    //             visibility: Visibility::Hidden,
-                    //             ..Default::default()
-                    //         },
-                    //         HeatMapMaterial,
-                    //         OverlayLayer1,
-                    //     ))
-                    //     .id();
+                    let mesh = coordinate_dir
+                        .get_chunk_at_idx(chunk_ijk)
+                        .calc_chunk_meshdata()
+                        .load_bevy_mesh(meshes);
+                    let heat_chunk = commands
+                        .spawn((
+                            celestial_chunk_id,
+                            MaterialMesh2dBundle {
+                                mesh: mesh.into(),
+                                material: materials.add(asset_server.add(heat_material).into()),
+                                // Move the heat map to the front
+                                transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
+                                // Turning off the heat map for now
+                                visibility: Visibility::Visible,
+                                ..Default::default()
+                            },
+                            HeatMapMaterial,
+                            OverlayLayer1,
+                        ))
+                        .id();
 
                     // Parent celestial to chunk
                     children.push(chunk);
-                    // children.push(heat_chunk);
+                    children.push(heat_chunk);
                 }
             }
         }

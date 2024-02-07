@@ -2,7 +2,7 @@
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
-use bevy::log::{trace, warn};
+use bevy::log::warn;
 use ndarray::{s, Array2};
 use ndarray_conv::*;
 
@@ -10,10 +10,11 @@ use crate::physics::{
     fallingsand::{
         convolution::behaviors::ElementGridConvolutionNeighborTemperatures,
         data::element_grid::ElementGrid,
-        elements::element::{Density, Element},
+        elements::element::{Compressability, Density, Element},
         util::vectors::JkVector,
     },
     heat::components::SpecificHeat,
+    orbits::components::Mass,
     util::clock::Clock,
 };
 
@@ -31,8 +32,10 @@ pub struct PropogateHeatBuilder {
     specific_heat_capacity: Array2<f32>,
     /// The density of each cell in the chunk
     density: Array2<f32>,
-    // compressability: Array2<f32>,
-    // total_mass_above: Mass,
+    /// The compressability of each cell in the chunk
+    compressability: Array2<f32>,
+    /// The total mass above the chunk
+    total_mass_above: Mass,
     /// A useful bool to check that you have set the border temperatures before calling build
     has_set_border_temperatures: bool,
 }
@@ -45,17 +48,17 @@ impl PropogateHeatBuilder {
         let thermal_conductivity = Array2::from_elem((height, width), 0.0);
         let specific_heat_capacity = Array2::from_elem((height, width), 0.0);
         let density = Array2::from_elem((height, width), 0.0);
-        // let compressability = Array2::from_elem((height, width), 0.0);
+        let compressability = Array2::from_elem((height, width), 0.0);
         Self {
             cell_width,
             temperature,
             thermal_conductivity,
             specific_heat_capacity,
             density,
-            // compressability,
+            compressability,
             // To be set later
             has_set_border_temperatures: false,
-            // total_mass_above: Mass(-1.0),
+            total_mass_above: Mass(-1.0),
         }
     }
 
@@ -71,13 +74,13 @@ impl PropogateHeatBuilder {
         self.thermal_conductivity[[jk_vector.j, jk_vector.k]] = elem.get_thermal_conductivity().0;
         self.specific_heat_capacity[[jk_vector.j, jk_vector.k]] = specific_heat.0;
         self.density[[jk_vector.j, jk_vector.k]] = density.0;
-        // self.compressability[[jk_vector.j, jk_vector.k]] = elem.get_compressability().0;
+        self.compressability[[jk_vector.j, jk_vector.k]] = elem.get_compressability().0;
     }
 
     /// Simple setter for the total mass above the chunk
-    // pub fn total_mass_above(&mut self, total_mass_above: Mass) {
-    //     self.total_mass_above = total_mass_above;
-    // }
+    pub fn total_mass_above(&mut self, total_mass_above: Mass) {
+        self.total_mass_above = total_mass_above;
+    }
 
     /// Set the temperature of the border cells based on the convolved neighbor temperatures
     pub fn border_temperatures(
@@ -92,21 +95,21 @@ impl PropogateHeatBuilder {
             .slice_mut(s![.., -1])
             .fill(neighbor_temperatures.right.0);
         if let Some(top) = neighbor_temperatures.top {
-            self.temperature.slice_mut(s![0, ..]).fill(top.0);
+            self.temperature.slice_mut(s![-1, ..]).fill(top.0);
             self.temperature
-                .slice_mut(s![0, 0])
+                .slice_mut(s![-1, 0])
                 .fill((top.0 + neighbor_temperatures.left.0) / 2.0);
             self.temperature
-                .slice_mut(s![0, -1])
+                .slice_mut(s![-1, -1])
                 .fill((top.0 + neighbor_temperatures.right.0) / 2.0);
         }
         if let Some(bottom) = neighbor_temperatures.bottom {
-            self.temperature.slice_mut(s![-1, ..]).fill(bottom.0);
+            self.temperature.slice_mut(s![0, ..]).fill(bottom.0);
             self.temperature
-                .slice_mut(s![-1, 0])
+                .slice_mut(s![0, 0])
                 .fill((bottom.0 + neighbor_temperatures.left.0) / 2.0);
             self.temperature
-                .slice_mut(s![-1, -1])
+                .slice_mut(s![0, -1])
                 .fill((bottom.0 + neighbor_temperatures.right.0) / 2.0);
         }
     }
@@ -114,10 +117,10 @@ impl PropogateHeatBuilder {
     /// Create the structure and test all the values
     pub fn build(self) -> PropogateHeat {
         // Check you called the methods
-        // debug_assert!(
-        //     self.total_mass_above.0 >= 0.0,
-        //     "Total mass above must be greater than or equal to 0. Did you set it?"
-        // );
+        debug_assert!(
+            self.total_mass_above.0 >= 0.0,
+            "Total mass above must be greater than or equal to 0. Did you set it?"
+        );
         debug_assert!(
             self.has_set_border_temperatures,
             "You must set the border temperatures"
@@ -143,19 +146,19 @@ impl PropogateHeatBuilder {
             self.thermal_conductivity.dim().1 + 2,
             "Temperature must be the size of the thermal conductivity + 4 on both hight and width"
         );
-        // debug_assert_eq!(
-        //     self.compressability.dim(),
-        //     self.thermal_conductivity.dim(),
-        //     "Compressability must be the same size as the thermal conductivity"
-        // );
+        debug_assert_eq!(
+            self.compressability.dim(),
+            self.thermal_conductivity.dim(),
+            "Compressability must be the same size as the thermal conductivity"
+        );
         debug_assert!(
             self.cell_width.0 >= 0.0,
             "Cell width must be greater than 0"
         );
-        // debug_assert!(
-        //     self.total_mass_above.0 >= 0.0,
-        //     "Total mass above must be greater than or equal to 0. Did you set it?"
-        // );
+        debug_assert!(
+            self.total_mass_above.0 >= 0.0,
+            "Total mass above must be greater than or equal to 0. Did you set it?"
+        );
         // Check everything is finite
         debug_assert!(
             self.temperature.iter().all(|&x| x.is_finite()),
@@ -173,18 +176,18 @@ impl PropogateHeatBuilder {
             self.density.iter().all(|&x| x.is_finite()),
             "Density must be finite"
         );
-        // debug_assert!(
-        //     self.compressability.iter().all(|&x| x.is_finite()),
-        //     "Compressability must be finite"
-        // );
+        debug_assert!(
+            self.compressability.iter().all(|&x| x.is_finite()),
+            "Compressability must be finite"
+        );
         PropogateHeat {
             cell_width: self.cell_width,
             temperature: self.temperature,
-            // total_mass_above: self.total_mass_above,
+            total_mass_above: self.total_mass_above,
             thermal_conductivity: self.thermal_conductivity,
             specific_heat_capacity: self.specific_heat_capacity,
             density: self.density,
-            // compressability: self.compressability,
+            compressability: self.compressability,
         }
     }
 }
@@ -194,8 +197,8 @@ pub struct PropogateHeat {
     cell_width: Length,
     /// The temperature of each cell in the chunk
     temperature: Array2<f32>,
-    // The total mass above the chunk
-    // total_mass_above: Mass,
+    /// The total mass above the chunk
+    total_mass_above: Mass,
     /// The thermal conductivity of each cell in the chunk
     /// Should be the size of the chunk
     thermal_conductivity: Array2<f32>,
@@ -205,9 +208,9 @@ pub struct PropogateHeat {
     /// The density of each cell in the chunk
     /// Should be the size of the chunk
     density: Array2<f32>,
-    // Compressability of each cell in the chunk
-    // Should be the size of the chunk
-    // compressability: Array2<f32>,
+    /// Compressability of each cell in the chunk
+    /// Should be the size of the chunk
+    compressability: Array2<f32>,
 }
 
 impl PropogateHeat {
@@ -246,13 +249,13 @@ impl PropogateHeat {
         // trace!("Thermal conductivity: {}", self.thermal_conductivity.sum());
         // trace!("Specific heat capacity: {}", self.specific_heat_capacity.sum());
         // Turned off compressibility for now
-        // let matrix_get_density_from_mass = Compressability::matrix_get_density_from_mass(
-        //     &self.compressability,
-        //     &self.density,
-        //     self.total_mass_above,
-        // );
+        let density = Compressability::matrix_get_density_from_mass(
+            &self.compressability,
+            &self.density,
+            self.total_mass_above,
+        );
         // trace!("Density: {}", matrix_get_density_from_mass.sum());
-        let alpha = &self.thermal_conductivity / (&self.specific_heat_capacity * &self.density);
+        let alpha = &self.thermal_conductivity / (&self.specific_heat_capacity * &density);
         // Replace all Nans with zero because anything that has specific heat capacity 0 also has 0 thermal conductivity
         let alpha = alpha.mapv(|x| if x.is_finite() { x } else { 0.0 });
         // trace!("Apha sum: {}", alpha.sum());
@@ -260,7 +263,7 @@ impl PropogateHeat {
             alpha * second_gradient_temperature * current_time.get_last_delta().as_secs_f32();
 
         // Check everything is finite
-        trace!("Delta temperature sum: {:?}", delta_temperature.sum());
+        // trace!("Delta temperature sum: {:?}", delta_temperature.sum());
         // trace!("time: {:?}", current_time.get_last_delta().as_secs_f32());
         debug_assert!(
             delta_temperature.iter().all(|&x| x.is_finite()),
