@@ -4,7 +4,7 @@
 #![warn(clippy::missing_docs_in_private_items)]
 
 use bevy::{
-    app::{App, Plugin, Startup, Update},
+    app::{App, Plugin, Update},
     core_pipeline::{
         clear_color::ClearColorConfig,
         core_2d::{Camera2d, Camera2dBundle},
@@ -83,14 +83,14 @@ impl CameraPlugin {
     /// Select celestial bodies focus with the mouse
     /// Uses the celestials transform, radius, and the mouse position for the collision
     fn select_celestial_focus(
-        mut commands: Commands,
-        mut celestials: Query<(Entity, &Transform, &Radius), With<CelestialData>>,
-        mouse_buttons: Res<Input<MouseButton>>,
+        _commands: Commands,
+        _celestials: Query<(Entity, &Transform, &Radius), With<CelestialData>>,
+        _mouse_buttons: Res<Input<MouseButton>>,
         q_windows: Query<&Window, With<PrimaryWindow>>,
     ) {
         // Games typically only have one window (the primary window)
         if let Some(position) = q_windows.single().cursor_position() {
-            let world_position = Vec2::new(position.x as f32, position.y as f32);
+            let _world_position = Vec2::new(position.x as f32, position.y as f32);
         }
     }
 

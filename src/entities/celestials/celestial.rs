@@ -5,42 +5,42 @@ use bevy::ecs::component::Component;
 
 use bevy::ecs::entity::Entity;
 use bevy::ecs::event::Event;
-use bevy::render::camera;
-use bevy::render::color::Color;
-use bevy::render::texture::Image;
-use bevy::render::view::Visibility;
-use bevy::{ecs::system::EntityCommands, prelude::*};
+
+
+
+
+use bevy::{prelude::*};
 use bevy_eventlistener::prelude::*;
-use bevy_eventlistener::prelude::*;
+
 use bevy_mod_picking::prelude::*;
-use bevy_mod_picking::prelude::*;
+
 // use bevy_mod_picking::PickableBundle;
 use bevy::ecs::query::{With, Without};
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
 use bevy::math::{Vec2, Vec3};
-use bevy::pbr::PbrBundle;
+
 use bevy::prelude::SpatialBundle;
 use bevy::render::mesh::Mesh;
-use bevy_egui::egui::style::Spacing;
+
 use bevy_eventlistener::callbacks::ListenerInput;
 use bevy_eventlistener::event_listener::On;
-use bevy_mod_picking::events::{Click, Pointer};
+use bevy_mod_picking::events::{Pointer};
 use bevy_mod_picking::PickableBundle;
 
-use bevy::sprite::{ColorMaterial, ColorMesh2dBundle, MaterialMesh2dBundle};
+use bevy::sprite::{ColorMaterial, MaterialMesh2dBundle};
 use bevy::time::Time;
 
 use bevy::transform::components::Transform;
 
 use hashbrown::HashMap;
 
-use crate::entities::utils::Radius;
+
 use crate::gui::camera::MainCamera;
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
-use crate::physics::fallingsand::util::mesh::OwnedMeshData;
+
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
 use crate::physics::util::clock::Clock;
