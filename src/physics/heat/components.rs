@@ -101,12 +101,12 @@ pub struct ThermodynamicTemperature(pub f32);
 
 impl ThermodynamicTemperature {
     /// The minimum color alpha for the visualization of the temperature.
-    const MIN_RED: f32 = 0.5;
+    const MIN_RED: f32 = 0.0;
     /// The maximum color alpha for the visualization of the temperature.
     const MAX_RED: f32 = 1.0;
 
-    /// Returns the color of the system.
-    pub fn color(
+    /// Returns the color of the system based on its temperature using a logarithmic scale.
+    pub fn log_color(
         &self,
         max_temp: ThermodynamicTemperature,
         min_temp: ThermodynamicTemperature,
@@ -130,6 +130,31 @@ impl ThermodynamicTemperature {
 
         // Interpolate the red value logarithmically between MIN_RED and MAX_RED
         let red = Self::MIN_RED + (Self::MAX_RED - Self::MIN_RED) * normalized_log_pos;
+
+        Color::rgba(1.0, 0.0, 0.0, red)
+    }
+
+    /// Returns the color of the system based on its temperature using a linear scale.
+    pub fn linear_color(
+        &self,
+        max_temp: ThermodynamicTemperature,
+        min_temp: ThermodynamicTemperature,
+    ) -> Color {
+        debug_assert_ne!(max_temp.0, 0.0, "max_temp cannot be zero");
+        debug_assert_ne!(min_temp.0, 0.0, "min_temp cannot be zero");
+        debug_assert!(
+            max_temp.0 > min_temp.0,
+            "max_temp must be greater than min_temp"
+        );
+        if self.0 == 0.0 {
+            return Color::rgba(0.0, 0.0, 0.0, 0.0);
+        }
+
+        // Calculate the normalized linear position of the system's temperature
+        let normalized_linear_pos = (self.0 - min_temp.0) / (max_temp.0 - min_temp.0);
+
+        // Interpolate the red value linearly between MIN_RED and MAX_RED
+        let red = Self::MIN_RED + (Self::MAX_RED - Self::MIN_RED) * normalized_linear_pos;
 
         Color::rgba(1.0, 0.0, 0.0, red)
     }

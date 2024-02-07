@@ -2,7 +2,7 @@
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
-use bevy::log::{trace, warn};
+use bevy::log::warn;
 use ndarray::{s, Array2};
 use ndarray_conv::*;
 
@@ -92,21 +92,21 @@ impl PropogateHeatBuilder {
             .slice_mut(s![.., -1])
             .fill(neighbor_temperatures.right.0);
         if let Some(top) = neighbor_temperatures.top {
-            self.temperature.slice_mut(s![0, ..]).fill(top.0);
+            self.temperature.slice_mut(s![-1, ..]).fill(top.0);
             self.temperature
-                .slice_mut(s![0, 0])
+                .slice_mut(s![-1, 0])
                 .fill((top.0 + neighbor_temperatures.left.0) / 2.0);
             self.temperature
-                .slice_mut(s![0, -1])
+                .slice_mut(s![-1, -1])
                 .fill((top.0 + neighbor_temperatures.right.0) / 2.0);
         }
         if let Some(bottom) = neighbor_temperatures.bottom {
-            self.temperature.slice_mut(s![-1, ..]).fill(bottom.0);
+            self.temperature.slice_mut(s![0, ..]).fill(bottom.0);
             self.temperature
-                .slice_mut(s![-1, 0])
+                .slice_mut(s![0, 0])
                 .fill((bottom.0 + neighbor_temperatures.left.0) / 2.0);
             self.temperature
-                .slice_mut(s![-1, -1])
+                .slice_mut(s![0, -1])
                 .fill((bottom.0 + neighbor_temperatures.right.0) / 2.0);
         }
     }
@@ -260,7 +260,7 @@ impl PropogateHeat {
             alpha * second_gradient_temperature * current_time.get_last_delta().as_secs_f32();
 
         // Check everything is finite
-        trace!("Delta temperature sum: {:?}", delta_temperature.sum());
+        // trace!("Delta temperature sum: {:?}", delta_temperature.sum());
         // trace!("time: {:?}", current_time.get_last_delta().as_secs_f32());
         debug_assert!(
             delta_temperature.iter().all(|&x| x.is_finite()),
