@@ -330,7 +330,7 @@ impl ElementGrid {
             }
         }
         // Set the total mass above
-        // propogate_heat_builder.total_mass_above(self.total_mass_above);
+        propogate_heat_builder.total_mass_above(self.total_mass_above);
 
         // Now build and propogate updates to the element grid
         let propogate_heat = propogate_heat_builder.build(avg_neigh_temp);
