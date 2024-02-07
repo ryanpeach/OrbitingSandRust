@@ -7,13 +7,46 @@ use crate::physics::util::vectors::{RelXyPoint, Vertex};
 use bevy::math::{Rect, Vec2};
 use bevy::render::color::Color;
 
+use std::default;
 use std::f32::consts::PI;
+
+/// The settings for generating the vertexes
+#[derive(Debug, Clone, Copy)]
+pub struct VertexSettings {
+    lod: usize,
+    mode: VertexMode,
+}
+
+impl Default for VertexSettings {
+    fn default() -> Self {
+        Self {
+            lod: 1,
+            mode: VertexMode::Lines,
+        }
+    }
+}
+
+impl VertexSettings {
+    /// Create a grid of vertexes with a given level of detail
+    /// The level of detail will be the number of vertexes skipped in the grid
+    /// The level of detail must be a power of 2
+    /// This is useful for drawing the grid zoomed out, or for drawing the player grid
+    pub fn grid(lod: usize) -> VertexSettings {
+        debug_assert!(lod > 0);
+        debug_assert_eq!(lod & (lod - 1), 0, "lod must be a power of 2");
+        VertexSettings {
+            lod,
+            mode: VertexMode::Grid,
+        }
+    }
+}
 
 /// The optimal way of drawing the vertexes is just to draw the radial lines.
 /// Because the texture will map along the column perfectly.
 /// However, if you want to see the whole grid you can use the grid vertexes.
-#[derive(Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy)]
 pub enum VertexMode {
+    #[default]
     Lines,
     Grid,
 }
@@ -64,12 +97,14 @@ impl PartialLayerChunkCoordsBuilder {
         }
     }
 
+    /// Set the cell radius
     pub fn cell_radius(mut self, cell_radius: Length) -> PartialLayerChunkCoordsBuilder {
         debug_assert!(cell_radius.0 > 0.0);
         self.cell_width = cell_radius;
         self
     }
 
+    /// Set the index of the first concentric circle starting from the beginning of the layer
     pub fn start_concentric_circle_layer_relative(
         mut self,
         start_concentric_circle_layer_relative: usize,
@@ -78,6 +113,7 @@ impl PartialLayerChunkCoordsBuilder {
         self
     }
 
+    /// Set the index of the first concentric circle starting from the center of the circle
     pub fn start_concentric_circle_absolute(
         mut self,
         start_concentric_circle_absolute: usize,
@@ -86,11 +122,13 @@ impl PartialLayerChunkCoordsBuilder {
         self
     }
 
+    /// Set the index of the first radial line in the chunk
     pub fn start_radial_line(mut self, start_radial_line: usize) -> PartialLayerChunkCoordsBuilder {
         self.start_radial_line = start_radial_line;
         self
     }
 
+    /// Set the index of the last radial line in the chunk
     pub fn end_radial_line(mut self, end_radial_line: usize) -> PartialLayerChunkCoordsBuilder {
         self.end_radial_line = end_radial_line;
         self
@@ -139,11 +177,9 @@ impl PartialLayerChunkCoordsBuilder {
 }
 
 impl ChunkCoords {
-    pub fn get_positions(&self, mode: VertexMode) -> Vec<Vec2> {
+    /// Get the vertex positions for the chunk
+    pub fn get_positions(&self, settings: VertexSettings) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
-
-        let start_concentric = self.start_concentric_circle_layer_relative;
-        let start_radial = self.start_radial_line;
 
         let starting_r = self.get_start_radius();
         let ending_r = self.get_end_radius();
@@ -151,20 +187,39 @@ impl ChunkCoords {
             (ending_r - starting_r) / self.get_num_concentric_circles() as f32;
         let theta = (-2.0 * PI) / self.layer_num_radial_lines as f32;
 
-        let concentric_range = match mode {
+        // Create the concentric range with the appropriate level of detail and test it has the right bounds
+        let start_concentric = self.start_concentric_circle_layer_relative;
+        let concentric_range: Vec<usize> = match settings.mode {
             VertexMode::Lines => vec![
                 start_concentric,
                 self.get_num_concentric_circles() + start_concentric,
             ],
             VertexMode::Grid => (start_concentric
                 ..(self.get_num_concentric_circles() + start_concentric + 1))
-                .collect::<Vec<_>>(),
-        };
+                .collect(),
+        }
+        .into_iter()
+        .step_by(settings.lod)
+        .collect();
+        debug_assert_eq!(concentric_range[0], start_concentric);
+        debug_assert_eq!(
+            concentric_range[concentric_range.len() - 1],
+            self.get_num_concentric_circles() + start_concentric
+        );
 
+        // Create the radial range with the appropriate level of detail and test it has the right bounds
+        let radial_range: Vec<usize> = (self.start_radial_line..(self.end_radial_line + 1))
+            .step_by(settings.lod)
+            .collect();
+        debug_assert_eq!(radial_range[0], self.start_radial_line);
+        debug_assert_eq!(radial_range[radial_range.len() - 1], self.end_radial_line);
+
+        // Run our double loop
         for j in concentric_range {
-            let diff = (j - start_concentric) as f32 * circle_separation_distance;
+            let diff = (j - self.start_concentric_circle_layer_relative) as f32
+                * circle_separation_distance;
 
-            for k in start_radial..(self.end_radial_line + 1) {
+            for k in &radial_range {
                 if j == 0 && k % 2 == 1 {
                     let angle_next = (k + 1) as f32 * theta;
                     let radius = starting_r + diff;
@@ -172,7 +227,7 @@ impl ChunkCoords {
                     let v_next = Vec2::new(angle_next.cos() * radius, angle_next.sin() * radius);
                     vertexes.push(interpolate_points(v_last, &v_next));
                 } else {
-                    let angle_point = k as f32 * theta;
+                    let angle_point = (*k as f32) * theta;
                     let radius = starting_r + diff;
                     let new_coord =
                         Vec2::new(angle_point.cos() * radius, angle_point.sin() * radius);
@@ -248,16 +303,24 @@ impl ChunkCoords {
     /// If you set skip to 1, you will get the full resolution
     /// If you set skip to 2, you will get half the resolution
     /// ...
-    pub fn get_uvs(&self, mode: VertexMode) -> Vec<Vec2> {
+    pub fn get_uvs(&self, settings: VertexSettings) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
-        let concentric_range = match mode {
+        let concentric_range: Vec<usize> = match settings.mode {
             VertexMode::Lines => vec![0, self.get_num_concentric_circles()],
             VertexMode::Grid => (0..(self.get_num_concentric_circles() + 1)).collect::<Vec<_>>(),
-        };
+        }
+        .into_iter()
+        .step_by(settings.lod)
+        .collect();
+        debug_assert_eq!(concentric_range[0], 0);
+        debug_assert_eq!(
+            concentric_range[concentric_range.len() - 1],
+            self.get_num_concentric_circles()
+        );
 
         for j in concentric_range {
-            for k in 0..(self.get_num_radial_lines() + 1) {
+            for k in (0..(self.get_num_radial_lines() + 1)).step_by(settings.lod) {
                 let new_vec = Vec2::new(
                     k as f32 / self.get_num_radial_lines() as f32,
                     j as f32 / self.get_num_concentric_circles() as f32,
@@ -269,21 +332,22 @@ impl ChunkCoords {
         vertexes
     }
 
-    pub fn get_indices(&self, mode: VertexMode) -> Vec<u32> {
-        let j_count = match mode {
+    /// Creates the indices for the vertexes
+    pub fn get_indices(&self, settings: VertexSettings) -> Vec<u32> {
+        let j_count = match settings.mode {
             VertexMode::Lines => 2,
-            VertexMode::Grid => self.get_num_concentric_circles() + 1,
+            VertexMode::Grid => self.get_num_concentric_circles() / settings.lod + 1,
         };
-        let k_iter = 0..(self.get_num_radial_lines() + 1);
+        let k_iter = (0..(self.get_num_radial_lines() + 1)).step_by(settings.lod);
         let k_count = k_iter.len();
         let mut indices = Vec::with_capacity(j_count * k_count * 6);
         for j in 0..j_count - 1 {
             for k in 0..k_count - 1 {
                 // Compute the four corners of our current grid cell
-                let v0 = j * (self.get_num_radial_lines() + 1) + k; // Top-left
+                let v0 = j * k_count + k; // Top-left
                 let v1 = v0 + 1; // Top-right
-                let v2 = v0 + (self.get_num_radial_lines() + 1) + 1; // Bottom-right
-                let v3 = v0 + (self.get_num_radial_lines() + 1); // Bottom-left
+                let v2 = v0 + k_count + 1; // Bottom-right
+                let v3 = v0 + k_count; // Bottom-left
 
                 // First triangle (top-left, bottom-left, top-right)
                 indices.push(v0 as u32);
@@ -302,53 +366,75 @@ impl ChunkCoords {
 }
 
 impl ChunkCoords {
+    /// Get the total number of cells in the chunk
     pub fn total_size(&self) -> usize {
         self.get_num_radial_lines() * self.get_num_concentric_circles()
     }
+    /// Get the width of a cell (which is a square in this case)
     pub fn get_cell_width(&self) -> Length {
         self.width
     }
+    /// Get the radius of the smallest concentric circle
     pub fn get_start_radius(&self) -> f32 {
         self.start_concentric_circle_absolute as f32 * self.width.0
     }
+    /// Get the radius of the largest concentric circle
     pub fn get_end_radius(&self) -> f32 {
         self.get_start_radius() + self.width.0 * (self.num_concentric_circles as f32)
     }
+    /// Get the number of radial lines in the chunk
+    /// These go around the circle counter clockwise
     pub fn get_num_radial_lines(&self) -> usize {
         self.end_radial_line - self.start_radial_line
     }
+    /// Get the number of concentric circles in the chunk
+    /// These go from the center of the circle to the edge
     pub fn get_num_concentric_circles(&self) -> usize {
         self.num_concentric_circles
     }
+    /// Get the angle of the last radial line in the chunk
+    /// The last radial line is one greater than the last cell index, because it has to enclose the cell
     pub fn get_end_radial_theta(&self) -> f32 {
         let diff = (2.0 * PI) / self.layer_num_radial_lines as f32;
         self.end_radial_line as f32 * diff
     }
+    /// Get the angle of the first radial line in the chunk
     pub fn get_start_radial_theta(&self) -> f32 {
         let diff = (2.0 * PI) / self.layer_num_radial_lines as f32;
         self.start_radial_line as f32 * diff
     }
+    /// Get the index of the first concentric circle starting from the beginning of the layer
     pub fn get_start_concentric_circle_layer_relative(&self) -> usize {
         self.start_concentric_circle_layer_relative
     }
+    /// Get the index of the first concentric circle starting from the center of the circle
     pub fn get_start_concentric_circle_absolute(&self) -> usize {
         self.start_concentric_circle_absolute
     }
+    /// Get the index of the last concentric circle starting from the center of the circle
+    /// This will be one greater than the last cell index, because it has to enclose the cell
     pub fn get_end_concentric_circle_absolute(&self) -> usize {
         self.start_concentric_circle_absolute + self.num_concentric_circles
     }
+    /// Get the index of the last concentric circle starting from the beginning of the layer
+    /// This will be one greater than the last cell index, because it has to enclose the cell
     pub fn get_end_concentric_circle_layer_relative(&self) -> usize {
         self.start_concentric_circle_layer_relative + self.num_concentric_circles
     }
+    /// Get the index of the last radial line in the chunk
+    /// This will be one greater than the last cell index, because it has to enclose the cell
     pub fn get_end_radial_line(&self) -> usize {
         self.end_radial_line
     }
+    /// Get the index of the first radial line in the chunk
     pub fn get_start_radial_line(&self) -> usize {
         self.start_radial_line
     }
+    /// Get the layer number this chunk is a part of
     pub fn get_layer_num(&self) -> usize {
         self.chunk_idx.i
     }
+    /// Get the chunk index
     pub fn get_chunk_idx(&self) -> ChunkIjkVector {
         self.chunk_idx
     }
@@ -383,9 +469,10 @@ impl ChunkCoords {
     }
 
     /* Convienience Functions */
-    pub fn get_vertices(&self, mode: VertexMode) -> Vec<Vertex> {
-        let positions = self.get_positions(mode);
-        let uvs = self.get_uvs(mode);
+    /// Get all the vertexes for the chunk
+    pub fn get_vertices(&self, settings: VertexSettings) -> Vec<Vertex> {
+        let positions = self.get_positions(settings);
+        let uvs = self.get_uvs(settings);
         let vertexes: Vec<Vertex> = positions
             .iter()
             .zip(uvs.iter())
@@ -397,6 +484,7 @@ impl ChunkCoords {
             .collect();
         vertexes
     }
+    /// Get the outline mesh for the chunk
     pub fn calc_chunk_outline(&self) -> OwnedMeshData {
         let positions = self.get_outline();
         let mut vertices = Vec::with_capacity(positions.len());
@@ -422,9 +510,10 @@ impl ChunkCoords {
             ),
         }
     }
+    /// Get the mesh data for the chunk as you would normally draw it
     pub fn calc_chunk_meshdata(&self) -> OwnedMeshData {
-        let indices = self.get_indices(VertexMode::Lines);
-        let vertices: Vec<Vertex> = self.get_vertices(VertexMode::Lines);
+        let indices = self.get_indices(VertexSettings::default());
+        let vertices: Vec<Vertex> = self.get_vertices(VertexSettings::default());
         OwnedMeshData {
             vertices,
             indices,
@@ -436,9 +525,10 @@ impl ChunkCoords {
             ),
         }
     }
-    pub fn calc_chunk_triangle_wireframe(&self) -> OwnedMeshData {
-        let indices = self.get_indices(VertexMode::Grid);
-        let vertices: Vec<Vertex> = self.get_vertices(VertexMode::Grid);
+    /// Get the wireframe mesh data for the chunk
+    pub fn calc_chunk_triangle_wireframe(&self, settings: VertexSettings) -> OwnedMeshData {
+        let indices = self.get_indices(settings);
+        let vertices: Vec<Vertex> = self.get_vertices(settings);
         let mut new_indices = Vec::new();
         for i in (0..indices.len()).step_by(3) {
             let i1 = indices[i];
@@ -739,7 +829,7 @@ mod tests {
 
         #[test]
         fn test_first_layer_circle() {
-            let vertices = FIRST_LAYER.get_positions(VertexMode::Lines);
+            let vertices = FIRST_LAYER.get_positions(VertexSettings::default());
             assert_eq!(vertices.len(), 13 * 2);
 
             // The inner circle
@@ -891,7 +981,7 @@ mod tests {
 
         #[test]
         fn test_first_layer_uv() {
-            let uvs = FIRST_LAYER.get_uvs(VertexMode::Lines);
+            let uvs = FIRST_LAYER.get_uvs(VertexSettings::default());
             assert_eq!(uvs.len(), 13 * 2);
 
             // Test first layer
@@ -966,7 +1056,7 @@ mod tests {
 
         #[test]
         fn test_first_layer_indices() {
-            let indices = FIRST_LAYER.get_indices(VertexMode::Lines);
+            let indices = FIRST_LAYER.get_indices(VertexSettings::default());
             assert_eq!(indices.len(), 12 * 6);
 
             // The first concentric circle
@@ -1008,7 +1098,7 @@ mod tests {
 
         #[test]
         fn test_first_layer_circle_partial() {
-            let vertices = FIRST_LAYER_PARTIAL.get_positions(VertexMode::Lines);
+            let vertices = FIRST_LAYER_PARTIAL.get_positions(VertexSettings::default());
             assert_eq!(vertices.len(), 14);
 
             let radius = 3.0;
@@ -1119,7 +1209,7 @@ mod tests {
 
         #[test]
         fn test_first_layer_uv_partial() {
-            let uvs = FIRST_LAYER_PARTIAL.get_uvs(VertexMode::Lines);
+            let uvs = FIRST_LAYER_PARTIAL.get_uvs(VertexSettings::default());
             assert_eq!(uvs.len(), 14);
 
             // Middle layer
