@@ -313,7 +313,6 @@ impl ElementGrid {
             self.coords.get_cell_width(),
         );
         let avg_neigh_temp = element_grid_conv_neigh.get_avg_temp();
-        propogate_heat_builder.border_temperatures(avg_neigh_temp);
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {
                 let pos = JkVector { j, k };
@@ -334,7 +333,7 @@ impl ElementGrid {
         // propogate_heat_builder.total_mass_above(self.total_mass_above);
 
         // Now build and propogate updates to the element grid
-        let propogate_heat = propogate_heat_builder.build();
+        let propogate_heat = propogate_heat_builder.build(avg_neigh_temp);
         propogate_heat.propagate_heat(self, current_time);
     }
 

@@ -31,10 +31,12 @@ pub struct PropogateHeatBuilder {
     specific_heat_capacity: Array2<f32>,
     /// The density of each cell in the chunk
     density: Array2<f32>,
+    /// The temperature "of space"
+    /// Set this to some number to simulate a temperature gradient to space
+    /// TODO: I don't know what the thermal conductivity to space will be though
+    top_temp: Option<ThermodynamicTemperature>,
     // compressability: Array2<f32>,
     // total_mass_above: Mass,
-    /// A useful bool to check that you have set the border temperatures before calling build
-    has_set_border_temperatures: bool,
 }
 
 impl PropogateHeatBuilder {
@@ -52,9 +54,8 @@ impl PropogateHeatBuilder {
             thermal_conductivity,
             specific_heat_capacity,
             density,
+            top_temp: None,
             // compressability,
-            // To be set later
-            has_set_border_temperatures: false,
             // total_mass_above: Mass(-1.0),
         }
     }
@@ -79,12 +80,19 @@ impl PropogateHeatBuilder {
     //     self.total_mass_above = total_mass_above;
     // }
 
+    /// Set the temperature "of space"
+    /// If you don't want to set it, just don't call this method
+    pub fn top_temp(&mut self, top_temp: ThermodynamicTemperature) {
+        self.top_temp = Some(top_temp);
+    }
+
     /// Set the temperature of the border cells based on the convolved neighbor temperatures
-    pub fn border_temperatures(
+    /// This is only called by the build method because it needs to be called after all
+    /// adds are done
+    fn border_temperatures(
         &mut self,
         neighbor_temperatures: ElementGridConvolutionNeighborTemperatures,
     ) {
-        self.has_set_border_temperatures = true;
         self.temperature
             .slice_mut(s![.., 0])
             .fill(neighbor_temperatures.left.0);
@@ -99,6 +107,18 @@ impl PropogateHeatBuilder {
             self.temperature
                 .slice_mut(s![-1, -1])
                 .fill((top.0 + neighbor_temperatures.right.0) / 2.0);
+        } else {
+            // Else the top is open to the atmosphere and thus the temperature is Some(top_temp)
+            // Or you can give it None and it will be the same as the next layer down
+            // This would model no heat loss to space
+            if let Some(top_temp) = self.top_temp {
+                self.temperature.slice_mut(s![-1, ..]).fill(top_temp.0);
+            } else {
+                let second_last_row = self.temperature.slice(s![-2, ..]).to_owned();
+                self.temperature
+                    .slice_mut(s![-1, ..])
+                    .assign(&second_last_row);
+            }
         }
         if let Some(bottom) = neighbor_temperatures.bottom {
             self.temperature.slice_mut(s![0, ..]).fill(bottom.0);
@@ -108,20 +128,26 @@ impl PropogateHeatBuilder {
             self.temperature
                 .slice_mut(s![0, -1])
                 .fill((bottom.0 + neighbor_temperatures.right.0) / 2.0);
+        } else {
+            // Else the bottom is the bottom of the world
+            // so we will set it to the same temp as the next layer up
+            let second_row = self.temperature.slice(s![1, ..]).to_owned();
+            self.temperature.slice_mut(s![0, ..]).assign(&second_row);
         }
     }
 
     /// Create the structure and test all the values
-    pub fn build(self) -> PropogateHeat {
+    pub fn build(
+        mut self,
+        neighbor_temperatures: ElementGridConvolutionNeighborTemperatures,
+    ) -> PropogateHeat {
+        // Set the border temperatures
+        self.border_temperatures(neighbor_temperatures);
         // Check you called the methods
         // debug_assert!(
         //     self.total_mass_above.0 >= 0.0,
         //     "Total mass above must be greater than or equal to 0. Did you set it?"
         // );
-        debug_assert!(
-            self.has_set_border_temperatures,
-            "You must set the border temperatures"
-        );
         // Check everything is the right size
         debug_assert_eq!(
             self.thermal_conductivity.dim(),
