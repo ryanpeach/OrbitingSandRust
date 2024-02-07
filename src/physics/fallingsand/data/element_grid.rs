@@ -209,20 +209,6 @@ impl ElementGrid {
     }
 }
 
-/// Proceedural generation helpers
-impl ElementGrid {
-    /// Fill the grid with the given element
-    pub fn fill(&mut self, element: ElementType) {
-        for j in 0..self.get_chunk_coords().get_num_concentric_circles() {
-            for k in 0..self.get_chunk_coords().get_num_radial_lines() {
-                let pos = JkVector { j, k };
-                self.grid
-                    .replace(pos, element.get_element(self.coords.get_cell_width()));
-            }
-        }
-    }
-}
-
 /// Handle processing
 impl ElementGrid {
     /// Do one iteration of processing on the grid
