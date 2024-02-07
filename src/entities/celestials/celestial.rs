@@ -5,16 +5,22 @@ use bevy::ecs::component::Component;
 
 use bevy::ecs::entity::Entity;
 
+use bevy_mod_picking::prelude::*;
+
+// use bevy_mod_picking::PickableBundle;
 use bevy::ecs::query::{With, Without};
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
+use bevy::math::Vec2;
 
-use bevy::math::{Vec2, Vec3};
 use bevy::prelude::SpatialBundle;
 use bevy::render::mesh::Mesh;
 
-use bevy::render::view::Visibility;
+use bevy_eventlistener::event_listener::On;
+use bevy_mod_picking::events::Pointer;
+use bevy_mod_picking::PickableBundle;
+
 use bevy::sprite::{ColorMaterial, MaterialMesh2dBundle};
 use bevy::time::Time;
 
@@ -22,7 +28,7 @@ use bevy::transform::components::Transform;
 
 use hashbrown::HashMap;
 
-use crate::entities::camera::OverlayLayer1;
+use crate::gui::camera::{CelestialIdx, SelectCelestial};
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
@@ -46,7 +52,8 @@ pub struct CelestialDataPlugin;
 
 impl Plugin for CelestialDataPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, CelestialData::process_system);
+        app.add_systems(Update, Self::process_system);
+        app.add_event::<SelectCelestial>();
     }
 }
 
@@ -132,7 +139,7 @@ impl CelestialData {
 }
 
 /// Bevy Systems
-impl CelestialData {
+impl CelestialDataPlugin {
     /// Draws all the chunks and sets them up as child entities of the celestial
     /// TODO: Should this be a system
     #[allow(clippy::too_many_arguments)]
@@ -144,6 +151,7 @@ impl CelestialData {
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<ColorMaterial>>,
         asset_server: &Res<AssetServer>,
+        celestial_idx: usize,
         gravitational: bool,
     ) -> Entity {
         // Create all the chunk meshes as pairs of ChunkIjkVector and Mesh2dBundle
@@ -162,7 +170,7 @@ impl CelestialData {
                         .load_bevy_mesh(meshes);
 
                     let textures = textures.remove(&chunk_ijk).unwrap();
-                    let heat_material = textures.heat_texture.unwrap().to_bevy_image();
+                    // let heat_material = textures.heat_texture.unwrap().to_bevy_image();
                     let sand_material = textures.texture.unwrap().to_bevy_image();
 
                     // Create the falling sand material
@@ -174,72 +182,74 @@ impl CelestialData {
                                 material: materials.add(asset_server.add(sand_material).into()),
                                 ..Default::default()
                             },
+                            PickableBundle::default(), // Makes the entity pickable
                             FallingSandMaterial,
                         ))
                         .id();
 
                     // Now create the heat map
                     // TODO: This could be optimized by just using the outline
-                    let mesh = coordinate_dir
-                        .get_chunk_at_idx(chunk_ijk)
-                        .calc_chunk_meshdata()
-                        .load_bevy_mesh(meshes);
-                    let heat_chunk = commands
-                        .spawn((
-                            celestial_chunk_id,
-                            MaterialMesh2dBundle {
-                                mesh: mesh.into(),
-                                material: materials.add(asset_server.add(heat_material).into()),
-                                // Move the heat map to the front
-                                transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
-                                // Turning off the heat map for now
-                                visibility: Visibility::Hidden,
-                                ..Default::default()
-                            },
-                            HeatMapMaterial,
-                            OverlayLayer1,
-                        ))
-                        .id();
+                    // let mesh = coordinate_dir
+                    //     .get_chunk_at_idx(chunk_ijk)
+                    //     .calc_chunk_meshdata()
+                    //     .load_bevy_mesh(meshes);
+                    // let heat_chunk = commands
+                    //     .spawn((
+                    //         celestial_chunk_id,
+                    //         MaterialMesh2dBundle {
+                    //             mesh: mesh.into(),
+                    //             material: materials.add(asset_server.add(heat_material).into()),
+                    //             // Move the heat map to the front
+                    //             transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
+                    //             // Turning off the heat map for now
+                    //             visibility: Visibility::Hidden,
+                    //             ..Default::default()
+                    //         },
+                    //         HeatMapMaterial,
+                    //         OverlayLayer1,
+                    //     ))
+                    //     .id();
 
                     // Parent celestial to chunk
                     children.push(chunk);
-                    children.push(heat_chunk);
+                    // children.push(heat_chunk);
                 }
             }
         }
 
         // Create a Celestial
         let celestial_id = {
-            if gravitational {
-                commands
-                    .spawn((
-                        celestial.get_element_dir().get_total_mass(),
-                        velocity,
-                        celestial,
-                        SpatialBundle::from_transform(Transform::from_translation(
-                            translation.extend(0.0),
-                        )),
-                        GravitationalField,
-                    ))
-                    .id()
-            } else {
-                commands
-                    .spawn((
-                        celestial.get_element_dir().get_total_mass(),
-                        velocity,
-                        celestial,
-                        SpatialBundle::from_transform(Transform::from_translation(
-                            translation.extend(0.0),
-                        )),
-                    ))
-                    .id()
-            }
+            commands
+                .spawn((
+                    // Physics
+                    celestial
+                        .get_element_dir()
+                        .get_coordinate_dir()
+                        .get_radius(),
+                    celestial.get_element_dir().get_total_mass(),
+                    velocity,
+                    celestial,
+                    CelestialIdx(celestial_idx),
+                    SpatialBundle {
+                        transform: Transform::from_translation(translation.extend(0.0)),
+                        ..Default::default()
+                    },
+                ))
+                .id()
         };
+        if gravitational {
+            commands.entity(celestial_id).insert(GravitationalField);
+        }
 
         // Parent the celestial to all the chunks
         commands
             .entity(celestial_id)
             .push_children(children.as_slice());
+
+        // And create events
+        commands
+            .entity(celestial_id)
+            .insert(On::<Pointer<Down>>::send_event::<SelectCelestial>());
 
         // Return the celestial
         celestial_id

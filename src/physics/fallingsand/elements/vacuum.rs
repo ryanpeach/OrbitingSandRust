@@ -36,7 +36,7 @@ impl Element for Vacuum {
         StateOfMatter::Empty
     }
     fn get_color(&self) -> Color {
-        Color::BLACK
+        Color::rgba(0.0, 0.0, 0.0, 0.0)
     }
     fn _process(
         &mut self,

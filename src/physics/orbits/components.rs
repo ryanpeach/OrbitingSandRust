@@ -5,7 +5,7 @@ use bevy::{ecs::component::Component, math::Vec2};
 use derive_more::{Add, AddAssign, Sub, SubAssign, Sum};
 
 /// Indicates that an entity emits a gravitational field.
-#[derive(Component, Debug, Clone, Copy)]
+#[derive(Component, Default, Debug, Clone, Copy)]
 pub struct GravitationalField;
 
 /// The mass of an entity in kilograms.
