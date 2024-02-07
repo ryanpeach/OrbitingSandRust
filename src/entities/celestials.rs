@@ -3,4 +3,5 @@
 
 pub mod celestial;
 pub mod earthlike;
+pub mod layers;
 pub mod sun;
