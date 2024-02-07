@@ -1,4 +1,6 @@
 use bevy::math::Rect;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::physics::fallingsand::convolution::neighbor_grids::TopNeighborGrids;
@@ -11,11 +13,11 @@ use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 
 use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
-
 use super::super::elements::vacuum::Vacuum;
 use super::super::mesh::coordinate_directory::CoordinateDir;
 use super::super::util::grid::{Grid, GridOutOfBoundsError};
 use super::super::util::image::RawImage;
+use itertools::iproduct;
 
 /// An element grid is a 2D grid of elements tied to a chunk
 pub struct ElementGrid {
@@ -244,48 +246,53 @@ impl ElementGrid {
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) {
-        // Calculate the mass of the grid as we go
         let already_processed = self.get_already_processed();
         debug_assert!(!already_processed, "Already processed");
-        for j in 0..self.coords.get_num_concentric_circles() {
-            for k in 0..self.coords.get_num_radial_lines() {
-                let pos = JkVector { j, k };
 
-                // We have to take the element out of our grid to call it with a reference to self
-                // Otherwise we would have a reference to it, and process would have a reference to it through target_chunk
-                let mut element = self.grid.replace(pos, Box::<Vacuum>::default());
+        // By randomly shuffling the order we process the elements
+        // we can avoid creating a "favorite direction" for the elements to move
+        let mut rng = thread_rng();
+        let mut iter: Vec<(usize, usize)> = iproduct!(
+            0..self.coords.get_num_concentric_circles(),
+            0..self.coords.get_num_radial_lines()
+        )
+        .collect();
+        iter.shuffle(&mut rng);
+        for (j, k) in iter.into_iter() {
+            let pos = JkVector { j, k };
 
-                // Check that the element hasn't already been processed this frame
-                if element.get_last_processed().get_current_frame()
-                    >= current_time.get_current_frame()
-                {
+            // We have to take the element out of our grid to call it with a reference to self
+            // Otherwise we would have a reference to it, and process would have a reference to it through target_chunk
+            let mut element = self.grid.replace(pos, Box::<Vacuum>::default());
+
+            // Check that the element hasn't already been processed this frame
+            if element.get_last_processed().get_current_frame() >= current_time.get_current_frame()
+            {
+                self.grid.replace(pos, element);
+                continue;
+            }
+
+            // You have to send self and element_grid_conv_neigh my reference instead of packaging them together in an object
+            // because you are borrowing both. Without using a lifetime you can't package a borrow.
+            let res = element.process(pos, coord_dir, self, element_grid_conv_neigh, current_time);
+
+            // The reason we return options instead of passing the element to process by value (letting it put itself back) is twofold
+            // The first is this prevents the common programming error where the author forgets that the element
+            // has been moved out of the grid, and it disappears.
+            // The second is that you get a "cant borrow twice" error if you pass the element to process by value
+            // It was really complicated to get this to work, so I'm not going to change it.
+            // If you try to change it, increment this counter by how may hours you spent trying to change it
+            //
+            // +1h wasted
+            //
+            match res {
+                ElementTakeOptions::PutBack => {
                     self.grid.replace(pos, element);
-                    continue;
                 }
-
-                // You have to send self and element_grid_conv_neigh my reference instead of packaging them together in an object
-                // because you are borrowing both. Without using a lifetime you can't package a borrow.
-                let res =
-                    element.process(pos, coord_dir, self, element_grid_conv_neigh, current_time);
-
-                // The reason we return options instead of passing the element to process by value (letting it put itself back) is twofold
-                // The first is this prevents the common programming error where the author forgets that the element
-                // has been moved out of the grid, and it disappears.
-                // The second is that you get a "cant borrow twice" error if you pass the element to process by value
-                // It was really complicated to get this to work, so I'm not going to change it.
-                // If you try to change it, increment this counter by how may hours you spent trying to change it
-                //
-                // +1h wasted
-                //
-                match res {
-                    ElementTakeOptions::PutBack => {
-                        self.grid.replace(pos, element);
-                    }
-                    ElementTakeOptions::ReplaceWith(new_element) => {
-                        self.grid.replace(pos, new_element);
-                    }
-                    ElementTakeOptions::DoNothing => {}
+                ElementTakeOptions::ReplaceWith(new_element) => {
+                    self.grid.replace(pos, new_element);
                 }
+                ElementTakeOptions::DoNothing => {}
             }
         }
     }
