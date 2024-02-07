@@ -196,11 +196,9 @@ impl ChunkCoords {
             ],
             VertexMode::Grid => (start_concentric
                 ..(self.get_num_concentric_circles() + start_concentric + 1))
+                .step_by(settings.lod)
                 .collect(),
-        }
-        .into_iter()
-        .step_by(settings.lod)
-        .collect();
+        };
         debug_assert_eq!(concentric_range[0], start_concentric);
         debug_assert_eq!(
             concentric_range[concentric_range.len() - 1],
@@ -308,11 +306,10 @@ impl ChunkCoords {
 
         let concentric_range: Vec<usize> = match settings.mode {
             VertexMode::Lines => vec![0, self.get_num_concentric_circles()],
-            VertexMode::Grid => (0..(self.get_num_concentric_circles() + 1)).collect::<Vec<_>>(),
-        }
-        .into_iter()
-        .step_by(settings.lod)
-        .collect();
+            VertexMode::Grid => (0..(self.get_num_concentric_circles() + 1))
+                .step_by(settings.lod)
+                .collect::<Vec<_>>(),
+        };
         debug_assert_eq!(concentric_range[0], 0);
         debug_assert_eq!(
             concentric_range[concentric_range.len() - 1],
