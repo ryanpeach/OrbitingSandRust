@@ -41,6 +41,15 @@ pub struct PropogateHeatBuilder {
     compressability: Array2<f32>,
     /// The total mass above the chunk
     total_mass_above: Mass,
+    /// The multiplier for the delta temperature
+    /// Greater than 1 speeds up propogation
+    /// Greater than 0 but less than 1 slows down propogation
+    /// Must be greater than 0 and finite
+    /// Defaults to 1
+    delta_multiplier: f32,
+    /// Whether to enable compression
+    /// Defaults to true
+    enable_compression: bool,
 }
 
 impl PropogateHeatBuilder {
@@ -58,6 +67,8 @@ impl PropogateHeatBuilder {
             thermal_conductivity,
             specific_heat_capacity,
             density,
+            delta_multiplier: 1.0,
+            enable_compression: true,
             // This will leak a little heat to space over time
             top_temp_mult: 0.99,
             compressability,
@@ -89,6 +100,16 @@ impl PropogateHeatBuilder {
     /// If you don't want to set it, just don't call this method
     pub fn top_temp_mult(&mut self, top_temp_mult: f32) {
         self.top_temp_mult = top_temp_mult
+    }
+
+    /// Set the multiplier for the delta temperature
+    pub fn delta_multiplier(&mut self, delta_multiplier: f32) {
+        self.delta_multiplier = delta_multiplier;
+    }
+
+    /// Set whether to enable compression
+    pub fn enable_compression(&mut self, enable_compression: bool) {
+        self.enable_compression = enable_compression;
     }
 
     /// Set the temperature of the border cells based on the convolved neighbor temperatures
@@ -205,6 +226,14 @@ impl PropogateHeatBuilder {
             self.compressability.iter().all(|&x| x.is_finite()),
             "Compressability must be finite"
         );
+        debug_assert!(
+            self.delta_multiplier.is_finite(),
+            "Delta multiplier must be finite"
+        );
+        debug_assert!(
+            self.delta_multiplier > 0.0,
+            "Delta multiplier must be greater than 0"
+        );
         PropogateHeat {
             cell_width: self.cell_width,
             temperature: self.temperature,
@@ -213,6 +242,8 @@ impl PropogateHeatBuilder {
             specific_heat_capacity: self.specific_heat_capacity,
             density: self.density,
             compressability: self.compressability,
+            delta_multiplier: self.delta_multiplier,
+            enable_compression: self.enable_compression,
         }
     }
 }
@@ -236,12 +267,20 @@ pub struct PropogateHeat {
     /// Compressability of each cell in the chunk
     /// Should be the size of the chunk
     compressability: Array2<f32>,
+    /// Whether to enable compression
+    enable_compression: bool,
+    /// The multiplier for the delta temperature
+    /// Greater than 1 speeds up propogation
+    /// Greater than 0 but less than 1 slows down propogation
+    /// Must be greater than 0 and finite
+    /// Defaults to 1
+    delta_multiplier: f32,
 }
 
 impl PropogateHeat {
     /// Propogate the heat in the grid
     #[allow(clippy::reversed_empty_ranges)] // REF: https://github.com/rust-lang/rust-clippy/issues/5808
-    pub fn propagate_heat(&self, element_grid: &mut ElementGrid, current_time: Clock) {
+    pub fn propagate_heat(&mut self, current_time: Clock) {
         if current_time.get_last_delta().as_secs_f32() == 0.0 {
             warn!("Delta time is 0, not processing heat. May just be the first frame.");
             return;
@@ -273,19 +312,26 @@ impl PropogateHeat {
         // Get the alpha grid
         // trace!("Thermal conductivity: {}", self.thermal_conductivity.sum());
         // trace!("Specific heat capacity: {}", self.specific_heat_capacity.sum());
-        // Turned off compressibility for now
-        let density = Compressability::matrix_get_density_from_mass(
-            &self.compressability,
-            &self.density,
-            self.total_mass_above,
-        );
+        let density = {
+            if self.enable_compression {
+                Compressability::matrix_get_density_from_mass(
+                    &self.compressability,
+                    &self.density,
+                    self.total_mass_above,
+                )
+            } else {
+                self.density.clone()
+            }
+        };
         // trace!("Density: {}", matrix_get_density_from_mass.sum());
-        let alpha = &self.thermal_conductivity / (&self.specific_heat_capacity * &density);
+        let alpha = &self.thermal_conductivity / (&self.specific_heat_capacity * density);
         // Replace all Nans with zero because anything that has specific heat capacity 0 also has 0 thermal conductivity
         let alpha = alpha.mapv(|x| if x.is_finite() { x } else { 0.0 });
         // trace!("Apha sum: {}", alpha.sum());
-        let delta_temperature =
-            alpha * second_gradient_temperature * current_time.get_last_delta().as_secs_f32();
+        let delta_temperature = alpha
+            * second_gradient_temperature
+            * current_time.get_last_delta().as_secs_f32()
+            * self.delta_multiplier;
 
         // Check everything is finite
         // trace!("Delta temperature sum: {:?}", delta_temperature.sum());
@@ -307,21 +353,90 @@ impl PropogateHeat {
             ),
         );
 
-        // Apply the new heat energy to the elements
-        self.apply(element_grid, new_heat_energy, current_time);
+        // Check everything is finite
+        debug_assert!(
+            new_heat_energy.iter().all(|&x| x.is_finite()),
+            "New heat energy must be finite"
+        );
+
+        // Save the new temperature
+        self.temperature = new_temp;
+    }
+
+    /// Get the temperature array
+    pub fn get_temperature(&self) -> &Array2<f32> {
+        &self.temperature
     }
 
     /// Apply the new heat energy grid to the elements
-    fn apply(&self, chunk: &mut ElementGrid, new_heat_energy: Array2<f32>, current_time: Clock) {
+    pub fn apply_to_grid(&self, chunk: &mut ElementGrid, current_time: Clock) {
         for j in 0..self.temperature.dim().0 - 2 {
             for k in 0..self.temperature.dim().1 - 2 {
                 let elem = chunk.get_mut(JkVector::new(j, k));
                 if elem.get_specific_heat().0 == 0.0 {
                     continue;
                 }
-                elem.set_heat(HeatEnergy(new_heat_energy[[j, k]]), current_time)
+                elem.set_heat(HeatEnergy(self.temperature[[j, k]]), current_time)
                     .unwrap();
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use crate::physics::fallingsand::{
+        elements::{element::ElementType, water::Water},
+        mesh::chunk_coords,
+    };
+
+    use super::*;
+
+    const CELL_WIDTH: Length = Length(1.0);
+
+    #[test]
+    fn test_sink_diffuses_to_zero() {
+        // Set up the builder
+        let mut builder = PropogateHeatBuilder::new(5, 5, CELL_WIDTH);
+        for j in 0..5 {
+            for k in 0..5 {
+                builder.add(
+                    JkVector::new(j, k),
+                    &ElementType::Water.get_element(CELL_WIDTH).box_clone(),
+                );
+            }
+        }
+        let mut heat = builder.build(ElementGridConvolutionNeighborTemperatures {
+            left: ThermodynamicTemperature(0.0),
+            right: ThermodynamicTemperature(0.0),
+            top: Some(ThermodynamicTemperature(0.0)),
+            bottom: Some(ThermodynamicTemperature(0.0)),
+        });
+
+        // Over five seconds at 30fps
+        const FRAME_RATE: u32 = 30;
+        let mut clock = Clock::default();
+        for frame_cnt in 0..(5 * FRAME_RATE) {
+            // Update the clock
+            clock.update(Duration::from_secs_f32(1.0 / FRAME_RATE as f32));
+
+            // Check that the heat is not yet near zero in the center
+            let heat_energy = heat.temperature.clone();
+            if frame_cnt % FRAME_RATE == 0 {
+                println!(
+                    "#{:?} Heat energy:\n{:?}",
+                    frame_cnt / FRAME_RATE,
+                    heat_energy
+                );
+            }
+
+            // Propogate the heat
+            heat.propagate_heat(clock);
+        }
+
+        // Check that the heat is near zero in the center
+        assert!(heat.get_temperature()[[2, 2]].abs() < 0.1);
     }
 }

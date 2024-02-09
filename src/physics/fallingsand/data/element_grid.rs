@@ -333,8 +333,9 @@ impl ElementGrid {
         propogate_heat_builder.total_mass_above(self.total_mass_above);
 
         // Now build and propogate updates to the element grid
-        let propogate_heat = propogate_heat_builder.build(avg_neigh_temp);
-        propogate_heat.propagate_heat(self, current_time);
+        let mut propogate_heat = propogate_heat_builder.build(avg_neigh_temp);
+        propogate_heat.propagate_heat(current_time);
+        propogate_heat.apply_to_grid(self, current_time);
     }
 
     /// Process the mass of the grid and the mass above the grid
