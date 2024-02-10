@@ -1,4 +1,5 @@
 use hashbrown::HashMap;
+use ndarray::{Array1, Array2};
 
 use crate::physics::{
     fallingsand::{
@@ -100,50 +101,117 @@ impl IntoIterator for ElementGridConvolutionNeighbors {
 }
 
 /// The average temperature of the neighbors
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct ElementGridConvolutionNeighborTemperatures {
-    pub top: Option<ThermodynamicTemperature>,
-    pub bottom: Option<ThermodynamicTemperature>,
-    pub left: ThermodynamicTemperature,
-    pub right: ThermodynamicTemperature,
+    pub top: Option<Array1<f32>>,
+    pub bottom: Option<Array1<f32>>,
+    pub left: Array1<f32>,
+    pub right: Array1<f32>,
 }
 
 impl ElementGridConvolutionNeighbors {
-    pub fn get_avg_temp(&self) -> ElementGridConvolutionNeighborTemperatures {
+    pub fn get_avg_temp(
+        &self,
+        target_chunk: &ElementGrid,
+    ) -> ElementGridConvolutionNeighborTemperatures {
+        let coords = target_chunk.get_chunk_coords();
         let mut out = ElementGridConvolutionNeighborTemperatures::default();
+        let mut this = Array1::zeros(coords.get_num_radial_lines());
         match &self.grids.top {
             TopNeighborGrids::Normal { t, tl, tr } => {
-                let mut sum = ThermodynamicTemperature(0.0);
-                sum += t.get_temperature();
-                sum += tl.get_temperature();
-                sum += tr.get_temperature();
-                out.top = Some(ThermodynamicTemperature(sum.0 / 3.0));
+                for k in 0..coords.get_num_radial_lines() {
+                    let idx = JkVector { j: 0, k };
+                    let elem = t.get(idx);
+                    this[idx.to_ndarray_coords(coords).x] =
+                        elem.get_temperature(coords.get_cell_width()).0;
+                }
+                out.top = Some(this);
             }
-            TopNeighborGrids::LayerTransition { t0, t1, tl, tr } => {
-                let mut sum = ThermodynamicTemperature(0.0);
-                sum += t0.get_temperature();
-                sum += t1.get_temperature();
-                sum += tl.get_temperature();
-                sum += tr.get_temperature();
-                out.top = Some(ThermodynamicTemperature(sum.0 / 4.0));
+            // In this case t1 and t0 are both half the size of target_chunk
+            TopNeighborGrids::LayerTransition { tl, t1, t0, tr } => {
+                for k in 0..coords.get_num_radial_lines() {
+                    let idx = JkVector { j: 0, k };
+                    let elem = tr.get(idx);
+                    this[idx.to_ndarray_coords(coords).x] =
+                        elem.get_temperature(coords.get_cell_width()).0;
+                }
+                for k in 0..coords.get_num_radial_lines() {
+                    let idx = JkVector { j: 0, k };
+                    let elem = tl.get(idx);
+                    let idx = JkVector {
+                        j: 0,
+                        k: k + coords.get_num_radial_lines(),
+                    };
+                    this[idx.to_ndarray_coords(coords).x] =
+                        elem.get_temperature(coords.get_cell_width()).0;
+                }
+                out.top = Some(this);
             }
             TopNeighborGrids::TopOfGrid => {
                 out.top = None;
             }
         }
+        let mut this = Array1::zeros(coords.get_num_radial_lines());
         match &self.grids.bottom {
             BottomNeighborGrids::Normal { b, bl, br } => {
-                let mut sum = ThermodynamicTemperature(0.0);
-                sum += b.get_temperature();
-                sum += bl.get_temperature();
-                sum += br.get_temperature();
-                out.bottom = Some(ThermodynamicTemperature(sum.0 / 3.0));
+                let coords = b.get_chunk_coords();
+                for k in 0..coords.get_num_radial_lines() {
+                    let idx = JkVector {
+                        j: bl.get_chunk_coords().get_num_concentric_circles() - 1,
+                        k,
+                    };
+                    let elem = b.get(idx);
+                    this[idx.to_ndarray_coords(coords).x] =
+                        elem.get_temperature(coords.get_cell_width()).0;
+                }
+                out.bottom = Some(this);
             }
+            // In this case bl and br are both twice the size of target_chunk
             BottomNeighborGrids::LayerTransition { bl, br } => {
-                let mut sum = ThermodynamicTemperature(0.0);
-                sum += bl.get_temperature();
-                sum += br.get_temperature();
-                out.bottom = Some(ThermodynamicTemperature(sum.0 / 2.0));
+                // If you are an even index chunk, the right half of bl is the same as b
+                // If you are on odd index chunk, the left half of br is the same as b
+                // TODO: document this with pictures
+                // TODO: Unit test
+                let mut this = Array1::zeros(coords.get_num_radial_lines());
+                if target_chunk.get_chunk_coords().get_chunk_idx().k % 2 == 0 {
+                    debug_assert_eq!(
+                        coords.get_num_radial_lines() * 2,
+                        bl.get_chunk_coords().get_num_radial_lines(),
+                        "coords: {:?}, bl: {:?}",
+                        coords.get_num_radial_lines(),
+                        bl.get_chunk_coords().get_num_radial_lines()
+                    );
+                    for k in 0..coords.get_num_radial_lines() {
+                        let idx = JkVector {
+                            j: bl.get_chunk_coords().get_num_concentric_circles() - 1,
+                            k,
+                        };
+                        let elem = bl.get(idx);
+                        this[idx.to_ndarray_coords(coords).x] =
+                            elem.get_temperature(coords.get_cell_width()).0;
+                    }
+                } else {
+                    debug_assert_eq!(
+                        coords.get_num_radial_lines() * 2,
+                        br.get_chunk_coords().get_num_radial_lines(),
+                        "coords: {:?}, bl: {:?}",
+                        coords.get_num_radial_lines(),
+                        bl.get_chunk_coords().get_num_radial_lines()
+                    );
+                    for k in 0..coords.get_num_radial_lines() {
+                        let idx = JkVector {
+                            j: br.get_chunk_coords().get_num_concentric_circles() - 1,
+                            k: k + coords.get_num_radial_lines(),
+                        };
+                        let elem = br.get(idx);
+                        let idx = JkVector {
+                            j: br.get_chunk_coords().get_num_concentric_circles() - 1,
+                            k,
+                        };
+                        this[idx.to_ndarray_coords(coords).x] =
+                            elem.get_temperature(coords.get_cell_width()).0;
+                    }
+                };
             }
             BottomNeighborGrids::BottomOfGrid => {
                 out.bottom = None;
@@ -151,8 +219,28 @@ impl ElementGridConvolutionNeighbors {
         }
         match &self.grids.left_right {
             LeftRightNeighborGrids::LR { l, r } => {
-                out.left = l.get_temperature();
-                out.right = r.get_temperature();
+                let coords = l.get_chunk_coords();
+                let mut this = Array1::zeros(coords.get_num_concentric_circles());
+                for j in 0..coords.get_num_concentric_circles() {
+                    let idx = JkVector { j, k: 0 };
+                    let elem = l.get(idx);
+                    this[idx.to_ndarray_coords(coords).y] =
+                        elem.get_temperature(coords.get_cell_width()).0;
+                }
+                out.left = this;
+
+                let coords = r.get_chunk_coords();
+                let mut this = Array1::zeros(coords.get_num_concentric_circles());
+                for j in 0..coords.get_num_concentric_circles() {
+                    let idx = JkVector {
+                        j,
+                        k: coords.get_num_radial_lines() - 1,
+                    };
+                    let elem = r.get(idx);
+                    this[idx.to_ndarray_coords(coords).y] =
+                        elem.get_temperature(coords.get_cell_width()).0;
+                }
+                out.right = this;
             }
         }
         out
@@ -195,11 +283,16 @@ impl ElementGridConvolutionNeighbors {
                 JkVector { j: pos.j, k: pos.k },
                 ConvolutionIdentifier::Center,
             ))),
+            // TODO: Unit test
             BottomNeighborIdxs::LayerTransition { .. } => {
                 let mut new_coords = JkVector {
                     j: pos.j + b_concentric_circles - n,
                     k: pos.k / 2,
                 };
+                // If you are an even index chunk, the right half of bl is the same as b
+                // If you are on odd index chunk, the left half of br is the same as b
+                // TODO: document this with pictures
+                // TODO: Unit test
                 let transition = if target_chunk.get_chunk_coords().get_chunk_idx().k % 2 == 0 {
                     BottomNeighborIdentifierLayerTransition::BottomLeft
                 } else {

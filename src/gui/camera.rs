@@ -59,9 +59,19 @@ impl CelestialIdx {
         camera: (&Parent, Entity),
     ) -> CelestialIdx {
         if cfg!(debug_assertions) {
-            let max_idx = celestials.iter().map(|(_, idx)| idx.0).max().unwrap();
-            let min_idx = celestials.iter().map(|(_, idx)| idx.0).min().unwrap();
-            assert_ne!(max_idx, min_idx);
+            let max_idx = celestials
+                .iter()
+                .map(|(_, idx)| idx.0)
+                .max()
+                .unwrap_or_default();
+            let min_idx = celestials
+                .iter()
+                .map(|(_, idx)| idx.0)
+                .min()
+                .unwrap_or_default();
+            if max_idx == min_idx {
+                assert_eq!(max_idx, 0);
+            }
             // Check all the indices are unique
             let mut indices = celestials.iter().map(|(_, idx)| idx.0).collect::<Vec<_>>();
             indices.sort();

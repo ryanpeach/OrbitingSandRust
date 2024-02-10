@@ -24,7 +24,7 @@ impl<T> Grid<T> {
     }
     /// Create a new grid with the given width and height, and fill it with the given data
     pub fn new_from_vec(width: usize, height: usize, data: Vec<T>) -> Self {
-        Self(ndarray::Array2::from_shape_vec((height, width), data).unwrap())
+        Self(ndarray::Array2::from_shape_vec((width, height), data).unwrap())
     }
     /// Create a new grid with the given width and height, and fill it with default values
     pub fn new_empty(width: usize, height: usize) -> Self
@@ -35,7 +35,7 @@ impl<T> Grid<T> {
         for _ in 0..width * height {
             data.push(Default::default());
         }
-        Self(ndarray::Array2::from_shape_vec((height, width), data).unwrap())
+        Self(ndarray::Array2::from_shape_vec((width, height), data).unwrap())
     }
 }
 
@@ -46,11 +46,11 @@ impl<T> Grid<T> {
 impl<T> Grid<T> {
     /// Get the width of the grid
     pub fn get_width(&self) -> usize {
-        self.0.shape()[1]
+        self.0.shape()[0]
     }
     /// Get the height of the grid
     pub fn get_height(&self) -> usize {
-        self.0.shape()[0]
+        self.0.shape()[1]
     }
     /// Get the total size of the grid
     pub fn total_size(&self) -> usize {
@@ -82,27 +82,34 @@ impl fmt::Display for GridOutOfBoundsError {
 /// Access data using JK coordinates, which are height and width respectively
 impl<T> Grid<T> {
     /// Gets the value at the given coordinate
-    pub fn get(&self, coord: JkVector) -> &T {
-        &self.0[[coord.j, coord.k]]
+    pub fn get(&self, idx: JkVector) -> &T {
+        let idx = self.transform_jk_coord_to_ndarray(idx);
+        &self.0[idx]
     }
     /// Gets the value at the given coordinate, or returns an error if the coordinate is out of bounds
-    pub fn checked_get(&self, coord: JkVector) -> Result<&T, GridOutOfBoundsError> {
-        if coord.j >= self.get_height() || coord.k >= self.get_width() {
-            return Err(GridOutOfBoundsError(coord));
+    pub fn checked_get(&self, idx: JkVector) -> Result<&T, GridOutOfBoundsError> {
+        if idx.j >= self.get_width() || idx.k >= self.get_height() {
+            return Err(GridOutOfBoundsError(idx));
         }
-        Ok(self.get(coord))
+        Ok(self.get(idx))
     }
     /// Gets the value at the given coordinate, mutably
-    pub fn get_mut(&mut self, coord: JkVector) -> &mut T {
-        &mut self.0[[coord.j, coord.k]]
+    pub fn get_mut(&mut self, idx: JkVector) -> &mut T {
+        let idx = self.transform_jk_coord_to_ndarray(idx);
+        &mut self.0[idx]
     }
     /// Sets the value at the given coordinate, overwriting the old value
-    pub fn set(&mut self, coord: JkVector, value: T) {
-        self.replace(coord, value);
+    pub fn set(&mut self, idx: JkVector, value: T) {
+        self.replace(idx, value);
     }
     /// Like set, but gives you ownership of the original value
-    pub fn replace(&mut self, coord: JkVector, replacement: T) -> T {
-        std::mem::replace(&mut self.0[[coord.j, coord.k]], replacement)
+    pub fn replace(&mut self, idx: JkVector, replacement: T) -> T {
+        let coord = self.transform_jk_coord_to_ndarray(idx);
+        std::mem::replace(&mut self.0[coord], replacement)
+    }
+    /// Transforms the coordinate to the ndarray coordinate system using this grid's width and height
+    fn transform_jk_coord_to_ndarray(&self, idx: JkVector) -> [usize; 2] {
+        [self.get_width() - 1 - idx.k, self.get_height() - 1 - idx.j]
     }
 }
 

@@ -122,7 +122,7 @@ mod test {
             },
             heat::{
                 components::{Length, ThermodynamicTemperature},
-                math::PropogateHeatBuilder,
+                math::{PropogateHeat, PropogateHeatBuilder},
             },
             orbits::components::Mass,
             util::clock::Clock,
@@ -131,59 +131,7 @@ mod test {
         /// Determines how fast the heat diffuses
         #[test]
         fn test_sink_diffuses_to_zero_speed() {
-            // Set up the builder
-            let mut builder = PropogateHeatBuilder::new(5, 5, Length(1.0));
-            builder.enable_compression(false);
-            builder.total_mass_above(Mass(0.0));
-            for j in 0..5 {
-                for k in 0..5 {
-                    builder.add(
-                        JkVector::new(j, k),
-                        &ElementType::Water.get_element(Length(1.0)).box_clone(),
-                    );
-                }
-            }
-            let mut heat = builder.build(ElementGridConvolutionNeighborTemperatures {
-                left: ThermodynamicTemperature(0.0),
-                right: ThermodynamicTemperature(0.0),
-                top: Some(ThermodynamicTemperature(0.0)),
-                bottom: Some(ThermodynamicTemperature(0.0)),
-            });
-
-            const FRAME_RATE: u32 = 1;
-            const N: u32 = 1730;
-            let mut clock = Clock::default();
-            for frame_cnt in 0..(N * FRAME_RATE) {
-                assert!(
-                    heat.get_temperature()[[2, 2]].abs() > 1.0,
-                    "Took less than {} frames to cool down: {}",
-                    N * FRAME_RATE,
-                    frame_cnt
-                );
-
-                // Update the clock
-                clock.update(Duration::from_secs_f32(1.0 / FRAME_RATE as f32));
-
-                // Check that the heat is not yet near zero in the center
-                let heat_energy = heat.get_temperature().clone();
-                if frame_cnt % 1 == 0 {
-                    println!(
-                        "#{:?} Heat energy:\n{:?}",
-                        frame_cnt / FRAME_RATE,
-                        heat_energy
-                    );
-                }
-
-                // Propogate the heat
-                heat.propagate_heat(clock);
-            }
-
-            // Check that the heat is near zero in the center
-            assert!(
-                heat.get_temperature()[[2, 2]].abs() < 1.0,
-                "Took longer than {} frames to cool down.",
-                N * FRAME_RATE
-            );
+            PropogateHeat::test_heat_disipation_rate_in_space(1730, 1, ElementType::Water);
         }
     }
 }

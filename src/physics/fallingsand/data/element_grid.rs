@@ -312,7 +312,7 @@ impl ElementGrid {
             self.coords.get_num_radial_lines(),
             self.coords.get_cell_width(),
         );
-        let avg_neigh_temp = element_grid_conv_neigh.get_avg_temp();
+        let avg_neigh_temp = element_grid_conv_neigh.get_avg_temp(&self);
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {
                 let pos = JkVector { j, k };
@@ -326,7 +326,7 @@ impl ElementGrid {
                 self.total_heat_capacity_at_atp += heat_capacity;
 
                 // Add to the propogate heat builder
-                propogate_heat_builder.add(pos, element);
+                propogate_heat_builder.add(self.get_chunk_coords(), pos, element);
             }
         }
         // Set the total mass above

@@ -34,14 +34,19 @@
 //! It can be quickly calculated using ndarray-conv using the fft method. This also
 //! uses the matrix operators on your cpu rather than using loops, making it very fast.
 
+use std::time::Duration;
+
 use bevy::{log::error, log::warn};
-use ndarray::{s, Array2};
+use ndarray::{s, Array1, Array2};
 use ndarray_conv::*;
 
 use crate::physics::{
     fallingsand::{
         convolution::behaviors::ElementGridConvolutionNeighborTemperatures,
-        data::element_grid::ElementGrid, elements::element::Element, util::vectors::JkVector,
+        data::element_grid::ElementGrid,
+        elements::element::{Element, ElementType},
+        mesh::chunk_coords::{ChunkCoords, PartialLayerChunkCoordsBuilder},
+        util::vectors::{ChunkIjkVector, JkVector, NdArrayCoords},
     },
     heat::components::{Compressability, Density, SpecificHeat},
     orbits::components::Mass,
@@ -86,11 +91,11 @@ impl PropogateHeatBuilder {
     /// Create a new heat propogation system with the given width and height
     /// All the arrays will be initialized to 0
     pub fn new(height: usize, width: usize, cell_width: Length) -> Self {
-        let temperature = Array2::from_elem((height + 2, width + 2), 0.0);
-        let thermal_conductivity = Array2::from_elem((height, width), 0.0);
-        let specific_heat_capacity = Array2::from_elem((height, width), 0.0);
-        let density = Array2::from_elem((height, width), 0.0);
-        let compressability = Array2::from_elem((height, width), 0.0);
+        let temperature = Array2::from_elem((width + 2, height + 2), 0.0);
+        let thermal_conductivity = Array2::from_elem((width, height), 0.0);
+        let specific_heat_capacity = Array2::from_elem((width, height), 0.0);
+        let density = Array2::from_elem((width, height), 0.0);
+        let compressability = Array2::from_elem((width, height), 0.0);
         Self {
             cell_width,
             temperature,
@@ -108,17 +113,18 @@ impl PropogateHeatBuilder {
 
     /// Add an element to the heat propogation system
     #[allow(clippy::borrowed_box)]
-    pub fn add(&mut self, jk_vector: JkVector, elem: &Box<dyn Element>) {
+    pub fn add(&mut self, coords: &ChunkCoords, jk_vector: JkVector, elem: &Box<dyn Element>) {
         let density = elem.get_density();
         let specific_heat = elem.get_specific_heat();
         let mass = density.mass(self.cell_width);
         let heat_capacity = specific_heat.heat_capacity(mass);
-        self.temperature[[jk_vector.j + 1, jk_vector.k + 1]] =
-            elem.get_heat().temperature(heat_capacity).0;
-        self.thermal_conductivity[[jk_vector.j, jk_vector.k]] = elem.get_thermal_conductivity().0;
-        self.specific_heat_capacity[[jk_vector.j, jk_vector.k]] = specific_heat.0;
-        self.density[[jk_vector.j, jk_vector.k]] = density.0;
-        self.compressability[[jk_vector.j, jk_vector.k]] = elem.get_compressability().0;
+        let idx: [usize; 2] = jk_vector.to_ndarray_coords(coords).into();
+        let one_plus_idx: [usize; 2] = [idx[0] + 1, idx[1] + 1];
+        self.temperature[one_plus_idx] = elem.get_heat().temperature(heat_capacity).0;
+        self.thermal_conductivity[idx] = elem.get_thermal_conductivity().0;
+        self.specific_heat_capacity[idx] = specific_heat.0;
+        self.density[idx] = density.0;
+        self.compressability[idx] = elem.get_compressability().0;
     }
 
     /// Simple setter for the total mass above the chunk
@@ -149,44 +155,52 @@ impl PropogateHeatBuilder {
         &mut self,
         neighbor_temperatures: ElementGridConvolutionNeighborTemperatures,
     ) {
+        // Remember ndarrays are row-major and the LT is 0,0
+        // so we are going to make some named slices to make this easier
+        let left_side = s![0, 1..-1];
+        let right_side = s![-1, 1..-1];
+        let top_side = s![1..-1, 0];
+        let second_to_top_side = s![1..-1, 1];
+        let bottom_side = s![1..-1, -1];
+        let second_to_bottom_side = s![1..-1, -2];
+
+        // Set the border temperatures
         self.temperature
-            .slice_mut(s![.., 0])
-            .fill(neighbor_temperatures.left.0);
+            .slice_mut(left_side)
+            .assign(&neighbor_temperatures.left);
         self.temperature
-            .slice_mut(s![.., -1])
-            .fill(neighbor_temperatures.right.0);
+            .slice_mut(right_side)
+            .assign(&neighbor_temperatures.right);
         if let Some(top) = neighbor_temperatures.top {
-            self.temperature.slice_mut(s![-1, ..]).fill(top.0);
-            self.temperature
-                .slice_mut(s![-1, 0])
-                .fill((top.0 + neighbor_temperatures.left.0) / 2.0);
-            self.temperature
-                .slice_mut(s![-1, -1])
-                .fill((top.0 + neighbor_temperatures.right.0) / 2.0);
+            self.temperature.slice_mut(top_side).assign(&top);
         } else {
-            // Else the top is open to the atmosphere and thus the temperature is Some(top_temp)
-            // Or you can give it None and it will be the same as the next layer down
-            // This would model no heat loss to space
+            // Else the top is open to space
+            // and it will be the same as the next layer down times some multiplier
             let second_last_row =
-                self.temperature.slice(s![-2, ..]).to_owned() * self.top_temp_mult;
+                self.temperature.slice(second_to_top_side).to_owned() * self.top_temp_mult;
             self.temperature
-                .slice_mut(s![-1, ..])
+                .slice_mut(top_side)
                 .assign(&second_last_row);
         }
         if let Some(bottom) = neighbor_temperatures.bottom {
-            self.temperature.slice_mut(s![0, ..]).fill(bottom.0);
-            self.temperature
-                .slice_mut(s![0, 0])
-                .fill((bottom.0 + neighbor_temperatures.left.0) / 2.0);
-            self.temperature
-                .slice_mut(s![0, -1])
-                .fill((bottom.0 + neighbor_temperatures.right.0) / 2.0);
+            self.temperature.slice_mut(bottom_side).assign(&bottom);
         } else {
             // Else the bottom is the bottom of the world
             // so we will set it to the same temp as the next layer up
-            let second_row = self.temperature.slice(s![1, ..]).to_owned();
-            self.temperature.slice_mut(s![0, ..]).assign(&second_row);
+            let second_row = self.temperature.slice(second_to_bottom_side).to_owned();
+            self.temperature.slice_mut(bottom_side).assign(&second_row);
         }
+
+        // Now we just need to interpolate the corners
+        let dim = self.temperature.dim();
+        self.temperature[[0, 0]] = (self.temperature[[0, 1]] + self.temperature[[1, 0]]) / 2.0;
+        self.temperature[[0, dim.1 - 1]] =
+            (self.temperature[[0, dim.1 - 2]] + self.temperature[[1, dim.1 - 1]]) / 2.0;
+        self.temperature[[dim.0 - 1, dim.1 - 1]] = (self.temperature[[dim.0 - 1, dim.1 - 2]]
+            + self.temperature[[dim.0 - 2, dim.1 - 1]])
+            / 2.0;
+        self.temperature[[dim.0 - 1, 0]] =
+            (self.temperature[[dim.0 - 1, 1]] + self.temperature[[dim.0 - 2, 0]]) / 2.0;
     }
 
     /// Create the structure and test all the values
@@ -411,15 +425,96 @@ impl PropogateHeat {
 
     /// Apply the new heat energy grid to the elements
     pub fn apply_to_grid(&self, chunk: &mut ElementGrid, current_time: Clock) {
-        for j in 0..self.temperature.dim().0 - 2 {
-            for k in 0..self.temperature.dim().1 - 2 {
-                let elem = chunk.get_mut(JkVector::new(j, k));
+        let coords = chunk.get_chunk_coords().clone();
+        for k in 0..self.temperature.dim().0 - 2 {
+            for j in 0..self.temperature.dim().1 - 2 {
+                let idx = JkVector::new(j, k);
+                let elem = chunk.get_mut(idx);
                 if elem.get_specific_heat().0 == 0.0 {
                     continue;
                 }
-                elem.set_heat(HeatEnergy(self.temperature[[j, k]]), current_time)
+                let idx: [usize; 2] = idx.to_ndarray_coords(&coords).into();
+                let one_plus_idx: [usize; 2] = [idx[0] + 1, idx[1] + 1];
+                elem.set_heat(HeatEnergy(self.temperature[one_plus_idx]), current_time)
                     .unwrap();
             }
         }
+    }
+}
+
+/// # Testing
+/// These are some helpful heat based sanity testing functions
+/// for each element to test their heat properties
+impl PropogateHeat {
+    /// Surrounded by 0.0 temperature, the heat average over a 5x5 grid
+    /// should disipate to half its original temperature in exactly `frames` frames
+    pub fn test_heat_disipation_rate_in_space(
+        frames: u32,
+        frame_rate: u32,
+        element_type: ElementType,
+    ) {
+        // Set up the chunk coords
+        let coords = PartialLayerChunkCoordsBuilder::new()
+            .num_concentric_circles(5)
+            .start_radial_line(0)
+            .end_radial_line(5)
+            .layer_num_radial_lines(5)
+            .start_concentric_circle_layer_relative(0)
+            .cell_radius(Length(1.0))
+            .chunk_idx(ChunkIjkVector::new(0, 0, 0))
+            .start_concentric_circle_absolute(0)
+            .build();
+
+        // Set up the builder
+        let mut builder = PropogateHeatBuilder::new(5, 5, Length(1.0));
+        builder.enable_compression(false);
+        builder.total_mass_above(Mass(0.0));
+        for j in 0..5 {
+            for k in 0..5 {
+                builder.add(
+                    &coords,
+                    JkVector::new(j, k),
+                    &element_type.get_element(Length(1.0)).box_clone(),
+                );
+            }
+        }
+
+        // This is the border
+        let mut heat = builder.build(ElementGridConvolutionNeighborTemperatures {
+            left: Array1::zeros(5),
+            right: Array1::zeros(5),
+            top: Some(Array1::zeros(5)),
+            bottom: Some(Array1::zeros(5)),
+        });
+
+        let mut clock = Clock::default();
+        let avg = heat.get_temperature().sum() / (5 * 5) as f32;
+        for frame_cnt in 0..frames {
+            assert!(
+                (heat.get_temperature().sum() / (5 * 5) as f32) < (avg / 2.0),
+                "Took less than {} frames to cool down: {}",
+                frames,
+                frame_cnt
+            );
+
+            // Update the clock
+            clock.update(Duration::from_secs_f32(1.0 / frame_rate as f32));
+
+            // Check that the heat is not yet near zero in the center
+            let heat_energy = heat.get_temperature().clone();
+            if frame_cnt % frame_rate == 0 {
+                println!("#{:?} Heat energy:\n{:?}", frame_cnt, heat_energy);
+            }
+
+            // Propogate the heat
+            heat.propagate_heat(clock);
+        }
+
+        // Check that the heat is near zero in the center
+        assert!(
+            (heat.get_temperature().sum() / (5 * 5) as f32) < (avg / 2.0),
+            "Took longer than {} frames to cool down.",
+            frames
+        );
     }
 }
