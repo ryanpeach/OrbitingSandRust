@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["G","MIN_DISTANCE_SQUARED"],"struct":["Force","ForceVec","GravitationalAcceleration","GravityCalculations","NBodyPlugin"]};

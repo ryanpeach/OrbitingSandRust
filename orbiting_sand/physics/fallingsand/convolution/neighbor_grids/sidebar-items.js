@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["BottomNeighborGrids","LeftRightNeighborGrids","TopNeighborGrids"],"struct":["ConvOutOfBoundsError","ElementGridConvolutionNeighborGrids"]};

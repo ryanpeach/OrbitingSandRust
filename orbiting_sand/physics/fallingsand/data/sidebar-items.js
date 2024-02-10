@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["element_directory","element_grid"]};

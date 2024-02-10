@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["FRAMES_PER_FULL_PROCESS"],"fn":["calculate_ith_has_different_k_bottom_neighbor_targets","calculate_ith_has_single_bottom_neighbor_targets","calculate_ith_standard_convolution_targets","pregen_process_targets"],"struct":["ElementGridDir","Parallel","ProcessTargets","Sequential","Textures"]};

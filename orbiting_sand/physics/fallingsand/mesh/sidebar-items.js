@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["chunk_coords","coordinate_directory"]};

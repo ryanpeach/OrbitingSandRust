@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["GetChunkErr"],"struct":["ElementGridConvolutionNeighborTemperatures","ElementGridConvolutionNeighbors","ElementGridConvolutionNeighborsIntoIter"]};

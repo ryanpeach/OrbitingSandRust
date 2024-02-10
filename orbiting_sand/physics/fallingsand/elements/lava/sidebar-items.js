@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["LAVA_STATE_TRANSITION_TEMPERATURE_K"],"struct":["Lava"]};

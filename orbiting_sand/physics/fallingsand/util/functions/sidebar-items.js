@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["grid_iter","interpolate_points","is_pow_2","modulo","valid_step"]};

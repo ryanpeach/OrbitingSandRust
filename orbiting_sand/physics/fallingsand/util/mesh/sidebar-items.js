@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["calc_uv_bounds"],"struct":["MeshBoundingBox","OwnedMeshData"]};
