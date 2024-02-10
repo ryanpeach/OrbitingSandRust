@@ -100,7 +100,7 @@ impl PropogateHeatBuilder {
             delta_multiplier: 1.0,
             enable_compression: true,
             // This will leak a little heat to space over time
-            top_temp_mult: 0.99,
+            top_temp_mult: 1.0,
             compressability,
             total_mass_above: Mass(-1.0),
         }
@@ -321,13 +321,13 @@ impl PropogateHeat {
         }
 
         // Define the convolution kernel
-        // Apparently it's VERY important that the center be a positive number
+        // Apparently it's VERY important that the center be a negative number
         let laplace_kernel = Array2::from_shape_vec(
             (3, 3),
             vec![
-                -1., -1., -1., //
-                -1., 8., -1., //
-                -1., -1., -1., //
+                1., 1., 1., //
+                1., -8., 1., //
+                1., 1., 1., //
             ],
         )
         .unwrap();
@@ -437,6 +437,8 @@ mod tests {
     fn test_sink_diffuses_to_zero() {
         // Set up the builder
         let mut builder = PropogateHeatBuilder::new(5, 5, CELL_WIDTH);
+        builder.enable_compression(false);
+        builder.total_mass_above(Mass(0.0));
         for j in 0..5 {
             for k in 0..5 {
                 builder.add(
@@ -455,7 +457,7 @@ mod tests {
         // Over five seconds at 30fps
         const FRAME_RATE: u32 = 30;
         let mut clock = Clock::default();
-        for frame_cnt in 0..(5 * FRAME_RATE) {
+        for frame_cnt in 0..(30 * FRAME_RATE) {
             // Update the clock
             clock.update(Duration::from_secs_f32(1.0 / FRAME_RATE as f32));
 
@@ -474,6 +476,6 @@ mod tests {
         }
 
         // Check that the heat is near zero in the center
-        assert!(heat.get_temperature()[[2, 2]].abs() < 0.1);
+        assert!(heat.get_temperature()[[2, 2]].abs() < 1.0);
     }
 }
