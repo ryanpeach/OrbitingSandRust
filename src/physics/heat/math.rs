@@ -321,6 +321,7 @@ impl PropogateHeat {
         }
 
         // Define the convolution kernel
+        // Apparently it's VERY important that the center be a positive number
         let laplace_kernel = Array2::from_shape_vec(
             (3, 3),
             vec![
@@ -394,7 +395,9 @@ impl PropogateHeat {
         );
 
         // Save the new temperature
-        self.temperature = new_temp;
+        self.temperature
+            .slice_mut(s![1..-1, 1..-1])
+            .assign(&new_temp);
     }
 
     /// Get the temperature array

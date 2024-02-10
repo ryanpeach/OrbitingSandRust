@@ -215,10 +215,9 @@ impl ThermodynamicTemperature {
     ) -> Color {
         debug_assert_ne!(max_temp.0, 0.0, "max_temp cannot be zero");
         debug_assert_ne!(min_temp.0, 0.0, "min_temp cannot be zero");
-        debug_assert!(
-            max_temp.0 > min_temp.0,
-            "max_temp must be greater than min_temp"
-        );
+        if max_temp == min_temp {
+            return Color::rgba(0.0, 0.0, 0.0, 0.0);
+        }
         if self.0 == 0.0 {
             return Color::rgba(0.0, 0.0, 0.0, 0.0);
         }
