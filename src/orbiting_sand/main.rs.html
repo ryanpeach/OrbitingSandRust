@@ -145,7 +145,16 @@
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
-</pre></div><pre class="rust"><code><span class="kw">pub mod </span>entities;
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! These documents are for game developers to understand the code, rather than for players.
+//! For players, we will eventually create a mdbook describing gameplay.
+//! This is the entry point for the game. It installs the plugins and contains
+//! a couple of setup functions for creating different scenes.
+</span><span class="kw">pub mod </span>entities;
 <span class="kw">pub mod </span>gui;
 <span class="kw">pub mod </span>physics;
 
@@ -168,7 +177,8 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::PhysicsPluginGroup;
 
-<span class="kw">fn </span>main() {
+<span class="doccomment">/// Create the bevy app
+</span><span class="kw">fn </span>main() {
     App::new()
         .add_plugins((
             DefaultPlugins

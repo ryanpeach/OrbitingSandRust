@@ -311,7 +311,6 @@
 <a href="#310" id="310">310</a>
 <a href="#311" id="311">311</a>
 <a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the trait Element and associated types
 //! This is the trait that all elements must implement
 //! It also contains info about states of matter and other useful enums and components
@@ -324,8 +323,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::physics::heat::components::{
     HeatEnergy, Length, SpecificHeat, ThermalConductivity, ThermodynamicTemperature,
 };
-<span class="kw">use </span><span class="kw">crate</span>::physics::orbits::components::Mass;
-<span class="kw">use </span><span class="kw">crate</span>::physics::orbits::nbody::Force;
+<span class="kw">use </span><span class="kw">crate</span>::physics::orbits::components::{Force, Mass};
 <span class="kw">use </span><span class="kw">crate</span>::physics::util::clock::Clock;
 <span class="kw">use </span>bevy::render::color::Color;
 <span class="kw">use </span>ndarray::Array2;

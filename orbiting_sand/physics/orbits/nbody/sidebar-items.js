@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["G","MIN_DISTANCE_SQUARED"],"struct":["Force","ForceVec","GravitationalAcceleration","GravityCalculations","NBodyPlugin"]};
+window.SIDEBAR_ITEMS = {"constant":["G","MIN_DISTANCE_SQUARED"],"fn":["compute_gravitational_force","full_position_update","half_step_velocity_update"],"struct":["NBodyPlugin"]};

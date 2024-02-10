@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["GravitationalField","Mass","Velocity"]};
+window.SIDEBAR_ITEMS = {"struct":["Force","ForceVec","GravitationalAcceleration","GravitationalField","Mass","Velocity"]};

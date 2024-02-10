@@ -195,10 +195,63 @@
 <a href="#194" id="194">194</a>
 <a href="#195" id="195">195</a>
 <a href="#196" id="196">196</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>bevy::{
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! # NxM-Body Physics
+//!
+//! In this module, we implement a type of gravitational physics simulation I will call
+//! "NxM-Body" physics.
+//!
+//! Similar to N-Body physics, this models a more complex system of gravity than mere
+//! two-body physics. However, it is not as complex as N-Body physics, which models the
+//! gravitational interactions between all bodies in the system. Instead, NxM-Body physics
+//! models the gravitational interactions between all bodies in the system that have a
+//! gravitational field, which will likely just be the planets, moons, and stars, likely
+//! less than 100 bodies. We can call this N. The other bodies, which will likely be
+//! spacecraft, asteroids, and other small bodies, will be modeled as if they are affected
+//! by the gravitational fields of the bodies with gravitational fields, but not by each
+//! other. We can call this M.
+//!
+//! This is a simple model that is much less computationally expensive than N-Body physics,
+//! which is worst-case O(N^2), wheras NxM-Body physics is worst-case O(N*M). Since M is
+//! constant and small in any given simulation, this is effectively O(N).
+//!
+//! # Leapfrog Integration
+//!
+//! &lt;https://en.wikipedia.org/wiki/Leapfrog_integration&gt;
+//!
+//! We use the leapfrog integration method to update the positions and velocities of the
+//! bodies. This is a [symplectic integrator](https://en.wikipedia.org/wiki/Symplectic_integrator)
+//! , which means it conserves energy. This is
+//! important for a physics simulation, because it means that the simulation will not
+//! "drift" over time, and the bodies will not gain or lose energy over time.
+//!
+//! It is also a second-order integrator, which means that it is more accurate than a
+//! first-order integrator, like Euler's method. This means that the simulation will be
+//! more accurate, and will not require as small of a time step to be stable.
+//!
+//! It is acomplished by updating the velocity of the bodies by half a time step, then
+//! updating the position of the bodies by a full time step, then updating the velocity
+//! of the bodies by half a time step again.
+//!
+//! # Decision to use the CPU
+//!
+//! I originally wanted to use the GPU for this simulation, because it is a very parallel
+//! problem. However, I decided to use the CPU because it is a simpler solution, and each
+//! frame I would need to read the positions and velocities of all the bodies from the GPU
+//! which is actually slower than just doing the computation on the CPU. Using rayon, I can
+//! parallelize the computation on the CPU, so it is not a huge performance hit.
+
+</span><span class="kw">use </span>bevy::{
     app::{App, Plugin, Update},
     ecs::{
-        component::Component,
         entity::Entity,
         query::{With, Without},
         schedule::IntoSystemConfigs,
@@ -209,108 +262,75 @@
     transform::components::Transform,
 };
 
-<span class="kw">use </span><span class="kw">super</span>::components::{GravitationalField, Mass, Velocity};
+<span class="kw">use </span><span class="kw">super</span>::components::{ForceVec, GravitationalField, Mass, Velocity};
 
 <span class="doccomment">/// It's important that we don't compute the gravitational force between two bodies that are too
 /// close together, because the force will be very large and the simulation will be unstable.
+/// This is squared because then we don't have to do a square root to compare it to the distance squared in the force calculation.
 </span><span class="kw">pub const </span>MIN_DISTANCE_SQUARED: f32 = <span class="number">100.0</span>;
+
 <span class="doccomment">/// The gravitational constant
-/// N⋅m^2/kg^2
+///
+/// $ \frac{N \cdot m^2}{kg^2} $
+///
+/// Note this has nothing to do with real life, and is just a scaling
+/// factor to make the simulation
+/// act at the scale of gravity we want.
 </span><span class="kw">pub const </span>G: f32 = <span class="number">1.0e3</span>;
 
-<span class="doccomment">/// The force applied to an entity with its direction
-</span><span class="attr">#[derive(Component, Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>ForceVec(<span class="kw">pub </span>Vec2);
+<span class="doccomment">/// Returns the gravitational force between two entities
+</span><span class="kw">fn </span>compute_gravitational_force(
+    pos1: <span class="kw-2">&amp;</span>Transform,
+    mass1: <span class="kw-2">&amp;</span>Mass,
+    pos2: <span class="kw-2">&amp;</span>Transform,
+    mass2: <span class="kw-2">&amp;</span>Mass,
+) -&gt; ForceVec {
+    <span class="kw">let </span>r = pos2.translation - pos1.translation;
+    <span class="kw">let </span><span class="kw-2">mut </span>distance_squared = r.length_squared();
+    distance_squared = distance_squared.max(MIN_DISTANCE_SQUARED);
 
-<span class="doccomment">/// The force applied to an entity
-</span><span class="attr">#[derive(Component, Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>Force(<span class="kw">pub </span>f32);
+    <span class="comment">// The gravitational constant G and masses are factored into the force magnitude
+    </span><span class="kw">let </span>force_magnitude = G * mass1.<span class="number">0 </span>* mass2.<span class="number">0 </span>/ distance_squared;
 
-<span class="doccomment">/// The force applied to an entity
-</span><span class="kw">impl </span>From&lt;ForceVec&gt; <span class="kw">for </span>Force {
-    <span class="kw">fn </span>from(force_vec: ForceVec) -&gt; <span class="self">Self </span>{
-        Force(force_vec.<span class="number">0</span>.length())
-    }
+    <span class="comment">// Calculate the force direction
+    // Normalize the displacement vector (r) to get the direction
+    </span><span class="kw">let </span>force_direction = r.normalize();
+
+    <span class="comment">// The final force vector is the direction scaled by the force magnitude
+    </span>ForceVec((force_direction * force_magnitude).xy())
 }
 
-<span class="kw">impl </span>Force {
-    <span class="doccomment">/// Returns the force applied to the entity by gravitation
-    </span><span class="kw">pub fn </span>from_mass(mass: Mass, acceleration: GravitationalAcceleration) -&gt; <span class="self">Self </span>{
-        Force(mass.<span class="number">0 </span>* acceleration.<span class="number">0</span>)
-    }
-}
-
-<span class="doccomment">/// The acceleration due to gravity
-</span><span class="attr">#[derive(Component, Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>GravitationalAcceleration(<span class="kw">pub </span>f32);
-
-<span class="kw">impl </span>GravitationalAcceleration {
-    <span class="doccomment">/// Returns the acceleration due to gravity towards a mass
-    </span><span class="kw">pub fn </span>from_total_mass(total_mass: Mass) -&gt; <span class="self">Self </span>{
-        GravitationalAcceleration(G * total_mass.<span class="number">0</span>)
-    }
-}
-
-<span class="doccomment">/// Just a namespace for the fundamental gravity functions
-</span><span class="kw">struct </span>GravityCalculations;
-
-<span class="kw">impl </span>GravityCalculations {
-    <span class="kw">pub fn </span>compute_gravitational_force(
-        pos1: <span class="kw-2">&amp;</span>Transform,
-        mass1: <span class="kw-2">&amp;</span>Mass,
-        pos2: <span class="kw-2">&amp;</span>Transform,
-        mass2: <span class="kw-2">&amp;</span>Mass,
-    ) -&gt; ForceVec {
-        <span class="kw">let </span>r = pos2.translation - pos1.translation;
-        <span class="kw">let </span><span class="kw-2">mut </span>distance_squared = r.length_squared();
-        distance_squared = distance_squared.max(MIN_DISTANCE_SQUARED);
-
-        <span class="comment">// The gravitational constant G and masses are factored into the force magnitude
-        </span><span class="kw">let </span>force_magnitude = G * mass1.<span class="number">0 </span>* mass2.<span class="number">0 </span>/ distance_squared;
-
-        <span class="comment">// Calculate the force direction
-        // Normalize the displacement vector (r) to get the direction
-        </span><span class="kw">let </span>force_direction = r.normalize();
-
-        <span class="comment">// The final force vector is the direction scaled by the force magnitude
-        </span>ForceVec((force_direction * force_magnitude).xy())
-    }
-
-    <span class="doccomment">/// Updates the velocity of the entity one half step
-    </span><span class="kw">pub fn </span>half_step_velocity_update(
-        this_body: (Entity, <span class="kw-2">&amp;</span>Transform, <span class="kw-2">&amp;mut </span>Velocity, <span class="kw-2">&amp;</span>Mass),
-        other_bodies: <span class="kw-2">&amp;</span>[(Entity, Transform, Velocity, Mass)],
-        dt: f32,
-    ) {
-        <span class="kw">let </span><span class="kw-2">mut </span>net_force = Vec2::ZERO;
-        <span class="kw">for </span>other_body <span class="kw">in </span>other_bodies {
-            <span class="kw">if </span>this_body.<span class="number">0 </span>== other_body.<span class="number">0 </span>{
-                <span class="kw">continue</span>;
-            }
-            <span class="kw">let </span>force = <span class="self">Self</span>::compute_gravitational_force(
-                this_body.<span class="number">1</span>,
-                this_body.<span class="number">3</span>,
-                <span class="kw-2">&amp;</span>other_body.<span class="number">1</span>,
-                <span class="kw-2">&amp;</span>other_body.<span class="number">3</span>,
-            );
-            net_force += force.<span class="number">0</span>;
+<span class="doccomment">/// Updates the velocity of the entity one half step
+</span><span class="kw">fn </span>half_step_velocity_update(
+    this_body: (Entity, <span class="kw-2">&amp;</span>Transform, <span class="kw-2">&amp;mut </span>Velocity, <span class="kw-2">&amp;</span>Mass),
+    other_bodies: <span class="kw-2">&amp;</span>[(Entity, Transform, Velocity, Mass)],
+    dt: f32,
+) {
+    <span class="kw">let </span><span class="kw-2">mut </span>net_force = Vec2::ZERO;
+    <span class="kw">for </span>other_body <span class="kw">in </span>other_bodies {
+        <span class="kw">if </span>this_body.<span class="number">0 </span>== other_body.<span class="number">0 </span>{
+            <span class="kw">continue</span>;
         }
-        <span class="kw">let </span>vdiff = net_force / this_body.<span class="number">3 </span>.<span class="number">0 </span>* (dt / <span class="number">2.0</span>);
-        this_body.<span class="number">2 </span>.<span class="number">0 </span>+= vdiff;
+        <span class="kw">let </span>force =
+            compute_gravitational_force(this_body.<span class="number">1</span>, this_body.<span class="number">3</span>, <span class="kw-2">&amp;</span>other_body.<span class="number">1</span>, <span class="kw-2">&amp;</span>other_body.<span class="number">3</span>);
+        net_force += force.<span class="number">0</span>;
     }
+    <span class="kw">let </span>vdiff = net_force / this_body.<span class="number">3 </span>.<span class="number">0 </span>* (dt / <span class="number">2.0</span>);
+    this_body.<span class="number">2 </span>.<span class="number">0 </span>+= vdiff;
+}
 
-    <span class="doccomment">/// Updates the position of the entity one full step
-    </span><span class="kw">pub fn </span>full_position_update(this_body: (Entity, <span class="kw-2">&amp;mut </span>Transform, <span class="kw-2">&amp;</span>Velocity, <span class="kw-2">&amp;</span>Mass), dt: f32) {
-        <span class="kw">let </span>pdiff = (this_body.<span class="number">2 </span>.<span class="number">0 </span>* dt).extend(<span class="number">0.0</span>);
-        this_body.<span class="number">1</span>.translation += pdiff;
-    }
+<span class="doccomment">/// Updates the position of the entity one full step
+</span><span class="kw">fn </span>full_position_update(this_body: (Entity, <span class="kw-2">&amp;mut </span>Transform, <span class="kw-2">&amp;</span>Velocity, <span class="kw-2">&amp;</span>Mass), dt: f32) {
+    <span class="kw">let </span>pdiff = (this_body.<span class="number">2 </span>.<span class="number">0 </span>* dt).extend(<span class="number">0.0</span>);
+    this_body.<span class="number">1</span>.translation += pdiff;
 }
 
 <span class="doccomment">/// Plugin to set up nbody physics
 </span><span class="kw">pub struct </span>NBodyPlugin;
 
 <span class="kw">impl </span>Plugin <span class="kw">for </span>NBodyPlugin {
-    <span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, app: <span class="kw-2">&amp;mut </span>App) {
+    <span class="doccomment">/// Adds the systems for the plugin
+    </span><span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, app: <span class="kw-2">&amp;mut </span>App) {
         app.add_systems(
             Update,
             (
@@ -323,7 +343,9 @@
 
 <span class="doccomment">/// Systems for the plugin
 </span><span class="kw">impl </span>NBodyPlugin {
-    <span class="kw">fn </span>grav_bodies_system(
+    <span class="doccomment">/// Updates the locations and velocities of the entities with gravitational fields
+    /// based on each other entity with a gravitational field
+    </span><span class="kw">fn </span>grav_bodies_system(
         <span class="kw-2">mut </span>grav_bodies: Query&lt;
             (Entity, <span class="kw-2">&amp;mut </span>Transform, <span class="kw-2">&amp;mut </span>Velocity, <span class="kw-2">&amp;</span>Mass),
             With&lt;GravitationalField&gt;,
@@ -338,16 +360,13 @@
         grav_bodies
             .par_iter_mut()
             .for_each(|(entity, <span class="kw-2">mut </span>transform, <span class="kw-2">mut </span>velocity, mass)| {
-                GravityCalculations::half_step_velocity_update(
+                half_step_velocity_update(
                     (entity, <span class="kw-2">&amp;</span>transform, <span class="kw-2">&amp;mut </span>velocity, mass),
                     <span class="kw-2">&amp;</span>grav_bodies_copy,
                     dt,
                 );
-                GravityCalculations::full_position_update(
-                    (entity, <span class="kw-2">&amp;mut </span>transform, <span class="kw-2">&amp;</span>velocity, mass),
-                    dt,
-                );
-                GravityCalculations::half_step_velocity_update(
+                full_position_update((entity, <span class="kw-2">&amp;mut </span>transform, <span class="kw-2">&amp;</span>velocity, mass), dt);
+                half_step_velocity_update(
                     (entity, <span class="kw-2">&amp;</span>transform, <span class="kw-2">&amp;mut </span>velocity, mass),
                     <span class="kw-2">&amp;</span>grav_bodies_copy,
                     dt,
@@ -355,7 +374,9 @@
             });
     }
 
-    <span class="kw">fn </span>no_grav_bodies_system(
+    <span class="doccomment">/// Updates the locations and velocities of the entities without gravitational fields
+    /// based on the entities with gravitational fields
+    </span><span class="kw">fn </span>no_grav_bodies_system(
         <span class="kw-2">mut </span>no_grav_bodies: Query&lt;
             (Entity, <span class="kw-2">&amp;mut </span>Transform, <span class="kw-2">&amp;mut </span>Velocity, <span class="kw-2">&amp;</span>Mass),
             Without&lt;GravitationalField&gt;,
@@ -374,16 +395,13 @@
         no_grav_bodies
             .par_iter_mut()
             .for_each(|(entity, <span class="kw-2">mut </span>transform, <span class="kw-2">mut </span>velocity, mass)| {
-                GravityCalculations::half_step_velocity_update(
+                half_step_velocity_update(
                     (entity, <span class="kw-2">&amp;</span>transform, <span class="kw-2">&amp;mut </span>velocity, mass),
                     <span class="kw-2">&amp;</span>grav_bodies_copy,
                     dt,
                 );
-                GravityCalculations::full_position_update(
-                    (entity, <span class="kw-2">&amp;mut </span>transform, <span class="kw-2">&amp;</span>velocity, mass),
-                    dt,
-                );
-                GravityCalculations::half_step_velocity_update(
+                full_position_update((entity, <span class="kw-2">&amp;mut </span>transform, <span class="kw-2">&amp;</span>velocity, mass), dt);
+                half_step_velocity_update(
                     (entity, <span class="kw-2">&amp;</span>transform, <span class="kw-2">&amp;mut </span>velocity, mass),
                     <span class="kw-2">&amp;</span>grav_bodies_copy,
                     dt,
