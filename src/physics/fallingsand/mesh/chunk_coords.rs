@@ -448,7 +448,6 @@ impl ChunkCoords {
             new_indices.push(i1);
             new_indices.push(i2);
             new_indices.push(i3);
-            new_indices.push(i1);
         }
         OwnedMeshData {
             vertices,

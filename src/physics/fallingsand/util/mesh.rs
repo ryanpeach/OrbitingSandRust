@@ -1,9 +1,13 @@
 //! Mesh utilities
 //! I found it useful to write my own mesh class in ggez and it has been useful in bevy as well
 //! keeps us from having to use specific bevy types in the physics engine
+#![warn(missing_docs)]
+#![warn(clippy::missing_docs_in_private_items)]
 
 use bevy::ecs::component::Component;
+use bevy::ecs::system::Query;
 use bevy::math::{Rect, Vec2};
+use bevy::render::view::{visibility, Visibility};
 use bevy::{
     asset::{Assets, Handle},
     ecs::system::ResMut,
@@ -20,6 +24,106 @@ use crate::physics::util::vectors::Vertex;
 
 #[derive(Component)]
 pub struct MeshBoundingBox(pub Rect);
+
+/// A mesh that can be drawn using bevy's gizmos (immediate mode renderer)
+/// This version draws the mesh using lines and assumes that the mesh is a loop
+/// This is useful for chunk outlines and for the brush
+#[derive(Component)]
+pub struct GizmoDrawableLoop {
+    /// The mesh to draw
+    pub mesh: OwnedMeshData,
+    /// The color to draw the mesh
+    pub color: Color,
+}
+
+impl GizmoDrawableLoop {
+    /// Create a new GizmoDrawableLoop
+    pub fn new(mesh: OwnedMeshData, color: Color) -> Self {
+        Self { mesh, color }
+    }
+
+    /// Draws the mesh using bevy's gizmos, which is an immediate mode renderer
+    /// This is useful for chunk outlines and for the brush
+    /// This draw mode "loops" like you would for an enclosed shape
+    pub fn draw_bevy_gizmo_loop(&self, gizmos: &mut Gizmos, transform: &Transform) {
+        for idx in 0..(self.mesh.indices.len() - 1) {
+            let idx0 = self.mesh.indices[idx] as usize;
+            let idx1 = self.mesh.indices[idx + 1] as usize;
+            self.mesh
+                .draw_bevy_gizmo_line(idx0, idx1, transform, gizmos, self.color);
+        }
+        // Now the final line to close the loop
+        let idx0 = self.mesh.indices[self.mesh.indices.len() - 1] as usize;
+        let idx1 = self.mesh.indices[0] as usize;
+        self.mesh
+            .draw_bevy_gizmo_line(idx0, idx1, transform, gizmos, self.color);
+    }
+}
+
+/// Bevy Systems
+impl GizmoDrawableLoop {
+    /// Draw anything that has a GizmoDrawableTriangles component
+    pub fn draw_bevy_gizmo_loop_system(
+        mut gizmos: Gizmos,
+        query: Query<(&GizmoDrawableLoop, &Transform, &Visibility)>,
+    ) {
+        for (drawable, transform, visibility) in query.iter() {
+            if visibility == visibility::Visibility::Visible {
+                drawable.draw_bevy_gizmo_loop(&mut gizmos, transform);
+            }
+        }
+    }
+}
+
+/// A mesh that can be drawn using bevy's gizmos (immediate mode renderer)
+/// This version draws the mesh using triangles
+/// This is useful for wireframes
+#[derive(Component)]
+pub struct GizmoDrawableTriangles {
+    /// The mesh to draw
+    pub mesh: OwnedMeshData,
+    /// The color to draw the mesh
+    pub color: Color,
+}
+
+impl GizmoDrawableTriangles {
+    /// Create a new GizmoDrawableTriangles
+    pub fn new(mesh: OwnedMeshData, color: Color) -> Self {
+        Self { mesh, color }
+    }
+
+    /// Draws the mesh using bevy's gizmos, which is an immediate mode renderer
+    /// This is useful for wireframes
+    /// This draw mode draws each triangle (triple) individually
+    pub fn draw_bevy_gizmo_triangles(&self, gizmos: &mut Gizmos, transform: &Transform) {
+        for idx in (0..self.mesh.indices.len()).step_by(3) {
+            let idx0 = self.mesh.indices[idx] as usize;
+            let idx1 = self.mesh.indices[idx + 1] as usize;
+            let idx2 = self.mesh.indices[idx + 2] as usize;
+            self.mesh
+                .draw_bevy_gizmo_line(idx0, idx1, transform, gizmos, self.color);
+            self.mesh
+                .draw_bevy_gizmo_line(idx1, idx2, transform, gizmos, self.color);
+            self.mesh
+                .draw_bevy_gizmo_line(idx2, idx0, transform, gizmos, self.color);
+        }
+    }
+}
+
+/// Bevy Systems
+impl GizmoDrawableTriangles {
+    /// Draw anything that has a GizmoDrawableTriangles component
+    pub fn draw_bevy_gizmo_triangles_system(
+        mut gizmos: Gizmos,
+        query: Query<(&GizmoDrawableTriangles, &Transform, &Visibility)>,
+    ) {
+        for (drawable, transform, visibility) in query.iter() {
+            if visibility == visibility::Visibility::Visible {
+                drawable.draw_bevy_gizmo_triangles(&mut gizmos, transform);
+            }
+        }
+    }
+}
 
 /// Represents a mesh that is owned by this object
 /// For some reason a MeshData in ggez object has a lifetime and is a set of borrows.
@@ -111,35 +215,6 @@ impl OwnedMeshData {
         meshes.add(mesh)
     }
 
-    /// Draws the mesh using bevy's gizmos, which is an immediate mode renderer
-    /// This is useful for chunk outlines and for the brush
-    /// This draw mode "loops" like you would for an enclosed shape
-    pub fn draw_bevy_gizmo_outline(&self, gizmos: &mut Gizmos, transform: &Transform) {
-        for idx in 0..(self.indices.len() - 1) {
-            let idx0 = self.indices[idx] as usize;
-            let idx1 = self.indices[idx + 1] as usize;
-            self.draw_bevy_gizmo_line(idx0, idx1, transform, gizmos);
-        }
-        // Now the final line to close the loop
-        let idx0 = self.indices[self.indices.len() - 1] as usize;
-        let idx1 = self.indices[0] as usize;
-        self.draw_bevy_gizmo_line(idx0, idx1, transform, gizmos);
-    }
-
-    /// Draws the mesh using bevy's gizmos, which is an immediate mode renderer
-    /// This is useful for wireframes
-    /// This draw mode draws each triangle (triple) individually
-    pub fn draw_bevy_gizmo_triangles(&self, gizmos: &mut Gizmos, transform: &Transform) {
-        for idx in (0..self.indices.len()).step_by(3) {
-            let idx0 = self.indices[idx] as usize;
-            let idx1 = self.indices[idx + 1] as usize;
-            let idx2 = self.indices[idx + 2] as usize;
-            self.draw_bevy_gizmo_line(idx0, idx1, transform, gizmos);
-            self.draw_bevy_gizmo_line(idx1, idx2, transform, gizmos);
-            self.draw_bevy_gizmo_line(idx2, idx0, transform, gizmos);
-        }
-    }
-
     /// Simply draws a line from an index to another but applies the transform first
     fn draw_bevy_gizmo_line(
         &self,
@@ -147,6 +222,7 @@ impl OwnedMeshData {
         idx1: usize,
         transform: &Transform,
         gizmos: &mut Gizmos,
+        color: Color,
     ) {
         let mut pos0 = self.vertices[idx0].position;
         let mut pos1 = self.vertices[idx1].position;
@@ -156,10 +232,6 @@ impl OwnedMeshData {
         pos1.y += transform.translation.y;
         pos0.x *= transform.scale.x;
         pos0.y *= transform.scale.y;
-        gizmos.line_2d(
-            Vec2::new(pos0.x, pos0.y),
-            Vec2::new(pos1.x, pos1.y),
-            Color::WHITE,
-        );
+        gizmos.line_2d(Vec2::new(pos0.x, pos0.y), Vec2::new(pos1.x, pos1.y), color);
     }
 }

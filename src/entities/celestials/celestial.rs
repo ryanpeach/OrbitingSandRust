@@ -5,6 +5,7 @@ use bevy::ecs::component::Component;
 
 use bevy::ecs::entity::Entity;
 
+use bevy::render::color::Color;
 use bevy::render::view::Visibility;
 use bevy_mod_picking::prelude::*;
 
@@ -29,9 +30,12 @@ use bevy::transform::components::Transform;
 
 use hashbrown::HashMap;
 
-use crate::gui::camera::{CelestialIdx, OverlayLayer1, SelectCelestial};
+use crate::gui::camera::{
+    CelestialIdx, OverlayLayer1, OverlayLayer2, OverlayLayer3, SelectCelestial,
+};
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
+use crate::physics::fallingsand::util::mesh::{GizmoDrawableLoop, GizmoDrawableTriangles};
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
 use crate::physics::util::clock::Clock;
@@ -54,6 +58,13 @@ pub struct CelestialDataPlugin;
 impl Plugin for CelestialDataPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, Self::process_system);
+        app.add_systems(
+            Update,
+            (
+                GizmoDrawableLoop::draw_bevy_gizmo_loop_system,
+                GizmoDrawableTriangles::draw_bevy_gizmo_triangles_system,
+            ),
+        );
         app.add_event::<SelectCelestial>();
     }
 }
@@ -61,6 +72,7 @@ impl Plugin for CelestialDataPlugin {
 /// Acts as a cache for a radial mesh's meshes and textures
 #[derive(Component)]
 pub struct CelestialData {
+    /// The elements in this celestial
     pub element_grid_dir: ElementGridDir,
 }
 
@@ -169,6 +181,12 @@ impl CelestialDataPlugin {
                         .get_chunk_at_idx(chunk_ijk)
                         .calc_chunk_meshdata()
                         .load_bevy_mesh(meshes);
+                    let wireframe = coordinate_dir
+                        .get_chunk_at_idx(chunk_ijk)
+                        .calc_chunk_triangle_wireframe();
+                    let outline = coordinate_dir
+                        .get_chunk_at_idx(chunk_ijk)
+                        .calc_chunk_outline();
 
                     let textures = textures.remove(&chunk_ijk).unwrap();
                     let heat_material = textures.heat_texture.unwrap().to_bevy_image();
@@ -181,6 +199,7 @@ impl CelestialDataPlugin {
                             MaterialMesh2dBundle {
                                 mesh: mesh.into(),
                                 material: materials.add(asset_server.add(sand_material).into()),
+                                visibility: Visibility::Hidden,
                                 ..Default::default()
                             },
                             PickableBundle::default(), // Makes the entity pickable
@@ -203,7 +222,7 @@ impl CelestialDataPlugin {
                                 // Move the heat map to the front
                                 transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
                                 // Turning off the heat map for now
-                                visibility: Visibility::Visible,
+                                visibility: Visibility::Hidden,
                                 ..Default::default()
                             },
                             HeatMapMaterial,
@@ -211,9 +230,35 @@ impl CelestialDataPlugin {
                         ))
                         .id();
 
+                    // Now create the gizmos
+                    let outline_entity = commands
+                        .spawn((
+                            GizmoDrawableLoop::new(outline, Color::RED),
+                            SpatialBundle {
+                                transform: Transform::from_translation(translation.extend(3.0)),
+                                visibility: Visibility::Visible,
+                                ..Default::default()
+                            },
+                            OverlayLayer3,
+                        ))
+                        .id();
+                    let wireframe_entity = commands
+                        .spawn((
+                            GizmoDrawableTriangles::new(wireframe, Color::WHITE),
+                            SpatialBundle {
+                                transform: Transform::from_translation(translation.extend(2.0)),
+                                visibility: Visibility::Visible,
+                                ..Default::default()
+                            },
+                            OverlayLayer2,
+                        ))
+                        .id();
+
                     // Parent celestial to chunk
                     children.push(chunk);
                     children.push(heat_chunk);
+                    children.push(outline_entity);
+                    children.push(wireframe_entity);
                 }
             }
         }

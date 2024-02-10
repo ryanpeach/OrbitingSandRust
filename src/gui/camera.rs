@@ -44,6 +44,14 @@ pub struct MainCamera;
 #[derive(Component, Debug, Default)]
 pub struct OverlayLayer1;
 
+/// A layer in front of the game. Z-index = 2
+#[derive(Component, Debug, Default)]
+pub struct OverlayLayer2;
+
+/// A layer in front of the game. Z-index = 3
+#[derive(Component, Debug, Default)]
+pub struct OverlayLayer3;
+
 /// A layer behind the game. Z-index = -1
 #[derive(Component, Debug, Default)]
 pub struct BackgroundLayer1;
@@ -59,9 +67,19 @@ impl CelestialIdx {
         camera: (&Parent, Entity),
     ) -> CelestialIdx {
         if cfg!(debug_assertions) {
-            let max_idx = celestials.iter().map(|(_, idx)| idx.0).max().unwrap();
-            let min_idx = celestials.iter().map(|(_, idx)| idx.0).min().unwrap();
-            assert_ne!(max_idx, min_idx);
+            let max_idx = celestials
+                .iter()
+                .map(|(_, idx)| idx.0)
+                .max()
+                .unwrap_or_default();
+            let min_idx = celestials
+                .iter()
+                .map(|(_, idx)| idx.0)
+                .min()
+                .unwrap_or_default();
+            if max_idx == min_idx {
+                assert_eq!(max_idx, 0);
+            }
             // Check all the indices are unique
             let mut indices = celestials.iter().map(|(_, idx)| idx.0).collect::<Vec<_>>();
             indices.sort();
@@ -157,7 +175,7 @@ impl CameraPlugin {
         }
         if delta != 0. {
             for (mut transform, _) in query.iter_mut() {
-                transform.scale *= 1. + delta * time.delta_seconds() * 0.5;
+                transform.scale *= (1. + delta * time.delta_seconds() * 0.5).max(0.0001);
             }
         }
     }
