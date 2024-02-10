@@ -1,6 +1,5 @@
 use super::element::{
-    Compressability, Density, Element, ElementTakeOptions, ElementType,
-    SetHeatOnZeroSpecificHeatError, StateOfMatter,
+    Element, ElementTakeOptions, ElementType, SetHeatOnZeroSpecificHeatError, StateOfMatter,
 };
 use super::movement::fluid::fluid_process;
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
@@ -8,8 +7,8 @@ use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::heat::components::{
-    HeatEnergy, Length, SpecificHeat, ThermalConductivity, ThermodynamicTemperature,
-    ROOM_TEMPERATURE_K,
+    Compressability, Density, HeatEnergy, Length, SpecificHeat, ThermalConductivity,
+    ThermodynamicTemperature, ROOM_TEMPERATURE_K,
 };
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;

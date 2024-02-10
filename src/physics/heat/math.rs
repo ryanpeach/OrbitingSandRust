@@ -1,4 +1,39 @@
 //! Heat propagation math.
+//! # Heat
+//!
+//! <https://en.wikipedia.org/wiki/Thermal_diffusivity>
+//!
+//! The heat propogation system is based on the heat equation:
+//!
+//! $ \alpha = \frac{ k }{ \rho c_{p} } $
+//!
+//! $ \frac{\partial T}{\partial t} = \alpha \nabla^2 T $
+//!
+//! where:
+//! * $k$ is thermal conductivity in $\frac{W}{m K}$
+//! * $c_{p}$ is specific heat capacity in $\frac{J}{kg K}$
+//! * $p$ is density in $\frac{kg}{m^2}$
+//! * $T$ is temperature in $K\degree$
+//!
+//! This basically tells us that the time derivative of the temperature is equal to
+//! the second gradient of the temperature times a constant relating the density
+//! and the heat properties of the material.
+//!
+//! # Laplace Kernel
+//!
+//! <https://homepages.inf.ed.ac.uk/rbf/HIPR2/log.htm>
+//!
+//! The laplace kernel is a 3x3 kernel that looks like this:
+//!
+//! $ \begin{bmatrix} -1 & -1 & -1 \\\\ -1 & 8 & -1 \\\\ -1 & -1 & -1 \end{bmatrix} $
+//!
+//! It represents the second gradient of a matrix.
+//! If we represent the temperature as a matrix, then the second gradient of the temperature
+//! is the convolution of the temperature with the laplace kernel.
+//!
+//! It can be quickly calculated using ndarray-conv using the fft method. This also
+//! uses the matrix operators on your cpu rather than using loops, making it very fast.
+
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
@@ -9,11 +44,9 @@ use ndarray_conv::*;
 use crate::physics::{
     fallingsand::{
         convolution::behaviors::ElementGridConvolutionNeighborTemperatures,
-        data::element_grid::ElementGrid,
-        elements::element::{Compressability, Density, Element},
-        util::vectors::JkVector,
+        data::element_grid::ElementGrid, elements::element::Element, util::vectors::JkVector,
     },
-    heat::components::SpecificHeat,
+    heat::components::{Compressability, Density, SpecificHeat},
     orbits::components::Mass,
     util::clock::Clock,
 };
@@ -278,7 +311,11 @@ pub struct PropogateHeat {
 }
 
 impl PropogateHeat {
-    /// Propogate the heat in the grid
+    /// This is the main method of the heat propogation system
+    /// Propogate the heat one iteration
+    /// Rerun this method multiple times to propogate the heat multiple iterations
+    /// without needing to reinitialize the system
+    /// however, movement will not be accounted for if you do this
     #[allow(clippy::reversed_empty_ranges)] // REF: https://github.com/rust-lang/rust-clippy/issues/5808
     pub fn propagate_heat(&mut self, current_time: Clock) {
         if current_time.get_last_delta().as_secs_f32() == 0.0 {
@@ -290,9 +327,9 @@ impl PropogateHeat {
         let laplace_kernel = Array2::from_shape_vec(
             (3, 3),
             vec![
-                0.125, 0.125, 0.125, //
-                0.125, -1.0, 0.125, //
-                0.125, 0.125, 0.125, //
+                -1., -1., -1., //
+                -1., 8., -1., //
+                -1., -1., -1., //
             ],
         )
         .unwrap();

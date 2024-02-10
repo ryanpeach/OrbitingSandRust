@@ -34,3 +34,6 @@ just = "1.23.0"
 
 [net]
 git-fetch-with-cli = true
+
+[package.metadata.docs.rs]
+rustdoc-args = [ "--html-in-header", "katex-header.html" ]

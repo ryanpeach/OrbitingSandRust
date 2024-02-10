@@ -1,3 +1,5 @@
+//! This module contains the components for the heat simulation.
+//! Mostly relates to units of measure and the conversion between them.
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
@@ -7,7 +9,7 @@ use bevy::{ecs::component::Component, render::color::Color};
 use derive_more::{Add, AddAssign, From, Into, Sub, SubAssign};
 use ndarray::Array2;
 
-use crate::physics::orbits::components::Mass;
+use crate::physics::orbits::{components::Mass, nbody::Force};
 
 /// The length of a system in meters.
 #[derive(Component, Default, Clone, Copy, Debug, Add, Sub, AddAssign, SubAssign, From, Into)]
@@ -28,6 +30,79 @@ impl Area {
     /// Returns the volume of the system.
     pub fn from_length(length: Length) -> Self {
         Area(length.0 * length.0)
+    }
+}
+
+/// The density of the element relative to the cell width
+/// In units of $ \frac{kg}{m^2} $
+#[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd, Add, Sub)]
+pub struct Density(pub f32);
+
+impl Density {
+    /// This gets the mass of the element based on the cell_width
+    pub fn mass(&self, cell_width: Length) -> Mass {
+        Mass(self.0 * cell_width.area().0)
+    }
+
+    /// This gets the mass of the element based on the cell_width in matrix form
+    pub fn matrix_mass(density_matrix: &Array2<f32>, cell_width: Length) -> Array2<f32> {
+        density_matrix * cell_width.area().0
+    }
+}
+
+/// # Compressibility
+///
+/// So in a planet what is the density of a material under pressure?
+///
+/// Well in a simplistic form, we are going to assume its some constant "normal"
+/// density at ATP, and then we are going to linearly increase it based on pressure.
+///
+/// $ d_{1} = d_{0} + c * p * m_{a} $
+///
+/// where
+///
+/// * $d_{1}$ is the new density $\frac{kg}{m^2}$
+/// * $d_{0}$ is the old density $\frac{kg}{m^2}$
+/// * $m_{a}$ is the mass above the chunk in $kg$
+/// * $c$ is the compressability $\frac{kg}{m^2 N}$
+/// * $p$ is a conversion factor $\frac{N}{kg}$
+///
+/// This is a simplification, but it should be good enough for now.
+///
+/// We will also assume that the mass above the chunk is perportional to pressure,
+/// by applying some conversion constant $p$.
+///
+/// Lastly, to speed up the calculation, we will apply the same pressure
+/// uniformly to the whole chunk from the total mass of the chunks above it, rather
+/// than calculating the pressure at each point.
+///
+/// All of this simplifies the density to be a constant times the mass above the chunk.
+#[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd, Add, Sub)]
+pub struct Compressability(pub f32);
+
+impl Compressability {
+    /// This perportions the density of the element based on the mass above it
+    /// $ \frac{N}{kg} $
+    const PERPORTIONALITY_CONSTANT: f32 = 1.0;
+
+    /// This gets the density of the element based on the force applied to it
+    pub fn get_density(&self, original_density: Density, force: Force) -> Density {
+        original_density + Density(force.0 * self.0)
+    }
+    /// This gets the density of the element based on the force applied to it
+    /// by proxy of using the mass of the elements above it and a perportionality constant
+    /// Very much an approximation, but much faster for the simulation
+    pub fn get_density_from_mass(&self, original_density: Density, mass_above: Mass) -> Density {
+        original_density + Density(mass_above.0 * self.0 * Self::PERPORTIONALITY_CONSTANT)
+    }
+
+    /// This is a matrix equivalent of the get_density_from_mass function
+    pub fn matrix_get_density_from_mass(
+        compressability_matrix: &Array2<f32>,
+        original_density: &Array2<f32>,
+        mass_above: Mass,
+    ) -> Array2<f32> {
+        original_density + mass_above.0 * compressability_matrix * Self::PERPORTIONALITY_CONSTANT
     }
 }
 
@@ -62,7 +137,7 @@ impl ThermalConductivity {
 }
 
 /// The amount of heat energy required to raise the temperature of a system.
-/// Measured in joules per degree celsius.
+/// Measured in joules per degree celsius $ J / C\degree $
 #[derive(Component, Default, Clone, Copy, Debug, Add, Sub, AddAssign, SubAssign)]
 pub struct HeatCapacity(pub f32);
 
@@ -77,7 +152,7 @@ impl HeatCapacity {
 }
 
 /// The amount of heat energy in a system.
-/// Measured in joules.
+/// Measured in joules $ J $
 #[derive(Component, Default, Clone, Copy, Debug, Add, Sub, AddAssign, SubAssign)]
 pub struct HeatEnergy(pub f32);
 
@@ -92,7 +167,7 @@ impl HeatEnergy {
 }
 
 /// The temperature of a system.
-/// Measured in Kelvin.
+/// Measured in Kelvin $ K\degree $
 /// This should be represented in "real" units, physically similar to the real world.
 #[derive(
     Component, Default, Clone, Copy, Debug, Add, Sub, AddAssign, SubAssign, PartialEq, PartialOrd,

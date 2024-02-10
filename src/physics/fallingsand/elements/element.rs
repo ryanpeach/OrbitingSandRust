@@ -8,13 +8,12 @@ use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::heat::components::{
-    HeatEnergy, Length, SpecificHeat, ThermalConductivity, ThermodynamicTemperature,
+    Compressability, Density, HeatEnergy, Length, SpecificHeat, ThermalConductivity,
+    ThermodynamicTemperature,
 };
 use crate::physics::orbits::components::Mass;
-use crate::physics::orbits::nbody::Force;
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
-use ndarray::Array2;
 use strum_macros::EnumIter;
 
 use super::fliers::down::DownFlier;
@@ -26,54 +25,6 @@ use super::solarplasma::SolarPlasma;
 use super::stone::Stone;
 use super::vacuum::Vacuum;
 use super::water::Water;
-use derive_more::{Add, Sub};
-
-/// The density of the element relative to the cell width
-/// In units of kg/m^2
-#[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd, Add, Sub)]
-pub struct Density(pub f32);
-
-impl Density {
-    /// This gets the mass of the element based on the cell_width
-    pub fn mass(&self, cell_width: Length) -> Mass {
-        Mass(self.0 * cell_width.area().0)
-    }
-
-    /// This gets the mass of the element based on the cell_width in matrix form
-    pub fn matrix_mass(density_matrix: &Array2<f32>, cell_width: Length) -> Array2<f32> {
-        density_matrix * cell_width.area().0
-    }
-}
-
-/// The compressability of the element
-/// In units of dm^2/N
-#[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd, Add, Sub)]
-pub struct Compressability(pub f32);
-
-impl Compressability {
-    /// This perportions the density of the element based on the mass above it
-    const PERPORTIONALITY_CONSTANT: f32 = 1.0;
-
-    /// This gets the density of the element based on the force applied to it
-    pub fn get_density(&self, original_density: Density, force: Force) -> Density {
-        original_density + Density(force.0 * self.0)
-    }
-    /// This gets the density of the element based on the force applied to it
-    /// by proxy of using the mass of the elements above it and a perportionality constant
-    /// Very much an approximation, but much faster for the simulation
-    pub fn get_density_from_mass(&self, original_density: Density, mass_above: Mass) -> Density {
-        original_density + Density(mass_above.0 * self.0 * Self::PERPORTIONALITY_CONSTANT)
-    }
-
-    /// This is a matrix equivalent of the get_density_from_mass function
-    pub fn matrix_get_density_from_mass(
-        compressability_matrix: &Array2<f32>,
-        original_density: &Array2<f32>,
-        mass_above: Mass,
-    ) -> Array2<f32> {
-        original_density + mass_above.0 * compressability_matrix * Self::PERPORTIONALITY_CONSTANT
-    }
-}
 
 /// What to do after process is called on the elementgrid
 /// The element grid takes the element out of the grid so that it can't
@@ -161,7 +112,7 @@ pub trait Element: Send + Sync {
     fn get_specific_heat(&self) -> SpecificHeat;
     /// This gets the thermal conductivity of the element at atp
     /// Usually constant
-    /// Source: https://www.engineeringtoolbox.com/thermal-conductivity-d_429.html
+    /// <https://www.engineeringtoolbox.com/thermal-conductivity-d_429.html>
     fn get_thermal_conductivity(&self) -> ThermalConductivity;
     /// This is a convienence function that gets the "default" temperature of an element
     /// For example, lava should start out hot, ice cold, etc.

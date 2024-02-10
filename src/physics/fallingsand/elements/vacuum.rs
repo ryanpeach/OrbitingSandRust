@@ -1,15 +1,15 @@
 use bevy::render::color::Color;
 
 use super::element::{
-    Compressability, Density, Element, ElementTakeOptions, ElementType,
-    SetHeatOnZeroSpecificHeatError, StateOfMatter,
+    Element, ElementTakeOptions, ElementType, SetHeatOnZeroSpecificHeatError, StateOfMatter,
 };
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::heat::components::{
-    HeatEnergy, SpecificHeat, ThermalConductivity, ThermodynamicTemperature,
+    Compressability, Density, HeatEnergy, SpecificHeat, ThermalConductivity,
+    ThermodynamicTemperature,
 };
 use crate::physics::util::clock::Clock;
 
