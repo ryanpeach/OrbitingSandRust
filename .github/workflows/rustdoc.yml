@@ -24,7 +24,7 @@ jobs:
                 components: rustfmt, rust-src
 
             - name: Install dependencies
-              run: sudo apt-get install -y librust-alsa-sys-dev pkg-config
+              run: sudo apt-get install -y librust-alsa-sys-dev pkg-config libudev-dev
 
             - name: Build Documentation
               uses: actions-rs/cargo@v1
