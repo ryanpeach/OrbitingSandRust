@@ -161,7 +161,7 @@ pub trait Element: Send + Sync {
     fn get_specific_heat(&self) -> SpecificHeat;
     /// This gets the thermal conductivity of the element at atp
     /// Usually constant
-    /// Source: https://www.engineeringtoolbox.com/thermal-conductivity-d_429.html
+    /// Source: <https://www.engineeringtoolbox.com/thermal-conductivity-d_429.html>
     fn get_thermal_conductivity(&self) -> ThermalConductivity;
     /// This is a convienence function that gets the "default" temperature of an element
     /// For example, lava should start out hot, ice cold, etc.

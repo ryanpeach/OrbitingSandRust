@@ -55,7 +55,7 @@ pub struct CelestialIdx(pub usize);
 impl CelestialIdx {
     /// Returns the selected celestials index
     pub fn get_selected_celestial(
-        celestials: &Vec<(Entity, &CelestialIdx)>,
+        celestials: &[(Entity, &CelestialIdx)],
         camera: (&Parent, Entity),
     ) -> CelestialIdx {
         if cfg!(debug_assertions) {
