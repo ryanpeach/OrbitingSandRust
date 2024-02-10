@@ -34,7 +34,7 @@
 //! It can be quickly calculated using ndarray-conv using the fft method. This also
 //! uses the matrix operators on your cpu rather than using loops, making it very fast.
 
-use bevy::log::warn;
+use bevy::{log::error, log::warn};
 use ndarray::{s, Array2};
 use ndarray_conv::*;
 
@@ -393,6 +393,10 @@ impl PropogateHeat {
             new_heat_energy.iter().all(|&x| x.is_finite()),
             "New heat energy must be finite"
         );
+        if !new_heat_energy.iter().all(|&x| x.is_finite()) {
+            error!("New heat energy is not finite");
+            return;
+        }
 
         // Save the new temperature
         self.temperature

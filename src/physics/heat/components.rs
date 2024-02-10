@@ -3,7 +3,7 @@
 
 use std::time::Duration;
 
-use bevy::{ecs::component::Component, render::color::Color};
+use bevy::{ecs::component::Component, log::warn, render::color::Color};
 use derive_more::{Add, AddAssign, From, Into, Sub, SubAssign};
 use ndarray::Array2;
 
@@ -186,10 +186,11 @@ impl ThermodynamicTemperature {
     ) -> Color {
         debug_assert_ne!(max_temp.0, 0.0, "max_temp cannot be zero");
         debug_assert_ne!(min_temp.0, 0.0, "min_temp cannot be zero");
-        debug_assert!(
-            max_temp.0 > min_temp.0,
-            "max_temp must be greater than min_temp"
-        );
+        if max_temp == min_temp {
+            warn!("max_temp and min_temp are equal");
+            return Color::rgba(0.0, 0.0, 0.0, 0.0);
+        }
+        // This is useful for vaccum
         if self.0 == 0.0 {
             return Color::rgba(0.0, 0.0, 0.0, 0.0);
         }
@@ -216,8 +217,10 @@ impl ThermodynamicTemperature {
         debug_assert_ne!(max_temp.0, 0.0, "max_temp cannot be zero");
         debug_assert_ne!(min_temp.0, 0.0, "min_temp cannot be zero");
         if max_temp == min_temp {
+            warn!("max_temp and min_temp are equal");
             return Color::rgba(0.0, 0.0, 0.0, 0.0);
         }
+        // This is useful for vaccum
         if self.0 == 0.0 {
             return Color::rgba(0.0, 0.0, 0.0, 0.0);
         }
