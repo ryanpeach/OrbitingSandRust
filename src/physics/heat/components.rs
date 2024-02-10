@@ -1,7 +1,5 @@
 //! This module contains the components for the heat simulation.
 //! Mostly relates to units of measure and the conversion between them.
-#![warn(missing_docs)]
-#![warn(clippy::missing_docs_in_private_items)]
 
 use std::time::Duration;
 

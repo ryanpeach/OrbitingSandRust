@@ -1,4 +1,6 @@
 //! Heat related physics.
+#![warn(missing_docs)]
+#![warn(clippy::missing_docs_in_private_items)]
 
 /// Most of the units of measure as well as bevy components for heat related physics.
 pub mod components;

@@ -34,9 +34,6 @@
 //! It can be quickly calculated using ndarray-conv using the fft method. This also
 //! uses the matrix operators on your cpu rather than using loops, making it very fast.
 
-#![warn(missing_docs)]
-#![warn(clippy::missing_docs_in_private_items)]
-
 use bevy::log::warn;
 use ndarray::{s, Array2};
 use ndarray_conv::*;
