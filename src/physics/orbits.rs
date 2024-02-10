@@ -4,4 +4,6 @@
 
 /// Most of the units of measure as well as bevy components for orbits and orbital mechanics.
 pub mod components;
+
+/// The math functions for orbits and orbital mechanics.
 pub mod nbody;
