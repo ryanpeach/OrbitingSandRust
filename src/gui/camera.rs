@@ -44,6 +44,14 @@ pub struct MainCamera;
 #[derive(Component, Debug, Default)]
 pub struct OverlayLayer1;
 
+/// A layer in front of the game. Z-index = 2
+#[derive(Component, Debug, Default)]
+pub struct OverlayLayer2;
+
+/// A layer in front of the game. Z-index = 3
+#[derive(Component, Debug, Default)]
+pub struct OverlayLayer3;
+
 /// A layer behind the game. Z-index = -1
 #[derive(Component, Debug, Default)]
 pub struct BackgroundLayer1;
@@ -55,7 +63,7 @@ pub struct CelestialIdx(pub usize);
 impl CelestialIdx {
     /// Returns the selected celestials index
     pub fn get_selected_celestial(
-        celestials: &Vec<(Entity, &CelestialIdx)>,
+        celestials: &[(Entity, &CelestialIdx)],
         camera: (&Parent, Entity),
     ) -> CelestialIdx {
         if cfg!(debug_assertions) {
@@ -118,7 +126,8 @@ impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, Self::zoom_camera_system);
         app.add_systems(Update, Self::move_camera_system);
-        app.add_systems(Update, Self::frustum_culling_2d);
+        // Not currently working
+        // app.add_systems(Update, Self::frustum_culling_2d);
         app.add_systems(Update, Self::select_celestial_focus);
         app.add_systems(Update, Self::cycle_celestial_focus);
         app.add_systems(Update, Self::first_celestial_focus);
@@ -167,7 +176,7 @@ impl CameraPlugin {
         }
         if delta != 0. {
             for (mut transform, _) in query.iter_mut() {
-                transform.scale *= 1. + delta * time.delta_seconds() * 0.5;
+                transform.scale *= (1. + delta * time.delta_seconds() * 0.5).max(0.0001);
             }
         }
     }
@@ -201,6 +210,9 @@ impl CameraPlugin {
 
     /// Don't render entities that are not in the camera's frustum
     /// Uses the Visibility component to hide and show entities
+    /// > [!WARNING]
+    /// > TODO: This system is not currently working
+    #[allow(dead_code)]
     fn frustum_culling_2d(
         mut commands: Commands,
         camera: Query<(&Camera2d, &GlobalTransform)>,

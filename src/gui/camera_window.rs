@@ -5,7 +5,7 @@ use bevy::{
     ecs::{
         entity::Entity,
         query::With,
-        system::{Local, Query, Res, ResMut},
+        system::{Local, Query, Res, ResMut, Resource},
     },
     render::view::screenshot::ScreenshotManager,
     transform::components::Transform,
@@ -30,11 +30,32 @@ pub enum YesNoFullStep {
     FullStep,
 }
 
+#[derive(Resource, Debug, Clone, Copy)]
+pub struct CameraWindowCheckboxes {
+    pub outline: bool,
+    pub wireframe: bool,
+    pub material: bool,
+    pub heat: bool,
+}
+
+impl Default for CameraWindowCheckboxes {
+    fn default() -> Self {
+        Self {
+            outline: false,
+            wireframe: false,
+            material: true,
+            heat: false,
+        }
+    }
+}
+
+/// The Camera Window Plugin
 pub struct CameraWindowPlugin;
 
 impl Plugin for CameraWindowPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, Self::camera_window_system);
+        app.init_resource::<CameraWindowCheckboxes>();
     }
 }
 
@@ -45,6 +66,7 @@ impl CameraWindowPlugin {
         main_window: Query<Entity, With<PrimaryWindow>>,
         mut screenshot_manager: ResMut<ScreenshotManager>,
         mut screenshot_counter: Local<u32>,
+        mut checkboxes: ResMut<CameraWindowCheckboxes>,
         camera_transform: Query<(&Transform, &Camera2d)>,
     ) {
         let fps = diagnostics
@@ -56,10 +78,12 @@ impl CameraWindowPlugin {
             // ui.label(format!("Brush Size: {}", self.brush_size.0));
             ui.label(format!("Zoom: {:?}", scale));
             ui.label(format!("FPS: {}", fps));
-            // TODO: Set a radiomode for "DrawMode"
-            // ui.separator();
-            // ui.checkbox(&mut self.outline, "Outline");
-            // ui.checkbox(&mut self.wireframe, "Wireframe");
+            // Set a radiomode for "DrawMode"
+            ui.separator();
+            ui.checkbox(&mut checkboxes.outline, "Outline");
+            ui.checkbox(&mut checkboxes.wireframe, "Wireframe");
+            ui.checkbox(&mut checkboxes.material, "Material");
+            ui.checkbox(&mut checkboxes.heat, "Heat");
             // TODO: Play Step MicroStep Pause
             // ui.separator();
             // ui.horizontal(|ui| {

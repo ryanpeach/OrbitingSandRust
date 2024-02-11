@@ -11,7 +11,7 @@ use crate::physics::heat::components::{
     Compressability, Density, HeatEnergy, Length, SpecificHeat, ThermalConductivity,
     ThermodynamicTemperature,
 };
-use crate::physics::orbits::components::Mass;
+use crate::physics::orbits::components::{Force, Mass};
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
 use strum_macros::EnumIter;
@@ -112,7 +112,7 @@ pub trait Element: Send + Sync {
     fn get_specific_heat(&self) -> SpecificHeat;
     /// This gets the thermal conductivity of the element at atp
     /// Usually constant
-    /// <https://www.engineeringtoolbox.com/thermal-conductivity-d_429.html>
+    /// Source: <https://www.engineeringtoolbox.com/thermal-conductivity-d_429.html>
     fn get_thermal_conductivity(&self) -> ThermalConductivity;
     /// This is a convienence function that gets the "default" temperature of an element
     /// For example, lava should start out hot, ice cold, etc.
