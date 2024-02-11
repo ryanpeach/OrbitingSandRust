@@ -119,14 +119,12 @@ impl TopNeighborGrids {
                 t: grids.remove(t).unwrap(),
                 tr: grids.remove(tr).unwrap(),
             },
-            TopNeighborIdxs::LayerTransition { tl, t1, t0, tr } => {
-                TopNeighborGrids::ChunkDoubling {
-                    tl: grids.remove(tl).unwrap(),
-                    t1: grids.remove(t1).unwrap(),
-                    t0: grids.remove(t0).unwrap(),
-                    tr: grids.remove(tr).unwrap(),
-                }
-            }
+            TopNeighborIdxs::ChunkDoubling { tl, t1, t0, tr } => TopNeighborGrids::ChunkDoubling {
+                tl: grids.remove(tl).unwrap(),
+                t1: grids.remove(t1).unwrap(),
+                t0: grids.remove(t0).unwrap(),
+                tr: grids.remove(tr).unwrap(),
+            },
             TopNeighborIdxs::TopOfGrid => TopNeighborGrids::TopOfGrid,
         }
     }
@@ -401,12 +399,10 @@ impl BottomNeighborGrids {
                 b: grids.remove(b).unwrap(),
                 br: grids.remove(br).unwrap(),
             },
-            BottomNeighborIdxs::ChunkDoubling { bl, br } => {
-                BottomNeighborGrids::ChunkDoubling {
-                    bl: grids.remove(bl).unwrap(),
-                    br: grids.remove(br).unwrap(),
-                }
-            }
+            BottomNeighborIdxs::ChunkDoubling { bl, br } => BottomNeighborGrids::ChunkDoubling {
+                bl: grids.remove(bl).unwrap(),
+                br: grids.remove(br).unwrap(),
+            },
             BottomNeighborIdxs::BottomOfGrid => BottomNeighborGrids::BottomOfGrid,
         }
     }

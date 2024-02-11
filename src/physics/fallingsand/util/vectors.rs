@@ -4,11 +4,9 @@
 #![warn(clippy::missing_docs_in_private_items)]
 
 use bevy::{math::Vec2, render::color::Color};
-use ndarray::{s, Slice, SliceInfo};
 
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use derive_more::{Add, AddAssign, Sub, SubAssign};
-use ndarray::SliceInfoElem;
 
 /// A coordinate system for [ndarray]
 /// [ndarray] is row-major, so the jk vector is flipped
@@ -54,7 +52,7 @@ impl NdArrayCoords {
 /// "counter clockwise" is positive just like in the unit circle
 /// j is the "concentric circle" or "radial" axis, kinda like y,
 ///   towards the core is 0
-/// k is the "radial line" or "angle" or "theta" axis, kinda like x,
+/// k is the "tangential" axis, kinda like x,
 ///   positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
 /// Can also be used to describe a grid, like a chunk taken from the circle
 /// In this case j is the height and k is the width

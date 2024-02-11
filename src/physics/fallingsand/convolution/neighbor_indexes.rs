@@ -47,8 +47,7 @@ pub enum TopNeighborIdxs {
         t: ChunkIjkVector,
         tr: ChunkIjkVector,
     },
-    /// Indicates a **chunk doubling** layer transition
-    LayerTransition {
+    ChunkDoubling {
         tl: ChunkIjkVector,
         t1: ChunkIjkVector,
         t0: ChunkIjkVector,
@@ -76,7 +75,7 @@ impl Iterator for TopNeighborIdxsIter {
                     _ => None,
                 }
             }
-            Some(TopNeighborIdxs::LayerTransition { tl, t0, t1, tr }) => {
+            Some(TopNeighborIdxs::ChunkDoubling { tl, t0, t1, tr }) => {
                 self.index += 1;
                 match self.index {
                     1 => Some(*tl),

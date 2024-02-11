@@ -81,7 +81,7 @@ impl Plugin for CelestialDataPlugin {
     }
 }
 
-/// Acts as a cache for a radial mesh's meshes and textures
+/// Acts as a cache for a polar mesh's meshes and textures
 #[derive(Component)]
 pub struct CelestialData {
     /// The elements in this celestial
@@ -186,7 +186,7 @@ impl CelestialDataPlugin {
         let mut textures = element_dir.get_textures();
         for i in 0..coordinate_dir.get_num_layers() {
             for j in 0..coordinate_dir.get_layer_num_concentric_chunks(i) {
-                for k in 0..coordinate_dir.get_layer_num_radial_chunks(i) {
+                for k in 0..coordinate_dir.get_layer_num_tangential_chunkss(i) {
                     let chunk_ijk = ChunkIjkVector::new(i, j, k);
                     let celestial_chunk_id = CelestialChunkIdk(chunk_ijk);
                     let mesh = coordinate_dir
