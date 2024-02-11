@@ -47,6 +47,7 @@ pub enum TopNeighborIdxs {
         t: ChunkIjkVector,
         tr: ChunkIjkVector,
     },
+    /// Indicates a **chunk doubling** layer transition
     LayerTransition {
         tl: ChunkIjkVector,
         t1: ChunkIjkVector,
@@ -107,7 +108,9 @@ pub enum BottomNeighborIdxs {
         b: ChunkIjkVector,
         br: ChunkIjkVector,
     },
-    LayerTransition {
+    /// Indicates a **chunk doubling** layer transition
+    /// In this case the chunks half because you are going down
+    ChunkDoubling {
         bl: ChunkIjkVector,
         br: ChunkIjkVector,
     },
@@ -133,7 +136,7 @@ impl Iterator for BottomNeighborIdxsIter {
                     _ => None,
                 }
             }
-            Some(BottomNeighborIdxs::LayerTransition { bl, br }) => {
+            Some(BottomNeighborIdxs::ChunkDoubling { bl, br }) => {
                 self.index += 1;
                 match self.index {
                     1 => Some(bl),

@@ -110,7 +110,7 @@ pub struct ElementGridConvolutionNeighborTemperatures {
 }
 
 impl ElementGridConvolutionNeighbors {
-    pub fn get_avg_temp(
+    pub fn get_border_temps(
         &self,
         target_chunk: &ElementGrid,
     ) -> ElementGridConvolutionNeighborTemperatures {
@@ -128,7 +128,7 @@ impl ElementGridConvolutionNeighbors {
                 out.top = Some(this);
             }
             // In this case t1 and t0 are both half the size of target_chunk
-            TopNeighborGrids::LayerTransition { tl, t1, t0, tr } => {
+            TopNeighborGrids::ChunkDoubling { tl, t1, t0, tr } => {
                 for k in 0..coords.get_num_radial_lines() {
                     let idx = JkVector { j: 0, k };
                     let elem = tr.get(idx);
@@ -167,7 +167,7 @@ impl ElementGridConvolutionNeighbors {
                 out.bottom = Some(this);
             }
             // In this case bl and br are both twice the size of target_chunk
-            BottomNeighborGrids::LayerTransition { bl, br } => {
+            BottomNeighborGrids::ChunkDoubling { bl, br } => {
                 // If you are an even index chunk, the right half of bl is the same as b
                 // If you are on odd index chunk, the left half of br is the same as b
                 // TODO: document this with pictures
@@ -284,7 +284,7 @@ impl ElementGridConvolutionNeighbors {
                 ConvolutionIdentifier::Center,
             ))),
             // TODO: Unit test
-            BottomNeighborIdxs::LayerTransition { .. } => {
+            BottomNeighborIdxs::ChunkDoubling { .. } => {
                 let mut new_coords = JkVector {
                     j: pos.j + b_concentric_circles - n,
                     k: pos.k / 2,
@@ -301,7 +301,7 @@ impl ElementGridConvolutionNeighbors {
                 };
                 Ok(ConvolutionIdx(
                     new_coords,
-                    ConvolutionIdentifier::Bottom(BottomNeighborIdentifier::LayerTransition(
+                    ConvolutionIdentifier::Bottom(BottomNeighborIdentifier::ChunkDoubling(
                         transition,
                     )),
                 ))
@@ -410,10 +410,10 @@ impl ElementGridConvolutionNeighbors {
                         }
                     }
                 },
-                TopNeighborIdentifier::LayerTransition(layer_transition_id) => {
+                TopNeighborIdentifier::ChunkDoubling(layer_transition_id) => {
                     match layer_transition_id {
                         TopNeighborIdentifierLayerTransition::Top0 { .. } => {
-                            if let TopNeighborGrids::LayerTransition { t0, .. } =
+                            if let TopNeighborGrids::ChunkDoubling { t0, .. } =
                                 &mut self.grids.top
                             {
                                 Ok(t0)
@@ -422,7 +422,7 @@ impl ElementGridConvolutionNeighbors {
                             }
                         }
                         TopNeighborIdentifierLayerTransition::Top1 { .. } => {
-                            if let TopNeighborGrids::LayerTransition { t1, .. } =
+                            if let TopNeighborGrids::ChunkDoubling { t1, .. } =
                                 &mut self.grids.top
                             {
                                 Ok(t1)
@@ -431,7 +431,7 @@ impl ElementGridConvolutionNeighbors {
                             }
                         }
                         TopNeighborIdentifierLayerTransition::TopLeft { .. } => {
-                            if let TopNeighborGrids::LayerTransition { tl, .. } =
+                            if let TopNeighborGrids::ChunkDoubling { tl, .. } =
                                 &mut self.grids.top
                             {
                                 Ok(tl)
@@ -440,7 +440,7 @@ impl ElementGridConvolutionNeighbors {
                             }
                         }
                         TopNeighborIdentifierLayerTransition::TopRight { .. } => {
-                            if let TopNeighborGrids::LayerTransition { tr, .. } =
+                            if let TopNeighborGrids::ChunkDoubling { tr, .. } =
                                 &mut self.grids.top
                             {
                                 Ok(tr)
@@ -475,10 +475,10 @@ impl ElementGridConvolutionNeighbors {
                         }
                     }
                 },
-                BottomNeighborIdentifier::LayerTransition(layer_transition_id) => {
+                BottomNeighborIdentifier::ChunkDoubling(layer_transition_id) => {
                     match layer_transition_id {
                         BottomNeighborIdentifierLayerTransition::BottomLeft { .. } => {
-                            if let BottomNeighborGrids::LayerTransition { bl, .. } =
+                            if let BottomNeighborGrids::ChunkDoubling { bl, .. } =
                                 &mut self.grids.bottom
                             {
                                 Ok(bl)
@@ -487,7 +487,7 @@ impl ElementGridConvolutionNeighbors {
                             }
                         }
                         BottomNeighborIdentifierLayerTransition::BottomRight { .. } => {
-                            if let BottomNeighborGrids::LayerTransition { br, .. } =
+                            if let BottomNeighborGrids::ChunkDoubling { br, .. } =
                                 &mut self.grids.bottom
                             {
                                 Ok(br)
@@ -538,31 +538,31 @@ impl ElementGridConvolutionNeighbors {
                         }
                     }
                 },
-                TopNeighborIdentifier::LayerTransition(layer_transition_id) => {
+                TopNeighborIdentifier::ChunkDoubling(layer_transition_id) => {
                     match layer_transition_id {
                         TopNeighborIdentifierLayerTransition::Top0 { .. } => {
-                            if let TopNeighborGrids::LayerTransition { t0, .. } = &self.grids.top {
+                            if let TopNeighborGrids::ChunkDoubling { t0, .. } = &self.grids.top {
                                 Ok(t0)
                             } else {
                                 panic!("Tried to get t0 chunk that doesn't exist")
                             }
                         }
                         TopNeighborIdentifierLayerTransition::Top1 { .. } => {
-                            if let TopNeighborGrids::LayerTransition { t1, .. } = &self.grids.top {
+                            if let TopNeighborGrids::ChunkDoubling { t1, .. } = &self.grids.top {
                                 Ok(t1)
                             } else {
                                 panic!("Tried to get t1 chunk that doesn't exist")
                             }
                         }
                         TopNeighborIdentifierLayerTransition::TopLeft { .. } => {
-                            if let TopNeighborGrids::LayerTransition { tl, .. } = &self.grids.top {
+                            if let TopNeighborGrids::ChunkDoubling { tl, .. } = &self.grids.top {
                                 Ok(tl)
                             } else {
                                 panic!("Tried to get tl chunk that doesn't exist")
                             }
                         }
                         TopNeighborIdentifierLayerTransition::TopRight { .. } => {
-                            if let TopNeighborGrids::LayerTransition { tr, .. } = &self.grids.top {
+                            if let TopNeighborGrids::ChunkDoubling { tr, .. } = &self.grids.top {
                                 Ok(tr)
                             } else {
                                 panic!("Tried to get tr chunk that doesn't exist")
@@ -595,10 +595,10 @@ impl ElementGridConvolutionNeighbors {
                         }
                     }
                 },
-                BottomNeighborIdentifier::LayerTransition(layer_transition_id) => {
+                BottomNeighborIdentifier::ChunkDoubling(layer_transition_id) => {
                     match layer_transition_id {
                         BottomNeighborIdentifierLayerTransition::BottomLeft { .. } => {
-                            if let BottomNeighborGrids::LayerTransition { bl, .. } =
+                            if let BottomNeighborGrids::ChunkDoubling { bl, .. } =
                                 &self.grids.bottom
                             {
                                 Ok(bl)
@@ -607,7 +607,7 @@ impl ElementGridConvolutionNeighbors {
                             }
                         }
                         BottomNeighborIdentifierLayerTransition::BottomRight { .. } => {
-                            if let BottomNeighborGrids::LayerTransition { br, .. } =
+                            if let BottomNeighborGrids::ChunkDoubling { br, .. } =
                                 &self.grids.bottom
                             {
                                 Ok(br)

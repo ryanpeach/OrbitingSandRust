@@ -1,3 +1,7 @@
+//! The [CoordinateDir] layouts the chunks in the game.
+//!
+
+
 use std::f32::consts::PI;
 
 use bevy::math::{Rect, Vec2};

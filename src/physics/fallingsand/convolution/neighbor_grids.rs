@@ -77,7 +77,8 @@ pub enum TopNeighborGrids {
         t: ElementGrid,
         tr: ElementGrid,
     },
-    LayerTransition {
+    /// Indicates a **chunk doubling** layer transition
+    ChunkDoubling {
         tl: ElementGrid,
         t1: ElementGrid,
         t0: ElementGrid,
@@ -96,7 +97,7 @@ impl TopNeighborGrids {
                 map.insert(tr.get_chunk_coords().get_chunk_idx(), tr);
                 map
             }
-            TopNeighborGrids::LayerTransition { tl, t1, t0, tr } => {
+            TopNeighborGrids::ChunkDoubling { tl, t1, t0, tr } => {
                 let mut map = HashMap::new();
                 map.insert(tl.get_chunk_coords().get_chunk_idx(), tl);
                 map.insert(t1.get_chunk_coords().get_chunk_idx(), t1);
@@ -119,7 +120,7 @@ impl TopNeighborGrids {
                 tr: grids.remove(tr).unwrap(),
             },
             TopNeighborIdxs::LayerTransition { tl, t1, t0, tr } => {
-                TopNeighborGrids::LayerTransition {
+                TopNeighborGrids::ChunkDoubling {
                     tl: grids.remove(tl).unwrap(),
                     t1: grids.remove(t1).unwrap(),
                     t0: grids.remove(t0).unwrap(),
@@ -178,10 +179,10 @@ impl TopNeighborGrids {
                     }
                 }
             },
-            TopNeighborIdentifier::LayerTransition(layer_transition_id) => {
+            TopNeighborIdentifier::ChunkDoubling(layer_transition_id) => {
                 match layer_transition_id {
                     TopNeighborIdentifierLayerTransition::Top0 => {
-                        if let TopNeighborGrids::LayerTransition {
+                        if let TopNeighborGrids::ChunkDoubling {
                             tl: _,
                             t0,
                             t1: _,
@@ -200,7 +201,7 @@ impl TopNeighborGrids {
                         }
                     }
                     TopNeighborIdentifierLayerTransition::Top1 => {
-                        if let TopNeighborGrids::LayerTransition {
+                        if let TopNeighborGrids::ChunkDoubling {
                             tl: _,
                             t0: _,
                             t1,
@@ -219,7 +220,7 @@ impl TopNeighborGrids {
                         }
                     }
                     TopNeighborIdentifierLayerTransition::TopLeft => {
-                        if let TopNeighborGrids::LayerTransition {
+                        if let TopNeighborGrids::ChunkDoubling {
                             tl,
                             t0: _,
                             t1: _,
@@ -238,7 +239,7 @@ impl TopNeighborGrids {
                         }
                     }
                     TopNeighborIdentifierLayerTransition::TopRight => {
-                        if let TopNeighborGrids::LayerTransition {
+                        if let TopNeighborGrids::ChunkDoubling {
                             tl: _,
                             t0: _,
                             t1: _,
@@ -286,32 +287,32 @@ impl TopNeighborGrids {
                     None
                 }
             }
-            TopNeighborGrids::LayerTransition { tl, t1, t0, tr } => {
+            TopNeighborGrids::ChunkDoubling { tl, t1, t0, tr } => {
                 if tl.get_chunk_coords().get_chunk_idx() == idx {
                     Some((
                         tl,
-                        TopNeighborIdentifier::LayerTransition(
+                        TopNeighborIdentifier::ChunkDoubling(
                             TopNeighborIdentifierLayerTransition::TopLeft,
                         ),
                     ))
                 } else if t1.get_chunk_coords().get_chunk_idx() == idx {
                     Some((
                         t1,
-                        TopNeighborIdentifier::LayerTransition(
+                        TopNeighborIdentifier::ChunkDoubling(
                             TopNeighborIdentifierLayerTransition::Top1,
                         ),
                     ))
                 } else if t0.get_chunk_coords().get_chunk_idx() == idx {
                     Some((
                         t0,
-                        TopNeighborIdentifier::LayerTransition(
+                        TopNeighborIdentifier::ChunkDoubling(
                             TopNeighborIdentifierLayerTransition::Top0,
                         ),
                     ))
                 } else if tr.get_chunk_coords().get_chunk_idx() == idx {
                     Some((
                         tr,
-                        TopNeighborIdentifier::LayerTransition(
+                        TopNeighborIdentifier::ChunkDoubling(
                             TopNeighborIdentifierLayerTransition::TopRight,
                         ),
                     ))
@@ -328,7 +329,7 @@ impl TopNeighborGrids {
             TopNeighborGrids::Normal { tl: _, t, tr: _ } => {
                 t.get_chunk_coords().get_num_concentric_circles()
             }
-            TopNeighborGrids::LayerTransition {
+            TopNeighborGrids::ChunkDoubling {
                 tl,
                 t1: _,
                 t0: _,
@@ -343,7 +344,7 @@ impl TopNeighborGrids {
             TopNeighborGrids::Normal { tl: _, t, tr: _ } => {
                 t.get_chunk_coords().get_num_radial_lines()
             }
-            TopNeighborGrids::LayerTransition {
+            TopNeighborGrids::ChunkDoubling {
                 tl,
                 t1: _,
                 t0: _,
@@ -361,7 +362,9 @@ pub enum BottomNeighborGrids {
         b: ElementGrid,
         br: ElementGrid,
     },
-    LayerTransition {
+    /// Indicates a **chunk doubling** layer transition
+    /// In this case the chunks half because you are going down
+    ChunkDoubling {
         bl: ElementGrid,
         br: ElementGrid,
     },
@@ -378,7 +381,7 @@ impl BottomNeighborGrids {
                 map.insert(br.get_chunk_coords().get_chunk_idx(), br);
                 map
             }
-            BottomNeighborGrids::LayerTransition { bl, br } => {
+            BottomNeighborGrids::ChunkDoubling { bl, br } => {
                 let mut map = HashMap::new();
                 map.insert(bl.get_chunk_coords().get_chunk_idx(), bl);
                 map.insert(br.get_chunk_coords().get_chunk_idx(), br);
@@ -398,8 +401,8 @@ impl BottomNeighborGrids {
                 b: grids.remove(b).unwrap(),
                 br: grids.remove(br).unwrap(),
             },
-            BottomNeighborIdxs::LayerTransition { bl, br } => {
-                BottomNeighborGrids::LayerTransition {
+            BottomNeighborIdxs::ChunkDoubling { bl, br } => {
+                BottomNeighborGrids::ChunkDoubling {
                     bl: grids.remove(bl).unwrap(),
                     br: grids.remove(br).unwrap(),
                 }
@@ -437,18 +440,18 @@ impl BottomNeighborGrids {
                     None
                 }
             }
-            BottomNeighborGrids::LayerTransition { bl, br } => {
+            BottomNeighborGrids::ChunkDoubling { bl, br } => {
                 if bl.get_chunk_coords().get_chunk_idx() == idx {
                     Some((
                         bl,
-                        BottomNeighborIdentifier::LayerTransition(
+                        BottomNeighborIdentifier::ChunkDoubling(
                             BottomNeighborIdentifierLayerTransition::BottomLeft,
                         ),
                     ))
                 } else if br.get_chunk_coords().get_chunk_idx() == idx {
                     Some((
                         br,
-                        BottomNeighborIdentifier::LayerTransition(
+                        BottomNeighborIdentifier::ChunkDoubling(
                             BottomNeighborIdentifierLayerTransition::BottomRight,
                         ),
                     ))
@@ -465,7 +468,7 @@ impl BottomNeighborGrids {
             BottomNeighborGrids::Normal { bl: _, b, br: _ } => {
                 b.get_chunk_coords().get_num_radial_lines()
             }
-            BottomNeighborGrids::LayerTransition { bl, br: _ } => {
+            BottomNeighborGrids::ChunkDoubling { bl, br: _ } => {
                 bl.get_chunk_coords().get_num_radial_lines()
             }
             BottomNeighborGrids::BottomOfGrid => 0,
@@ -477,7 +480,7 @@ impl BottomNeighborGrids {
             BottomNeighborGrids::Normal { bl: _, b, br: _ } => {
                 b.get_chunk_coords().get_num_concentric_circles()
             }
-            BottomNeighborGrids::LayerTransition { bl, br: _ } => {
+            BottomNeighborGrids::ChunkDoubling { bl, br: _ } => {
                 bl.get_chunk_coords().get_num_concentric_circles()
             }
             BottomNeighborGrids::BottomOfGrid => 0,

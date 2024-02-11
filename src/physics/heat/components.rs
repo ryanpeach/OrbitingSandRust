@@ -7,7 +7,7 @@ use bevy::{ecs::component::Component, log::warn, render::color::Color};
 use derive_more::{Add, AddAssign, From, Into, Sub, SubAssign};
 use ndarray::Array2;
 
-use crate::physics::orbits::{components::Mass, nbody::Force};
+use crate::physics::orbits::components::{Force, Mass};
 
 /// The length of a system in meters.
 #[derive(Component, Default, Clone, Copy, Debug, Add, Sub, AddAssign, SubAssign, From, Into)]

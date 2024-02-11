@@ -408,7 +408,7 @@ impl ElementGridDir {
                     && radial_chunks(i) != radial_chunks(i - 1)
                     && k % 2 == 0 =>
             {
-                BottomNeighborIdxs::LayerTransition {
+                BottomNeighborIdxs::ChunkDoubling {
                     bl: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2),
                     br: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2 - 1),
                 }
@@ -418,7 +418,7 @@ impl ElementGridDir {
                     && radial_chunks(i) != radial_chunks(i - 1)
                     && k % 2 == 1 =>
             {
-                BottomNeighborIdxs::LayerTransition {
+                BottomNeighborIdxs::ChunkDoubling {
                     bl: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2 + 1),
                     br: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2),
                 }
