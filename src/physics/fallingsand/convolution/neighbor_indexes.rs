@@ -47,7 +47,7 @@ pub enum TopNeighborIdxs {
         t: ChunkIjkVector,
         tr: ChunkIjkVector,
     },
-    LayerTransition {
+    ChunkDoubling {
         tl: ChunkIjkVector,
         t1: ChunkIjkVector,
         t0: ChunkIjkVector,
@@ -75,7 +75,7 @@ impl Iterator for TopNeighborIdxsIter {
                     _ => None,
                 }
             }
-            Some(TopNeighborIdxs::LayerTransition { tl, t0, t1, tr }) => {
+            Some(TopNeighborIdxs::ChunkDoubling { tl, t0, t1, tr }) => {
                 self.index += 1;
                 match self.index {
                     1 => Some(*tl),
@@ -107,7 +107,7 @@ pub enum BottomNeighborIdxs {
         b: ChunkIjkVector,
         br: ChunkIjkVector,
     },
-    LayerTransition {
+    ChunkDoubling {
         bl: ChunkIjkVector,
         br: ChunkIjkVector,
     },
@@ -133,7 +133,7 @@ impl Iterator for BottomNeighborIdxsIter {
                     _ => None,
                 }
             }
-            Some(BottomNeighborIdxs::LayerTransition { bl, br }) => {
+            Some(BottomNeighborIdxs::ChunkDoubling { bl, br }) => {
                 self.index += 1;
                 match self.index {
                     1 => Some(bl),

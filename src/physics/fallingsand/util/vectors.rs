@@ -1,9 +1,9 @@
 use bevy::{math::Vec2, render::color::Color};
 
 /// My personal coordinate type
-/// j is the "concentric circle" axis, kinda like y,
+/// j is the "radial" axis, kinda like y,
 ///   towards the core is 0
-/// k is the "radial line" axis, kinda like x,
+/// k is the "tangential" axis, kinda like x,
 ///   positive is counter clockwise from unit circle 0 degrees
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct JkVector {

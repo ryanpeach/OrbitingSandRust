@@ -343,7 +343,7 @@ impl ElementGrid {
         self.total_mass_above = {
             match &element_grid_conv_neigh.grids.top {
                 TopNeighborGrids::Normal { t, .. } => t.get_total_mass_above() + t.get_total_mass(),
-                TopNeighborGrids::LayerTransition { tl, tr, .. } => {
+                TopNeighborGrids::ChunkDoubling { tl, tr, .. } => {
                     tl.get_total_mass_above()
                         + tl.get_total_mass()
                         + tr.get_total_mass_above()

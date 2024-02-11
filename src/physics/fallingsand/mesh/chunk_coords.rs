@@ -19,7 +19,7 @@ pub enum VertexMode {
 }
 
 /// This is a chunk that represents a "full" layer.
-/// It doesn't split itself in either the radial or concentric directions.
+/// It doesn't split itself in either the tangential or radial directions.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ChunkCoords {
     width: Length,
@@ -142,8 +142,8 @@ impl ChunkCoords {
     pub fn get_positions(&self, mode: VertexMode) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
-        let start_concentric = self.start_concentric_circle_layer_relative;
-        let start_radial = self.start_radial_line;
+        let start_concentric_circle = self.start_concentric_circle_layer_relative;
+        let start_radial_line = self.start_radial_line;
 
         let starting_r = self.get_start_radius();
         let ending_r = self.get_end_radius();
@@ -153,18 +153,18 @@ impl ChunkCoords {
 
         let concentric_range = match mode {
             VertexMode::Lines => vec![
-                start_concentric,
-                self.get_num_concentric_circles() + start_concentric,
+                start_concentric_circle,
+                self.get_num_concentric_circles() + start_concentric_circle,
             ],
-            VertexMode::Grid => (start_concentric
-                ..(self.get_num_concentric_circles() + start_concentric + 1))
+            VertexMode::Grid => (start_concentric_circle
+                ..(self.get_num_concentric_circles() + start_concentric_circle + 1))
                 .collect::<Vec<_>>(),
         };
 
         for j in concentric_range {
-            let diff = (j - start_concentric) as f32 * circle_separation_distance;
+            let diff = (j - start_concentric_circle) as f32 * circle_separation_distance;
 
-            for k in start_radial..(self.end_radial_line + 1) {
+            for k in start_radial_line..(self.end_radial_line + 1) {
                 if j == 0 && k % 2 == 1 {
                     let angle_next = (k + 1) as f32 * theta;
                     let radius = starting_r + diff;
@@ -188,8 +188,8 @@ impl ChunkCoords {
     pub fn get_outline(&self) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
-        let start_concentric = self.start_concentric_circle_layer_relative;
-        let start_radial = self.start_radial_line;
+        let start_concentric_circle = self.start_concentric_circle_layer_relative;
+        let start_radial_line = self.start_radial_line;
 
         let starting_r = self.get_start_radius();
         let ending_r = self.get_end_radius();
@@ -198,17 +198,17 @@ impl ChunkCoords {
         let theta = (-2.0 * PI) / self.layer_num_radial_lines as f32;
 
         for j in [
-            start_concentric,
-            self.get_num_concentric_circles() + start_concentric,
+            start_concentric_circle,
+            self.get_num_concentric_circles() + start_concentric_circle,
         ] {
-            let diff = (j - start_concentric) as f32 * circle_separation_distance;
+            let diff = (j - start_concentric_circle) as f32 * circle_separation_distance;
 
             // Reverse if we are on the last element because we are going around the circle
             // This box method was the only way to make Range == Rev<Range> in type, very annoying.
-            let iter: Box<dyn Iterator<Item = _>> = if j != start_concentric {
-                Box::new((start_radial..self.end_radial_line + 1).rev())
+            let iter: Box<dyn Iterator<Item = _>> = if j != start_concentric_circle {
+                Box::new((start_radial_line..self.end_radial_line + 1).rev())
             } else {
-                Box::new(start_radial..self.end_radial_line + 1)
+                Box::new(start_radial_line..self.end_radial_line + 1)
             };
 
             for k in iter {
@@ -320,11 +320,11 @@ impl ChunkCoords {
     pub fn get_num_concentric_circles(&self) -> usize {
         self.num_concentric_circles
     }
-    pub fn get_end_radial_theta(&self) -> f32 {
+    pub fn get_end_theta(&self) -> f32 {
         let diff = (2.0 * PI) / self.layer_num_radial_lines as f32;
         self.end_radial_line as f32 * diff
     }
-    pub fn get_start_radial_theta(&self) -> f32 {
+    pub fn get_start_theta(&self) -> f32 {
         let diff = (2.0 * PI) / self.layer_num_radial_lines as f32;
         self.start_radial_line as f32 * diff
     }
@@ -446,8 +446,8 @@ impl ChunkCoords {
         let num_radial_lines = self.get_num_radial_lines();
         let start_radial_line = self.get_start_radial_line();
         let end_radial_line = self.get_end_radial_line();
-        let start_radial_theta = self.get_start_radial_theta();
-        let end_radial_theta = self.get_end_radial_theta();
+        let start_theta = self.get_start_theta();
+        let end_theta = self.get_end_theta();
 
         // Get the concentric circle we are on
         let circle_separation_distance = (ending_r - starting_r) / num_concentric_circles as f32;
@@ -459,7 +459,7 @@ impl ChunkCoords {
 
         // Get the radial line to the left of the vertex
         let angle = (xy_coord.0.y.atan2(xy_coord.0.x) + -2.0 * PI) % (2.0 * PI);
-        let theta = -(end_radial_theta - start_radial_theta) / num_radial_lines as f32;
+        let theta = -(end_theta - start_theta) / num_radial_lines as f32;
 
         // Calculate 'k' directly without the while loop
         let k_rel = (angle / theta).floor() as usize;
@@ -646,13 +646,13 @@ mod tests {
         // Test the rest
         for i in 1..coordinate_dir.get_num_layers() {
             let num_concentric_chunks = coordinate_dir.get_layer_num_concentric_chunks(i);
-            let num_radial_chunks = coordinate_dir.get_layer_num_radial_chunks(i);
+            let num_tangential_chunkss = coordinate_dir.get_layer_num_tangential_chunkss(i);
             let mut total_concentric_circles = 0;
             for cj in 0..num_concentric_chunks {
                 let mut total_radial_lines = 0;
                 let chunk_layer_num_concentric_circles = coordinate_dir
                     .get_chunk_num_concentric_circles(ChunkIjkVector { i, j: cj, k: 0 });
-                for ck in 0..num_radial_chunks {
+                for ck in 0..num_tangential_chunkss {
                     let chunk_num_radial_lines = coordinate_dir
                         .get_chunk_num_radial_lines(ChunkIjkVector { i, j: cj, k: ck });
                     for j in total_concentric_circles

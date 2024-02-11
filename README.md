@@ -4,7 +4,7 @@ A resource management and mining game simulating a realistic solar system econom
 
 # Sand
 
-Planets are circular falling sand simulations taking place on a radial grid that geometrically gets larger as it gets further from the center (like an onion).
+Planets are circular falling sand simulations taking place on a polar grid that geometrically gets larger as it gets further from the center (like an onion).
 
 The grid is drawn onto a texture which is projected onto a mesh which is generated proceedurally.
 

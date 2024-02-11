@@ -1,4 +1,4 @@
-//! Celestials are bodies that have gravity and radial meshes
+//! Celestials are bodies that have gravity and polar meshes
 //! They include planets, moons, and stars
 
 pub mod celestial;
