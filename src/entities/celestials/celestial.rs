@@ -238,7 +238,6 @@ impl CelestialDataPlugin {
                                 visibility: Visibility::Hidden,
                                 ..Default::default()
                             },
-                            // mesh.calc_bounds(),
                             HeatMapMaterial,
                             OverlayLayer1,
                         ))

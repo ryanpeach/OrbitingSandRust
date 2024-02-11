@@ -126,7 +126,8 @@ impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, Self::zoom_camera_system);
         app.add_systems(Update, Self::move_camera_system);
-        app.add_systems(Update, Self::frustum_culling_2d);
+        // Not currently working
+        // app.add_systems(Update, Self::frustum_culling_2d);
         app.add_systems(Update, Self::select_celestial_focus);
         app.add_systems(Update, Self::cycle_celestial_focus);
         app.add_systems(Update, Self::first_celestial_focus);
@@ -209,6 +210,9 @@ impl CameraPlugin {
 
     /// Don't render entities that are not in the camera's frustum
     /// Uses the Visibility component to hide and show entities
+    /// > [!WARNING]
+    /// > TODO: This system is not currently working
+    #[allow(dead_code)]
     fn frustum_culling_2d(
         mut commands: Commands,
         camera: Query<(&Camera2d, &GlobalTransform)>,
