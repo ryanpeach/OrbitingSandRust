@@ -7,7 +7,7 @@ use bevy::{
         query::With,
         system::{Local, Query, Res, ResMut, Resource},
     },
-    render::view::{screenshot::ScreenshotManager},
+    render::view::screenshot::ScreenshotManager,
     transform::components::Transform,
     window::PrimaryWindow,
 };
@@ -15,8 +15,6 @@ use bevy_egui::{
     egui::{self},
     EguiContexts,
 };
-
-
 
 #[derive(Debug, Clone, Copy)]
 pub enum PlayPauseMode {
