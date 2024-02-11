@@ -44,7 +44,7 @@ impl Default for CameraWindowCheckboxes {
             outline: false,
             wireframe: false,
             material: true,
-            heat: false,
+            heat: true,
         }
     }
 }

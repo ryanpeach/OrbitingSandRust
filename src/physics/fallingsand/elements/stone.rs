@@ -99,7 +99,7 @@ impl Element for Stone {
     }
 
     fn get_specific_heat(&self) -> SpecificHeat {
-        SpecificHeat(830.0 / 400.0) // This is a little low gameplay wise without this mult
+        SpecificHeat(830.0 / 40.0) // This is a little low gameplay wise without this mult
     }
 
     fn get_thermal_conductivity(&self) -> ThermalConductivity {
@@ -196,7 +196,7 @@ mod tests {
         /// Determines how fast the heat diffuses
         #[test]
         fn test_sink_diffuses_to_zero_speed() {
-            PropogateHeat::test_heat_disipation_rate_in_space(461, 1, ElementType::Stone);
+            PropogateHeat::test_heat_disipation_rate_in_space(10000, 30, ElementType::Stone);
         }
     }
 }

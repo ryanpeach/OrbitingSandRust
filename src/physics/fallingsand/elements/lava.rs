@@ -93,7 +93,7 @@ impl Element for Lava {
     }
 
     fn get_default_temperature(&self) -> ThermodynamicTemperature {
-        ThermodynamicTemperature(1500.0)
+        ThermodynamicTemperature(15000.0)
     }
 
     fn get_heat(&self) -> HeatEnergy {
@@ -115,7 +115,7 @@ impl Element for Lava {
     }
 
     fn get_thermal_conductivity(&self) -> ThermalConductivity {
-        ThermalConductivity(1.0)
+        ThermalConductivity(0.1)
     }
 
     fn get_compressability(&self) -> Compressability {
@@ -134,7 +134,7 @@ mod test {
         /// Determines how fast the heat diffuses
         #[test]
         fn test_sink_diffuses_to_zero_speed() {
-            PropogateHeat::test_heat_disipation_rate_in_space(4078, 1, ElementType::Lava);
+            PropogateHeat::test_heat_disipation_rate_in_space(10000, 30, ElementType::Lava);
         }
     }
 }

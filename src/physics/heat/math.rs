@@ -449,6 +449,7 @@ impl PropogateHeat {
 impl PropogateHeat {
     /// Surrounded by 0.0 temperature, the heat average over a 5x5 grid
     /// should disipate to half its original temperature in exactly `frames` frames
+    #[allow(clippy::reversed_empty_ranges)]
     pub fn test_heat_disipation_rate_in_space(
         frames: u32,
         frame_rate: u32,
@@ -489,10 +490,11 @@ impl PropogateHeat {
         });
 
         let mut clock = Clock::default();
-        let avg = heat.get_temperature().sum() / (5 * 5) as f32;
+        let first_avg = heat.get_temperature().slice(s![1..-1, 1..-1]).sum() / (5 * 5) as f32;
         for frame_cnt in 0..frames {
+            let avg = heat.get_temperature().slice(s![1..-1, 1..-1]).sum() / (5 * 5) as f32;
             assert!(
-                (heat.get_temperature().sum() / (5 * 5) as f32) < (avg / 2.0),
+                avg >= (first_avg / 2.0),
                 "Took less than {} frames to cool down: {}",
                 frames,
                 frame_cnt
@@ -502,18 +504,19 @@ impl PropogateHeat {
             clock.update(Duration::from_secs_f32(1.0 / frame_rate as f32));
 
             // Check that the heat is not yet near zero in the center
-            let heat_energy = heat.get_temperature().clone();
-            if frame_cnt % frame_rate == 0 {
-                println!("#{:?} Heat energy:\n{:?}", frame_cnt, heat_energy);
-            }
+            // let heat_energy = heat.get_temperature().clone();
+            // if frame_cnt % frame_rate == 0 {
+            //     println!("#{:?} Heat energy:\n{:?}", frame_cnt, heat_energy);
+            // }
 
             // Propogate the heat
             heat.propagate_heat(clock);
         }
 
         // Check that the heat is near zero in the center
+        let avg = heat.get_temperature().slice(s![1..-1, 1..-1]).sum() / (5 * 5) as f32;
         assert!(
-            (heat.get_temperature().sum() / (5 * 5) as f32) < (avg / 2.0),
+            avg < (first_avg / 2.0),
             "Took longer than {} frames to cool down.",
             frames
         );

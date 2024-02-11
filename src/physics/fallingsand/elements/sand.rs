@@ -99,11 +99,11 @@ impl Element for Sand {
     }
 
     fn get_specific_heat(&self) -> SpecificHeat {
-        SpecificHeat(830.0 / 800.0) // Way too hot normally
+        SpecificHeat(830.0 / 80.0) // Way too hot normally
     }
 
     fn get_thermal_conductivity(&self) -> ThermalConductivity {
-        ThermalConductivity(1.0)
+        ThermalConductivity(0.01)
     }
 
     fn get_compressability(&self) -> Compressability {
@@ -208,7 +208,7 @@ mod tests {
         /// Determines how fast the heat diffuses
         #[test]
         fn test_sink_diffuses_to_zero_speed() {
-            PropogateHeat::test_heat_disipation_rate_in_space(1967, 1, ElementType::Sand);
+            PropogateHeat::test_heat_disipation_rate_in_space(10000, 30, ElementType::Sand);
         }
     }
 }

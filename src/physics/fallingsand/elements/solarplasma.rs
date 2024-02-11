@@ -185,7 +185,7 @@ impl Element for SolarPlasma {
     }
 
     fn get_default_temperature(&self) -> ThermodynamicTemperature {
-        ThermodynamicTemperature(10000.0)
+        ThermodynamicTemperature(15000.0 * 2.0)
     }
 
     fn get_specific_heat(&self) -> SpecificHeat {
@@ -212,7 +212,7 @@ mod test {
         /// Determines how fast the heat diffuses
         #[test]
         fn test_sink_diffuses_to_zero_speed() {
-            PropogateHeat::test_heat_disipation_rate_in_space(10233, 1, ElementType::SolarPlasma);
+            PropogateHeat::test_heat_disipation_rate_in_space(62366, 30, ElementType::SolarPlasma);
         }
     }
 }

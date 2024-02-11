@@ -98,7 +98,7 @@ impl Element for Water {
     }
 
     fn get_specific_heat(&self) -> SpecificHeat {
-        SpecificHeat(830.0 / 300.0)
+        SpecificHeat(830.0 / 30.0)
     }
 
     fn get_thermal_conductivity(&self) -> ThermalConductivity {
@@ -121,7 +121,7 @@ mod test {
         /// Determines how fast the heat diffuses
         #[test]
         fn test_sink_diffuses_to_zero_speed() {
-            PropogateHeat::test_heat_disipation_rate_in_space(1730, 1, ElementType::Water);
+            PropogateHeat::test_heat_disipation_rate_in_space(10000, 30, ElementType::Water);
         }
     }
 }
