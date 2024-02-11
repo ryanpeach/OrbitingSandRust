@@ -19,7 +19,7 @@ pub enum VertexMode {
 }
 
 /// This is a chunk that represents a "full" layer.
-/// It doesn't split itself in either the tangential or concentric directions.
+/// It doesn't split itself in either the tangential or radial directions.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ChunkCoords {
     width: Length,

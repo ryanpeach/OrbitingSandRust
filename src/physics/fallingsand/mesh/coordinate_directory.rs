@@ -446,7 +446,7 @@ impl CoordinateDir {
     pub fn get_layer_num_tangential_chunkss(&self, layer_num: usize) -> usize {
         self.partial_chunks[layer_num].get_width()
     }
-    /// Get the number of chunks in the concentric circle dimension in a given layer
+    /// Get the number of chunks in the radial dimension in a given layer
     pub fn get_layer_num_concentric_chunks(&self, layer_num: usize) -> usize {
         self.partial_chunks[layer_num].get_height()
     }

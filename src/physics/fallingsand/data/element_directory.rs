@@ -63,7 +63,7 @@ fn calculate_ith_standard_convolution_targets(
     let j_size = coords.get_total_number_concentric_chunks();
     debug_assert!(
         j_size % 3 == 0,
-        "Number of chunks in concentric circle dimension must be divisible by 3, but it is {}",
+        "Number of chunks in radial dimension must be divisible by 3, but it is {}",
         j_size
     );
 
@@ -176,8 +176,8 @@ fn calculate_ith_has_different_k_bottom_neighbor_targets(
     }
     let k_start = (frame_nb - 3) % 6;
     // We need to step by 3 to prevent overlap. Think of a 3x3 convolution
-    // We don't need to step by 3 because this only happens after concentric layer splitting
-    // and concentric layer splitting starts with 3rds
+    // We don't need to step by 3 because this only happens after radial layer splitting
+    // and radial layer splitting starts with 3rds
     // and we will always be on the bottom chunk of the layer
     for layer_num in 1..i_size {
         // Skip any layers whos previous layer doesn't only have one chunk
