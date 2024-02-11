@@ -56,7 +56,12 @@ impl fmt::Display for ConvOutOfBoundsError {
 pub enum LeftRightNeighborGrids {
     /// The left and right elements
     /// TODO: Unecessary to have a struct for this, flatten into the enum
-    LR { l: ElementGrid, r: ElementGrid },
+    LR {
+        /// The left element
+        l: ElementGrid,
+        /// The right element
+        r: ElementGrid
+    },
 }
 
 impl LeftRightNeighborGrids {

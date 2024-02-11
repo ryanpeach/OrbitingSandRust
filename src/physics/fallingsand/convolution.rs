@@ -27,7 +27,7 @@
 //! > [super::mesh::coordinate_directory] documentation before continuing to understand
 //! > chunk layouts etc.
 //!
-//! ## The Problem
+//! # The Problem
 //!
 //! The problem is that between layers of the world, we have unusual numbers of chunks
 //! either to the bottom or to the top of us. In the middle of a layer its easy! But
@@ -36,6 +36,21 @@
 //!
 //! ![layer transition](assets/docs/wireframe/layer_transition.png)
 //!
+//! This makes accessing a cell "above" or "below" us difficult, because we have to
+//! know if we are crossing a layer transition or not, and how to handle it.
+//!
+//! # The Solution
+//!
+//! The primary submodule exported by this module is the [self::behaviors] module.
+//!
+//! It gives you an API to get elements from locations relative to another element in
+//! a convolution.
+//!
+//! This greatly simplifies the code in the [super::elements] module, otherwise this
+//! game would basically be impossible to be chunked.
+//!
+//! Please continue by reading the documentation for the [self::behaviors] module.
+
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 

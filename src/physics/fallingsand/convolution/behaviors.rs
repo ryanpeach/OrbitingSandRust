@@ -1,3 +1,23 @@
+//! # Element Behavior API
+//!
+//! This module contains the behaviors of the convolution
+//! It exports the [ElementGridConvolutionNeighbors] struct which contains
+//! both the indexes and the grids of the neighbors
+//! It contains getters for the chunks based on index or identifier
+//! and both getters and setters by element
+//! It also allows the user to get the element "below" or "left"/"right" of a given element
+//! This is its main purpose, in defining element behaviors, being able to check
+//! and change the state of the elements around it. This is the main way that the
+//! elements interact with each other. Within the same chunk this is very easy,
+//! but between chunks the behavior is very complex:
+//!
+//! 1. What does "down" mean if the resolution of cells below you is half the resolution of cells in your chunk?
+//! 2. What does "up" mean if the resolution of cells above you is double the resolution of cells in your chunk?
+//! 3. What if you want to go diagonally between chunks
+//! 4. What are the boundaries of the chunks? Have you accessed a value you don't have ownership of?
+//!
+//! All of that is handled automagically by this API.
+
 use hashbrown::HashMap;
 use ndarray::Array1;
 
@@ -31,13 +51,20 @@ use super::{
     },
 };
 
+/// This is the main struct exported by this module
+/// It contains all the neighbors of a chunk in the convolution
+/// It does not contain the target chunk itself, as this usually violates several
+/// borrow checker rules
 pub struct ElementGridConvolutionNeighbors {
+    /// The indexes of the neighbors, tells you where they come from in the [crate::physics::fallingsand::data::element_directory::ElementGridDir]
     pub chunk_idxs: ElementGridConvolutionNeighborIdxs,
+    /// The grids of the neighbors, actually stores the data
     pub grids: ElementGridConvolutionNeighborGrids,
 }
 
 /// Instantiation
 impl ElementGridConvolutionNeighbors {
+    /// Create a new ElementGridConvolutionNeighbors
     pub fn new(
         chunk_idxs: ElementGridConvolutionNeighborIdxs,
         mut grids: HashMap<ChunkIjkVector, ElementGrid>,
@@ -71,7 +98,9 @@ impl ElementGridConvolutionNeighbors {
 /// and the iter method on the neighbor indexes
 /// taking from the hashmap on each iteration of the iter
 pub struct ElementGridConvolutionNeighborsIntoIter {
+    /// The iterator for the neighbor indexes
     chunk_idxs_iter: ElementGridConvolutionNeighborIdxsIter,
+    /// The grids of the neighbors
     grids: HashMap<ChunkIjkVector, ElementGrid>,
 }
 
@@ -471,8 +500,12 @@ impl ElementGridConvolutionNeighbors {
     }
 }
 
+/// Errors for the getter methods
 #[derive(Debug)]
 pub enum GetChunkErr {
+    /// You aren't allowed to get the center chunk.
+    /// As [ElementGridConvolutionNeighbors] describes in its documentation,
+    /// it doesn't contain the center chunk.
     CenterChunk,
 }
 
@@ -606,6 +639,7 @@ impl ElementGridConvolutionNeighbors {
         }
     }
 
+    /// Get the chunk identified by the given identifier
     fn get_chunk(&self, id: ConvolutionIdentifier) -> Result<&ElementGrid, GetChunkErr> {
         match id {
             ConvolutionIdentifier::Top(top_id) => match top_id {
@@ -726,6 +760,7 @@ impl ElementGridConvolutionNeighbors {
         }
     }
 
+    /// Get the element at the given index
     pub fn get(
         &self,
         target_grid: &ElementGrid,
@@ -748,6 +783,10 @@ impl ElementGridConvolutionNeighbors {
         }
     }
 
+    /// Replace the element at the given index
+    /// Great for taking ownership of the element
+    /// Can also be used to give ownership back
+    /// Returns an error if the index is out of bounds
     pub fn replace(
         &mut self,
         target_grid: &mut ElementGrid,

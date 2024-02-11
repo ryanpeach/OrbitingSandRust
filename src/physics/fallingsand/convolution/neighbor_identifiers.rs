@@ -77,6 +77,8 @@ pub enum TopNeighborIdentifierChunkDoubling {
 /// [super::neighbor_indexes::BottomNeighborIdxs] documentation for more information
 #[derive(Debug, Clone, Copy, EnumIter)]
 pub enum BottomNeighborIdentifier {
+    /// Indicates the bottom neighbors are not part of a chunk doubling layer transition
+    /// However, remember that it still may have half the number of cells tangentially
     Normal(BottomNeighborIdentifierNormal),
     /// Indicates a **chunk doubling** layer transition
     /// In this case the chunks half because you are going down
