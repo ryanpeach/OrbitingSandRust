@@ -151,6 +151,7 @@ impl PropogateHeatBuilder {
     /// Set the temperature of the border cells based on the convolved neighbor temperatures
     /// This is only called by the build method because it needs to be called after all
     /// adds are done
+    #[allow(clippy::reversed_empty_ranges)]
     fn border_temperatures(
         &mut self,
         neighbor_temperatures: ElementGridConvolutionNeighborTemperatures,

@@ -17,9 +17,13 @@ pub struct ElementGridConvolutionNeighborIdxs {
 
 /// An iterator for the neighbor indexes
 pub struct ElementGridConvolutionNeighborIdxsIter {
+    /// The iterator for the top neighbor indexes
     top_neighbors_iter: TopNeighborIdxsIter,
+    /// The iterator for the left and right neighbor indexes
     left_right_neighbors_iter: LeftRightNeighborIdxsIter,
+    /// The iterator for the bottom neighbor indexes
     bottom_neighbors_iter: BottomNeighborIdxsIter,
+    /// The current index
     index: usize,
 }
 
@@ -92,7 +96,10 @@ pub enum LeftRightNeighborIdxs {
 
 /// An iterator for the left and right neighbor indexes
 pub struct LeftRightNeighborIdxsIter {
+    /// Whether or not there are left and right neighbors
+    /// TODO: Shouldnt this always be Some?
     lr: Option<LeftRightNeighborIdxs>,
+    /// The current index
     index: usize,
 }
 
@@ -158,7 +165,9 @@ pub enum TopNeighborIdxs {
 
 /// An iterator for the top neighbor indexes
 pub struct TopNeighborIdxsIter {
+    /// Whether or not there are top neighbors
     top: Option<TopNeighborIdxs>,
+    /// The current index
     index: usize,
 }
 
@@ -237,7 +246,9 @@ pub enum BottomNeighborIdxs {
 
 /// An iterator for the bottom neighbor indexes
 pub struct BottomNeighborIdxsIter {
+    /// Whether or not there are bottom neighbors
     bottom: Option<BottomNeighborIdxs>,
+    /// The current index
     index: usize,
 }
 
