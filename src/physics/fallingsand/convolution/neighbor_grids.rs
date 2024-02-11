@@ -232,7 +232,7 @@ impl TopNeighborGrids {
             },
             TopNeighborIdentifier::ChunkDoubling(layer_transition_id) => {
                 match layer_transition_id {
-                    TopNeighborIdentifierLayerTransition::Top0 => {
+                    TopNeighborIdentifierChunkDoubling::Top0 => {
                         if let TopNeighborGrids::ChunkDoubling {
                             tl: _,
                             t0,
@@ -251,7 +251,7 @@ impl TopNeighborGrids {
                             panic!("The identifier said the index was from a layer transition top0 neighbor, but the top neighbor grids were not layer transition")
                         }
                     }
-                    TopNeighborIdentifierLayerTransition::Top1 => {
+                    TopNeighborIdentifierChunkDoubling::Top1 => {
                         if let TopNeighborGrids::ChunkDoubling {
                             tl: _,
                             t0: _,
@@ -270,7 +270,7 @@ impl TopNeighborGrids {
                             panic!("The identifier said the index was from a layer transition top1 neighbor, but the top neighbor grids were not layer transition")
                         }
                     }
-                    TopNeighborIdentifierLayerTransition::TopLeft => {
+                    TopNeighborIdentifierChunkDoubling::TopLeft => {
                         if let TopNeighborGrids::ChunkDoubling {
                             tl,
                             t0: _,
@@ -289,7 +289,7 @@ impl TopNeighborGrids {
                             panic!("The identifier said the index was from a layer transition top left neighbor, but the top neighbor grids were not layer transition")
                         }
                     }
-                    TopNeighborIdentifierLayerTransition::TopRight => {
+                    TopNeighborIdentifierChunkDoubling::TopRight => {
                         if let TopNeighborGrids::ChunkDoubling {
                             tl: _,
                             t0: _,
@@ -344,28 +344,28 @@ impl TopNeighborGrids {
                     Some((
                         tl,
                         TopNeighborIdentifier::ChunkDoubling(
-                            TopNeighborIdentifierLayerTransition::TopLeft,
+                            TopNeighborIdentifierChunkDoubling::TopLeft,
                         ),
                     ))
                 } else if t1.get_chunk_coords().get_chunk_idx() == idx {
                     Some((
                         t1,
                         TopNeighborIdentifier::ChunkDoubling(
-                            TopNeighborIdentifierLayerTransition::Top1,
+                            TopNeighborIdentifierChunkDoubling::Top1,
                         ),
                     ))
                 } else if t0.get_chunk_coords().get_chunk_idx() == idx {
                     Some((
                         t0,
                         TopNeighborIdentifier::ChunkDoubling(
-                            TopNeighborIdentifierLayerTransition::Top0,
+                            TopNeighborIdentifierChunkDoubling::Top0,
                         ),
                     ))
                 } else if tr.get_chunk_coords().get_chunk_idx() == idx {
                     Some((
                         tr,
                         TopNeighborIdentifier::ChunkDoubling(
-                            TopNeighborIdentifierLayerTransition::TopRight,
+                            TopNeighborIdentifierChunkDoubling::TopRight,
                         ),
                     ))
                 } else {
@@ -517,14 +517,14 @@ impl BottomNeighborGrids {
                     Some((
                         bl,
                         BottomNeighborIdentifier::ChunkDoubling(
-                            BottomNeighborIdentifierLayerTransition::BottomLeft,
+                            BottomNeighborIdentifierChunkDoubling::BottomLeft,
                         ),
                     ))
                 } else if br.get_chunk_coords().get_chunk_idx() == idx {
                     Some((
                         br,
                         BottomNeighborIdentifier::ChunkDoubling(
-                            BottomNeighborIdentifierLayerTransition::BottomRight,
+                            BottomNeighborIdentifierChunkDoubling::BottomRight,
                         ),
                     ))
                 } else {

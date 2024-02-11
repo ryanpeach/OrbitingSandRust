@@ -21,9 +21,9 @@ use super::{
         LeftRightNeighborGrids, TopNeighborGrids,
     },
     neighbor_identifiers::{
-        BottomNeighborIdentifier, BottomNeighborIdentifierLayerTransition,
+        BottomNeighborIdentifier, BottomNeighborIdentifierChunkDoubling,
         BottomNeighborIdentifierNormal, ConvolutionIdentifier, ConvolutionIdx,
-        LeftRightNeighborIdentifier, TopNeighborIdentifier, TopNeighborIdentifierLayerTransition,
+        LeftRightNeighborIdentifier, TopNeighborIdentifier, TopNeighborIdentifierChunkDoubling,
         TopNeighborIdentifierNormal,
     },
     neighbor_indexes::{
@@ -343,10 +343,10 @@ impl ElementGridConvolutionNeighbors {
                 // TODO: document this with pictures
                 // TODO: Unit test
                 let transition = if target_chunk.get_chunk_coords().get_chunk_idx().k % 2 == 0 {
-                    BottomNeighborIdentifierLayerTransition::BottomLeft
+                    BottomNeighborIdentifierChunkDoubling::BottomLeft
                 } else {
                     new_coords.k += self.grids.bottom.get_num_radial_lines() / 2;
-                    BottomNeighborIdentifierLayerTransition::BottomRight
+                    BottomNeighborIdentifierChunkDoubling::BottomRight
                 };
                 Ok(ConvolutionIdx(
                     new_coords,
@@ -461,7 +461,7 @@ impl ElementGridConvolutionNeighbors {
                 },
                 TopNeighborIdentifier::ChunkDoubling(layer_transition_id) => {
                     match layer_transition_id {
-                        TopNeighborIdentifierLayerTransition::Top0 { .. } => {
+                        TopNeighborIdentifierChunkDoubling::Top0 { .. } => {
                             if let TopNeighborGrids::ChunkDoubling { t0, .. } = &mut self.grids.top
                             {
                                 Ok(t0)
@@ -469,7 +469,7 @@ impl ElementGridConvolutionNeighbors {
                                 panic!("Tried to get t0 chunk that doesn't exist")
                             }
                         }
-                        TopNeighborIdentifierLayerTransition::Top1 { .. } => {
+                        TopNeighborIdentifierChunkDoubling::Top1 { .. } => {
                             if let TopNeighborGrids::ChunkDoubling { t1, .. } = &mut self.grids.top
                             {
                                 Ok(t1)
@@ -477,7 +477,7 @@ impl ElementGridConvolutionNeighbors {
                                 panic!("Tried to get t1 chunk that doesn't exist")
                             }
                         }
-                        TopNeighborIdentifierLayerTransition::TopLeft { .. } => {
+                        TopNeighborIdentifierChunkDoubling::TopLeft { .. } => {
                             if let TopNeighborGrids::ChunkDoubling { tl, .. } = &mut self.grids.top
                             {
                                 Ok(tl)
@@ -485,7 +485,7 @@ impl ElementGridConvolutionNeighbors {
                                 panic!("Tried to get tl chunk that doesn't exist")
                             }
                         }
-                        TopNeighborIdentifierLayerTransition::TopRight { .. } => {
+                        TopNeighborIdentifierChunkDoubling::TopRight { .. } => {
                             if let TopNeighborGrids::ChunkDoubling { tr, .. } = &mut self.grids.top
                             {
                                 Ok(tr)
@@ -522,7 +522,7 @@ impl ElementGridConvolutionNeighbors {
                 },
                 BottomNeighborIdentifier::ChunkDoubling(layer_transition_id) => {
                     match layer_transition_id {
-                        BottomNeighborIdentifierLayerTransition::BottomLeft { .. } => {
+                        BottomNeighborIdentifierChunkDoubling::BottomLeft { .. } => {
                             if let BottomNeighborGrids::ChunkDoubling { bl, .. } =
                                 &mut self.grids.bottom
                             {
@@ -531,7 +531,7 @@ impl ElementGridConvolutionNeighbors {
                                 panic!("Tried to get bl chunk that doesn't exist")
                             }
                         }
-                        BottomNeighborIdentifierLayerTransition::BottomRight { .. } => {
+                        BottomNeighborIdentifierChunkDoubling::BottomRight { .. } => {
                             if let BottomNeighborGrids::ChunkDoubling { br, .. } =
                                 &mut self.grids.bottom
                             {
@@ -585,28 +585,28 @@ impl ElementGridConvolutionNeighbors {
                 },
                 TopNeighborIdentifier::ChunkDoubling(layer_transition_id) => {
                     match layer_transition_id {
-                        TopNeighborIdentifierLayerTransition::Top0 { .. } => {
+                        TopNeighborIdentifierChunkDoubling::Top0 { .. } => {
                             if let TopNeighborGrids::ChunkDoubling { t0, .. } = &self.grids.top {
                                 Ok(t0)
                             } else {
                                 panic!("Tried to get t0 chunk that doesn't exist")
                             }
                         }
-                        TopNeighborIdentifierLayerTransition::Top1 { .. } => {
+                        TopNeighborIdentifierChunkDoubling::Top1 { .. } => {
                             if let TopNeighborGrids::ChunkDoubling { t1, .. } = &self.grids.top {
                                 Ok(t1)
                             } else {
                                 panic!("Tried to get t1 chunk that doesn't exist")
                             }
                         }
-                        TopNeighborIdentifierLayerTransition::TopLeft { .. } => {
+                        TopNeighborIdentifierChunkDoubling::TopLeft { .. } => {
                             if let TopNeighborGrids::ChunkDoubling { tl, .. } = &self.grids.top {
                                 Ok(tl)
                             } else {
                                 panic!("Tried to get tl chunk that doesn't exist")
                             }
                         }
-                        TopNeighborIdentifierLayerTransition::TopRight { .. } => {
+                        TopNeighborIdentifierChunkDoubling::TopRight { .. } => {
                             if let TopNeighborGrids::ChunkDoubling { tr, .. } = &self.grids.top {
                                 Ok(tr)
                             } else {
@@ -642,7 +642,7 @@ impl ElementGridConvolutionNeighbors {
                 },
                 BottomNeighborIdentifier::ChunkDoubling(layer_transition_id) => {
                     match layer_transition_id {
-                        BottomNeighborIdentifierLayerTransition::BottomLeft { .. } => {
+                        BottomNeighborIdentifierChunkDoubling::BottomLeft { .. } => {
                             if let BottomNeighborGrids::ChunkDoubling { bl, .. } =
                                 &self.grids.bottom
                             {
@@ -651,7 +651,7 @@ impl ElementGridConvolutionNeighbors {
                                 panic!("Tried to get bl chunk that doesn't exist")
                             }
                         }
-                        BottomNeighborIdentifierLayerTransition::BottomRight { .. } => {
+                        BottomNeighborIdentifierChunkDoubling::BottomRight { .. } => {
                             if let BottomNeighborGrids::ChunkDoubling { br, .. } =
                                 &self.grids.bottom
                             {
