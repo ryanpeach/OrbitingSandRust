@@ -74,7 +74,7 @@ impl Plugin for CelestialDataPlugin {
                 CelestialDataPlugin::draw_wireframe_system,
                 CelestialDataPlugin::draw_outline_system,
                 CelestialDataPlugin::change_falling_sand_visibility_system,
-                // CelestialDataPlugin::change_heat_visibility_system,
+                CelestialDataPlugin::change_heat_visibility_system,
             ),
         );
         app.add_event::<SelectCelestial>();
@@ -422,19 +422,19 @@ impl CelestialDataPlugin {
         }
     }
 
-    // /// Change heat visibility
-    // pub fn change_heat_visibility_system(
-    //     mut query: Query<&mut Visibility, With<HeatMapMaterial>>,
-    //     checkboxes: Res<CameraWindowCheckboxes>,
-    // ) {
-    //     for mut visibility in query.iter_mut() {
-    //         *visibility = if checkboxes.heat {
-    //             visibility::Visibility::Visible
-    //         } else {
-    //             visibility::Visibility::Hidden
-    //         };
-    //     }
-    // }
+    /// Change heat visibility
+    pub fn change_heat_visibility_system(
+        mut query: Query<&mut Visibility, With<HeatMapMaterial>>,
+        checkboxes: Res<CameraWindowCheckboxes>,
+    ) {
+        for mut visibility in query.iter_mut() {
+            *visibility = if checkboxes.heat {
+                visibility::Visibility::Visible
+            } else {
+                visibility::Visibility::Hidden
+            };
+        }
+    }
 
     /// Change falling sand visibility
     pub fn change_falling_sand_visibility_system(

@@ -220,7 +220,10 @@ impl ThermodynamicTemperature {
         min_temp: ThermodynamicTemperature,
     ) -> Color {
         debug_assert_ne!(max_temp.0, 0.0, "max_temp cannot be zero");
-        debug_assert_ne!(min_temp.0, 0.0, "min_temp cannot be zero");
+        if (min_temp == ThermodynamicTemperature(0.0)) {
+            // This can happen on fully empty worlds, but really should not
+            return Color::rgba(0.0, 0.0, 0.0, 0.0);
+        }
         if (max_temp == min_temp) {
             // This can happen especially on first iteration
             return Color::rgba(0.0, 0.0, 0.0, 0.0);
