@@ -39,9 +39,9 @@ impl NdArrayCoords {
     }
 }
 
-impl Into<[usize; 2]> for NdArrayCoords {
-    fn into(self) -> [usize; 2] {
-        [self.x, self.y]
+impl From<NdArrayCoords> for [usize; 2] {
+    fn from(val: NdArrayCoords) -> Self {
+        [val.x, val.y]
     }
 }
 

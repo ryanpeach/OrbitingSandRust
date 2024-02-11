@@ -312,7 +312,7 @@ impl ElementGrid {
             self.coords.get_num_radial_lines(),
             self.coords.get_cell_width(),
         );
-        let avg_neigh_temp = element_grid_conv_neigh.get_border_temps(&self);
+        let avg_neigh_temp = element_grid_conv_neigh.get_border_temps(self);
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {
                 let pos = JkVector { j, k };

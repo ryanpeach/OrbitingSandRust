@@ -425,7 +425,7 @@ impl PropogateHeat {
 
     /// Apply the new heat energy grid to the elements
     pub fn apply_to_grid(&self, chunk: &mut ElementGrid, current_time: Clock) {
-        let coords = chunk.get_chunk_coords().clone();
+        let coords = *chunk.get_chunk_coords();
         for k in 0..self.temperature.dim().0 - 2 {
             for j in 0..self.temperature.dim().1 - 2 {
                 let idx = JkVector::new(j, k);
