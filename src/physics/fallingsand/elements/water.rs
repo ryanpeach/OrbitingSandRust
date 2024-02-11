@@ -113,15 +113,9 @@ impl Element for Water {
 #[cfg(test)]
 mod test {
     mod heat {
-        
 
         use crate::physics::{
-            fallingsand::{
-                elements::element::ElementType,
-            },
-            heat::{
-                math::{PropogateHeat},
-            },
+            fallingsand::elements::element::ElementType, heat::math::PropogateHeat,
         };
 
         /// Determines how fast the heat diffuses

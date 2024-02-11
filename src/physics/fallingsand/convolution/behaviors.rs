@@ -1,5 +1,5 @@
 use hashbrown::HashMap;
-use ndarray::{Array1};
+use ndarray::Array1;
 
 use crate::physics::{
     fallingsand::{
