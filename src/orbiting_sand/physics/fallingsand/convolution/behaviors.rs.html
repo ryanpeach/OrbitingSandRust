@@ -802,10 +802,6 @@
 <a href="#801" id="801">801</a>
 <a href="#802" id="802">802</a>
 <a href="#803" id="803">803</a>
-<a href="#804" id="804">804</a>
-<a href="#805" id="805">805</a>
-<a href="#806" id="806">806</a>
-<a href="#807" id="807">807</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>hashbrown::HashMap;
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::{
@@ -927,7 +923,7 @@
                 sum += tr.get_temperature();
                 out.top = <span class="prelude-val">Some</span>(ThermodynamicTemperature(sum.<span class="number">0 </span>/ <span class="number">3.0</span>));
             }
-            TopNeighborGrids::LayerTransition { t0, t1, tl, tr } =&gt; {
+            TopNeighborGrids::ChunkDoubling { t0, t1, tl, tr } =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>sum = ThermodynamicTemperature(<span class="number">0.0</span>);
                 sum += t0.get_temperature();
                 sum += t1.get_temperature();
@@ -947,7 +943,7 @@
                 sum += br.get_temperature();
                 out.bottom = <span class="prelude-val">Some</span>(ThermodynamicTemperature(sum.<span class="number">0 </span>/ <span class="number">3.0</span>));
             }
-            BottomNeighborGrids::LayerTransition { bl, br } =&gt; {
+            BottomNeighborGrids::ChunkDoubling { bl, br } =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>sum = ThermodynamicTemperature(<span class="number">0.0</span>);
                 sum += bl.get_temperature();
                 sum += br.get_temperature();
@@ -1003,7 +999,7 @@
                 JkVector { j: pos.j, k: pos.k },
                 ConvolutionIdentifier::Center,
             ))),
-            BottomNeighborIdxs::LayerTransition { .. } =&gt; {
+            BottomNeighborIdxs::ChunkDoubling { .. } =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>new_coords = JkVector {
                     j: pos.j + b_concentric_circles - n,
                     k: pos.k / <span class="number">2</span>,
@@ -1016,7 +1012,7 @@
                 };
                 <span class="prelude-val">Ok</span>(ConvolutionIdx(
                     new_coords,
-                    ConvolutionIdentifier::Bottom(BottomNeighborIdentifier::LayerTransition(
+                    ConvolutionIdentifier::Bottom(BottomNeighborIdentifier::ChunkDoubling(
                         transition,
                     )),
                 ))
@@ -1027,7 +1023,7 @@
                     k: pos.k,
                 };
                 <span class="comment">// Sometimes a "Normal" bottom index is actually on a different layer
-                // just with the same number of radial chunks
+                // just with the same number of tangential chunkss
                 // If there are the same number of radial lines (not a layer transition) we dont
                 // need to divide k by 2
                 </span><span class="kw">let </span>this_radial_lines = target_chunk.get_chunk_coords().get_num_radial_lines();
@@ -1125,11 +1121,10 @@
                         }
                     }
                 },
-                TopNeighborIdentifier::LayerTransition(layer_transition_id) =&gt; {
+                TopNeighborIdentifier::ChunkDoubling(layer_transition_id) =&gt; {
                     <span class="kw">match </span>layer_transition_id {
                         TopNeighborIdentifierLayerTransition::Top0 { .. } =&gt; {
-                            <span class="kw">if let </span>TopNeighborGrids::LayerTransition { t0, .. } =
-                                <span class="kw-2">&amp;mut </span><span class="self">self</span>.grids.top
+                            <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling { t0, .. } = <span class="kw-2">&amp;mut </span><span class="self">self</span>.grids.top
                             {
                                 <span class="prelude-val">Ok</span>(t0)
                             } <span class="kw">else </span>{
@@ -1137,8 +1132,7 @@
                             }
                         }
                         TopNeighborIdentifierLayerTransition::Top1 { .. } =&gt; {
-                            <span class="kw">if let </span>TopNeighborGrids::LayerTransition { t1, .. } =
-                                <span class="kw-2">&amp;mut </span><span class="self">self</span>.grids.top
+                            <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling { t1, .. } = <span class="kw-2">&amp;mut </span><span class="self">self</span>.grids.top
                             {
                                 <span class="prelude-val">Ok</span>(t1)
                             } <span class="kw">else </span>{
@@ -1146,8 +1140,7 @@
                             }
                         }
                         TopNeighborIdentifierLayerTransition::TopLeft { .. } =&gt; {
-                            <span class="kw">if let </span>TopNeighborGrids::LayerTransition { tl, .. } =
-                                <span class="kw-2">&amp;mut </span><span class="self">self</span>.grids.top
+                            <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling { tl, .. } = <span class="kw-2">&amp;mut </span><span class="self">self</span>.grids.top
                             {
                                 <span class="prelude-val">Ok</span>(tl)
                             } <span class="kw">else </span>{
@@ -1155,8 +1148,7 @@
                             }
                         }
                         TopNeighborIdentifierLayerTransition::TopRight { .. } =&gt; {
-                            <span class="kw">if let </span>TopNeighborGrids::LayerTransition { tr, .. } =
-                                <span class="kw-2">&amp;mut </span><span class="self">self</span>.grids.top
+                            <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling { tr, .. } = <span class="kw-2">&amp;mut </span><span class="self">self</span>.grids.top
                             {
                                 <span class="prelude-val">Ok</span>(tr)
                             } <span class="kw">else </span>{
@@ -1190,10 +1182,10 @@
                         }
                     }
                 },
-                BottomNeighborIdentifier::LayerTransition(layer_transition_id) =&gt; {
+                BottomNeighborIdentifier::ChunkDoubling(layer_transition_id) =&gt; {
                     <span class="kw">match </span>layer_transition_id {
                         BottomNeighborIdentifierLayerTransition::BottomLeft { .. } =&gt; {
-                            <span class="kw">if let </span>BottomNeighborGrids::LayerTransition { bl, .. } =
+                            <span class="kw">if let </span>BottomNeighborGrids::ChunkDoubling { bl, .. } =
                                 <span class="kw-2">&amp;mut </span><span class="self">self</span>.grids.bottom
                             {
                                 <span class="prelude-val">Ok</span>(bl)
@@ -1202,7 +1194,7 @@
                             }
                         }
                         BottomNeighborIdentifierLayerTransition::BottomRight { .. } =&gt; {
-                            <span class="kw">if let </span>BottomNeighborGrids::LayerTransition { br, .. } =
+                            <span class="kw">if let </span>BottomNeighborGrids::ChunkDoubling { br, .. } =
                                 <span class="kw-2">&amp;mut </span><span class="self">self</span>.grids.bottom
                             {
                                 <span class="prelude-val">Ok</span>(br)
@@ -1253,31 +1245,31 @@
                         }
                     }
                 },
-                TopNeighborIdentifier::LayerTransition(layer_transition_id) =&gt; {
+                TopNeighborIdentifier::ChunkDoubling(layer_transition_id) =&gt; {
                     <span class="kw">match </span>layer_transition_id {
                         TopNeighborIdentifierLayerTransition::Top0 { .. } =&gt; {
-                            <span class="kw">if let </span>TopNeighborGrids::LayerTransition { t0, .. } = <span class="kw-2">&amp;</span><span class="self">self</span>.grids.top {
+                            <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling { t0, .. } = <span class="kw-2">&amp;</span><span class="self">self</span>.grids.top {
                                 <span class="prelude-val">Ok</span>(t0)
                             } <span class="kw">else </span>{
                                 <span class="macro">panic!</span>(<span class="string">"Tried to get t0 chunk that doesn't exist"</span>)
                             }
                         }
                         TopNeighborIdentifierLayerTransition::Top1 { .. } =&gt; {
-                            <span class="kw">if let </span>TopNeighborGrids::LayerTransition { t1, .. } = <span class="kw-2">&amp;</span><span class="self">self</span>.grids.top {
+                            <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling { t1, .. } = <span class="kw-2">&amp;</span><span class="self">self</span>.grids.top {
                                 <span class="prelude-val">Ok</span>(t1)
                             } <span class="kw">else </span>{
                                 <span class="macro">panic!</span>(<span class="string">"Tried to get t1 chunk that doesn't exist"</span>)
                             }
                         }
                         TopNeighborIdentifierLayerTransition::TopLeft { .. } =&gt; {
-                            <span class="kw">if let </span>TopNeighborGrids::LayerTransition { tl, .. } = <span class="kw-2">&amp;</span><span class="self">self</span>.grids.top {
+                            <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling { tl, .. } = <span class="kw-2">&amp;</span><span class="self">self</span>.grids.top {
                                 <span class="prelude-val">Ok</span>(tl)
                             } <span class="kw">else </span>{
                                 <span class="macro">panic!</span>(<span class="string">"Tried to get tl chunk that doesn't exist"</span>)
                             }
                         }
                         TopNeighborIdentifierLayerTransition::TopRight { .. } =&gt; {
-                            <span class="kw">if let </span>TopNeighborGrids::LayerTransition { tr, .. } = <span class="kw-2">&amp;</span><span class="self">self</span>.grids.top {
+                            <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling { tr, .. } = <span class="kw-2">&amp;</span><span class="self">self</span>.grids.top {
                                 <span class="prelude-val">Ok</span>(tr)
                             } <span class="kw">else </span>{
                                 <span class="macro">panic!</span>(<span class="string">"Tried to get tr chunk that doesn't exist"</span>)
@@ -1310,10 +1302,10 @@
                         }
                     }
                 },
-                BottomNeighborIdentifier::LayerTransition(layer_transition_id) =&gt; {
+                BottomNeighborIdentifier::ChunkDoubling(layer_transition_id) =&gt; {
                     <span class="kw">match </span>layer_transition_id {
                         BottomNeighborIdentifierLayerTransition::BottomLeft { .. } =&gt; {
-                            <span class="kw">if let </span>BottomNeighborGrids::LayerTransition { bl, .. } =
+                            <span class="kw">if let </span>BottomNeighborGrids::ChunkDoubling { bl, .. } =
                                 <span class="kw-2">&amp;</span><span class="self">self</span>.grids.bottom
                             {
                                 <span class="prelude-val">Ok</span>(bl)
@@ -1322,7 +1314,7 @@
                             }
                         }
                         BottomNeighborIdentifierLayerTransition::BottomRight { .. } =&gt; {
-                            <span class="kw">if let </span>BottomNeighborGrids::LayerTransition { br, .. } =
+                            <span class="kw">if let </span>BottomNeighborGrids::ChunkDoubling { br, .. } =
                                 <span class="kw-2">&amp;</span><span class="self">self</span>.grids.bottom
                             {
                                 <span class="prelude-val">Ok</span>(br)
@@ -1513,7 +1505,7 @@
                 .num_layers(<span class="number">7</span>)
                 .first_num_radial_lines(<span class="number">12</span>)
                 .second_num_concentric_circles(<span class="number">3</span>)
-                .first_num_radial_chunks(<span class="number">3</span>)
+                .first_num_tangential_chunkss(<span class="number">3</span>)
                 .max_radial_lines_per_chunk(<span class="number">128</span>)
                 .max_concentric_circles_per_chunk(<span class="number">128</span>)
                 .build();

@@ -96,7 +96,7 @@
 <span class="attr">#[derive(Debug, Clone, Copy, EnumIter)]
 </span><span class="kw">pub enum </span>TopNeighborIdentifier {
     Normal(TopNeighborIdentifierNormal),
-    LayerTransition(TopNeighborIdentifierLayerTransition),
+    ChunkDoubling(TopNeighborIdentifierLayerTransition),
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy, Default, EnumIter)]
@@ -117,7 +117,7 @@
 <span class="attr">#[derive(Debug, Clone, Copy, EnumIter)]
 </span><span class="kw">pub enum </span>BottomNeighborIdentifier {
     Normal(BottomNeighborIdentifierNormal),
-    LayerTransition(BottomNeighborIdentifierLayerTransition),
+    ChunkDoubling(BottomNeighborIdentifierLayerTransition),
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy)]

@@ -129,7 +129,7 @@
     num_layers: usize,
     first_num_radial_lines: usize,
     second_num_concentric_circles: usize,
-    first_num_radial_chunks: usize,
+    first_num_tangential_chunkss: usize,
     max_radial_lines_per_chunk: usize,
     max_concentric_circles_per_chunk: usize,
 }
@@ -147,7 +147,7 @@
             num_layers: <span class="number">4</span>,
             first_num_radial_lines: <span class="number">12</span>,
             second_num_concentric_circles: <span class="number">3</span>,
-            first_num_radial_chunks: <span class="number">3</span>,
+            first_num_tangential_chunkss: <span class="number">3</span>,
             max_radial_lines_per_chunk: <span class="number">128</span>,
             max_concentric_circles_per_chunk: <span class="number">128</span>,
         }
@@ -173,8 +173,8 @@
         <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>first_num_radial_chunks(<span class="kw-2">mut </span><span class="self">self</span>, first_num_radial_chunks: usize) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.first_num_radial_chunks = first_num_radial_chunks;
+    <span class="kw">pub fn </span>first_num_tangential_chunkss(<span class="kw-2">mut </span><span class="self">self</span>, first_num_tangential_chunkss: usize) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.first_num_tangential_chunkss = first_num_tangential_chunkss;
         <span class="self">self
     </span>}
 
@@ -197,7 +197,7 @@
             .num_layers(<span class="self">self</span>.num_layers)
             .first_num_radial_lines(<span class="self">self</span>.first_num_radial_lines)
             .second_num_concentric_circles(<span class="self">self</span>.second_num_concentric_circles)
-            .first_num_radial_chunks(<span class="self">self</span>.first_num_radial_chunks)
+            .first_num_tangential_chunkss(<span class="self">self</span>.first_num_tangential_chunkss)
             .max_radial_lines_per_chunk(<span class="self">self</span>.max_radial_lines_per_chunk)
             .max_concentric_circles_per_chunk(<span class="self">self</span>.max_concentric_circles_per_chunk)
             .build();
@@ -212,7 +212,7 @@
             {
                 <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..element_grid_dir
                     .get_coordinate_dir()
-                    .get_layer_num_radial_chunks(layer_num)
+                    .get_layer_num_tangential_chunkss(layer_num)
                 {
                     <span class="kw">let </span>chunk_idx = ChunkIjkVector::new(layer_num, j, k);
                     <span class="kw">let </span>element_grid = element_grid_dir.get_chunk_by_chunk_ijk_mut(chunk_idx);

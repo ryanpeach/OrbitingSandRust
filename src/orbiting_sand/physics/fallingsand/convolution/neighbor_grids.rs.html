@@ -497,10 +497,6 @@
 <a href="#496" id="496">496</a>
 <a href="#497" id="497">497</a>
 <a href="#498" id="498">498</a>
-<a href="#499" id="499">499</a>
-<a href="#500" id="500">500</a>
-<a href="#501" id="501">501</a>
-<a href="#502" id="502">502</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt;
 
 <span class="kw">use </span>hashbrown::HashMap;
@@ -580,7 +576,7 @@
         t: ElementGrid,
         tr: ElementGrid,
     },
-    LayerTransition {
+    ChunkDoubling {
         tl: ElementGrid,
         t1: ElementGrid,
         t0: ElementGrid,
@@ -599,7 +595,7 @@
                 map.insert(tr.get_chunk_coords().get_chunk_idx(), tr);
                 map
             }
-            TopNeighborGrids::LayerTransition { tl, t1, t0, tr } =&gt; {
+            TopNeighborGrids::ChunkDoubling { tl, t1, t0, tr } =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>map = HashMap::new();
                 map.insert(tl.get_chunk_coords().get_chunk_idx(), tl);
                 map.insert(t1.get_chunk_coords().get_chunk_idx(), t1);
@@ -621,14 +617,12 @@
                 t: grids.remove(t).unwrap(),
                 tr: grids.remove(tr).unwrap(),
             },
-            TopNeighborIdxs::LayerTransition { tl, t1, t0, tr } =&gt; {
-                TopNeighborGrids::LayerTransition {
-                    tl: grids.remove(tl).unwrap(),
-                    t1: grids.remove(t1).unwrap(),
-                    t0: grids.remove(t0).unwrap(),
-                    tr: grids.remove(tr).unwrap(),
-                }
-            }
+            TopNeighborIdxs::ChunkDoubling { tl, t1, t0, tr } =&gt; TopNeighborGrids::ChunkDoubling {
+                tl: grids.remove(tl).unwrap(),
+                t1: grids.remove(t1).unwrap(),
+                t0: grids.remove(t0).unwrap(),
+                tr: grids.remove(tr).unwrap(),
+            },
             TopNeighborIdxs::TopOfGrid =&gt; TopNeighborGrids::TopOfGrid,
         }
     }
@@ -681,10 +675,10 @@
                     }
                 }
             },
-            TopNeighborIdentifier::LayerTransition(layer_transition_id) =&gt; {
+            TopNeighborIdentifier::ChunkDoubling(layer_transition_id) =&gt; {
                 <span class="kw">match </span>layer_transition_id {
                     TopNeighborIdentifierLayerTransition::Top0 =&gt; {
-                        <span class="kw">if let </span>TopNeighborGrids::LayerTransition {
+                        <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling {
                             tl: <span class="kw">_</span>,
                             t0,
                             t1: <span class="kw">_</span>,
@@ -703,7 +697,7 @@
                         }
                     }
                     TopNeighborIdentifierLayerTransition::Top1 =&gt; {
-                        <span class="kw">if let </span>TopNeighborGrids::LayerTransition {
+                        <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling {
                             tl: <span class="kw">_</span>,
                             t0: <span class="kw">_</span>,
                             t1,
@@ -722,7 +716,7 @@
                         }
                     }
                     TopNeighborIdentifierLayerTransition::TopLeft =&gt; {
-                        <span class="kw">if let </span>TopNeighborGrids::LayerTransition {
+                        <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling {
                             tl,
                             t0: <span class="kw">_</span>,
                             t1: <span class="kw">_</span>,
@@ -741,7 +735,7 @@
                         }
                     }
                     TopNeighborIdentifierLayerTransition::TopRight =&gt; {
-                        <span class="kw">if let </span>TopNeighborGrids::LayerTransition {
+                        <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling {
                             tl: <span class="kw">_</span>,
                             t0: <span class="kw">_</span>,
                             t1: <span class="kw">_</span>,
@@ -789,32 +783,32 @@
                     <span class="prelude-val">None
                 </span>}
             }
-            TopNeighborGrids::LayerTransition { tl, t1, t0, tr } =&gt; {
+            TopNeighborGrids::ChunkDoubling { tl, t1, t0, tr } =&gt; {
                 <span class="kw">if </span>tl.get_chunk_coords().get_chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         tl,
-                        TopNeighborIdentifier::LayerTransition(
+                        TopNeighborIdentifier::ChunkDoubling(
                             TopNeighborIdentifierLayerTransition::TopLeft,
                         ),
                     ))
                 } <span class="kw">else if </span>t1.get_chunk_coords().get_chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         t1,
-                        TopNeighborIdentifier::LayerTransition(
+                        TopNeighborIdentifier::ChunkDoubling(
                             TopNeighborIdentifierLayerTransition::Top1,
                         ),
                     ))
                 } <span class="kw">else if </span>t0.get_chunk_coords().get_chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         t0,
-                        TopNeighborIdentifier::LayerTransition(
+                        TopNeighborIdentifier::ChunkDoubling(
                             TopNeighborIdentifierLayerTransition::Top0,
                         ),
                     ))
                 } <span class="kw">else if </span>tr.get_chunk_coords().get_chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         tr,
-                        TopNeighborIdentifier::LayerTransition(
+                        TopNeighborIdentifier::ChunkDoubling(
                             TopNeighborIdentifierLayerTransition::TopRight,
                         ),
                     ))
@@ -831,7 +825,7 @@
             TopNeighborGrids::Normal { tl: <span class="kw">_</span>, t, tr: <span class="kw">_ </span>} =&gt; {
                 t.get_chunk_coords().get_num_concentric_circles()
             }
-            TopNeighborGrids::LayerTransition {
+            TopNeighborGrids::ChunkDoubling {
                 tl,
                 t1: <span class="kw">_</span>,
                 t0: <span class="kw">_</span>,
@@ -846,7 +840,7 @@
             TopNeighborGrids::Normal { tl: <span class="kw">_</span>, t, tr: <span class="kw">_ </span>} =&gt; {
                 t.get_chunk_coords().get_num_radial_lines()
             }
-            TopNeighborGrids::LayerTransition {
+            TopNeighborGrids::ChunkDoubling {
                 tl,
                 t1: <span class="kw">_</span>,
                 t0: <span class="kw">_</span>,
@@ -864,7 +858,7 @@
         b: ElementGrid,
         br: ElementGrid,
     },
-    LayerTransition {
+    ChunkDoubling {
         bl: ElementGrid,
         br: ElementGrid,
     },
@@ -881,7 +875,7 @@
                 map.insert(br.get_chunk_coords().get_chunk_idx(), br);
                 map
             }
-            BottomNeighborGrids::LayerTransition { bl, br } =&gt; {
+            BottomNeighborGrids::ChunkDoubling { bl, br } =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>map = HashMap::new();
                 map.insert(bl.get_chunk_coords().get_chunk_idx(), bl);
                 map.insert(br.get_chunk_coords().get_chunk_idx(), br);
@@ -901,12 +895,10 @@
                 b: grids.remove(b).unwrap(),
                 br: grids.remove(br).unwrap(),
             },
-            BottomNeighborIdxs::LayerTransition { bl, br } =&gt; {
-                BottomNeighborGrids::LayerTransition {
-                    bl: grids.remove(bl).unwrap(),
-                    br: grids.remove(br).unwrap(),
-                }
-            }
+            BottomNeighborIdxs::ChunkDoubling { bl, br } =&gt; BottomNeighborGrids::ChunkDoubling {
+                bl: grids.remove(bl).unwrap(),
+                br: grids.remove(br).unwrap(),
+            },
             BottomNeighborIdxs::BottomOfGrid =&gt; BottomNeighborGrids::BottomOfGrid,
         }
     }
@@ -940,18 +932,18 @@
                     <span class="prelude-val">None
                 </span>}
             }
-            BottomNeighborGrids::LayerTransition { bl, br } =&gt; {
+            BottomNeighborGrids::ChunkDoubling { bl, br } =&gt; {
                 <span class="kw">if </span>bl.get_chunk_coords().get_chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         bl,
-                        BottomNeighborIdentifier::LayerTransition(
+                        BottomNeighborIdentifier::ChunkDoubling(
                             BottomNeighborIdentifierLayerTransition::BottomLeft,
                         ),
                     ))
                 } <span class="kw">else if </span>br.get_chunk_coords().get_chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         br,
-                        BottomNeighborIdentifier::LayerTransition(
+                        BottomNeighborIdentifier::ChunkDoubling(
                             BottomNeighborIdentifierLayerTransition::BottomRight,
                         ),
                     ))
@@ -968,7 +960,7 @@
             BottomNeighborGrids::Normal { bl: <span class="kw">_</span>, b, br: <span class="kw">_ </span>} =&gt; {
                 b.get_chunk_coords().get_num_radial_lines()
             }
-            BottomNeighborGrids::LayerTransition { bl, br: <span class="kw">_ </span>} =&gt; {
+            BottomNeighborGrids::ChunkDoubling { bl, br: <span class="kw">_ </span>} =&gt; {
                 bl.get_chunk_coords().get_num_radial_lines()
             }
             BottomNeighborGrids::BottomOfGrid =&gt; <span class="number">0</span>,
@@ -980,7 +972,7 @@
             BottomNeighborGrids::Normal { bl: <span class="kw">_</span>, b, br: <span class="kw">_ </span>} =&gt; {
                 b.get_chunk_coords().get_num_concentric_circles()
             }
-            BottomNeighborGrids::LayerTransition { bl, br: <span class="kw">_ </span>} =&gt; {
+            BottomNeighborGrids::ChunkDoubling { bl, br: <span class="kw">_ </span>} =&gt; {
                 bl.get_chunk_coords().get_num_concentric_circles()
             }
             BottomNeighborGrids::BottomOfGrid =&gt; <span class="number">0</span>,

@@ -534,7 +534,7 @@
     }
 }
 
-<span class="doccomment">/// Acts as a cache for a radial mesh's meshes and textures
+<span class="doccomment">/// Acts as a cache for a polar mesh's meshes and textures
 </span><span class="attr">#[derive(Component)]
 </span><span class="kw">pub struct </span>CelestialData {
     <span class="doccomment">/// The elements in this celestial
@@ -639,7 +639,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>textures = element_dir.get_textures();
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..coordinate_dir.get_num_layers() {
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..coordinate_dir.get_layer_num_concentric_chunks(i) {
-                <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..coordinate_dir.get_layer_num_radial_chunks(i) {
+                <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..coordinate_dir.get_layer_num_tangential_chunkss(i) {
                     <span class="kw">let </span>chunk_ijk = ChunkIjkVector::new(i, j, k);
                     <span class="kw">let </span>celestial_chunk_id = CelestialChunkIdk(chunk_ijk);
                     <span class="kw">let </span>mesh = coordinate_dir

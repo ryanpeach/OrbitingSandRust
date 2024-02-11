@@ -1179,7 +1179,7 @@
 }
 
 <span class="doccomment">/// This is a chunk that represents a "full" layer.
-/// It doesn't split itself in either the radial or concentric directions.
+/// It doesn't split itself in either the tangential or radial directions.
 </span><span class="attr">#[derive(Debug, Clone, Copy, Default)]
 </span><span class="kw">pub struct </span>ChunkCoords {
     width: Length,
@@ -1302,8 +1302,8 @@
     <span class="kw">pub fn </span>get_positions(<span class="kw-2">&amp;</span><span class="self">self</span>, mode: VertexMode) -&gt; Vec&lt;Vec2&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>vertexes: Vec&lt;Vec2&gt; = Vec::new();
 
-        <span class="kw">let </span>start_concentric = <span class="self">self</span>.start_concentric_circle_layer_relative;
-        <span class="kw">let </span>start_radial = <span class="self">self</span>.start_radial_line;
+        <span class="kw">let </span>start_concentric_circle = <span class="self">self</span>.start_concentric_circle_layer_relative;
+        <span class="kw">let </span>start_radial_line = <span class="self">self</span>.start_radial_line;
 
         <span class="kw">let </span>starting_r = <span class="self">self</span>.get_start_radius();
         <span class="kw">let </span>ending_r = <span class="self">self</span>.get_end_radius();
@@ -1313,18 +1313,18 @@
 
         <span class="kw">let </span>concentric_range = <span class="kw">match </span>mode {
             VertexMode::Lines =&gt; <span class="macro">vec!</span>[
-                start_concentric,
-                <span class="self">self</span>.get_num_concentric_circles() + start_concentric,
+                start_concentric_circle,
+                <span class="self">self</span>.get_num_concentric_circles() + start_concentric_circle,
             ],
-            VertexMode::Grid =&gt; (start_concentric
-                ..(<span class="self">self</span>.get_num_concentric_circles() + start_concentric + <span class="number">1</span>))
+            VertexMode::Grid =&gt; (start_concentric_circle
+                ..(<span class="self">self</span>.get_num_concentric_circles() + start_concentric_circle + <span class="number">1</span>))
                 .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
         };
 
         <span class="kw">for </span>j <span class="kw">in </span>concentric_range {
-            <span class="kw">let </span>diff = (j - start_concentric) <span class="kw">as </span>f32 * circle_separation_distance;
+            <span class="kw">let </span>diff = (j - start_concentric_circle) <span class="kw">as </span>f32 * circle_separation_distance;
 
-            <span class="kw">for </span>k <span class="kw">in </span>start_radial..(<span class="self">self</span>.end_radial_line + <span class="number">1</span>) {
+            <span class="kw">for </span>k <span class="kw">in </span>start_radial_line..(<span class="self">self</span>.end_radial_line + <span class="number">1</span>) {
                 <span class="kw">if </span>j == <span class="number">0 </span>&amp;&amp; k % <span class="number">2 </span>== <span class="number">1 </span>{
                     <span class="kw">let </span>angle_next = (k + <span class="number">1</span>) <span class="kw">as </span>f32 * theta;
                     <span class="kw">let </span>radius = starting_r + diff;
@@ -1348,8 +1348,8 @@
     </span><span class="kw">pub fn </span>get_outline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Vec2&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>vertexes: Vec&lt;Vec2&gt; = Vec::new();
 
-        <span class="kw">let </span>start_concentric = <span class="self">self</span>.start_concentric_circle_layer_relative;
-        <span class="kw">let </span>start_radial = <span class="self">self</span>.start_radial_line;
+        <span class="kw">let </span>start_concentric_circle = <span class="self">self</span>.start_concentric_circle_layer_relative;
+        <span class="kw">let </span>start_radial_line = <span class="self">self</span>.start_radial_line;
 
         <span class="kw">let </span>starting_r = <span class="self">self</span>.get_start_radius();
         <span class="kw">let </span>ending_r = <span class="self">self</span>.get_end_radius();
@@ -1358,17 +1358,17 @@
         <span class="kw">let </span>theta = (-<span class="number">2.0 </span>* PI) / <span class="self">self</span>.layer_num_radial_lines <span class="kw">as </span>f32;
 
         <span class="kw">for </span>j <span class="kw">in </span>[
-            start_concentric,
-            <span class="self">self</span>.get_num_concentric_circles() + start_concentric,
+            start_concentric_circle,
+            <span class="self">self</span>.get_num_concentric_circles() + start_concentric_circle,
         ] {
-            <span class="kw">let </span>diff = (j - start_concentric) <span class="kw">as </span>f32 * circle_separation_distance;
+            <span class="kw">let </span>diff = (j - start_concentric_circle) <span class="kw">as </span>f32 * circle_separation_distance;
 
             <span class="comment">// Reverse if we are on the last element because we are going around the circle
             // This box method was the only way to make Range == Rev&lt;Range&gt; in type, very annoying.
-            </span><span class="kw">let </span>iter: Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">_</span>&gt;&gt; = <span class="kw">if </span>j != start_concentric {
-                Box::new((start_radial..<span class="self">self</span>.end_radial_line + <span class="number">1</span>).rev())
+            </span><span class="kw">let </span>iter: Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw">_</span>&gt;&gt; = <span class="kw">if </span>j != start_concentric_circle {
+                Box::new((start_radial_line..<span class="self">self</span>.end_radial_line + <span class="number">1</span>).rev())
             } <span class="kw">else </span>{
-                Box::new(start_radial..<span class="self">self</span>.end_radial_line + <span class="number">1</span>)
+                Box::new(start_radial_line..<span class="self">self</span>.end_radial_line + <span class="number">1</span>)
             };
 
             <span class="kw">for </span>k <span class="kw">in </span>iter {
@@ -1480,11 +1480,11 @@
     <span class="kw">pub fn </span>get_num_concentric_circles(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.num_concentric_circles
     }
-    <span class="kw">pub fn </span>get_end_radial_theta(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
+    <span class="kw">pub fn </span>get_end_theta(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
         <span class="kw">let </span>diff = (<span class="number">2.0 </span>* PI) / <span class="self">self</span>.layer_num_radial_lines <span class="kw">as </span>f32;
         <span class="self">self</span>.end_radial_line <span class="kw">as </span>f32 * diff
     }
-    <span class="kw">pub fn </span>get_start_radial_theta(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
+    <span class="kw">pub fn </span>get_start_theta(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
         <span class="kw">let </span>diff = (<span class="number">2.0 </span>* PI) / <span class="self">self</span>.layer_num_radial_lines <span class="kw">as </span>f32;
         <span class="self">self</span>.start_radial_line <span class="kw">as </span>f32 * diff
     }
@@ -1606,8 +1606,8 @@
         <span class="kw">let </span>num_radial_lines = <span class="self">self</span>.get_num_radial_lines();
         <span class="kw">let </span>start_radial_line = <span class="self">self</span>.get_start_radial_line();
         <span class="kw">let </span>end_radial_line = <span class="self">self</span>.get_end_radial_line();
-        <span class="kw">let </span>start_radial_theta = <span class="self">self</span>.get_start_radial_theta();
-        <span class="kw">let </span>end_radial_theta = <span class="self">self</span>.get_end_radial_theta();
+        <span class="kw">let </span>start_theta = <span class="self">self</span>.get_start_theta();
+        <span class="kw">let </span>end_theta = <span class="self">self</span>.get_end_theta();
 
         <span class="comment">// Get the concentric circle we are on
         </span><span class="kw">let </span>circle_separation_distance = (ending_r - starting_r) / num_concentric_circles <span class="kw">as </span>f32;
@@ -1619,7 +1619,7 @@
 
         <span class="comment">// Get the radial line to the left of the vertex
         </span><span class="kw">let </span>angle = (xy_coord.<span class="number">0</span>.y.atan2(xy_coord.<span class="number">0</span>.x) + -<span class="number">2.0 </span>* PI) % (<span class="number">2.0 </span>* PI);
-        <span class="kw">let </span>theta = -(end_radial_theta - start_radial_theta) / num_radial_lines <span class="kw">as </span>f32;
+        <span class="kw">let </span>theta = -(end_theta - start_theta) / num_radial_lines <span class="kw">as </span>f32;
 
         <span class="comment">// Calculate 'k' directly without the while loop
         </span><span class="kw">let </span>k_rel = (angle / theta).floor() <span class="kw">as </span>usize;
@@ -1806,13 +1806,13 @@
         <span class="comment">// Test the rest
         </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..coordinate_dir.get_num_layers() {
             <span class="kw">let </span>num_concentric_chunks = coordinate_dir.get_layer_num_concentric_chunks(i);
-            <span class="kw">let </span>num_radial_chunks = coordinate_dir.get_layer_num_radial_chunks(i);
+            <span class="kw">let </span>num_tangential_chunkss = coordinate_dir.get_layer_num_tangential_chunkss(i);
             <span class="kw">let </span><span class="kw-2">mut </span>total_concentric_circles = <span class="number">0</span>;
             <span class="kw">for </span>cj <span class="kw">in </span><span class="number">0</span>..num_concentric_chunks {
                 <span class="kw">let </span><span class="kw-2">mut </span>total_radial_lines = <span class="number">0</span>;
                 <span class="kw">let </span>chunk_layer_num_concentric_circles = coordinate_dir
                     .get_chunk_num_concentric_circles(ChunkIjkVector { i, j: cj, k: <span class="number">0 </span>});
-                <span class="kw">for </span>ck <span class="kw">in </span><span class="number">0</span>..num_radial_chunks {
+                <span class="kw">for </span>ck <span class="kw">in </span><span class="number">0</span>..num_tangential_chunkss {
                     <span class="kw">let </span>chunk_num_radial_lines = coordinate_dir
                         .get_chunk_num_radial_lines(ChunkIjkVector { i, j: cj, k: ck });
                     <span class="kw">for </span>j <span class="kw">in </span>total_concentric_circles

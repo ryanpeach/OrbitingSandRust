@@ -1282,6 +1282,10 @@
 <a href="#1281" id="1281">1281</a>
 <a href="#1282" id="1282">1282</a>
 <a href="#1283" id="1283">1283</a>
+<a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
+<a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>hashbrown::{HashMap, HashSet};
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::heat::components::ThermodynamicTemperature;
@@ -1335,7 +1339,7 @@
 }
 
 <span class="doccomment">/// This calculates the convolution targets you would get by standard iteration over
-/// 3x3 convolution kernels. It excludes known edge cases, like the bottom of a layer where there is a reduction in radial chunks.
+/// 3x3 convolution kernels. It excludes known edge cases, like the bottom of a layer where there is a reduction in tangential chunkss.
 /// Run this over 0..9 frame_nb to get the targets for each frame
 </span><span class="kw">fn </span>calculate_ith_standard_convolution_targets(
     coords: CoordinateDir,
@@ -1347,7 +1351,7 @@
     </span><span class="kw">let </span>j_size = coords.get_total_number_concentric_chunks();
     <span class="macro">debug_assert!</span>(
         j_size % <span class="number">3 </span>== <span class="number">0</span>,
-        <span class="string">"Number of chunks in concentric circle dimension must be divisible by 3, but it is {}"</span>,
+        <span class="string">"Number of chunks in radial dimension must be divisible by 3, but it is {}"</span>,
         j_size
     );
 
@@ -1363,36 +1367,36 @@
         </span><span class="kw">let </span>(layer_num, chunk_layer_concentric_circle) = coords
             .get_layer_and_chunk_num_from_absolute_concentric_chunk(j)
             .expect(<span class="string">"We are iterating in a well defined range"</span>);
-        <span class="kw">let </span>chunk_layer_radial_chunks = coords.get_layer_num_radial_chunks(layer_num);
-        <span class="kw">let </span>prev_chunk_layer_radial_chunks = {
+        <span class="kw">let </span>chunk_layer_tangential_chunkss = coords.get_layer_num_tangential_chunkss(layer_num);
+        <span class="kw">let </span>prev_chunk_layer_tangential_chunkss = {
             <span class="kw">if </span>j == <span class="number">0 </span>{
                 <span class="number">1usize
             </span>} <span class="kw">else </span>{
-                coords.get_layer_num_radial_chunks(layer_num - <span class="number">1</span>)
+                coords.get_layer_num_tangential_chunkss(layer_num - <span class="number">1</span>)
             }
         };
         <span class="macro">debug_assert!</span>(
-            chunk_layer_radial_chunks == <span class="number">1 </span>|| chunk_layer_radial_chunks % <span class="number">3 </span>== <span class="number">0</span>,
+            chunk_layer_tangential_chunkss == <span class="number">1 </span>|| chunk_layer_tangential_chunkss % <span class="number">3 </span>== <span class="number">0</span>,
             <span class="string">"Chunk layer radial lines must be divisible by 3, but it is {}"</span>,
-            chunk_layer_radial_chunks
+            chunk_layer_tangential_chunkss
         );
 
-        <span class="comment">// Skip chunks who have a neighboring bottom layer which has a reduction in radial chunks
+        <span class="comment">// Skip chunks who have a neighboring bottom layer which has a reduction in tangential chunkss
         // as this causes convolution overlap
         </span><span class="kw">if </span>chunk_layer_concentric_circle == <span class="number">0
-            </span>&amp;&amp; prev_chunk_layer_radial_chunks &lt; chunk_layer_radial_chunks
-            || prev_chunk_layer_radial_chunks == <span class="number">1
+            </span>&amp;&amp; prev_chunk_layer_tangential_chunkss &lt; chunk_layer_tangential_chunkss
+            || prev_chunk_layer_tangential_chunkss == <span class="number">1
         </span>{
             <span class="kw">continue</span>;
         }
 
         <span class="comment">// Some layers just have one chunk, we need to only produce these values on a new k
-        </span><span class="kw">if </span>chunk_layer_radial_chunks == <span class="number">1 </span>&amp;&amp; (frame_nb % <span class="number">3</span>) != <span class="number">0 </span>{
+        </span><span class="kw">if </span>chunk_layer_tangential_chunkss == <span class="number">1 </span>&amp;&amp; (frame_nb % <span class="number">3</span>) != <span class="number">0 </span>{
             <span class="kw">continue</span>;
         }
 
         <span class="comment">// We need to step by 3 to prevent overlap. Think of a 3x3 convolution
-        </span><span class="kw">for </span>k <span class="kw">in </span>(start_k..chunk_layer_radial_chunks).step_by(<span class="number">3</span>) {
+        </span><span class="kw">for </span>k <span class="kw">in </span>(start_k..chunk_layer_tangential_chunkss).step_by(<span class="number">3</span>) {
             out.insert(ChunkIjkVector {
                 i: layer_num,
                 j: chunk_layer_concentric_circle,
@@ -1419,20 +1423,20 @@
     <span class="comment">// We need to step by 3 to prevent overlap. Think of a 3x3 convolution
     </span><span class="kw">for </span>layer_num <span class="kw">in </span>(start_i..i_size).step_by(<span class="number">3</span>) {
         <span class="comment">// Skip any layers whos previous layer doesn't only have one chunk
-        </span><span class="kw">let </span>prev_chunk_layer_radial_chunks = {
+        </span><span class="kw">let </span>prev_chunk_layer_tangential_chunkss = {
             <span class="kw">if </span>layer_num == <span class="number">0 </span>{
                 <span class="number">1usize </span><span class="comment">// Include the bottom layer
             </span>} <span class="kw">else </span>{
-                coords.get_layer_num_radial_chunks(layer_num - <span class="number">1</span>)
+                coords.get_layer_num_tangential_chunkss(layer_num - <span class="number">1</span>)
             }
         };
-        <span class="kw">if </span>prev_chunk_layer_radial_chunks != <span class="number">1 </span>{
+        <span class="kw">if </span>prev_chunk_layer_tangential_chunkss != <span class="number">1 </span>{
             <span class="kw">continue</span>;
         }
 
         <span class="comment">// Now add all the k's in this layer
-        </span><span class="kw">let </span>chunk_layer_radial_chunks = coords.get_layer_num_radial_chunks(layer_num);
-        <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..chunk_layer_radial_chunks {
+        </span><span class="kw">let </span>chunk_layer_tangential_chunkss = coords.get_layer_num_tangential_chunkss(layer_num);
+        <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..chunk_layer_tangential_chunkss {
             out.insert(ChunkIjkVector {
                 i: layer_num,
                 j: <span class="number">0</span>,
@@ -1444,7 +1448,7 @@
     Sequential(out)
 }
 
-<span class="doccomment">/// This calculates the targets for the edge case where the bottom layer has a different number of radial chunks than this layer.
+<span class="doccomment">/// This calculates the targets for the edge case where the bottom layer has a different number of tangential chunkss than this layer.
 /// In this case we still need to maintain a j step of 3, but we need to
 /// process all k's sequentially.
 </span><span class="kw">fn </span>calculate_ith_has_different_k_bottom_neighbor_targets(
@@ -1460,22 +1464,23 @@
     }
     <span class="kw">let </span>k_start = (frame_nb - <span class="number">3</span>) % <span class="number">6</span>;
     <span class="comment">// We need to step by 3 to prevent overlap. Think of a 3x3 convolution
-    // We don't need to step by 3 because this only happens after concentric layer splitting
-    // and concentric layer splitting starts with 3rds
+    // We don't need to step by 3 because this only happens after radial layer splitting
+    // and radial layer splitting starts with 3rds
     // and we will always be on the bottom chunk of the layer
     </span><span class="kw">for </span>layer_num <span class="kw">in </span><span class="number">1</span>..i_size {
         <span class="comment">// Skip any layers whos previous layer doesn't only have one chunk
-        </span><span class="kw">let </span>chunk_layer_radial_chunks = coords.get_layer_num_radial_chunks(layer_num);
-        <span class="kw">let </span>prev_chunk_layer_radial_chunks = coords.get_layer_num_radial_chunks(layer_num - <span class="number">1</span>);
-        <span class="kw">if </span>prev_chunk_layer_radial_chunks == <span class="number">1
-            </span>|| prev_chunk_layer_radial_chunks == chunk_layer_radial_chunks
+        </span><span class="kw">let </span>chunk_layer_tangential_chunkss = coords.get_layer_num_tangential_chunkss(layer_num);
+        <span class="kw">let </span>prev_chunk_layer_tangential_chunkss =
+            coords.get_layer_num_tangential_chunkss(layer_num - <span class="number">1</span>);
+        <span class="kw">if </span>prev_chunk_layer_tangential_chunkss == <span class="number">1
+            </span>|| prev_chunk_layer_tangential_chunkss == chunk_layer_tangential_chunkss
         {
             <span class="kw">continue</span>;
         }
 
         <span class="comment">// Now add all the k's in this layer but skip by 6 to prevent overlap
-        </span><span class="kw">let </span>chunk_layer_radial_chunks = coords.get_layer_num_radial_chunks(layer_num);
-        <span class="kw">for </span>k <span class="kw">in </span>(k_start..chunk_layer_radial_chunks).step_by(<span class="number">6</span>) {
+        </span><span class="kw">let </span>chunk_layer_tangential_chunkss = coords.get_layer_num_tangential_chunkss(layer_num);
+        <span class="kw">for </span>k <span class="kw">in </span>(k_start..chunk_layer_tangential_chunkss).step_by(<span class="number">6</span>) {
             out.insert(ChunkIjkVector {
                 i: layer_num,
                 j: <span class="number">0</span>,
@@ -1530,7 +1535,7 @@
             Vec::with_capacity(coords.get_num_layers());
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..coords.get_num_layers() {
             <span class="kw">let </span>j_size = coords.get_layer_num_concentric_chunks(i);
-            <span class="kw">let </span>k_size = coords.get_layer_num_radial_chunks(i);
+            <span class="kw">let </span>k_size = coords.get_layer_num_tangential_chunkss(i);
             <span class="kw">let </span><span class="kw-2">mut </span>layer = Grid::new_empty(k_size, j_size);
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
                 <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..k_size {
@@ -1563,7 +1568,7 @@
             Vec::with_capacity(coords.get_num_layers());
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..coords.get_num_layers() {
             <span class="kw">let </span>j_size = coords.get_layer_num_concentric_chunks(i);
-            <span class="kw">let </span>k_size = coords.get_layer_num_radial_chunks(i);
+            <span class="kw">let </span>k_size = coords.get_layer_num_tangential_chunkss(i);
             <span class="kw">let </span><span class="kw-2">mut </span>layer = Grid::new_empty(k_size, j_size);
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
                 <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..k_size {
@@ -1599,7 +1604,7 @@
     </span><span class="kw">fn </span>get_chunk_top_neighbors(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: ChunkIjkVector) -&gt; TopNeighborIdxs {
         <span class="kw">let </span>top_chunk_in_layer = <span class="self">self</span>.coords.get_layer_num_concentric_chunks(coord.i) - <span class="number">1</span>;
         <span class="kw">let </span>top_layer = <span class="self">self</span>.coords.get_num_layers() - <span class="number">1</span>;
-        <span class="kw">let </span>radial_lines = |i: usize| <span class="self">self</span>.coords.get_layer_num_radial_chunks(i);
+        <span class="kw">let </span>radial_lines = |i: usize| <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(i);
         <span class="kw">let </span>k_isize = coord.k <span class="kw">as </span>isize;
 
         <span class="comment">// A convenience function for making a vector and adding it to the out set
@@ -1624,7 +1629,7 @@
                 <span class="kw">_ </span>=&gt; default_neighbors,
             },
             (i, j) <span class="kw">if </span>j == top_chunk_in_layer &amp;&amp; radial_lines(i) != radial_lines(i + <span class="number">1</span>) =&gt; {
-                TopNeighborIdxs::LayerTransition {
+                TopNeighborIdxs::ChunkDoubling {
                     tl: make_vector(i + <span class="number">1</span>, <span class="number">0</span>, k_isize * <span class="number">2 </span>+ <span class="number">2</span>),
                     t1: make_vector(i + <span class="number">1</span>, <span class="number">0</span>, k_isize * <span class="number">2 </span>+ <span class="number">1</span>),
                     t0: make_vector(i + <span class="number">1</span>, <span class="number">0</span>, k_isize * <span class="number">2</span>),
@@ -1644,21 +1649,21 @@
 
     <span class="comment">// TODO: This needs testing
     </span><span class="kw">fn </span>get_chunk_left_right_neighbors(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: ChunkIjkVector) -&gt; LeftRightNeighborIdxs {
-        <span class="kw">let </span>num_radial_chunks = <span class="self">self</span>.coords.get_layer_num_radial_chunks(coord.i);
+        <span class="kw">let </span>num_tangential_chunkss = <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(coord.i);
         <span class="macro">debug_assert!</span>(
-            num_radial_chunks &gt; <span class="number">0</span>,
-            <span class="string">"Number of radial chunks must be greater than 0"
+            num_tangential_chunkss &gt; <span class="number">0</span>,
+            <span class="string">"Number of tangential chunkss must be greater than 0"
         </span>);
         <span class="kw">let </span>left = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
-            k: modulo(coord.k <span class="kw">as </span>isize + <span class="number">1</span>, num_radial_chunks),
+            k: modulo(coord.k <span class="kw">as </span>isize + <span class="number">1</span>, num_tangential_chunkss),
         };
         <span class="macro">debug_assert_ne!</span>(left, coord);
         <span class="kw">let </span>right = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
-            k: modulo(coord.k <span class="kw">as </span>isize - <span class="number">1</span>, num_radial_chunks),
+            k: modulo(coord.k <span class="kw">as </span>isize - <span class="number">1</span>, num_tangential_chunkss),
         };
         <span class="macro">debug_assert_ne!</span>(right, coord);
         <span class="macro">debug_assert_ne!</span>(left, right);
@@ -1669,7 +1674,7 @@
     </span><span class="kw">fn </span>get_chunk_bottom_neighbors(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: ChunkIjkVector) -&gt; BottomNeighborIdxs {
         <span class="kw">let </span>bottom_chunk_in_layer = <span class="number">0usize</span>;
         <span class="kw">let </span>bottom_layer = <span class="number">0usize</span>;
-        <span class="kw">let </span>radial_chunks = |i: usize| <span class="self">self</span>.coords.get_layer_num_radial_chunks(i);
+        <span class="kw">let </span>tangential_chunkss = |i: usize| <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(i);
         <span class="kw">let </span>top_chunk_in_prev_layer =
             |i: usize| <span class="self">self</span>.coords.get_layer_num_concentric_chunks(i - <span class="number">1</span>) - <span class="number">1</span>;
         <span class="kw">let </span>k_isize = coord.k <span class="kw">as </span>isize;
@@ -1678,7 +1683,7 @@
             ChunkIjkVector {
                 i,
                 j,
-                k: modulo(k, radial_chunks(i)),
+                k: modulo(k, tangential_chunkss(i)),
             }
         };
 
@@ -1689,25 +1694,28 @@
             <span class="comment">// If going down a layer but you are not at the bottom
             </span>(i, j, k)
                 <span class="kw">if </span>j == bottom_chunk_in_layer
-                    &amp;&amp; radial_chunks(i) != radial_chunks(i - <span class="number">1</span>)
+                    &amp;&amp; tangential_chunkss(i) != tangential_chunkss(i - <span class="number">1</span>)
                     &amp;&amp; k % <span class="number">2 </span>== <span class="number">0 </span>=&gt;
             {
-                BottomNeighborIdxs::LayerTransition {
+                BottomNeighborIdxs::ChunkDoubling {
                     bl: make_vector(coord.i - <span class="number">1</span>, top_chunk_in_prev_layer(i), k_isize / <span class="number">2</span>),
                     br: make_vector(coord.i - <span class="number">1</span>, top_chunk_in_prev_layer(i), k_isize / <span class="number">2 </span>- <span class="number">1</span>),
                 }
             }
             (i, j, k)
                 <span class="kw">if </span>j == bottom_chunk_in_layer
-                    &amp;&amp; radial_chunks(i) != radial_chunks(i - <span class="number">1</span>)
+                    &amp;&amp; tangential_chunkss(i) != tangential_chunkss(i - <span class="number">1</span>)
                     &amp;&amp; k % <span class="number">2 </span>== <span class="number">1 </span>=&gt;
             {
-                BottomNeighborIdxs::LayerTransition {
+                BottomNeighborIdxs::ChunkDoubling {
                     bl: make_vector(coord.i - <span class="number">1</span>, top_chunk_in_prev_layer(i), k_isize / <span class="number">2 </span>+ <span class="number">1</span>),
                     br: make_vector(coord.i - <span class="number">1</span>, top_chunk_in_prev_layer(i), k_isize / <span class="number">2</span>),
                 }
             }
-            (i, j, <span class="kw">_</span>) <span class="kw">if </span>j == bottom_chunk_in_layer &amp;&amp; radial_chunks(i) == radial_chunks(i - <span class="number">1</span>) =&gt; {
+            (i, j, <span class="kw">_</span>)
+                <span class="kw">if </span>j == bottom_chunk_in_layer
+                    &amp;&amp; tangential_chunkss(i) == tangential_chunkss(i - <span class="number">1</span>) =&gt;
+            {
                 BottomNeighborIdxs::Normal {
                     bl: make_vector(coord.i - <span class="number">1</span>, top_chunk_in_prev_layer(i), k_isize + <span class="number">1</span>),
                     b: make_vector(coord.i - <span class="number">1</span>, top_chunk_in_prev_layer(i), k_isize),
@@ -1830,7 +1838,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>out = Vec::new();
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_layers() {
             <span class="kw">let </span>j_size = <span class="self">self</span>.coords.get_layer_num_concentric_chunks(i);
-            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_radial_chunks(i);
+            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(i);
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
                 <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..k_size {
                     <span class="kw">let </span>coord = ChunkIjkVector { i, j, k };
@@ -1847,7 +1855,7 @@
     </span><span class="kw">fn </span>unlock_all_chunks(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_layers() {
             <span class="kw">let </span>j_size = <span class="self">self</span>.coords.get_layer_num_concentric_chunks(i);
-            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_radial_chunks(i);
+            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(i);
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
                 <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..k_size {
                     <span class="kw">let </span>coord = ChunkIjkVector { i, j, k };
@@ -1990,7 +1998,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>out = <span class="number">0</span>;
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_layers() {
             <span class="kw">let </span>j_size = <span class="self">self</span>.coords.get_layer_num_concentric_chunks(i);
-            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_radial_chunks(i);
+            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(i);
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
                 <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..k_size {
                     <span class="kw">let </span>coord = ChunkIjkVector { i, j, k };
@@ -2109,7 +2117,7 @@
         </span><span class="kw">let </span><span class="kw-2">mut </span>filter: Vec&lt;Grid&lt;bool&gt;&gt; = Vec::with_capacity(<span class="self">self</span>.coords.get_num_layers());
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_layers() {
             <span class="kw">let </span>j_size = <span class="self">self</span>.coords.get_layer_num_concentric_chunks(i);
-            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_radial_chunks(i);
+            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(i);
             <span class="kw">let </span>layer = Grid::new_from_vec(k_size, j_size, <span class="macro">vec!</span>[<span class="bool-val">true</span>; k_size * j_size]);
             filter.push(layer);
         }
@@ -2124,7 +2132,7 @@
         <span class="kw">let </span>(max_temp, min_temp) = <span class="self">self</span>.get_max_min_temp();
         <span class="kw">for </span>(i, item) <span class="kw">in </span>filter.iter().enumerate() {
             <span class="kw">let </span>j_size = <span class="self">self</span>.coords.get_layer_num_concentric_chunks(i);
-            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_radial_chunks(i);
+            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(i);
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
                 <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..k_size {
                     <span class="kw">if </span>!item.get(JkVector { j, k }) {
@@ -2391,7 +2399,7 @@
             </span><span class="kw">let </span><span class="kw-2">mut </span>full_coverage = HashSet::new();
             <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..element_grid_dir.coords.get_num_layers() {
                 <span class="kw">let </span>j_size = element_grid_dir.coords.get_layer_num_concentric_chunks(i);
-                <span class="kw">let </span>k_size = element_grid_dir.coords.get_layer_num_radial_chunks(i);
+                <span class="kw">let </span>k_size = element_grid_dir.coords.get_layer_num_tangential_chunkss(i);
                 <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
                     <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..k_size {
                         full_coverage.insert(ChunkIjkVector { i, j, k });

@@ -1179,19 +1179,6 @@
 <a href="#1178" id="1178">1178</a>
 <a href="#1179" id="1179">1179</a>
 <a href="#1180" id="1180">1180</a>
-<a href="#1181" id="1181">1181</a>
-<a href="#1182" id="1182">1182</a>
-<a href="#1183" id="1183">1183</a>
-<a href="#1184" id="1184">1184</a>
-<a href="#1185" id="1185">1185</a>
-<a href="#1186" id="1186">1186</a>
-<a href="#1187" id="1187">1187</a>
-<a href="#1188" id="1188">1188</a>
-<a href="#1189" id="1189">1189</a>
-<a href="#1190" id="1190">1190</a>
-<a href="#1191" id="1191">1191</a>
-<a href="#1192" id="1192">1192</a>
-<a href="#1193" id="1193">1193</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::f32::consts::PI;
 
 <span class="kw">use </span>bevy::math::{Rect, Vec2};
@@ -1226,7 +1213,7 @@
     num_layers: usize,
     first_num_radial_lines: usize,
     second_num_concentric_circles: usize,
-    first_num_radial_chunks: usize,
+    first_num_tangential_chunkss: usize,
     max_radial_lines_per_chunk: usize,
     max_concentric_circles_per_chunk: usize,
 }
@@ -1246,7 +1233,7 @@
             cell_radius: Length(<span class="number">1.0</span>),
             num_layers: <span class="number">1</span>,
             first_num_radial_lines: <span class="number">6</span>,
-            first_num_radial_chunks: <span class="number">3</span>,
+            first_num_tangential_chunkss: <span class="number">3</span>,
             max_radial_lines_per_chunk: <span class="number">128</span>,
             max_concentric_circles_per_chunk: <span class="number">128</span>,
             second_num_concentric_circles: <span class="number">2</span>,
@@ -1270,11 +1257,11 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// The number of radial chunks in the core.
+    <span class="doccomment">/// The number of tangential chunkss in the core.
     /// The core doesn't really have chunks, but you can imagine them as
     /// starting in the core. The second layer has the same number of chunks as the first layer.
-    </span><span class="kw">pub fn </span>first_num_radial_chunks(<span class="kw-2">mut </span><span class="self">self</span>, first_num_radial_chunks: usize) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.first_num_radial_chunks = first_num_radial_chunks;
+    </span><span class="kw">pub fn </span>first_num_tangential_chunkss(<span class="kw-2">mut </span><span class="self">self</span>, first_num_tangential_chunkss: usize) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.first_num_tangential_chunkss = first_num_tangential_chunkss;
         <span class="self">self
     </span>}
 
@@ -1327,10 +1314,10 @@
         <span class="kw">let </span><span class="kw-2">mut </span>start_concentric_circle_absolute = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>layer_num = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>total_concentric_circle_chunks = <span class="number">0</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>num_radial_chunks = <span class="self">self</span>.first_num_radial_chunks;
+        <span class="kw">let </span><span class="kw-2">mut </span>num_tangential_chunkss = <span class="self">self</span>.first_num_tangential_chunkss;
         <span class="kw">let </span><span class="kw-2">mut </span>num_concentric_chunks = <span class="number">1</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>core_chunks = Grid::new_empty(num_radial_chunks, num_concentric_chunks);
-        <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..num_radial_chunks {
+        <span class="kw">let </span><span class="kw-2">mut </span>core_chunks = Grid::new_empty(num_tangential_chunkss, num_concentric_chunks);
+        <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..num_tangential_chunkss {
             <span class="kw">let </span>next_layer = PartialLayerChunkCoordsBuilder::new()
                 .cell_radius(<span class="self">self</span>.cell_radius)
                 .layer_num_radial_lines(layer_num_radial_lines)
@@ -1342,10 +1329,10 @@
                 .num_concentric_circles(num_concentric_circles)
                 .start_concentric_circle_absolute(start_concentric_circle_absolute)
                 .start_concentric_circle_layer_relative(<span class="number">0</span>)
-                .start_radial_line(k * (layer_num_radial_lines / num_radial_chunks))
-                .end_radial_line((k + <span class="number">1</span>) * (layer_num_radial_lines / num_radial_chunks))
+                .start_radial_line(k * (layer_num_radial_lines / num_tangential_chunkss))
+                .end_radial_line((k + <span class="number">1</span>) * (layer_num_radial_lines / num_tangential_chunkss))
                 .build();
-            <span class="macro">debug_assert!</span>(layer_num_radial_lines % num_radial_chunks == <span class="number">0</span>);
+            <span class="macro">debug_assert!</span>(layer_num_radial_lines % num_tangential_chunkss == <span class="number">0</span>);
             <span class="macro">debug_assert!</span>(num_concentric_circles % num_concentric_chunks == <span class="number">0</span>);
             core_chunks.replace(JkVector { j: <span class="number">0</span>, k }, next_layer);
         }
@@ -1364,9 +1351,9 @@
 
             <span class="comment">// TODO: Check this
             </span><span class="kw">let </span><span class="kw-2">mut </span>layer_partial_chunks =
-                Grid::new_empty(num_radial_chunks, num_concentric_chunks);
+                Grid::new_empty(num_tangential_chunkss, num_concentric_chunks);
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..num_concentric_chunks {
-                <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..num_radial_chunks {
+                <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..num_tangential_chunkss {
                     <span class="kw">let </span>next_layer = PartialLayerChunkCoordsBuilder::new()
                         .cell_radius(<span class="self">self</span>.cell_radius)
                         .layer_num_radial_lines(layer_num_radial_lines)
@@ -1376,10 +1363,12 @@
                         .start_concentric_circle_layer_relative(
                             j * (num_concentric_circles / num_concentric_chunks),
                         )
-                        .start_radial_line(k * (layer_num_radial_lines / num_radial_chunks))
-                        .end_radial_line((k + <span class="number">1</span>) * (layer_num_radial_lines / num_radial_chunks))
+                        .start_radial_line(k * (layer_num_radial_lines / num_tangential_chunkss))
+                        .end_radial_line(
+                            (k + <span class="number">1</span>) * (layer_num_radial_lines / num_tangential_chunkss),
+                        )
                         .build();
-                    <span class="macro">debug_assert!</span>(layer_num_radial_lines % num_radial_chunks == <span class="number">0</span>);
+                    <span class="macro">debug_assert!</span>(layer_num_radial_lines % num_tangential_chunkss == <span class="number">0</span>);
                     <span class="macro">debug_assert!</span>(num_concentric_circles % num_concentric_chunks == <span class="number">0</span>);
                     layer_partial_chunks.replace(JkVector { j, k }, next_layer);
                 }
@@ -1396,7 +1385,7 @@
 
             <span class="comment">// If we exceeded the max radial lines per chunk, double the number of chunks in the radial direction
             </span><span class="kw">if </span>layer_num_radial_lines &gt; <span class="self">self</span>.max_radial_lines_per_chunk {
-                num_radial_chunks <span class="kw-2">*</span>= <span class="number">2</span>;
+                num_tangential_chunkss <span class="kw-2">*</span>= <span class="number">2</span>;
             }
             <span class="comment">// After layer 2, make 3 concentric circle chunks
             // The first layers 0, 1, and 2 are 1 chunk concentric each, making 3 chunks
@@ -1553,15 +1542,15 @@
             .get(chunk_idx.to_jk_vector())
             .get_end_radius()
     }
-    <span class="kw">pub fn </span>get_chunk_start_radial_theta(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_idx: ChunkIjkVector) -&gt; f32 {
+    <span class="kw">pub fn </span>get_chunk_start_theta(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_idx: ChunkIjkVector) -&gt; f32 {
         <span class="self">self</span>.partial_chunks[chunk_idx.i]
             .get(chunk_idx.to_jk_vector())
-            .get_start_radial_theta()
+            .get_start_theta()
     }
-    <span class="kw">pub fn </span>get_chunk_end_radial_theta(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_idx: ChunkIjkVector) -&gt; f32 {
+    <span class="kw">pub fn </span>get_chunk_end_theta(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_idx: ChunkIjkVector) -&gt; f32 {
         <span class="self">self</span>.partial_chunks[chunk_idx.i]
             .get(chunk_idx.to_jk_vector())
-            .get_end_radial_theta()
+            .get_end_theta()
     }
     <span class="kw">pub fn </span>get_chunk_num_radial_lines(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_idx: ChunkIjkVector) -&gt; usize {
         <span class="self">self</span>.partial_chunks[chunk_idx.i]
@@ -1635,10 +1624,10 @@
  * ================== */
 </span><span class="kw">impl </span>CoordinateDir {
     <span class="doccomment">/// Get the number of chunks around the circle in a given layer
-    </span><span class="kw">pub fn </span>get_layer_num_radial_chunks(<span class="kw-2">&amp;</span><span class="self">self</span>, layer_num: usize) -&gt; usize {
+    </span><span class="kw">pub fn </span>get_layer_num_tangential_chunkss(<span class="kw-2">&amp;</span><span class="self">self</span>, layer_num: usize) -&gt; usize {
         <span class="self">self</span>.partial_chunks[layer_num].get_width()
     }
-    <span class="doccomment">/// Get the number of chunks in the concentric circle dimension in a given layer
+    <span class="doccomment">/// Get the number of chunks in the radial dimension in a given layer
     </span><span class="kw">pub fn </span>get_layer_num_concentric_chunks(<span class="kw-2">&amp;</span><span class="self">self</span>, layer_num: usize) -&gt; usize {
         <span class="self">self</span>.partial_chunks[layer_num].get_height()
     }
@@ -1827,10 +1816,10 @@
             <span class="self">self</span>.get_layer_num_concentric_chunks(cell_idx.i)
         );
         <span class="macro">debug_assert!</span>(
-            ck &lt; <span class="self">self</span>.get_layer_num_radial_chunks(cell_idx.i),
+            ck &lt; <span class="self">self</span>.get_layer_num_tangential_chunkss(cell_idx.i),
             <span class="string">"{} &gt;= {}"</span>,
             ck,
-            <span class="self">self</span>.get_layer_num_radial_chunks(cell_idx.i)
+            <span class="self">self</span>.get_layer_num_tangential_chunkss(cell_idx.i)
         );
         (
             ChunkIjkVector {
@@ -1917,39 +1906,39 @@
             <span class="kw">let </span>coord_dir = default_coordinate_dir();
             <span class="comment">// Core
             </span><span class="macro">assert_eq!</span>(coord_dir.get_layer_num_concentric_chunks(<span class="number">0</span>), <span class="number">1</span>);
-            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_radial_chunks(<span class="number">0</span>), <span class="number">3</span>);
+            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_tangential_chunkss(<span class="number">0</span>), <span class="number">3</span>);
 
             <span class="comment">// Layer 1
             </span><span class="macro">assert_eq!</span>(coord_dir.get_layer_num_concentric_chunks(<span class="number">1</span>), <span class="number">1</span>);
-            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_radial_chunks(<span class="number">1</span>), <span class="number">3</span>);
+            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_tangential_chunkss(<span class="number">1</span>), <span class="number">3</span>);
 
             <span class="comment">// Layer 2
             </span><span class="macro">assert_eq!</span>(coord_dir.get_layer_num_concentric_chunks(<span class="number">2</span>), <span class="number">1</span>);
-            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_radial_chunks(<span class="number">2</span>), <span class="number">3</span>);
+            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_tangential_chunkss(<span class="number">2</span>), <span class="number">3</span>);
 
             <span class="comment">// Layer 3
             </span><span class="macro">assert_eq!</span>(coord_dir.get_layer_num_concentric_chunks(<span class="number">3</span>), <span class="number">3</span>);
-            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_radial_chunks(<span class="number">3</span>), <span class="number">3</span>);
+            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_tangential_chunkss(<span class="number">3</span>), <span class="number">3</span>);
 
             <span class="comment">// Layer 4
             </span><span class="macro">assert_eq!</span>(coord_dir.get_layer_num_concentric_chunks(<span class="number">4</span>), <span class="number">3</span>);
-            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_radial_chunks(<span class="number">4</span>), <span class="number">6</span>);
+            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_tangential_chunkss(<span class="number">4</span>), <span class="number">6</span>);
 
             <span class="comment">// Layer 5
             </span><span class="macro">assert_eq!</span>(coord_dir.get_layer_num_concentric_chunks(<span class="number">5</span>), <span class="number">3</span>);
-            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_radial_chunks(<span class="number">5</span>), <span class="number">12</span>);
+            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_tangential_chunkss(<span class="number">5</span>), <span class="number">12</span>);
 
             <span class="comment">// Layer 6
             </span><span class="macro">assert_eq!</span>(coord_dir.get_layer_num_concentric_chunks(<span class="number">6</span>), <span class="number">6</span>);
-            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_radial_chunks(<span class="number">6</span>), <span class="number">24</span>);
+            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_tangential_chunkss(<span class="number">6</span>), <span class="number">24</span>);
 
             <span class="comment">// Layer 7
             </span><span class="macro">assert_eq!</span>(coord_dir.get_layer_num_concentric_chunks(<span class="number">7</span>), <span class="number">12</span>);
-            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_radial_chunks(<span class="number">7</span>), <span class="number">48</span>);
+            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_tangential_chunkss(<span class="number">7</span>), <span class="number">48</span>);
 
             <span class="comment">// Layer 8
             </span><span class="macro">assert_eq!</span>(coord_dir.get_layer_num_concentric_chunks(<span class="number">8</span>), <span class="number">24</span>);
-            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_radial_chunks(<span class="number">8</span>), <span class="number">96</span>);
+            <span class="macro">assert_eq!</span>(coord_dir.get_layer_num_tangential_chunkss(<span class="number">8</span>), <span class="number">96</span>);
         }
 
         <span class="attr">#[test]
@@ -2187,13 +2176,13 @@
                 <span class="comment">// Test the rest
                 </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..coordinate_dir.get_num_layers() {
                     <span class="kw">let </span>num_concentric_chunks = coordinate_dir.get_layer_num_concentric_chunks(i);
-                    <span class="kw">let </span>num_radial_chunks = coordinate_dir.get_layer_num_radial_chunks(i);
+                    <span class="kw">let </span>num_tangential_chunkss = coordinate_dir.get_layer_num_tangential_chunkss(i);
                     <span class="kw">let </span><span class="kw-2">mut </span>total_concentric_circles = <span class="number">0</span>;
                     <span class="kw">for </span>cj <span class="kw">in </span><span class="number">0</span>..num_concentric_chunks {
                         <span class="kw">let </span><span class="kw-2">mut </span>total_radial_lines = <span class="number">0</span>;
                         <span class="kw">let </span>chunk_layer_num_concentric_circles = coordinate_dir
                             .get_chunk_num_concentric_circles(ChunkIjkVector { i, j: cj, k: <span class="number">0 </span>});
-                        <span class="kw">for </span>ck <span class="kw">in </span><span class="number">0</span>..num_radial_chunks {
+                        <span class="kw">for </span>ck <span class="kw">in </span><span class="number">0</span>..num_tangential_chunkss {
                             <span class="kw">let </span>chunk_num_radial_lines = coordinate_dir
                                 .get_chunk_num_radial_lines(ChunkIjkVector { i, j: cj, k: ck });
                             <span class="kw">for </span>j <span class="kw">in </span>total_concentric_circles
@@ -2244,7 +2233,7 @@
             coordinate_dir.get_chunk_num_concentric_circles(ChunkIjkVector::ZERO),
             <span class="number">1
         </span>);
-        <span class="comment">// The start_radius x end_radius x start_radial_theta x end_radial_theta should be 0 x 1 x 0 x 2pi
+        <span class="comment">// The start_radius x end_radius x start_theta x end_theta should be 0 x 1 x 0 x 2pi
         </span><span class="macro">assert_eq!</span>(
             coordinate_dir.get_chunk_start_radius(ChunkIjkVector::ZERO),
             <span class="number">0.0
@@ -2254,11 +2243,11 @@
             <span class="number">1.0
         </span>);
         <span class="macro">assert_eq!</span>(
-            coordinate_dir.get_chunk_start_radial_theta(ChunkIjkVector::ZERO),
+            coordinate_dir.get_chunk_start_theta(ChunkIjkVector::ZERO),
             <span class="number">0.0
         </span>);
         <span class="macro">assert_eq!</span>(
-            coordinate_dir.get_chunk_end_radial_theta(ChunkIjkVector::ZERO),
+            coordinate_dir.get_chunk_end_theta(ChunkIjkVector::ZERO),
             <span class="number">2.0 </span>* PI / <span class="number">3.0
         </span>);
 
@@ -2267,58 +2256,46 @@
         <span class="comment">// Test that the next chunk is 3x12
         </span><span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_num_radial_lines(layer1), <span class="number">4</span>);
         <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_num_concentric_circles(layer1), <span class="number">3</span>);
-        <span class="comment">// The start_radius x end_radius x start_radial_theta x end_radial_theta should be 1 x 4 x 0 x 2pi
+        <span class="comment">// The start_radius x end_radius x start_theta x end_theta should be 1 x 4 x 0 x 2pi
         // 1 comes from the previous layer's end_radius
         // 3 comes from the previous layer's end_radius + the previous layers (end_radius - start_radius)*2
         </span><span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_start_radius(layer1), <span class="number">1.0</span>);
         <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_end_radius(layer1), <span class="number">4.0</span>);
-        <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_start_radial_theta(layer1), <span class="number">0.0</span>);
-        <span class="macro">assert_eq!</span>(
-            coordinate_dir.get_chunk_end_radial_theta(layer1),
-            <span class="number">2.0 </span>* PI / <span class="number">3.0
-        </span>);
+        <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_start_theta(layer1), <span class="number">0.0</span>);
+        <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_end_theta(layer1), <span class="number">2.0 </span>* PI / <span class="number">3.0</span>);
 
         <span class="comment">// Layer 2
         </span><span class="kw">let </span>layer2 = ChunkIjkVector { i: <span class="number">2</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>};
         <span class="comment">// Test that the next chunk is 6x24
         </span><span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_num_radial_lines(layer2), <span class="number">8</span>);
         <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_num_concentric_circles(layer2), <span class="number">6</span>);
-        <span class="comment">// The start_radius x end_radius x start_radial_theta x end_radial_theta should be 4 x 10 x 0 x 2pi
+        <span class="comment">// The start_radius x end_radius x start_theta x end_theta should be 4 x 10 x 0 x 2pi
         </span><span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_start_radius(layer2), <span class="number">4.0</span>);
         <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_end_radius(layer2), <span class="number">10.0</span>);
-        <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_start_radial_theta(layer2), <span class="number">0.0</span>);
-        <span class="macro">assert_eq!</span>(
-            coordinate_dir.get_chunk_end_radial_theta(layer2),
-            <span class="number">2.0 </span>* PI / <span class="number">3.0
-        </span>);
+        <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_start_theta(layer2), <span class="number">0.0</span>);
+        <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_end_theta(layer2), <span class="number">2.0 </span>* PI / <span class="number">3.0</span>);
 
         <span class="comment">// Layer 3
         </span><span class="kw">let </span>layer3 = ChunkIjkVector { i: <span class="number">3</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>};
         <span class="comment">// Test that the next chunk is 12x48
         </span><span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_num_radial_lines(layer3), <span class="number">16</span>);
         <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_num_concentric_circles(layer3), <span class="number">4</span>);
-        <span class="comment">// The start_radius x end_radius x start_radial_theta x end_radial_theta should be 10 x 22 x 0 x 2pi
+        <span class="comment">// The start_radius x end_radius x start_theta x end_theta should be 10 x 22 x 0 x 2pi
         </span><span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_start_radius(layer3), <span class="number">10.0</span>);
         <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_end_radius(layer3), <span class="number">14.0</span>);
-        <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_start_radial_theta(layer3), <span class="number">0.0</span>);
-        <span class="macro">assert_eq!</span>(
-            coordinate_dir.get_chunk_end_radial_theta(layer3),
-            <span class="number">2.0 </span>* PI / <span class="number">3.0
-        </span>);
+        <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_start_theta(layer3), <span class="number">0.0</span>);
+        <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_end_theta(layer3), <span class="number">2.0 </span>* PI / <span class="number">3.0</span>);
 
         <span class="comment">// Layer 4
         </span><span class="kw">let </span>layer4 = ChunkIjkVector { i: <span class="number">4</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>};
         <span class="comment">//  Test that the next chunk is 24x96
         </span><span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_num_radial_lines(layer4), <span class="number">16</span>);
         <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_num_concentric_circles(layer4), <span class="number">8</span>);
-        <span class="comment">// The start_radius x end_radius x start_radial_theta x end_radial_theta should be 22 x 46 x 0 x 2pi
+        <span class="comment">// The start_radius x end_radius x start_theta x end_theta should be 22 x 46 x 0 x 2pi
         </span><span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_start_radius(layer4), <span class="number">22.0</span>);
         <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_end_radius(layer4), <span class="number">30.0</span>);
-        <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_start_radial_theta(layer4), <span class="number">0.0</span>);
-        <span class="macro">assert_eq!</span>(
-            coordinate_dir.get_chunk_end_radial_theta(layer4),
-            <span class="number">2.0 </span>* PI / <span class="number">6.0
-        </span>);
+        <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_start_theta(layer4), <span class="number">0.0</span>);
+        <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_end_theta(layer4), <span class="number">2.0 </span>* PI / <span class="number">6.0</span>);
 
         <span class="comment">// Layer 5
         </span><span class="kw">let </span>layer5 = ChunkIjkVector { i: <span class="number">5</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>};
@@ -2326,14 +2303,11 @@
         // This divided in to 6
         </span><span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_num_radial_lines(layer5), <span class="number">16</span>);
         <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_num_concentric_circles(layer5), <span class="number">16</span>);
-        <span class="comment">// The start_radius x end_radius x start_radial_theta x end_radial_theta should be 46 x 94 x 0 x 2pi
+        <span class="comment">// The start_radius x end_radius x start_theta x end_theta should be 46 x 94 x 0 x 2pi
         </span><span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_start_radius(layer5), <span class="number">46.0</span>);
         <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_end_radius(layer5), <span class="number">62.0</span>);
-        <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_start_radial_theta(layer5), <span class="number">0.0</span>);
-        <span class="macro">assert_approx_eq!</span>(
-            coordinate_dir.get_chunk_end_radial_theta(layer5),
-            <span class="number">2.0 </span>* PI / <span class="number">12.0
-        </span>);
+        <span class="macro">assert_eq!</span>(coordinate_dir.get_chunk_start_theta(layer5), <span class="number">0.0</span>);
+        <span class="macro">assert_approx_eq!</span>(coordinate_dir.get_chunk_end_theta(layer5), <span class="number">2.0 </span>* PI / <span class="number">12.0</span>);
 
         <span class="comment">// // Layer 6
         // I had to change this several times, it works
@@ -2354,9 +2328,9 @@
         //     coordinate_dir.get_chunk_end_radius(layer6),
         //     9.0 + (64 / 3) as f32
         // );
-        // assert_eq!(coordinate_dir.get_chunk_start_radial_theta(layer6), 0.0);
+        // assert_eq!(coordinate_dir.get_chunk_start_theta(layer6), 0.0);
         // assert_approx_eq!(
-        //     coordinate_dir.get_chunk_end_radial_theta(layer6),
+        //     coordinate_dir.get_chunk_end_theta(layer6),
         //     2.0 * PI / 6.0
         // );
 
@@ -2378,9 +2352,9 @@
         //     coordinate_dir.get_chunk_end_radius(layer7),
         //     63.0 + 64_f32 + (128 / 6) as f32
         // );
-        // assert_eq!(coordinate_dir.get_chunk_start_radial_theta(layer7), 0.0);
+        // assert_eq!(coordinate_dir.get_chunk_start_theta(layer7), 0.0);
         // assert_approx_eq!(
-        //     coordinate_dir.get_chunk_end_radial_theta(layer7),
+        //     coordinate_dir.get_chunk_end_theta(layer7),
         //     2.0 * PI / 12.0
         // );
     </span>}

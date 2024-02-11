@@ -268,7 +268,7 @@
         t: ChunkIjkVector,
         tr: ChunkIjkVector,
     },
-    LayerTransition {
+    ChunkDoubling {
         tl: ChunkIjkVector,
         t1: ChunkIjkVector,
         t0: ChunkIjkVector,
@@ -296,7 +296,7 @@
                     <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
                 }
             }
-            <span class="prelude-val">Some</span>(TopNeighborIdxs::LayerTransition { tl, t0, t1, tr }) =&gt; {
+            <span class="prelude-val">Some</span>(TopNeighborIdxs::ChunkDoubling { tl, t0, t1, tr }) =&gt; {
                 <span class="self">self</span>.index += <span class="number">1</span>;
                 <span class="kw">match </span><span class="self">self</span>.index {
                     <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>tl),
@@ -328,7 +328,7 @@
         b: ChunkIjkVector,
         br: ChunkIjkVector,
     },
-    LayerTransition {
+    ChunkDoubling {
         bl: ChunkIjkVector,
         br: ChunkIjkVector,
     },
@@ -354,7 +354,7 @@
                     <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
                 }
             }
-            <span class="prelude-val">Some</span>(BottomNeighborIdxs::LayerTransition { bl, br }) =&gt; {
+            <span class="prelude-val">Some</span>(BottomNeighborIdxs::ChunkDoubling { bl, br }) =&gt; {
                 <span class="self">self</span>.index += <span class="number">1</span>;
                 <span class="kw">match </span><span class="self">self</span>.index {
                     <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(bl),
