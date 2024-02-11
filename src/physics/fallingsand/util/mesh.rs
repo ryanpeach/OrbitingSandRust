@@ -5,9 +5,9 @@
 #![warn(clippy::missing_docs_in_private_items)]
 
 use bevy::ecs::component::Component;
-use bevy::ecs::system::Query;
+
 use bevy::math::{Rect, Vec2};
-use bevy::render::view::{visibility, Visibility};
+
 use bevy::{
     asset::{Assets, Handle},
     ecs::system::ResMut,

@@ -5,10 +5,9 @@ use bevy::{
     ecs::{
         entity::Entity,
         query::With,
-        schedule::IntoSystemConfigs,
         system::{Local, Query, Res, ResMut, Resource},
     },
-    render::view::{screenshot::ScreenshotManager, Visibility},
+    render::view::{screenshot::ScreenshotManager},
     transform::components::Transform,
     window::PrimaryWindow,
 };
@@ -17,10 +16,7 @@ use bevy_egui::{
     EguiContexts,
 };
 
-use crate::{
-    entities::celestials::celestial::{CelestialOutline, CelestialWireframe},
-    physics::fallingsand::util::mesh::{GizmoDrawableLoop, GizmoDrawableTriangles},
-};
+
 
 #[derive(Debug, Clone, Copy)]
 pub enum PlayPauseMode {

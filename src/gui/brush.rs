@@ -23,7 +23,7 @@ use bevy::log::debug;
 use bevy::math::{Vec2, Vec3};
 use bevy::prelude::Window;
 use bevy::render::color::Color;
-use bevy::render::view::Visibility;
+
 use bevy::time::Time;
 use bevy::{
     ecs::{component::Component, event::EventReader, query::With, system::Query},

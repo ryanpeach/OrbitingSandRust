@@ -423,7 +423,7 @@ impl CelestialDataPlugin {
 
     /// Change heat visibility
     pub fn change_heat_visibility_system(
-        mut query: Query<(&mut Visibility), With<HeatMapMaterial>>,
+        mut query: Query<&mut Visibility, With<HeatMapMaterial>>,
         checkboxes: Res<CameraWindowCheckboxes>,
     ) {
         for mut visibility in query.iter_mut() {
@@ -437,7 +437,7 @@ impl CelestialDataPlugin {
 
     /// Change falling sand visibility
     pub fn change_falling_sand_visibility_system(
-        mut query: Query<(&mut Visibility), With<FallingSandMaterial>>,
+        mut query: Query<&mut Visibility, With<FallingSandMaterial>>,
         checkboxes: Res<CameraWindowCheckboxes>,
     ) {
         for mut visibility in query.iter_mut() {
