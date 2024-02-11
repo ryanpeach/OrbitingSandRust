@@ -155,6 +155,7 @@ mod tests {
             // Now check that this chunk location no longer has sand
             {
                 let chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc1.0);
+                assert_eq!(chunk.get_chunk_coords().get_chunk_idx(), loc1.0);
                 let previous_location_type = chunk.get(loc1.1).get_type();
                 assert_ne!(
                     previous_location_type,

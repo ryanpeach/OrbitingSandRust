@@ -830,7 +830,7 @@ impl ElementGridDir {
         for i in 0..self.coords.get_num_layers() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
             let k_size = self.coords.get_layer_num_tangential_chunkss(i);
-            let layer = Grid::new_from_vec(k_size, j_size, vec![true; k_size * j_size]);
+            let layer = Grid::new_fill(k_size, j_size, true);
             filter.push(layer);
         }
 

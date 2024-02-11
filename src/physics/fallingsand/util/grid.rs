@@ -18,9 +18,12 @@ pub struct Grid<T>(ndarray::Array2<T>);
  * Initialization
  * ================= */
 impl<T> Grid<T> {
-    /// Create a new grid from an ndarray
-    pub fn new(data: ndarray::Array2<T>) -> Self {
-        Self(data)
+    /// Create a new grid filled with one value
+    pub fn new_fill(width: usize, height: usize, value: T) -> Self
+    where
+        T: Clone,
+    {
+        Self(ndarray::Array2::from_elem((width, height), value))
     }
     /// Create a new grid with the given width and height, and fill it with the given data
     pub fn new_from_vec(width: usize, height: usize, data: Vec<T>) -> Self {
@@ -88,7 +91,7 @@ impl<T> Grid<T> {
     }
     /// Gets the value at the given coordinate, or returns an error if the coordinate is out of bounds
     pub fn checked_get(&self, idx: JkVector) -> Result<&T, GridOutOfBoundsError> {
-        if idx.j >= self.get_width() || idx.k >= self.get_height() {
+        if idx.k >= self.get_width() || idx.j >= self.get_height() {
             return Err(GridOutOfBoundsError(idx));
         }
         Ok(self.get(idx))
