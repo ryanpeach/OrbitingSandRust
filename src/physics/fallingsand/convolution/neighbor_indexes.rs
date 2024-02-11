@@ -1,4 +1,68 @@
+//! Indexes in [ChunkIjkVector]s for all the neighbors of a chunk
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
+
+/// Just the indices of the element grid convolution
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct ElementGridConvolutionNeighborIdxs {
+    pub top: TopNeighborIdxs,
+    pub left_right: LeftRightNeighborIdxs,
+    pub bottom: BottomNeighborIdxs,
+}
+
+pub struct ElementGridConvolutionNeighborIdxsIter {
+    top_neighbors_iter: TopNeighborIdxsIter,
+    left_right_neighbors_iter: LeftRightNeighborIdxsIter,
+    bottom_neighbors_iter: BottomNeighborIdxsIter,
+    index: usize,
+}
+
+impl Iterator for ElementGridConvolutionNeighborIdxsIter {
+    type Item = ChunkIjkVector;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.index {
+            0 => {
+                if let Some(top) = self.top_neighbors_iter.next() {
+                    Some(top)
+                } else {
+                    self.index += 1;
+                    self.next()
+                }
+            }
+            1 => {
+                if let Some(left_right) = self.left_right_neighbors_iter.next() {
+                    Some(left_right)
+                } else {
+                    self.index += 1;
+                    self.next()
+                }
+            }
+            2 => {
+                if let Some(bottom) = self.bottom_neighbors_iter.next() {
+                    Some(bottom)
+                } else {
+                    self.index += 1;
+                    self.next()
+                }
+            }
+            _ => None,
+        }
+    }
+}
+
+impl ElementGridConvolutionNeighborIdxs {
+    pub fn iter(&self) -> ElementGridConvolutionNeighborIdxsIter {
+        ElementGridConvolutionNeighborIdxsIter {
+            top_neighbors_iter: self.top.iter(),
+            left_right_neighbors_iter: self.left_right.iter(),
+            bottom_neighbors_iter: self.bottom.iter(),
+            index: 0,
+        }
+    }
+    pub fn contains(&self, chunk_idx: &ChunkIjkVector) -> bool {
+        self.iter().any(|c| c == *chunk_idx)
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum LeftRightNeighborIdxs {
@@ -155,68 +219,5 @@ impl BottomNeighborIdxs {
             bottom: Some(self.clone()),
             index: 0,
         }
-    }
-}
-
-/// Just the indices of the element grid convolution
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ElementGridConvolutionNeighborIdxs {
-    pub top: TopNeighborIdxs,
-    pub left_right: LeftRightNeighborIdxs,
-    pub bottom: BottomNeighborIdxs,
-}
-
-pub struct ElementGridConvolutionNeighborIdxsIter {
-    top_neighbors_iter: TopNeighborIdxsIter,
-    left_right_neighbors_iter: LeftRightNeighborIdxsIter,
-    bottom_neighbors_iter: BottomNeighborIdxsIter,
-    index: usize,
-}
-
-impl Iterator for ElementGridConvolutionNeighborIdxsIter {
-    type Item = ChunkIjkVector;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.index {
-            0 => {
-                if let Some(top) = self.top_neighbors_iter.next() {
-                    Some(top)
-                } else {
-                    self.index += 1;
-                    self.next()
-                }
-            }
-            1 => {
-                if let Some(left_right) = self.left_right_neighbors_iter.next() {
-                    Some(left_right)
-                } else {
-                    self.index += 1;
-                    self.next()
-                }
-            }
-            2 => {
-                if let Some(bottom) = self.bottom_neighbors_iter.next() {
-                    Some(bottom)
-                } else {
-                    self.index += 1;
-                    self.next()
-                }
-            }
-            _ => None,
-        }
-    }
-}
-
-impl ElementGridConvolutionNeighborIdxs {
-    pub fn iter(&self) -> ElementGridConvolutionNeighborIdxsIter {
-        ElementGridConvolutionNeighborIdxsIter {
-            top_neighbors_iter: self.top.iter(),
-            left_right_neighbors_iter: self.left_right.iter(),
-            bottom_neighbors_iter: self.bottom.iter(),
-            index: 0,
-        }
-    }
-    pub fn contains(&self, chunk_idx: &ChunkIjkVector) -> bool {
-        self.iter().any(|c| c == *chunk_idx)
     }
 }

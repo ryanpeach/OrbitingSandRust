@@ -1,6 +1,21 @@
+//! Identifiers for the different locations chunks can be in the convolution
 use strum_macros::EnumIter;
 
 use crate::physics::fallingsand::util::vectors::JkVector;
+
+#[derive(Debug, Clone, Copy)]
+pub enum ConvolutionIdentifier {
+    LR(LeftRightNeighborIdentifier),
+    Top(TopNeighborIdentifier),
+    Bottom(BottomNeighborIdentifier),
+    Center,
+}
+
+/// The main type exported by this module
+/// Identifies a coordinate on an element grid, and then uniquely identifies the chunk in the convolution that it is in
+/// This is better than a hashmap because by using enums it can be quite a bit faster and more rhobust
+#[derive(Debug, Clone, Copy)]
+pub struct ConvolutionIdx(pub JkVector, pub ConvolutionIdentifier);
 
 #[derive(Debug, Clone, Copy)]
 pub enum LeftRightNeighborIdentifier {
@@ -54,17 +69,3 @@ pub enum BottomNeighborIdentifier {
     /// In this case the chunks half because you are going down
     ChunkDoubling(BottomNeighborIdentifierLayerTransition),
 }
-
-#[derive(Debug, Clone, Copy)]
-pub enum ConvolutionIdentifier {
-    LR(LeftRightNeighborIdentifier),
-    Top(TopNeighborIdentifier),
-    Bottom(BottomNeighborIdentifier),
-    Center,
-}
-
-/// The main type exported by this module
-/// Identifies a coordinate on an element grid, and then uniquely identifies the chunk in the convolution that it is in
-/// This is better than a hashmap because by using enums it can be quite a bit faster and more rhobust
-#[derive(Debug, Clone, Copy)]
-pub struct ConvolutionIdx(pub JkVector, pub ConvolutionIdentifier);

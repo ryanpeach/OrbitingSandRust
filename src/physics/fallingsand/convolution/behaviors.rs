@@ -103,13 +103,21 @@ impl IntoIterator for ElementGridConvolutionNeighbors {
 /// The average temperature of the neighbors
 #[derive(Clone, Debug, Default)]
 pub struct ElementGridConvolutionNeighborTemperatures {
+    /// The heat of the top neighbor border
     pub top: Option<Array1<f32>>,
+    /// The heat of the bottom neighbor border
     pub bottom: Option<Array1<f32>>,
+    /// The heat of the left neighbor border
     pub left: Array1<f32>,
+    /// The heat of the right neighbor border
     pub right: Array1<f32>,
 }
 
 impl ElementGridConvolutionNeighbors {
+    /// Get the heat of the neighbors at their border
+    /// Keep these images in your mind as you read this code
+    /// ![chunk doubling](assets/docs/wireframes/layer_transition.png)
+    /// ![wireframe](assets/docs/wireframes/wireframe.png)
     pub fn get_border_temps(
         &self,
         target_chunk: &ElementGrid,
@@ -119,25 +127,51 @@ impl ElementGridConvolutionNeighbors {
         let mut this = Array1::zeros(coords.get_num_radial_lines());
         match &self.grids.top {
             TopNeighborGrids::Normal { t, tl, tr } => {
-                for k in 0..coords.get_num_radial_lines() {
-                    let idx = JkVector { j: 0, k };
-                    let elem = t.get(idx);
-                    this[idx.to_ndarray_coords(coords).x] =
-                        elem.get_temperature(coords.get_cell_width()).0;
+                if t.get_chunk_coords().get_num_radial_lines() == coords.get_num_radial_lines() {
+                    for k in 0..coords.get_num_radial_lines() {
+                        let idx = JkVector { j: 0, k };
+                        let elem = t.get(idx);
+                        this[idx.to_ndarray_coords(coords).x] =
+                            elem.get_temperature(coords.get_cell_width()).0;
+                    }
+                } else {
+                    // In this case we are dealing with a cell doubling tangentially
+                    // So we will average the two cells
+                    // TODO: Test this
+                    for k in 0..coords.get_num_radial_lines() * 2 {
+                        let their_idx = JkVector { j: 0, k };
+                        let our_idx = JkVector { j: 0, k: k / 2 };
+                        // In this case we will put the cell in the memory because
+                        // it comes first
+                        if k % 2 == 0 {
+                            let elem = t.get(their_idx);
+                            this[our_idx.to_ndarray_coords(coords).x] =
+                                elem.get_temperature(coords.get_cell_width()).0;
+                        }
+                        // In this case we will average it with ourselves
+                        else {
+                            let elem = tl.get(their_idx);
+                            this[our_idx.to_ndarray_coords(coords).x] =
+                                (elem.get_temperature(coords.get_cell_width()).0
+                                    + this[our_idx.to_ndarray_coords(coords).x])
+                                    / 2.0;
+                        }
+                    }
                 }
                 out.top = Some(this);
             }
             // In this case t1 and t0 are both half the size of target_chunk
-            TopNeighborGrids::ChunkDoubling { tl, t1, t0, tr } => {
+            // TODO: Test this
+            TopNeighborGrids::ChunkDoubling { t1, t0, .. } => {
                 for k in 0..coords.get_num_radial_lines() {
                     let idx = JkVector { j: 0, k };
-                    let elem = tr.get(idx);
+                    let elem = t0.get(idx);
                     this[idx.to_ndarray_coords(coords).x] =
                         elem.get_temperature(coords.get_cell_width()).0;
                 }
                 for k in 0..coords.get_num_radial_lines() {
                     let idx = JkVector { j: 0, k };
-                    let elem = tl.get(idx);
+                    let elem = t1.get(idx);
                     let idx = JkVector {
                         j: 0,
                         k: k + coords.get_num_radial_lines(),
@@ -153,23 +187,38 @@ impl ElementGridConvolutionNeighbors {
         }
         let mut this = Array1::zeros(coords.get_num_radial_lines());
         match &self.grids.bottom {
-            BottomNeighborGrids::Normal { b, bl, br } => {
-                let coords = b.get_chunk_coords();
-                for k in 0..coords.get_num_radial_lines() {
-                    let idx = JkVector {
-                        j: bl.get_chunk_coords().get_num_concentric_circles() - 1,
-                        k,
-                    };
-                    let elem = b.get(idx);
-                    this[idx.to_ndarray_coords(coords).x] =
-                        elem.get_temperature(coords.get_cell_width()).0;
+            BottomNeighborGrids::Normal { b, .. } => {
+                if coords.get_num_radial_lines() == b.get_chunk_coords().get_num_radial_lines() {
+                    for k in 0..coords.get_num_radial_lines() {
+                        let idx = JkVector {
+                            j: coords.get_num_concentric_circles() - 1,
+                            k,
+                        };
+                        let elem = b.get(idx);
+                        this[idx.to_ndarray_coords(coords).x] =
+                            elem.get_temperature(coords.get_cell_width()).0;
+                    }
+                } else {
+                    // In this case we are dealing with a cell halving tangentially
+                    // So we put the same cell in the memory twice
+                    for k in 0..coords.get_num_radial_lines() {
+                        let our_idx = JkVector {
+                            j: coords.get_num_concentric_circles() - 1,
+                            k,
+                        };
+                        let their_idx = JkVector {
+                            j: coords.get_num_concentric_circles() - 1,
+                            k: k / 2,
+                        };
+                        let elem = b.get(their_idx);
+                        this[our_idx.to_ndarray_coords(coords).x] =
+                            elem.get_temperature(coords.get_cell_width()).0;
+                    }
+                    out.bottom = Some(this);
                 }
-                out.bottom = Some(this);
             }
             // In this case bl and br are both twice the size of target_chunk
             BottomNeighborGrids::ChunkDoubling { bl, br } => {
-                // If you are an even index chunk, the right half of bl is the same as b
-                // If you are on odd index chunk, the left half of br is the same as b
                 // TODO: document this with pictures
                 // TODO: Unit test
                 let mut this = Array1::zeros(coords.get_num_radial_lines());
