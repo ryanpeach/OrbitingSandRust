@@ -13,12 +13,15 @@ use derive_more::{Add, AddAssign, Sub, SubAssign};
 /// Top left is (0, 0)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
 pub struct NdArrayCoords {
+    /// The x coordinate, as in the column
     pub x: usize,
+    /// The y coordinate, as in the row
     pub y: usize,
 }
 
 /// Instantiation
 impl NdArrayCoords {
+    /// Create a new [NdArrayCoords]
     pub fn new(x: usize, y: usize) -> Self {
         Self { x, y }
     }
@@ -44,6 +47,7 @@ impl Into<[usize; 2]> for NdArrayCoords {
 
 /// Constants
 impl NdArrayCoords {
+    /// The zero vector
     pub const ZERO: Self = Self { x: 0, y: 0 };
 }
 
@@ -61,7 +65,9 @@ impl NdArrayCoords {
 /// If you need a relative vector, use [RelJkVector]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
 pub struct JkVector {
+    /// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
     pub j: usize,
+    /// The k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
     pub k: usize,
 }
 
@@ -70,6 +76,7 @@ pub struct JkVector {
 /// Top left is (0, 0)
 /// Whereas in a Jk Vector, the bottom right is (0, 0)
 impl JkVector {
+    /// Convert to a [NdArrayCoords]
     pub fn to_ndarray_coords(self, coords: &ChunkCoords) -> NdArrayCoords {
         NdArrayCoords::new(
             coords.get_num_radial_lines() - 1 - self.k,
@@ -80,11 +87,13 @@ impl JkVector {
 
 /// Convienient constants
 impl JkVector {
+    /// The zero vector
     pub const ZERO: Self = Self { j: 0, k: 0 };
 }
 
 /// Instantiation
 impl JkVector {
+    /// Create a new [JkVector]
     pub fn new(j: usize, k: usize) -> Self {
         Self { j, k }
     }
@@ -94,12 +103,15 @@ impl JkVector {
 /// Same as [JkVector], but with isize type fields which can contain negative numbers
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct RelJkVector {
+    /// The relative j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
     pub rj: isize,
+    /// The relative k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
     pub rk: isize,
 }
 
 /// Instantiation
 impl RelJkVector {
+    /// Create a new [RelJkVector]
     pub fn new(rj: isize, rk: isize) -> Self {
         Self { rj, rk }
     }
@@ -109,12 +121,15 @@ impl RelJkVector {
 /// need isize type fields
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TempJkVector {
+    /// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
     pub j: isize,
+    /// The k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
     pub k: isize,
 }
 
 /// Instantiation
 impl TempJkVector {
+    /// Add a [RelJkVector] to a [JkVector]
     pub fn add(pos: &JkVector, rel: &RelJkVector) -> Self {
         Self {
             j: pos.j as isize + rel.rj,
@@ -126,12 +141,15 @@ impl TempJkVector {
 /// Defines both the chunk and the internal idx of the element
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FullIdx {
+    /// The chunk index
     pub chunk_idx: ChunkIjkVector,
+    /// The position of an element within a chunk
     pub pos: JkVector,
 }
 
 /// Instantiation
 impl FullIdx {
+    /// Create a new [FullIdx]
     pub fn new(chunk_idx: ChunkIjkVector, pos: JkVector) -> Self {
         Self { chunk_idx, pos }
     }
@@ -141,8 +159,11 @@ impl FullIdx {
 /// The core is layer 0
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct IjkVector {
+    /// The i coordinate, as in the layer number, the core is 0
     pub i: usize,
+    /// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
     pub j: usize,
+    /// The k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
     pub k: usize,
 }
 
@@ -167,8 +188,11 @@ impl IjkVector {
 /// TODO: move to bevy's types
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Vertex {
+    /// The position of the vertex
     pub position: Vec2,
+    /// The texture coordinates of the vertex
     pub uv: Vec2,
+    /// The color of the vertex
     pub color: Color,
 }
 
@@ -177,8 +201,11 @@ pub struct Vertex {
 /// perportional to the cells within the chunk
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct ChunkIjkVector {
+    /// The i coordinate, as in the layer number, the core is 0
     pub i: usize,
+    /// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
     pub j: usize,
+    /// The k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
     pub k: usize,
 }
 
