@@ -1,5 +1,5 @@
 //! Indexes in [ChunkIjkVector]s for all the neighbors of a chunk
-use crate::physics::fallingsand::{mesh::chunk_coords::ChunkCoords, util::vectors::ChunkIjkVector};
+use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 
 /// The main type exported by this module
 /// Contains all the [ChunkIjkVector] indexes for the convolution
@@ -286,24 +286,6 @@ impl BottomNeighborIdxs {
         BottomNeighborIdxsIter {
             bottom: Some(self.clone()),
             index: 0,
-        }
-    }
-
-    /// Determine which is the actual "bottom" chunk
-    /// *coords* is the [ChunkCoords] of the chunk you are in
-    /// If it is even, then the `bl` will be directly below you, and you will be straddling its right side
-    /// If it is odd, then the `br` will be directly below you, and you will be straddling its left side
-    pub fn get_bottom_chunk(&self, coords: ChunkCoords) -> Option<ChunkIjkVector> {
-        match self {
-            BottomNeighborIdxs::Normal { b, .. } => Some(*b),
-            BottomNeighborIdxs::ChunkDoubling { bl, br } => {
-                if coords.get_chunk_idx().k % 2 == 0 {
-                    Some(*bl)
-                } else {
-                    Some(*br)
-                }
-            }
-            BottomNeighborIdxs::BottomOfGrid => None,
         }
     }
 }

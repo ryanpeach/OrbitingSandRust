@@ -162,21 +162,62 @@ impl ElementGridConvolutionNeighbors {
             // In this case t1 and t0 are both half the size of target_chunk
             // TODO: Test this
             TopNeighborGrids::ChunkDoubling { t1, t0, .. } => {
-                for k in 0..coords.get_num_radial_lines() {
-                    let idx = JkVector { j: 0, k };
-                    let elem = t0.get(idx);
-                    this[idx.to_ndarray_coords(coords).x] =
-                        elem.get_temperature(coords.get_cell_width()).0;
-                }
-                for k in 0..coords.get_num_radial_lines() {
-                    let idx = JkVector { j: 0, k };
-                    let elem = t1.get(idx);
-                    let idx = JkVector {
-                        j: 0,
-                        k: k + coords.get_num_radial_lines(),
+                debug_assert_eq!(
+                    t0.get_chunk_coords().get_num_radial_lines(),
+                    coords.get_num_radial_lines(),
+                    "The number of radial lines should be the same, even though the sizes are different"
+                );
+                debug_assert_eq!(
+                    t1.get_chunk_coords().get_num_radial_lines(),
+                    coords.get_num_radial_lines(),
+                    "The number of radial lines should be the same, even though the sizes are different"
+                );
+                // First lets do this from t0, iterating over its bottom border
+                // and averaging that into every other one of our cells
+                for k in 0..t0.get_chunk_coords().get_num_radial_lines() {
+                    let their_idx = JkVector { j: 0, k };
+                    let elem = t0.get(their_idx);
+                    let our_idx = JkVector {
+                        j: coords.get_num_concentric_circles() - 1,
+                        k: k / 2,
                     };
-                    this[idx.to_ndarray_coords(coords).x] =
-                        elem.get_temperature(coords.get_cell_width()).0;
+                    // In this case we will put the cell in the memory because
+                    // it comes first
+                    if k % 2 == 0 {
+                        this[our_idx.to_ndarray_coords(coords).x] =
+                            elem.get_temperature(coords.get_cell_width()).0;
+                    }
+                    // In this case we will average it with ourselves
+                    else {
+                        this[our_idx.to_ndarray_coords(coords).x] =
+                            (elem.get_temperature(coords.get_cell_width()).0
+                                + this[our_idx.to_ndarray_coords(coords).x])
+                                / 2.0;
+                    }
+                }
+                // Now lets do this from t1, iterating over its bottom border
+                // and averaging that into every other one of our cells
+                // startging from the middle of our radial lines
+                for k in 0..t1.get_chunk_coords().get_num_radial_lines() {
+                    let their_idx = JkVector { j: 0, k };
+                    let elem = t1.get(their_idx);
+                    let our_idx = JkVector {
+                        j: coords.get_num_concentric_circles() - 1,
+                        k: k / 2 + coords.get_num_radial_lines() / 2,
+                    };
+                    // In this case we will put the cell in the memory because
+                    // it comes first
+                    if k % 2 == 0 {
+                        this[our_idx.to_ndarray_coords(coords).x] =
+                            elem.get_temperature(coords.get_cell_width()).0;
+                    }
+                    // In this case we will average it with ourselves
+                    else {
+                        this[our_idx.to_ndarray_coords(coords).x] =
+                            (elem.get_temperature(coords.get_cell_width()).0
+                                + this[our_idx.to_ndarray_coords(coords).x])
+                                / 2.0;
+                    }
                 }
                 out.top = Some(this);
             }
@@ -206,7 +247,7 @@ impl ElementGridConvolutionNeighbors {
                             k,
                         };
                         let their_idx = JkVector {
-                            j: coords.get_num_concentric_circles() - 1,
+                            j: b.get_chunk_coords().get_num_concentric_circles() - 1,
                             k: k / 2,
                         };
                         let elem = b.get(their_idx);
@@ -221,42 +262,51 @@ impl ElementGridConvolutionNeighbors {
                 // TODO: document this with pictures
                 // TODO: Unit test
                 let mut this = Array1::zeros(coords.get_num_radial_lines());
+                // This is the case where the bottom neighbor is the bl chunk
+                // And we are straddling the right side of the bl chunk
                 if target_chunk.get_chunk_coords().get_chunk_idx().k % 2 == 0 {
                     debug_assert_eq!(
-                        coords.get_num_radial_lines() * 2,
                         bl.get_chunk_coords().get_num_radial_lines(),
-                        "coords: {:?}, bl: {:?}",
                         coords.get_num_radial_lines(),
-                        bl.get_chunk_coords().get_num_radial_lines()
+                        "The number of radial lines should be the same, even though the sizes are different"
                     );
+                    // We are going to iterate over half its border
+                    // starting at our k=0 and ending at our k=coords.get_num_radial_lines()
+                    // but from its perspective starting at k=0 (because we are on its right side)
+                    // and ending at k=bl.get_chunk_coords().get_num_radial_lines()/2
+                    // This means we are putting the same cell in the memory twice
                     for k in 0..coords.get_num_radial_lines() {
-                        let idx = JkVector {
+                        let our_idx = JkVector { j: 0, k };
+                        let their_idx = JkVector {
                             j: bl.get_chunk_coords().get_num_concentric_circles() - 1,
-                            k,
+                            k: k / 2,
                         };
-                        let elem = bl.get(idx);
-                        this[idx.to_ndarray_coords(coords).x] =
+                        let elem = bl.get(their_idx);
+                        this[our_idx.to_ndarray_coords(coords).x] =
                             elem.get_temperature(coords.get_cell_width()).0;
                     }
-                } else {
+                }
+                // This is the case where the bottom neighbor is the br chunk
+                // And we are straddling the left side of the br chunk
+                else {
                     debug_assert_eq!(
-                        coords.get_num_radial_lines() * 2,
                         br.get_chunk_coords().get_num_radial_lines(),
-                        "coords: {:?}, bl: {:?}",
                         coords.get_num_radial_lines(),
-                        bl.get_chunk_coords().get_num_radial_lines()
+                        "The number of radial lines should be the same, even though the sizes are different"
                     );
+                    // We are going to iterate over half its border
+                    // Starting at our k=0 and ending at our k=coords.get_num_radial_lines()
+                    // but from its perspective starting at k=br.get_chunk_coords().get_num_radial_lines()/2
+                    // (because we are on its left side)
+                    // and ending at k=br.get_chunk_coords().get_num_radial_lines()
                     for k in 0..coords.get_num_radial_lines() {
-                        let idx = JkVector {
+                        let our_idx = JkVector { j: 0, k };
+                        let their_idx = JkVector {
                             j: br.get_chunk_coords().get_num_concentric_circles() - 1,
-                            k: k + coords.get_num_radial_lines(),
+                            k: k / 2 + br.get_chunk_coords().get_num_radial_lines() / 2,
                         };
-                        let elem = br.get(idx);
-                        let idx = JkVector {
-                            j: br.get_chunk_coords().get_num_concentric_circles() - 1,
-                            k,
-                        };
-                        this[idx.to_ndarray_coords(coords).x] =
+                        let elem = br.get(their_idx);
+                        this[our_idx.to_ndarray_coords(coords).x] =
                             elem.get_temperature(coords.get_cell_width()).0;
                     }
                 };
