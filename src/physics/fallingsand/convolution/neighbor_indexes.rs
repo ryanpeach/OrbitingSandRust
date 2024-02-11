@@ -1,14 +1,21 @@
 //! Indexes in [ChunkIjkVector]s for all the neighbors of a chunk
-use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
+use crate::physics::fallingsand::{mesh::chunk_coords::ChunkCoords, util::vectors::ChunkIjkVector};
 
-/// Just the indices of the element grid convolution
+/// The main type exported by this module
+/// Contains all the [ChunkIjkVector] indexes for the convolution
+/// Check out the [super::neighbor_identifiers::ConvolutionIdentifier] and
+/// [super::neighbor_indexes::ElementGridConvolutionNeighborIdxs] documentation for more information
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ElementGridConvolutionNeighborIdxs {
+    /// Top neighbor indexes
     pub top: TopNeighborIdxs,
+    /// Left and Right neighbor indexes
     pub left_right: LeftRightNeighborIdxs,
+    /// Bottom neighbor indexes
     pub bottom: BottomNeighborIdxs,
 }
 
+/// An iterator for the neighbor indexes
 pub struct ElementGridConvolutionNeighborIdxsIter {
     top_neighbors_iter: TopNeighborIdxsIter,
     left_right_neighbors_iter: LeftRightNeighborIdxsIter,
@@ -51,6 +58,7 @@ impl Iterator for ElementGridConvolutionNeighborIdxsIter {
 }
 
 impl ElementGridConvolutionNeighborIdxs {
+    /// Get the iterator for the neighbor indexes
     pub fn iter(&self) -> ElementGridConvolutionNeighborIdxsIter {
         ElementGridConvolutionNeighborIdxsIter {
             top_neighbors_iter: self.top.iter(),
@@ -59,19 +67,30 @@ impl ElementGridConvolutionNeighborIdxs {
             index: 0,
         }
     }
+
+    /// Check if the given [ChunkIjkVector] is contained in the neighbor indexes
     pub fn contains(&self, chunk_idx: &ChunkIjkVector) -> bool {
         self.iter().any(|c| c == *chunk_idx)
     }
 }
 
+/// Left and Right neighbor indexes in the convolution
+/// Check out the [super::neighbor_identifiers::LeftRightNeighborIdentifier] and
+/// [super::neighbor_grids::LeftRightNeighborGrids] documentation for more information
+/// documentation for more information
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum LeftRightNeighborIdxs {
+    /// The left and right elements
+    /// TODO: Unecessary to have a struct for this, flatten into the enum
     LR {
+        /// Left element
         l: ChunkIjkVector,
+        /// Right element
         r: ChunkIjkVector,
     },
 }
 
+/// An iterator for the left and right neighbor indexes
 pub struct LeftRightNeighborIdxsIter {
     lr: Option<LeftRightNeighborIdxs>,
     index: usize,
@@ -96,6 +115,7 @@ impl Iterator for LeftRightNeighborIdxsIter {
 }
 
 impl LeftRightNeighborIdxs {
+    /// Get the iterator for the left and right neighbor indexes
     pub fn iter(&self) -> LeftRightNeighborIdxsIter {
         LeftRightNeighborIdxsIter {
             lr: Some(self.clone()),
@@ -104,22 +124,39 @@ impl LeftRightNeighborIdxs {
     }
 }
 
+/// Top neighbor indexes in the convolution
+/// Check out the [super::neighbor_identifiers::TopNeighborIdentifier] and
+/// [super::neighbor_grids::TopNeighborGrids] documentation for more information
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TopNeighborIdxs {
+    /// Indicates that there are the same number of chunks above as you have
+    /// However, the cells may still double tangentially
+    /// However, some enums need that information and others dont, so we
+    /// dont want to add too much complexity to the match statements if we can help it
     Normal {
+        /// Top left element
         tl: ChunkIjkVector,
+        /// Top center element
         t: ChunkIjkVector,
+        /// Top right element
         tr: ChunkIjkVector,
     },
+    /// Indicates a **chunk doubling** layer transition
     ChunkDoubling {
+        /// Top left element
         tl: ChunkIjkVector,
+        /// Second top center element, left of center
         t1: ChunkIjkVector,
+        /// First top center element, right of center
         t0: ChunkIjkVector,
+        /// Top right element
         tr: ChunkIjkVector,
     },
+    /// Indicates that you are at the top of the grid
     TopOfGrid,
 }
 
+/// An iterator for the top neighbor indexes
 pub struct TopNeighborIdxsIter {
     top: Option<TopNeighborIdxs>,
     index: usize,
@@ -156,6 +193,7 @@ impl Iterator for TopNeighborIdxsIter {
 }
 
 impl TopNeighborIdxs {
+    /// Get the iterator for the top neighbor indexes
     pub fn iter(&self) -> TopNeighborIdxsIter {
         TopNeighborIdxsIter {
             top: Some(self.clone()),
@@ -164,22 +202,40 @@ impl TopNeighborIdxs {
     }
 }
 
+/// Bottom neighbor indexes in the convolution
+/// Check out the [super::neighbor_identifiers::BottomNeighborIdentifier] and
+/// [super::neighbor_grids::BottomNeighborGrids] documentation for more information
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum BottomNeighborIdxs {
+    /// Indicates that there are the same number of chunks below as you have
+    /// However, the cells may still half tangentially
+    /// However, some enums need that information and others dont, so we
+    /// dont want to add too much complexity to the match statements if we can help it
     Normal {
+        /// The bottom left chunk
         bl: ChunkIjkVector,
+        /// The bottom chunk
         b: ChunkIjkVector,
+        /// The bottom right chunk
         br: ChunkIjkVector,
     },
     /// Indicates a **chunk doubling** layer transition
-    /// In this case the chunks half because you are going down
+    /// One of these will be directly below you, and be bigger than you off to one direction
+    /// Whereas the other will be diagonally below you
+    /// This depends on if your [ChunkIjkVector] has a `k` value which is even or odd
+    /// If it is even, then the `bl` will be directly below you, and you will be straddling its right side
+    /// If it is odd, then the `br` will be directly below you, and you will be straddling its left side
     ChunkDoubling {
+        /// The bottom left chunk
         bl: ChunkIjkVector,
+        /// The bottom right chunk
         br: ChunkIjkVector,
     },
+    /// Indicates that you are at the bottom of the grid
     BottomOfGrid,
 }
 
+/// An iterator for the bottom neighbor indexes
 pub struct BottomNeighborIdxsIter {
     bottom: Option<BottomNeighborIdxs>,
     index: usize,
@@ -214,10 +270,29 @@ impl Iterator for BottomNeighborIdxsIter {
 }
 
 impl BottomNeighborIdxs {
+    /// Get the iterator for the bottom neighbor indexes
     pub fn iter(&self) -> BottomNeighborIdxsIter {
         BottomNeighborIdxsIter {
             bottom: Some(self.clone()),
             index: 0,
+        }
+    }
+
+    /// Determine which is the actual "bottom" chunk
+    /// *coords* is the [ChunkCoords] of the chunk you are in
+    /// If it is even, then the `bl` will be directly below you, and you will be straddling its right side
+    /// If it is odd, then the `br` will be directly below you, and you will be straddling its left side
+    pub fn get_bottom_chunk(&self, coords: ChunkCoords) -> Option<ChunkIjkVector> {
+        match self {
+            BottomNeighborIdxs::Normal { b, .. } => Some(*b),
+            BottomNeighborIdxs::ChunkDoubling { bl, br } => {
+                if coords.get_chunk_idx().k % 2 == 0 {
+                    Some(*bl)
+                } else {
+                    Some(*br)
+                }
+            }
+            BottomNeighborIdxs::BottomOfGrid => None,
         }
     }
 }
