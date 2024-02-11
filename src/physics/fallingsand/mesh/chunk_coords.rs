@@ -411,30 +411,12 @@ impl ChunkCoords {
         for i in 0..vertices.len() {
             indices.push(i as u32);
         }
-        OwnedMeshData {
-            vertices,
-            indices,
-            uv_bounds: Rect::new(
-                self.get_start_radial_line() as f32,
-                self.get_start_concentric_circle_absolute() as f32,
-                self.get_end_radial_line() as f32,
-                self.get_end_concentric_circle_absolute() as f32,
-            ),
-        }
+        OwnedMeshData::new(vertices, indices)
     }
     pub fn calc_chunk_meshdata(&self) -> OwnedMeshData {
         let indices = self.get_indices(VertexMode::Lines);
         let vertices: Vec<Vertex> = self.get_vertices(VertexMode::Lines);
-        OwnedMeshData {
-            vertices,
-            indices,
-            uv_bounds: Rect::new(
-                self.get_start_radial_line() as f32,
-                self.get_start_concentric_circle_absolute() as f32,
-                self.get_end_radial_line() as f32,
-                self.get_end_concentric_circle_absolute() as f32,
-            ),
-        }
+        OwnedMeshData::new(vertices, indices)
     }
     pub fn calc_chunk_triangle_wireframe(&self) -> OwnedMeshData {
         let indices = self.get_indices(VertexMode::Grid);
@@ -449,16 +431,7 @@ impl ChunkCoords {
             new_indices.push(i2);
             new_indices.push(i3);
         }
-        OwnedMeshData {
-            vertices,
-            indices: new_indices,
-            uv_bounds: Rect::new(
-                self.get_start_radial_line() as f32,
-                self.get_start_concentric_circle_absolute() as f32,
-                self.get_end_radial_line() as f32,
-                self.get_end_concentric_circle_absolute() as f32,
-            ),
-        }
+        OwnedMeshData::new(vertices, new_indices)
     }
 
     /// Converts a position relative to the origin of the circle to a cell index

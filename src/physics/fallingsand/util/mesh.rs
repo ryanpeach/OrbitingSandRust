@@ -22,6 +22,8 @@ use bevy::{
 
 use crate::physics::util::vectors::Vertex;
 
+/// Useful for frustum culling
+/// The bounding box of the mesh to determine if it is visible on the screen
 #[derive(Component)]
 pub struct MeshBoundingBox(pub Rect);
 
@@ -100,8 +102,9 @@ impl GizmoDrawableTriangles {
 /// This is a workaround for that.
 #[derive(Clone)]
 pub struct OwnedMeshData {
-    pub uv_bounds: Rect,
+    /// The vertices of the mesh
     pub vertices: Vec<Vertex>,
+    /// The indices of the mesh, relating to the vertices
     pub indices: Vec<u32>,
 }
 
@@ -109,45 +112,44 @@ pub struct OwnedMeshData {
 impl Default for OwnedMeshData {
     fn default() -> Self {
         Self {
-            uv_bounds: Rect::default(),
             vertices: Vec::new(),
             indices: Vec::new(),
         }
     }
 }
 
-/// Get the uv bounds of a list of vertices
-fn calc_uv_bounds(vertices: &[Vertex]) -> Rect {
-    let width: f32 = vertices
-        .iter()
-        .map(|vertex| vertex.uv[0])
-        .fold(0.0, |a, b| a.max(b));
-    let height: f32 = vertices
-        .iter()
-        .map(|vertex| vertex.uv[1])
-        .fold(0.0, |a, b| a.max(b));
-    let min_x: f32 = vertices
-        .iter()
-        .map(|vertex| vertex.uv[0])
-        .fold(f32::INFINITY, |a, b| a.min(b));
-    let min_y: f32 = vertices
-        .iter()
-        .map(|vertex| vertex.uv[1])
-        .fold(f32::INFINITY, |a, b| a.min(b));
-    Rect::new(min_x, min_y, width, height)
-}
-
 impl OwnedMeshData {
     /// Create a new OwnedMeshData object
     pub fn new(vertices: Vec<Vertex>, indices: Vec<u32>) -> Self {
-        let uv_bounds = calc_uv_bounds(&vertices);
-        Self {
-            uv_bounds,
-            vertices,
-            indices,
-        }
+        Self { vertices, indices }
     }
 
+    /// Get the uv bounds of a list of vertices
+    pub fn calc_bounds(&self) -> MeshBoundingBox {
+        let width: f32 = self
+            .vertices
+            .iter()
+            .map(|vertex| vertex.uv[0])
+            .fold(0.0, |a, b| a.max(b));
+        let height: f32 = self
+            .vertices
+            .iter()
+            .map(|vertex| vertex.uv[1])
+            .fold(0.0, |a, b| a.max(b));
+        let min_x: f32 = self
+            .vertices
+            .iter()
+            .map(|vertex| vertex.uv[0])
+            .fold(f32::INFINITY, |a, b| a.min(b));
+        let min_y: f32 = self
+            .vertices
+            .iter()
+            .map(|vertex| vertex.uv[1])
+            .fold(f32::INFINITY, |a, b| a.min(b));
+        MeshBoundingBox(Rect::new(min_x, min_y, width, height))
+    }
+
+    /// Loads the mesh into bevy's asset system and returns a handle to it
     pub fn load_bevy_mesh(&self, meshes: &mut ResMut<Assets<Mesh>>) -> Handle<Mesh> {
         let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
 

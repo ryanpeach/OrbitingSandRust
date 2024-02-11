@@ -191,8 +191,8 @@ impl CelestialDataPlugin {
                     let celestial_chunk_id = CelestialChunkIdk(chunk_ijk);
                     let mesh = coordinate_dir
                         .get_chunk_at_idx(chunk_ijk)
-                        .calc_chunk_meshdata()
-                        .load_bevy_mesh(meshes);
+                        .calc_chunk_meshdata();
+                    let mesh_handle = mesh.load_bevy_mesh(meshes);
                     let wireframe = coordinate_dir
                         .get_chunk_at_idx(chunk_ijk)
                         .calc_chunk_triangle_wireframe();
@@ -209,11 +209,12 @@ impl CelestialDataPlugin {
                         .spawn((
                             celestial_chunk_id,
                             MaterialMesh2dBundle {
-                                mesh: mesh.into(),
+                                mesh: mesh_handle.into(),
                                 material: materials.add(asset_server.add(sand_material).into()),
                                 visibility: Visibility::Hidden,
                                 ..Default::default()
                             },
+                            // mesh.calc_bounds(),
                             PickableBundle::default(), // Makes the entity pickable
                             FallingSandMaterial,
                         ))
@@ -223,13 +224,13 @@ impl CelestialDataPlugin {
                     // TODO: This could be optimized by just using the outline
                     let mesh = coordinate_dir
                         .get_chunk_at_idx(chunk_ijk)
-                        .calc_chunk_meshdata()
-                        .load_bevy_mesh(meshes);
+                        .calc_chunk_meshdata();
+                    let mesh_handle = mesh.load_bevy_mesh(meshes);
                     let heat_chunk = commands
                         .spawn((
                             celestial_chunk_id,
                             MaterialMesh2dBundle {
-                                mesh: mesh.into(),
+                                mesh: mesh_handle.into(),
                                 material: materials.add(asset_server.add(heat_material).into()),
                                 // Move the heat map to the front
                                 transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
@@ -237,6 +238,7 @@ impl CelestialDataPlugin {
                                 visibility: Visibility::Hidden,
                                 ..Default::default()
                             },
+                            // mesh.calc_bounds(),
                             HeatMapMaterial,
                             OverlayLayer1,
                         ))
