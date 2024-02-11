@@ -598,6 +598,7 @@ impl ElementGridDir {
             current_time,
         );
         self.process_count += 1;
+        self.recalculate_everything();
 
         // Check for errors and unlock all chunks every 9 iterations
         if self.process_count % FRAMES_PER_FULL_PROCESS == 0 {
@@ -608,7 +609,6 @@ impl ElementGridDir {
                 self.get_unprocessed_chunk_idxs()
             );
             self.unlock_all_chunks();
-            self.recalculate_everything();
         }
     }
 
@@ -739,7 +739,6 @@ impl ElementGridDir {
         let mut out = Mass(0.0);
         for layer in chunks {
             for chunk in layer.into_iter().flatten() {
-                chunk.recalculate_total_mass();
                 out += chunk.get_total_mass();
             }
         }
@@ -764,16 +763,20 @@ impl ElementGridDir {
         let mut min = ThermodynamicTemperature(f32::INFINITY);
         for layer in chunks {
             for chunk in layer.into_iter().flatten() {
-                chunk.recalculate_heat();
-                let temp = chunk.get_temperature();
-                if temp > max {
-                    max = temp;
+                let (max_temp, min_temp) = chunk.get_max_min_temp();
+                if max_temp > max {
+                    max = max_temp;
                 }
-                // Min temperature should be greater than 0
-                if temp < min && temp > ThermodynamicTemperature(0.0) {
-                    min = temp;
+                // Min temperature should not equal exactly 0 because thats usually vacuum
+                if min_temp < min && min_temp != ThermodynamicTemperature(0.0) {
+                    min = min_temp;
                 }
             }
+        }
+        // Because we exclude 0, if we get nothing but zero, we will get min==INF
+        // So we should fix that
+        if min == ThermodynamicTemperature(f32::INFINITY) {
+            min = ThermodynamicTemperature(0.0);
         }
         (max, min)
     }

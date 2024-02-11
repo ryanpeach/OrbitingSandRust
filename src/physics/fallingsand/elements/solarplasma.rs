@@ -185,15 +185,15 @@ impl Element for SolarPlasma {
     }
 
     fn get_default_temperature(&self) -> ThermodynamicTemperature {
-        ThermodynamicTemperature(15000.0 * 2.0)
+        ThermodynamicTemperature(10000.0)
     }
 
     fn get_specific_heat(&self) -> SpecificHeat {
-        SpecificHeat(840.0 * 2.0) // Twice lava
+        SpecificHeat(0.05)
     }
 
     fn get_thermal_conductivity(&self) -> ThermalConductivity {
-        ThermalConductivity(1.0)
+        ThermalConductivity(100.0)
     }
 
     fn get_compressability(&self) -> Compressability {

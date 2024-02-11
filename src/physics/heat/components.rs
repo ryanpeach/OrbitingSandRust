@@ -177,33 +177,38 @@ impl ThermodynamicTemperature {
     const MIN_RED: f32 = 0.0;
     /// The maximum color alpha for the visualization of the temperature.
     const MAX_RED: f32 = 1.0;
+    /// The minimum temperature allowed for log display.
+    const MIN_TEMPERATURE: f32 = 1.0;
+    /// The maximum temperature allowed for log display.
+    const MAX_TEMPERATURE: f32 = 1e6;
 
     /// Returns the color of the system based on its temperature using a logarithmic scale.
-    pub fn log_color(
-        &self,
-        max_temp: ThermodynamicTemperature,
-        min_temp: ThermodynamicTemperature,
-    ) -> Color {
-        debug_assert_ne!(max_temp.0, 0.0, "max_temp cannot be zero");
-        debug_assert_ne!(min_temp.0, 0.0, "min_temp cannot be zero");
-        if max_temp == min_temp {
-            warn!("max_temp and min_temp are equal");
-            return Color::rgba(0.0, 0.0, 0.0, 0.0);
-        }
+    pub fn log_color(&self) -> Color {
         // This is useful for vaccum
         if self.0 == 0.0 {
             return Color::rgba(0.0, 0.0, 0.0, 0.0);
         }
 
-        let min_temp_log = min_temp.0.log(10.0);
-        let max_temp_log = max_temp.0.log(10.0);
-        let temp_log = self.0.log(10.0);
+        let min_temp_log = Self::MIN_TEMPERATURE.max(1.0).log(10.0);
+        let max_temp_log = Self::MAX_TEMPERATURE.min(Self::MAX_TEMPERATURE).log(10.0);
+        let temp_log = self
+            .0
+            .max(Self::MIN_TEMPERATURE)
+            .min(Self::MAX_TEMPERATURE)
+            .log(10.0);
 
         // Calculate the normalized logarithmic position of the system's temperature
         let normalized_log_pos = (temp_log - min_temp_log) / (max_temp_log - min_temp_log);
 
         // Interpolate the red value logarithmically between MIN_RED and MAX_RED
         let red = Self::MIN_RED + (Self::MAX_RED - Self::MIN_RED) * normalized_log_pos;
+        assert!(
+            red >= 0.0,
+            "red {} must be greater than or equal to 0.0",
+            red
+        );
+        assert!(red <= 1.0, "red {} must be less than or equal to 1.0", red);
+        assert!(red.is_finite(), "red {} must be finite", red);
 
         Color::rgba(1.0, 0.0, 0.0, red)
     }
@@ -216,17 +221,49 @@ impl ThermodynamicTemperature {
     ) -> Color {
         debug_assert_ne!(max_temp.0, 0.0, "max_temp cannot be zero");
         debug_assert_ne!(min_temp.0, 0.0, "min_temp cannot be zero");
-        if max_temp == min_temp {
-            warn!("max_temp and min_temp are equal");
+        if (max_temp == min_temp) {
+            // This can happen especially on first iteration
             return Color::rgba(0.0, 0.0, 0.0, 0.0);
         }
+        debug_assert!(
+            max_temp.0 >= min_temp.0,
+            "max_temp must be greater than min_temp"
+        );
+
         // This is useful for vaccum
         if self.0 == 0.0 {
             return Color::rgba(0.0, 0.0, 0.0, 0.0);
         }
 
+        debug_assert!(
+            self.0 >= min_temp.0,
+            "temperature {} must be greater than or equal to min_temp {}",
+            self.0,
+            min_temp.0
+        );
+        debug_assert!(
+            self.0 <= max_temp.0,
+            "temperature {} must be less than or equal to max_temp {}",
+            self.0,
+            max_temp.0
+        );
+        if max_temp == min_temp {
+            warn!("max_temp and min_temp are equal");
+            return Color::rgba(0.0, 0.0, 0.0, 0.0);
+        }
+
         // Calculate the normalized linear position of the system's temperature
         let normalized_linear_pos = (self.0 - min_temp.0) / (max_temp.0 - min_temp.0);
+        debug_assert!(
+            normalized_linear_pos >= 0.0,
+            "normalized_linear_pos {} must be greater than or equal to 0.0",
+            normalized_linear_pos
+        );
+        debug_assert!(
+            normalized_linear_pos <= 1.0,
+            "normalized_linear_pos {} must be less than or equal to 1.0",
+            normalized_linear_pos
+        );
 
         // Interpolate the red value linearly between MIN_RED and MAX_RED
         let red = Self::MIN_RED + (Self::MAX_RED - Self::MIN_RED) * normalized_linear_pos;
@@ -249,4 +286,11 @@ impl ThermodynamicTemperature {
 }
 
 /// The temperature in kelvin of room temperature.
-pub const ROOM_TEMPERATURE_K: ThermodynamicTemperature = ThermodynamicTemperature(293.15);
+pub const ROOM_TEMPERATURE_K_MIN: ThermodynamicTemperature = ThermodynamicTemperature(291.4);
+pub const ROOM_TEMPERATURE_K_MAX: ThermodynamicTemperature = ThermodynamicTemperature(300.0);
+pub fn get_random_room_temperature() -> ThermodynamicTemperature {
+    ThermodynamicTemperature(
+        rand::random::<f32>() * (ROOM_TEMPERATURE_K_MAX.0 - ROOM_TEMPERATURE_K_MIN.0)
+            + ROOM_TEMPERATURE_K_MIN.0,
+    )
+}

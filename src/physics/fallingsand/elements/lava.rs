@@ -93,7 +93,7 @@ impl Element for Lava {
     }
 
     fn get_default_temperature(&self) -> ThermodynamicTemperature {
-        ThermodynamicTemperature(15000.0)
+        ThermodynamicTemperature(1500.0)
     }
 
     fn get_heat(&self) -> HeatEnergy {
@@ -115,7 +115,7 @@ impl Element for Lava {
     }
 
     fn get_thermal_conductivity(&self) -> ThermalConductivity {
-        ThermalConductivity(0.1)
+        ThermalConductivity(1.0)
     }
 
     fn get_compressability(&self) -> Compressability {

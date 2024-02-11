@@ -8,8 +8,8 @@ use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::heat::components::{
-    Compressability, Density, HeatEnergy, Length, SpecificHeat, ThermalConductivity,
-    ThermodynamicTemperature, ROOM_TEMPERATURE_K,
+    get_random_room_temperature, Compressability, Density, HeatEnergy, Length, SpecificHeat,
+    ThermalConductivity, ThermodynamicTemperature,
 };
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
@@ -81,7 +81,7 @@ impl Element for Sand {
     }
 
     fn get_default_temperature(&self) -> ThermodynamicTemperature {
-        ROOM_TEMPERATURE_K
+        get_random_room_temperature()
     }
 
     fn get_heat(&self) -> HeatEnergy {
@@ -99,11 +99,11 @@ impl Element for Sand {
     }
 
     fn get_specific_heat(&self) -> SpecificHeat {
-        SpecificHeat(830.0 / 80.0) // Way too hot normally
+        SpecificHeat(830.)
     }
 
     fn get_thermal_conductivity(&self) -> ThermalConductivity {
-        ThermalConductivity(0.01)
+        ThermalConductivity(0.2)
     }
 
     fn get_compressability(&self) -> Compressability {
