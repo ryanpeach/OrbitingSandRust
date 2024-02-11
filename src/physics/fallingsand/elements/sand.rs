@@ -103,7 +103,7 @@ impl Element for Sand {
     }
 
     fn get_thermal_conductivity(&self) -> ThermalConductivity {
-        ThermalConductivity(0.2)
+        ThermalConductivity(1.0)
     }
 
     fn get_compressability(&self) -> Compressability {

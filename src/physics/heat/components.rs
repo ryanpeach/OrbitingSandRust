@@ -180,7 +180,7 @@ impl ThermodynamicTemperature {
     /// The minimum temperature allowed for log display.
     const MIN_TEMPERATURE: f32 = 1.0;
     /// The maximum temperature allowed for log display.
-    const MAX_TEMPERATURE: f32 = 1e6;
+    pub const MAX_TEMPERATURE: ThermodynamicTemperature = ThermodynamicTemperature(1e6);
 
     /// Returns the color of the system based on its temperature using a logarithmic scale.
     pub fn log_color(&self) -> Color {
@@ -190,11 +190,14 @@ impl ThermodynamicTemperature {
         }
 
         let min_temp_log = Self::MIN_TEMPERATURE.max(1.0).log(10.0);
-        let max_temp_log = Self::MAX_TEMPERATURE.min(Self::MAX_TEMPERATURE).log(10.0);
+        let max_temp_log = Self::MAX_TEMPERATURE
+            .0
+            .min(Self::MAX_TEMPERATURE.0)
+            .log(10.0);
         let temp_log = self
             .0
             .max(Self::MIN_TEMPERATURE)
-            .min(Self::MAX_TEMPERATURE)
+            .min(Self::MAX_TEMPERATURE.0)
             .log(10.0);
 
         // Calculate the normalized logarithmic position of the system's temperature
@@ -220,14 +223,6 @@ impl ThermodynamicTemperature {
         min_temp: ThermodynamicTemperature,
     ) -> Color {
         debug_assert_ne!(max_temp.0, 0.0, "max_temp cannot be zero");
-        if (min_temp == ThermodynamicTemperature(0.0)) {
-            // This can happen on fully empty worlds, but really should not
-            return Color::rgba(0.0, 0.0, 0.0, 0.0);
-        }
-        if (max_temp == min_temp) {
-            // This can happen especially on first iteration
-            return Color::rgba(0.0, 0.0, 0.0, 0.0);
-        }
         debug_assert!(
             max_temp.0 >= min_temp.0,
             "max_temp must be greater than min_temp"
@@ -250,11 +245,6 @@ impl ThermodynamicTemperature {
             self.0,
             max_temp.0
         );
-        if max_temp == min_temp {
-            warn!("max_temp and min_temp are equal");
-            return Color::rgba(0.0, 0.0, 0.0, 0.0);
-        }
-
         // Calculate the normalized linear position of the system's temperature
         let normalized_linear_pos = (self.0 - min_temp.0) / (max_temp.0 - min_temp.0);
         debug_assert!(

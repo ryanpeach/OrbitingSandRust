@@ -75,7 +75,7 @@ impl ElementGrid {
             last_set: Clock::default(),
             total_mass: Mass(0.0),
             min_temp: ThermodynamicTemperature(0.0),
-            max_temp: ThermodynamicTemperature(1.0),
+            max_temp: ThermodynamicTemperature::MAX_TEMPERATURE,
         }
     }
 }
