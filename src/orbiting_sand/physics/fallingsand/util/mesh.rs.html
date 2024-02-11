@@ -164,12 +164,60 @@
 <a href="#163" id="163">163</a>
 <a href="#164" id="164">164</a>
 <a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Mesh utilities
 //! I found it useful to write my own mesh class in ggez and it has been useful in bevy as well
 //! keeps us from having to use specific bevy types in the physics engine
+</span><span class="attr">#![warn(missing_docs)]
+#![warn(clippy::missing_docs_in_private_items)]
 
 </span><span class="kw">use </span>bevy::ecs::component::Component;
+
 <span class="kw">use </span>bevy::math::{Rect, Vec2};
+
 <span class="kw">use </span>bevy::{
     asset::{Assets, Handle},
     ecs::system::ResMut,
@@ -184,63 +232,135 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::util::vectors::Vertex;
 
-<span class="attr">#[derive(Component)]
+<span class="doccomment">/// Useful for frustum culling
+/// The bounding box of the mesh to determine if it is visible on the screen
+</span><span class="attr">#[derive(Component)]
 </span><span class="kw">pub struct </span>MeshBoundingBox(<span class="kw">pub </span>Rect);
+
+<span class="doccomment">/// A mesh that can be drawn using bevy's gizmos (immediate mode renderer)
+/// This version draws the mesh using lines and assumes that the mesh is a loop
+/// This is useful for chunk outlines and for the brush
+</span><span class="attr">#[derive(Component)]
+</span><span class="kw">pub struct </span>GizmoDrawableLoop {
+    <span class="doccomment">/// The mesh to draw
+    </span><span class="kw">pub </span>mesh: OwnedMeshData,
+    <span class="doccomment">/// The color to draw the mesh
+    </span><span class="kw">pub </span>color: Color,
+}
+
+<span class="kw">impl </span>GizmoDrawableLoop {
+    <span class="doccomment">/// Create a new GizmoDrawableLoop
+    </span><span class="kw">pub fn </span>new(mesh: OwnedMeshData, color: Color) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ mesh, color }
+    }
+
+    <span class="doccomment">/// Draws the mesh using bevy's gizmos, which is an immediate mode renderer
+    /// This is useful for chunk outlines and for the brush
+    /// This draw mode "loops" like you would for an enclosed shape
+    </span><span class="kw">pub fn </span>draw_bevy_gizmo_loop(<span class="kw-2">&amp;</span><span class="self">self</span>, gizmos: <span class="kw-2">&amp;mut </span>Gizmos, transform: <span class="kw-2">&amp;</span>Transform) {
+        <span class="kw">for </span>idx <span class="kw">in </span><span class="number">0</span>..(<span class="self">self</span>.mesh.indices.len() - <span class="number">1</span>) {
+            <span class="kw">let </span>idx0 = <span class="self">self</span>.mesh.indices[idx] <span class="kw">as </span>usize;
+            <span class="kw">let </span>idx1 = <span class="self">self</span>.mesh.indices[idx + <span class="number">1</span>] <span class="kw">as </span>usize;
+            <span class="self">self</span>.mesh
+                .draw_bevy_gizmo_line(idx0, idx1, transform, gizmos, <span class="self">self</span>.color);
+        }
+        <span class="comment">// Now the final line to close the loop
+        </span><span class="kw">let </span>idx0 = <span class="self">self</span>.mesh.indices[<span class="self">self</span>.mesh.indices.len() - <span class="number">1</span>] <span class="kw">as </span>usize;
+        <span class="kw">let </span>idx1 = <span class="self">self</span>.mesh.indices[<span class="number">0</span>] <span class="kw">as </span>usize;
+        <span class="self">self</span>.mesh
+            .draw_bevy_gizmo_line(idx0, idx1, transform, gizmos, <span class="self">self</span>.color);
+    }
+}
+
+<span class="doccomment">/// A mesh that can be drawn using bevy's gizmos (immediate mode renderer)
+/// This version draws the mesh using triangles
+/// This is useful for wireframes
+</span><span class="attr">#[derive(Component)]
+</span><span class="kw">pub struct </span>GizmoDrawableTriangles {
+    <span class="doccomment">/// The mesh to draw
+    </span><span class="kw">pub </span>mesh: OwnedMeshData,
+    <span class="doccomment">/// The color to draw the mesh
+    </span><span class="kw">pub </span>color: Color,
+}
+
+<span class="kw">impl </span>GizmoDrawableTriangles {
+    <span class="doccomment">/// Create a new GizmoDrawableTriangles
+    </span><span class="kw">pub fn </span>new(mesh: OwnedMeshData, color: Color) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ mesh, color }
+    }
+
+    <span class="doccomment">/// Draws the mesh using bevy's gizmos, which is an immediate mode renderer
+    /// This is useful for wireframes
+    /// This draw mode draws each triangle (triple) individually
+    </span><span class="kw">pub fn </span>draw_bevy_gizmo_triangles(<span class="kw-2">&amp;</span><span class="self">self</span>, gizmos: <span class="kw-2">&amp;mut </span>Gizmos, transform: <span class="kw-2">&amp;</span>Transform) {
+        <span class="kw">for </span>idx <span class="kw">in </span>(<span class="number">0</span>..<span class="self">self</span>.mesh.indices.len()).step_by(<span class="number">3</span>) {
+            <span class="kw">let </span>idx0 = <span class="self">self</span>.mesh.indices[idx] <span class="kw">as </span>usize;
+            <span class="kw">let </span>idx1 = <span class="self">self</span>.mesh.indices[idx + <span class="number">1</span>] <span class="kw">as </span>usize;
+            <span class="kw">let </span>idx2 = <span class="self">self</span>.mesh.indices[idx + <span class="number">2</span>] <span class="kw">as </span>usize;
+            <span class="self">self</span>.mesh
+                .draw_bevy_gizmo_line(idx0, idx1, transform, gizmos, <span class="self">self</span>.color);
+            <span class="self">self</span>.mesh
+                .draw_bevy_gizmo_line(idx1, idx2, transform, gizmos, <span class="self">self</span>.color);
+            <span class="self">self</span>.mesh
+                .draw_bevy_gizmo_line(idx2, idx0, transform, gizmos, <span class="self">self</span>.color);
+        }
+    }
+}
 
 <span class="doccomment">/// Represents a mesh that is owned by this object
 /// For some reason a MeshData in ggez object has a lifetime and is a set of borrows.
 /// This is a workaround for that.
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>OwnedMeshData {
-    <span class="kw">pub </span>uv_bounds: Rect,
-    <span class="kw">pub </span>vertices: Vec&lt;Vertex&gt;,
-    <span class="kw">pub </span>indices: Vec&lt;u32&gt;,
+    <span class="doccomment">/// The vertices of the mesh
+    </span><span class="kw">pub </span>vertices: Vec&lt;Vertex&gt;,
+    <span class="doccomment">/// The indices of the mesh, relating to the vertices
+    </span><span class="kw">pub </span>indices: Vec&lt;u32&gt;,
 }
 
 <span class="doccomment">/// Create an empty OwnedMeshData
 </span><span class="kw">impl </span>Default <span class="kw">for </span>OwnedMeshData {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            uv_bounds: Rect::default(),
             vertices: Vec::new(),
             indices: Vec::new(),
         }
     }
 }
 
-<span class="doccomment">/// Get the uv bounds of a list of vertices
-</span><span class="kw">fn </span>calc_uv_bounds(vertices: <span class="kw-2">&amp;</span>[Vertex]) -&gt; Rect {
-    <span class="kw">let </span>width: f32 = vertices
-        .iter()
-        .map(|vertex| vertex.uv[<span class="number">0</span>])
-        .fold(<span class="number">0.0</span>, |a, b| a.max(b));
-    <span class="kw">let </span>height: f32 = vertices
-        .iter()
-        .map(|vertex| vertex.uv[<span class="number">1</span>])
-        .fold(<span class="number">0.0</span>, |a, b| a.max(b));
-    <span class="kw">let </span>min_x: f32 = vertices
-        .iter()
-        .map(|vertex| vertex.uv[<span class="number">0</span>])
-        .fold(f32::INFINITY, |a, b| a.min(b));
-    <span class="kw">let </span>min_y: f32 = vertices
-        .iter()
-        .map(|vertex| vertex.uv[<span class="number">1</span>])
-        .fold(f32::INFINITY, |a, b| a.min(b));
-    Rect::new(min_x, min_y, width, height)
-}
-
 <span class="kw">impl </span>OwnedMeshData {
     <span class="doccomment">/// Create a new OwnedMeshData object
     </span><span class="kw">pub fn </span>new(vertices: Vec&lt;Vertex&gt;, indices: Vec&lt;u32&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>uv_bounds = calc_uv_bounds(<span class="kw-2">&amp;</span>vertices);
-        <span class="self">Self </span>{
-            uv_bounds,
-            vertices,
-            indices,
-        }
+        <span class="self">Self </span>{ vertices, indices }
     }
 
-    <span class="kw">pub fn </span>load_bevy_mesh(<span class="kw-2">&amp;</span><span class="self">self</span>, meshes: <span class="kw-2">&amp;mut </span>ResMut&lt;Assets&lt;Mesh&gt;&gt;) -&gt; Handle&lt;Mesh&gt; {
+    <span class="doccomment">/// Get the uv bounds of a list of vertices
+    </span><span class="kw">pub fn </span>calc_bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MeshBoundingBox {
+        <span class="kw">let </span>width: f32 = <span class="self">self
+            </span>.vertices
+            .iter()
+            .map(|vertex| vertex.uv[<span class="number">0</span>])
+            .fold(<span class="number">0.0</span>, |a, b| a.max(b));
+        <span class="kw">let </span>height: f32 = <span class="self">self
+            </span>.vertices
+            .iter()
+            .map(|vertex| vertex.uv[<span class="number">1</span>])
+            .fold(<span class="number">0.0</span>, |a, b| a.max(b));
+        <span class="kw">let </span>min_x: f32 = <span class="self">self
+            </span>.vertices
+            .iter()
+            .map(|vertex| vertex.uv[<span class="number">0</span>])
+            .fold(f32::INFINITY, |a, b| a.min(b));
+        <span class="kw">let </span>min_y: f32 = <span class="self">self
+            </span>.vertices
+            .iter()
+            .map(|vertex| vertex.uv[<span class="number">1</span>])
+            .fold(f32::INFINITY, |a, b| a.min(b));
+        MeshBoundingBox(Rect::new(min_x, min_y, width, height))
+    }
+
+    <span class="doccomment">/// Loads the mesh into bevy's asset system and returns a handle to it
+    </span><span class="kw">pub fn </span>load_bevy_mesh(<span class="kw-2">&amp;</span><span class="self">self</span>, meshes: <span class="kw-2">&amp;mut </span>ResMut&lt;Assets&lt;Mesh&gt;&gt;) -&gt; Handle&lt;Mesh&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>mesh = Mesh::new(PrimitiveTopology::TriangleList);
 
         <span class="comment">// Assuming that Vertex struct has position, uv, and color fields
@@ -277,35 +397,6 @@
         meshes.add(mesh)
     }
 
-    <span class="doccomment">/// Draws the mesh using bevy's gizmos, which is an immediate mode renderer
-    /// This is useful for chunk outlines and for the brush
-    /// This draw mode "loops" like you would for an enclosed shape
-    </span><span class="kw">pub fn </span>draw_bevy_gizmo_outline(<span class="kw-2">&amp;</span><span class="self">self</span>, gizmos: <span class="kw-2">&amp;mut </span>Gizmos, transform: <span class="kw-2">&amp;</span>Transform) {
-        <span class="kw">for </span>idx <span class="kw">in </span><span class="number">0</span>..(<span class="self">self</span>.indices.len() - <span class="number">1</span>) {
-            <span class="kw">let </span>idx0 = <span class="self">self</span>.indices[idx] <span class="kw">as </span>usize;
-            <span class="kw">let </span>idx1 = <span class="self">self</span>.indices[idx + <span class="number">1</span>] <span class="kw">as </span>usize;
-            <span class="self">self</span>.draw_bevy_gizmo_line(idx0, idx1, transform, gizmos);
-        }
-        <span class="comment">// Now the final line to close the loop
-        </span><span class="kw">let </span>idx0 = <span class="self">self</span>.indices[<span class="self">self</span>.indices.len() - <span class="number">1</span>] <span class="kw">as </span>usize;
-        <span class="kw">let </span>idx1 = <span class="self">self</span>.indices[<span class="number">0</span>] <span class="kw">as </span>usize;
-        <span class="self">self</span>.draw_bevy_gizmo_line(idx0, idx1, transform, gizmos);
-    }
-
-    <span class="doccomment">/// Draws the mesh using bevy's gizmos, which is an immediate mode renderer
-    /// This is useful for wireframes
-    /// This draw mode draws each triangle (triple) individually
-    </span><span class="kw">pub fn </span>draw_bevy_gizmo_triangles(<span class="kw-2">&amp;</span><span class="self">self</span>, gizmos: <span class="kw-2">&amp;mut </span>Gizmos, transform: <span class="kw-2">&amp;</span>Transform) {
-        <span class="kw">for </span>idx <span class="kw">in </span>(<span class="number">0</span>..<span class="self">self</span>.indices.len()).step_by(<span class="number">3</span>) {
-            <span class="kw">let </span>idx0 = <span class="self">self</span>.indices[idx] <span class="kw">as </span>usize;
-            <span class="kw">let </span>idx1 = <span class="self">self</span>.indices[idx + <span class="number">1</span>] <span class="kw">as </span>usize;
-            <span class="kw">let </span>idx2 = <span class="self">self</span>.indices[idx + <span class="number">2</span>] <span class="kw">as </span>usize;
-            <span class="self">self</span>.draw_bevy_gizmo_line(idx0, idx1, transform, gizmos);
-            <span class="self">self</span>.draw_bevy_gizmo_line(idx1, idx2, transform, gizmos);
-            <span class="self">self</span>.draw_bevy_gizmo_line(idx2, idx0, transform, gizmos);
-        }
-    }
-
     <span class="doccomment">/// Simply draws a line from an index to another but applies the transform first
     </span><span class="kw">fn </span>draw_bevy_gizmo_line(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -313,6 +404,7 @@
         idx1: usize,
         transform: <span class="kw-2">&amp;</span>Transform,
         gizmos: <span class="kw-2">&amp;mut </span>Gizmos,
+        color: Color,
     ) {
         <span class="kw">let </span><span class="kw-2">mut </span>pos0 = <span class="self">self</span>.vertices[idx0].position;
         <span class="kw">let </span><span class="kw-2">mut </span>pos1 = <span class="self">self</span>.vertices[idx1].position;
@@ -322,11 +414,7 @@
         pos1.y += transform.translation.y;
         pos0.x <span class="kw-2">*</span>= transform.scale.x;
         pos0.y <span class="kw-2">*</span>= transform.scale.y;
-        gizmos.line_2d(
-            Vec2::new(pos0.x, pos0.y),
-            Vec2::new(pos1.x, pos1.y),
-            Color::WHITE,
-        );
+        gizmos.line_2d(Vec2::new(pos0.x, pos0.y), Vec2::new(pos1.x, pos1.y), color);
     }
 }
 </code></pre></div></section></main></body></html>

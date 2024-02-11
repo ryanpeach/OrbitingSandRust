@@ -202,6 +202,9 @@
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The brush is a circle that can be resized and moved around the screen.
 //! It can be used to apply elements to a celestial.
 
@@ -210,6 +213,7 @@
 
 </span><span class="kw">use </span><span class="kw">crate</span>::entities::celestials::celestial::CelestialData;
 <span class="kw">use </span><span class="kw">crate</span>::entities::utils::Radius;
+<span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::mesh::GizmoDrawableLoop;
 <span class="kw">use </span><span class="kw">crate</span>::physics::util::clock::Clock;
 <span class="kw">use </span><span class="kw">crate</span>::physics::util::vectors::{mouse_coord_to_world_coord, RelXyPoint};
 <span class="kw">use </span>bevy::app::{App, Plugin, Update};
@@ -225,6 +229,8 @@
 <span class="kw">use </span>bevy::log::debug;
 <span class="kw">use </span>bevy::math::{Vec2, Vec3};
 <span class="kw">use </span>bevy::prelude::Window;
+<span class="kw">use </span>bevy::render::color::Color;
+
 <span class="kw">use </span>bevy::time::Time;
 <span class="kw">use </span>bevy::{
     ecs::{component::Component, event::EventReader, query::With, system::Query},
@@ -304,7 +310,7 @@
     ) {
         <span class="kw">for </span>(transform, brush_radius) <span class="kw">in </span>query.iter() {
             <span class="kw">let </span>mesh = brush_radius.calc_mesh();
-            mesh.draw_bevy_gizmo_outline(<span class="kw-2">&amp;mut </span>gizmos, transform);
+            GizmoDrawableLoop::new(mesh, Color::WHITE).draw_bevy_gizmo_loop(<span class="kw-2">&amp;mut </span>gizmos, transform);
         }
     }
 

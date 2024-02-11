@@ -356,6 +356,28 @@
 <a href="#355" id="355">355</a>
 <a href="#356" id="356">356</a>
 <a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The bevy camera for the game
 
 </span><span class="attr">#![warn(missing_docs)]
@@ -402,6 +424,14 @@
 </span><span class="attr">#[derive(Component, Debug, Default)]
 </span><span class="kw">pub struct </span>OverlayLayer1;
 
+<span class="doccomment">/// A layer in front of the game. Z-index = 2
+</span><span class="attr">#[derive(Component, Debug, Default)]
+</span><span class="kw">pub struct </span>OverlayLayer2;
+
+<span class="doccomment">/// A layer in front of the game. Z-index = 3
+</span><span class="attr">#[derive(Component, Debug, Default)]
+</span><span class="kw">pub struct </span>OverlayLayer3;
+
 <span class="doccomment">/// A layer behind the game. Z-index = -1
 </span><span class="attr">#[derive(Component, Debug, Default)]
 </span><span class="kw">pub struct </span>BackgroundLayer1;
@@ -417,9 +447,19 @@
         camera: (<span class="kw-2">&amp;</span>Parent, Entity),
     ) -&gt; CelestialIdx {
         <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
-            <span class="kw">let </span>max_idx = celestials.iter().map(|(<span class="kw">_</span>, idx)| idx.<span class="number">0</span>).max().unwrap();
-            <span class="kw">let </span>min_idx = celestials.iter().map(|(<span class="kw">_</span>, idx)| idx.<span class="number">0</span>).min().unwrap();
-            <span class="macro">assert_ne!</span>(max_idx, min_idx);
+            <span class="kw">let </span>max_idx = celestials
+                .iter()
+                .map(|(<span class="kw">_</span>, idx)| idx.<span class="number">0</span>)
+                .max()
+                .unwrap_or_default();
+            <span class="kw">let </span>min_idx = celestials
+                .iter()
+                .map(|(<span class="kw">_</span>, idx)| idx.<span class="number">0</span>)
+                .min()
+                .unwrap_or_default();
+            <span class="kw">if </span>max_idx == min_idx {
+                <span class="macro">assert_eq!</span>(max_idx, <span class="number">0</span>);
+            }
             <span class="comment">// Check all the indices are unique
             </span><span class="kw">let </span><span class="kw-2">mut </span>indices = celestials.iter().map(|(<span class="kw">_</span>, idx)| idx.<span class="number">0</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
             indices.sort();
@@ -466,8 +506,9 @@
     </span><span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, app: <span class="kw-2">&amp;mut </span>App) {
         app.add_systems(Update, <span class="self">Self</span>::zoom_camera_system);
         app.add_systems(Update, <span class="self">Self</span>::move_camera_system);
-        app.add_systems(Update, <span class="self">Self</span>::frustum_culling_2d);
-        app.add_systems(Update, <span class="self">Self</span>::select_celestial_focus);
+        <span class="comment">// Not currently working
+        // app.add_systems(Update, Self::frustum_culling_2d);
+        </span>app.add_systems(Update, <span class="self">Self</span>::select_celestial_focus);
         app.add_systems(Update, <span class="self">Self</span>::cycle_celestial_focus);
         app.add_systems(Update, <span class="self">Self</span>::first_celestial_focus);
     }
@@ -515,7 +556,7 @@
         }
         <span class="kw">if </span>delta != <span class="number">0. </span>{
             <span class="kw">for </span>(<span class="kw-2">mut </span>transform, <span class="kw">_</span>) <span class="kw">in </span>query.iter_mut() {
-                transform.scale <span class="kw-2">*</span>= <span class="number">1. </span>+ delta * time.delta_seconds() * <span class="number">0.5</span>;
+                transform.scale <span class="kw-2">*</span>= (<span class="number">1. </span>+ delta * time.delta_seconds() * <span class="number">0.5</span>).max(<span class="number">0.0001</span>);
             }
         }
     }
@@ -549,6 +590,9 @@
 
     <span class="doccomment">/// Don't render entities that are not in the camera's frustum
     /// Uses the Visibility component to hide and show entities
+    /// &gt; [!WARNING]
+    /// &gt; TODO: This system is not currently working
+    </span><span class="attr">#[allow(dead_code)]
     </span><span class="kw">fn </span>frustum_culling_2d(
         <span class="kw-2">mut </span>commands: Commands,
         camera: Query&lt;(<span class="kw-2">&amp;</span>Camera2d, <span class="kw-2">&amp;</span>GlobalTransform)&gt;,

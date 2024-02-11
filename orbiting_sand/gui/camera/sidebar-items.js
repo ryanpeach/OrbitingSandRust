@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["focus_celestial","rect_add","rect_overlaps"],"struct":["BackgroundLayer1","CameraPlugin","CelestialIdx","MainCamera","OverlayLayer1","SelectCelestial"]};
+window.SIDEBAR_ITEMS = {"fn":["focus_celestial","rect_add","rect_overlaps"],"struct":["BackgroundLayer1","CameraPlugin","CelestialIdx","MainCamera","OverlayLayer1","OverlayLayer2","OverlayLayer3","SelectCelestial"]};

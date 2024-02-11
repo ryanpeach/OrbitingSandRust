@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["calc_uv_bounds"],"struct":["MeshBoundingBox","OwnedMeshData"]};
+window.SIDEBAR_ITEMS = {"struct":["GizmoDrawableLoop","GizmoDrawableTriangles","MeshBoundingBox","OwnedMeshData"]};

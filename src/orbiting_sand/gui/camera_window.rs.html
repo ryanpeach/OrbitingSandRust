@@ -98,6 +98,30 @@
 <a href="#97" id="97">97</a>
 <a href="#98" id="98">98</a>
 <a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>bevy::{
     app::{App, Plugin, Update},
     core_pipeline::core_2d::Camera2d,
@@ -105,7 +129,7 @@
     ecs::{
         entity::Entity,
         query::With,
-        system::{Local, Query, Res, ResMut},
+        system::{Local, Query, Res, ResMut, Resource},
     },
     render::view::screenshot::ScreenshotManager,
     transform::components::Transform,
@@ -130,11 +154,32 @@
     FullStep,
 }
 
-<span class="kw">pub struct </span>CameraWindowPlugin;
+<span class="attr">#[derive(Resource, Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>CameraWindowCheckboxes {
+    <span class="kw">pub </span>outline: bool,
+    <span class="kw">pub </span>wireframe: bool,
+    <span class="kw">pub </span>material: bool,
+    <span class="kw">pub </span>heat: bool,
+}
+
+<span class="kw">impl </span>Default <span class="kw">for </span>CameraWindowCheckboxes {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            outline: <span class="bool-val">false</span>,
+            wireframe: <span class="bool-val">false</span>,
+            material: <span class="bool-val">true</span>,
+            heat: <span class="bool-val">false</span>,
+        }
+    }
+}
+
+<span class="doccomment">/// The Camera Window Plugin
+</span><span class="kw">pub struct </span>CameraWindowPlugin;
 
 <span class="kw">impl </span>Plugin <span class="kw">for </span>CameraWindowPlugin {
     <span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, app: <span class="kw-2">&amp;mut </span>App) {
         app.add_systems(Update, <span class="self">Self</span>::camera_window_system);
+        app.init_resource::&lt;CameraWindowCheckboxes&gt;();
     }
 }
 
@@ -145,6 +190,7 @@
         main_window: Query&lt;Entity, With&lt;PrimaryWindow&gt;&gt;,
         <span class="kw-2">mut </span>screenshot_manager: ResMut&lt;ScreenshotManager&gt;,
         <span class="kw-2">mut </span>screenshot_counter: Local&lt;u32&gt;,
+        <span class="kw-2">mut </span>checkboxes: ResMut&lt;CameraWindowCheckboxes&gt;,
         camera_transform: Query&lt;(<span class="kw-2">&amp;</span>Transform, <span class="kw-2">&amp;</span>Camera2d)&gt;,
     ) {
         <span class="kw">let </span>fps = diagnostics
@@ -156,11 +202,13 @@
             <span class="comment">// ui.label(format!("Brush Size: {}", self.brush_size.0));
             </span>ui.label(<span class="macro">format!</span>(<span class="string">"Zoom: {:?}"</span>, scale));
             ui.label(<span class="macro">format!</span>(<span class="string">"FPS: {}"</span>, fps));
-            <span class="comment">// TODO: Set a radiomode for "DrawMode"
-            // ui.separator();
-            // ui.checkbox(&amp;mut self.outline, "Outline");
-            // ui.checkbox(&amp;mut self.wireframe, "Wireframe");
-            // TODO: Play Step MicroStep Pause
+            <span class="comment">// Set a radiomode for "DrawMode"
+            </span>ui.separator();
+            ui.checkbox(<span class="kw-2">&amp;mut </span>checkboxes.outline, <span class="string">"Outline"</span>);
+            ui.checkbox(<span class="kw-2">&amp;mut </span>checkboxes.wireframe, <span class="string">"Wireframe"</span>);
+            ui.checkbox(<span class="kw-2">&amp;mut </span>checkboxes.material, <span class="string">"Material"</span>);
+            ui.checkbox(<span class="kw-2">&amp;mut </span>checkboxes.heat, <span class="string">"Heat"</span>);
+            <span class="comment">// TODO: Play Step MicroStep Pause
             // ui.separator();
             // ui.horizontal(|ui| {
             //     if ui.button("Play").clicked() {
