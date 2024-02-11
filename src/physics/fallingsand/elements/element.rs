@@ -11,7 +11,7 @@ use crate::physics::heat::components::{
     Compressability, Density, HeatEnergy, Length, SpecificHeat, ThermalConductivity,
     ThermodynamicTemperature,
 };
-use crate::physics::orbits::components::{Force, Mass};
+use crate::physics::orbits::components::{Mass};
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
 use strum_macros::EnumIter;

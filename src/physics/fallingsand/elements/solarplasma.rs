@@ -204,19 +204,15 @@ impl Element for SolarPlasma {
 #[cfg(test)]
 mod test {
     mod heat {
-        use std::time::Duration;
+        
 
         use crate::physics::{
             fallingsand::{
-                convolution::behaviors::ElementGridConvolutionNeighborTemperatures,
-                elements::element::ElementType, util::vectors::JkVector,
+                elements::element::ElementType,
             },
             heat::{
-                components::{Length, ThermodynamicTemperature},
-                math::{PropogateHeat, PropogateHeatBuilder},
+                math::{PropogateHeat},
             },
-            orbits::components::Mass,
-            util::clock::Clock,
         };
 
         /// Determines how fast the heat diffuses

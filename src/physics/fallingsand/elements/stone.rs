@@ -188,19 +188,15 @@ mod tests {
     }
 
     mod heat {
-        use std::time::Duration;
+        
 
         use crate::physics::{
             fallingsand::{
-                convolution::behaviors::ElementGridConvolutionNeighborTemperatures,
-                elements::{element::ElementType, stone::tests::Clock},
-                util::vectors::JkVector,
+                elements::{element::ElementType},
             },
             heat::{
-                components::{Length, ThermodynamicTemperature},
-                math::{PropogateHeat, PropogateHeatBuilder},
+                math::{PropogateHeat},
             },
-            orbits::components::Mass,
         };
 
         /// Determines how fast the heat diffuses

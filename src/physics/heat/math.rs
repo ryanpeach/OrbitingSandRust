@@ -46,7 +46,7 @@ use crate::physics::{
         data::element_grid::ElementGrid,
         elements::element::{Element, ElementType},
         mesh::chunk_coords::{ChunkCoords, PartialLayerChunkCoordsBuilder},
-        util::vectors::{ChunkIjkVector, JkVector, NdArrayCoords},
+        util::vectors::{ChunkIjkVector, JkVector},
     },
     heat::components::{Compressability, Density, SpecificHeat},
     orbits::components::Mass,

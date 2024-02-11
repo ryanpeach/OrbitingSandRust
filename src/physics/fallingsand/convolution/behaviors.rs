@@ -1,5 +1,5 @@
 use hashbrown::HashMap;
-use ndarray::{Array1, Array2};
+use ndarray::{Array1};
 
 use crate::physics::{
     fallingsand::{
@@ -11,7 +11,6 @@ use crate::physics::{
             vectors::{ChunkIjkVector, JkVector},
         },
     },
-    heat::components::ThermodynamicTemperature,
     util::clock::Clock,
 };
 
@@ -126,7 +125,7 @@ impl ElementGridConvolutionNeighbors {
         let mut out = ElementGridConvolutionNeighborTemperatures::default();
         let mut this = Array1::zeros(coords.get_num_radial_lines());
         match &self.grids.top {
-            TopNeighborGrids::Normal { t, tl, tr } => {
+            TopNeighborGrids::Normal { t, tl, tr: _ } => {
                 if t.get_chunk_coords().get_num_radial_lines() == coords.get_num_radial_lines() {
                     for k in 0..coords.get_num_radial_lines() {
                         let idx = JkVector { j: 0, k };
