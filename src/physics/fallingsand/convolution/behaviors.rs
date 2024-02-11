@@ -219,7 +219,7 @@ impl ElementGridConvolutionNeighbors {
                     k: pos.k,
                 };
                 // Sometimes a "Normal" bottom index is actually on a different layer
-                // just with the same number of radial chunks
+                // just with the same number of tangential chunkss
                 // If there are the same number of radial lines (not a layer transition) we dont
                 // need to divide k by 2
                 let this_radial_lines = target_chunk.get_chunk_coords().get_num_radial_lines();
@@ -705,7 +705,7 @@ mod tests {
                 .num_layers(7)
                 .first_num_radial_lines(12)
                 .second_num_concentric_circles(3)
-                .first_num_radial_chunks(3)
+                .first_num_tangential_chunkss(3)
                 .max_radial_lines_per_chunk(128)
                 .max_concentric_circles_per_chunk(128)
                 .build();
