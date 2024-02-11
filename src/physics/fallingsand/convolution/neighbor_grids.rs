@@ -60,7 +60,7 @@ pub enum LeftRightNeighborGrids {
         /// The left element
         l: ElementGrid,
         /// The right element
-        r: ElementGrid
+        r: ElementGrid,
     },
 }
 

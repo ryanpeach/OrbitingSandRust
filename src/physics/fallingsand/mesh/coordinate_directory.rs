@@ -3,18 +3,16 @@
 
 use std::f32::consts::PI;
 
-use bevy::math::{Rect, Vec2};
+use bevy::math::Rect;
 
 use crate::entities::utils::Radius;
 use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use crate::physics::heat::components::Length;
-use crate::physics::util::vectors::{RelXyPoint, Vertex};
+use crate::physics::util::vectors::RelXyPoint;
 
+use super::chunk_coords::ChunkCoords;
 use super::chunk_coords::PartialLayerChunkCoordsBuilder;
-use super::chunk_coords::{ChunkCoords, VertexMode};
-use crate::physics::fallingsand::util::enums::MeshDrawMode;
-use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 
 /// A structure that contains all the chunk coordinates for a celestial body
 /// Useful for drawing the total mesh
@@ -730,6 +728,8 @@ mod tests {
     mod inverse_coord {
         use super::*;
         mod coord_dir {
+            use bevy::math::Vec2;
+
             use super::*;
 
             /// Iterate around the circle in every direction, targetting each cells midpoint, and make sure
