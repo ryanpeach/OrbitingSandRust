@@ -60,21 +60,6 @@ impl GizmoDrawableLoop {
     }
 }
 
-/// Bevy Systems
-impl GizmoDrawableLoop {
-    /// Draw anything that has a GizmoDrawableTriangles component
-    pub fn draw_bevy_gizmo_loop_system(
-        mut gizmos: Gizmos,
-        query: Query<(&GizmoDrawableLoop, &Transform, &Visibility)>,
-    ) {
-        for (drawable, transform, visibility) in query.iter() {
-            if visibility == visibility::Visibility::Visible {
-                drawable.draw_bevy_gizmo_loop(&mut gizmos, transform);
-            }
-        }
-    }
-}
-
 /// A mesh that can be drawn using bevy's gizmos (immediate mode renderer)
 /// This version draws the mesh using triangles
 /// This is useful for wireframes
@@ -106,21 +91,6 @@ impl GizmoDrawableTriangles {
                 .draw_bevy_gizmo_line(idx1, idx2, transform, gizmos, self.color);
             self.mesh
                 .draw_bevy_gizmo_line(idx2, idx0, transform, gizmos, self.color);
-        }
-    }
-}
-
-/// Bevy Systems
-impl GizmoDrawableTriangles {
-    /// Draw anything that has a GizmoDrawableTriangles component
-    pub fn draw_bevy_gizmo_triangles_system(
-        mut gizmos: Gizmos,
-        query: Query<(&GizmoDrawableTriangles, &Transform, &Visibility)>,
-    ) {
-        for (drawable, transform, visibility) in query.iter() {
-            if visibility == visibility::Visibility::Visible {
-                drawable.draw_bevy_gizmo_triangles(&mut gizmos, transform);
-            }
         }
     }
 }

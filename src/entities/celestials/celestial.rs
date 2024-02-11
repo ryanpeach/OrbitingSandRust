@@ -5,8 +5,9 @@ use bevy::ecs::component::Component;
 
 use bevy::ecs::entity::Entity;
 
+use bevy::gizmos::gizmos::Gizmos;
 use bevy::render::color::Color;
-use bevy::render::view::Visibility;
+use bevy::render::view::{visibility, Visibility};
 use bevy_mod_picking::prelude::*;
 
 // use bevy_mod_picking::PickableBundle;
@@ -33,12 +34,21 @@ use hashbrown::HashMap;
 use crate::gui::camera::{
     CelestialIdx, OverlayLayer1, OverlayLayer2, OverlayLayer3, SelectCelestial,
 };
+use crate::gui::camera_window::CameraWindowCheckboxes;
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
 use crate::physics::fallingsand::util::mesh::{GizmoDrawableLoop, GizmoDrawableTriangles};
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
 use crate::physics::util::clock::Clock;
+
+/// Identifies the mesh which draws the celestials chunk outlines
+#[derive(Component)]
+pub struct CelestialOutline;
+
+/// Identifies the mesh which draws the celestial cell wireframes
+#[derive(Component)]
+pub struct CelestialWireframe;
 
 /// A component that represents a chunk by its index in the directory
 #[derive(Component, Debug, Clone, Copy)]
@@ -61,8 +71,10 @@ impl Plugin for CelestialDataPlugin {
         app.add_systems(
             Update,
             (
-                GizmoDrawableLoop::draw_bevy_gizmo_loop_system,
-                GizmoDrawableTriangles::draw_bevy_gizmo_triangles_system,
+                CelestialDataPlugin::draw_wireframe_system,
+                CelestialDataPlugin::draw_outline_system,
+                CelestialDataPlugin::change_falling_sand_visibility_system,
+                CelestialDataPlugin::change_heat_visibility_system,
             ),
         );
         app.add_event::<SelectCelestial>();
@@ -239,6 +251,7 @@ impl CelestialDataPlugin {
                                 visibility: Visibility::Visible,
                                 ..Default::default()
                             },
+                            CelestialOutline,
                             OverlayLayer3,
                         ))
                         .id();
@@ -250,6 +263,7 @@ impl CelestialDataPlugin {
                                 visibility: Visibility::Visible,
                                 ..Default::default()
                             },
+                            CelestialWireframe,
                             OverlayLayer2,
                         ))
                         .id();
@@ -353,6 +367,85 @@ impl CelestialDataPlugin {
                     material.texture = Some(asset_server.add(new_texture));
                 }
             }
+        }
+    }
+    /// Draw the wireframe of the celestials cells
+    ///
+    /// > [!WARNING]
+    /// > TODO: Wish I could just set the gizmo to not have to have the camera window checkboxes
+    /// >       and instead just draw all visible gizmos.
+    /// >       but the checkbox utility in bevy_egui does not emit an event, and linking
+    /// >       the systems via one as a modifier of Visibility and this as a reader
+    /// >       created a system loop
+    pub fn draw_wireframe_system(
+        mut gizmos: Gizmos,
+        mut query: Query<
+            (&GizmoDrawableTriangles, &Transform, &mut Visibility),
+            With<CelestialWireframe>,
+        >,
+        checkboxes: Res<CameraWindowCheckboxes>,
+    ) {
+        for (drawable, transform, mut visibility) in query.iter_mut() {
+            *visibility = if checkboxes.wireframe {
+                visibility::Visibility::Visible
+            } else {
+                visibility::Visibility::Hidden
+            };
+            if *visibility == visibility::Visibility::Visible {
+                drawable.draw_bevy_gizmo_triangles(&mut gizmos, transform);
+            }
+        }
+    }
+    /// Draw the outline of the celestials chunks
+    ///
+    /// > [!WARNING]
+    /// > TODO: Wish I could just set the gizmo to not have to have the camera window checkboxes
+    /// >       and instead just draw all visible gizmos.
+    /// >       but the checkbox utility in bevy_egui does not emit an event, and linking
+    /// >       the systems via one as a modifier of Visibility and this as a reader
+    /// >       created a system loop
+    pub fn draw_outline_system(
+        mut gizmos: Gizmos,
+        mut query: Query<(&GizmoDrawableLoop, &Transform, &mut Visibility), With<CelestialOutline>>,
+        checkboxes: Res<CameraWindowCheckboxes>,
+    ) {
+        for (drawable, transform, mut visibility) in query.iter_mut() {
+            *visibility = if checkboxes.outline {
+                visibility::Visibility::Visible
+            } else {
+                visibility::Visibility::Hidden
+            };
+            if *visibility == visibility::Visibility::Visible {
+                drawable.draw_bevy_gizmo_loop(&mut gizmos, transform);
+            }
+        }
+    }
+
+    /// Change heat visibility
+    pub fn change_heat_visibility_system(
+        mut query: Query<(&mut Visibility), With<HeatMapMaterial>>,
+        checkboxes: Res<CameraWindowCheckboxes>,
+    ) {
+        for mut visibility in query.iter_mut() {
+            *visibility = if checkboxes.heat {
+                visibility::Visibility::Visible
+            } else {
+                visibility::Visibility::Hidden
+            };
+        }
+    }
+
+    /// Change falling sand visibility
+    pub fn change_falling_sand_visibility_system(
+        mut query: Query<(&mut Visibility), With<FallingSandMaterial>>,
+        checkboxes: Res<CameraWindowCheckboxes>,
+    ) {
+        for mut visibility in query.iter_mut() {
+            *visibility = if checkboxes.material {
+                visibility::Visibility::Visible
+            } else {
+                visibility::Visibility::Hidden
+            };
         }
     }
 }
