@@ -196,7 +196,9 @@ mod tests {
         /// Determines how fast the heat diffuses
         #[test]
         fn test_sink_diffuses_to_zero_speed() {
-            PropogateHeat::test_heat_disipation_rate_in_space(10000, 30, ElementType::Stone);
+            const N: u32 = 1000;
+            PropogateHeat::test_heat_disipation_rate_in_space(N, 30, ElementType::Stone);
+            PropogateHeat::test_heat_disipation_rate_in_space(N, 10, ElementType::Stone);
         }
     }
 }
