@@ -9,17 +9,25 @@ use crate::physics::fallingsand::{
     util::vectors::JkVector,
 };
 
+#[derive(Clone, Debug, Default)]
+pub struct MatrixBorderHeatProperties {
+    pub temperature: Array1<f32>,
+    pub thermal_conductivity: Array1<f32>,
+    pub specific_heat_capacity: Array1<f32>,
+    pub density: Array1<f32>,
+}
+
 /// The output of [BorderTemperatures::get_border_temps]
 #[derive(Clone, Debug, Default)]
 pub struct ElementGridConvolutionNeighborTemperatures {
     /// The heat of the top neighbor border
-    pub top: Option<Array1<f32>>,
+    pub top: Option<MatrixBorderHeatProperties>,
     /// The heat of the bottom neighbor border
-    pub bottom: Option<Array1<f32>>,
+    pub bottom: Option<MatrixBorderHeatProperties>,
     /// The heat of the left neighbor border
-    pub left: Array1<f32>,
+    pub left: MatrixBorderHeatProperties,
     /// The heat of the right neighbor border
-    pub right: Array1<f32>,
+    pub right: MatrixBorderHeatProperties,
 }
 
 impl ElementGridConvolutionNeighbors {
