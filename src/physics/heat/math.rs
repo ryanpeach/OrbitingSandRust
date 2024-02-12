@@ -42,7 +42,6 @@ use ndarray_conv::*;
 
 use crate::physics::{
     fallingsand::{
-        convolution::behaviors::ElementGridConvolutionNeighborTemperatures,
         data::element_grid::ElementGrid,
         elements::element::{Element, ElementType},
         mesh::chunk_coords::{ChunkCoords, PartialLayerChunkCoordsBuilder},
@@ -53,12 +52,16 @@ use crate::physics::{
     util::clock::Clock,
 };
 
-use super::components::{HeatEnergy, Length, ThermodynamicTemperature};
+use super::{
+    components::{HeatEnergy, Length, ThermodynamicTemperature},
+    convolution::ElementGridConvolutionNeighborTemperatures,
+};
 
 /// The builder of the inputs to the heat propogation system
+#[derive(Debug, Clone)]
 pub struct PropogateHeatBuilder {
-    /// The width of each cell
-    cell_width: Length,
+    /// The chunk coordinates
+    coords: ChunkCoords,
     /// The temperature of each cell in the chunk
     temperature: Array2<f32>,
     /// The thermal conductivity of each cell in the chunk
@@ -88,16 +91,34 @@ pub struct PropogateHeatBuilder {
 }
 
 impl PropogateHeatBuilder {
+    /// This initializes the propogate heat builder
+    pub fn from_element_grid(element_grid: &ElementGrid) -> PropogateHeatBuilder {
+        let mut propogate_heat_builder =
+            PropogateHeatBuilder::new(*element_grid.get_chunk_coords());
+        for j in 0..element_grid.get_chunk_coords().get_num_concentric_circles() {
+            for k in 0..element_grid.get_chunk_coords().get_num_radial_lines() {
+                let pos = JkVector { j, k };
+                let element = element_grid.get_grid().get(pos);
+
+                // Add to the propogate heat builder
+                propogate_heat_builder.add(pos, element);
+            }
+        }
+        propogate_heat_builder
+    }
+
     /// Create a new heat propogation system with the given width and height
     /// All the arrays will be initialized to 0
-    pub fn new(height: usize, width: usize, cell_width: Length) -> Self {
+    pub fn new(coords: ChunkCoords) -> Self {
+        let width = coords.get_num_radial_lines();
+        let height = coords.get_num_concentric_circles();
         let temperature = Array2::from_elem((width + 2, height + 2), 0.0);
         let thermal_conductivity = Array2::from_elem((width, height), 0.0);
         let specific_heat_capacity = Array2::from_elem((width, height), 0.0);
         let density = Array2::from_elem((width, height), 0.0);
         // let compressability = Array2::from_elem((width, height), 0.0);
         Self {
-            cell_width,
+            coords,
             temperature,
             thermal_conductivity,
             specific_heat_capacity,
@@ -113,12 +134,12 @@ impl PropogateHeatBuilder {
 
     /// Add an element to the heat propogation system
     #[allow(clippy::borrowed_box)]
-    pub fn add(&mut self, coords: &ChunkCoords, jk_vector: JkVector, elem: &Box<dyn Element>) {
+    pub fn add(&mut self, jk_vector: JkVector, elem: &Box<dyn Element>) {
         let density = elem.get_density();
         let specific_heat = elem.get_specific_heat();
-        let mass = density.mass(self.cell_width);
+        let mass = density.mass(self.coords.get_cell_width());
         let heat_capacity = specific_heat.heat_capacity(mass);
-        let idx: [usize; 2] = jk_vector.to_ndarray_coords(coords).into();
+        let idx: [usize; 2] = jk_vector.to_ndarray_coords(&self.coords).into();
         let one_plus_idx: [usize; 2] = [idx[0] + 1, idx[1] + 1];
         self.temperature[one_plus_idx] = elem.get_heat().temperature(heat_capacity).0;
         self.thermal_conductivity[idx] = elem.get_thermal_conductivity().0;
@@ -146,6 +167,14 @@ impl PropogateHeatBuilder {
     /// Set whether to enable compression
     pub fn enable_compression(&mut self, enable_compression: bool) {
         self.enable_compression = enable_compression;
+    }
+
+    /// Get the temperature from a certain cell
+    pub fn get_temperature(&self, jk_vector: JkVector) -> ThermodynamicTemperature {
+        // Remove the padding
+        let temp = self.temperature.slice(s![1..-1, 1..-1]);
+        let idx: [usize; 2] = jk_vector.to_ndarray_coords(&self.coords).into();
+        ThermodynamicTemperature(temp[idx])
     }
 
     /// Set the temperature of the border cells based on the convolved neighbor temperatures
@@ -242,10 +271,7 @@ impl PropogateHeatBuilder {
         //     self.thermal_conductivity.dim(),
         //     "Compressability must be the same size as the thermal conductivity"
         // );
-        debug_assert!(
-            self.cell_width.0 >= 0.0,
-            "Cell width must be greater than 0"
-        );
+
         // debug_assert!(
         //     self.total_mass_above.0 >= 0.0,
         //     "Total mass above must be greater than or equal to 0. Did you set it?"
@@ -280,7 +306,7 @@ impl PropogateHeatBuilder {
             "Delta multiplier must be greater than 0"
         );
         PropogateHeat {
-            cell_width: self.cell_width,
+            cell_width: self.coords.get_cell_width(),
             temperature: self.temperature,
             // total_mass_above: self.total_mass_above,
             thermal_conductivity: self.thermal_conductivity,
@@ -471,13 +497,12 @@ impl PropogateHeat {
             .build();
 
         // Set up the builder
-        let mut builder = PropogateHeatBuilder::new(5, 5, Length(1.0));
+        let mut builder = PropogateHeatBuilder::new(coords);
         builder.enable_compression(false);
         // builder.total_mass_above(Mass(0.0));
         for j in 0..5 {
             for k in 0..5 {
                 builder.add(
-                    &coords,
                     JkVector::new(j, k),
                     &element_type.get_element(Length(1.0)).box_clone(),
                 );

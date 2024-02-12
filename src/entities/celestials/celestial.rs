@@ -92,7 +92,6 @@ pub struct CelestialData {
 impl CelestialData {
     /// Creates a new CelestialData
     pub fn new(mut element_grid_dir: ElementGridDir) -> Self {
-        element_grid_dir.recalculate_everything();
         Self { element_grid_dir }
     }
 

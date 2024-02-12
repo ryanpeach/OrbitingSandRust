@@ -20,7 +20,7 @@ use super::element_grid::ElementGrid;
 use rayon::prelude::*;
 
 /// The number of frames it takes to fully process the directory
-const FRAMES_PER_FULL_PROCESS: usize = 9;
+const FRAMES_PER_FULL_PROCESS: usize = 10;
 
 /// A struct of textures for use in rendering
 /// These are options so you can take them out of the struct and use them elsewhere
@@ -224,6 +224,14 @@ fn pregen_process_targets(coords: &CoordinateDir) -> ProcessTargets {
         has_single_bottom_neighbor,
         has_multi_bottom_neighbor,
     }
+}
+
+/// Enables us to use the Process function structure for both heat and fallingsand
+enum ProcessKind {
+    /// The process function is used for heat
+    Heat,
+    /// The process function is used for fallingsand
+    FallingSand,
 }
 
 /* Main Struct */
@@ -585,21 +593,7 @@ impl ElementGridDir {
     /// This is important because elementgrids can effect one another at a maximum range of
     /// the size of one elementgrid.
     pub fn process(&mut self, current_time: Clock) {
-        self.process_parallel(
-            self.process_targets.standard_convolution[self.process_count % 9].clone(),
-            current_time,
-        );
-        self.process_sequence(
-            self.process_targets.has_single_bottom_neighbor[self.process_count % 9].clone(),
-            current_time,
-        );
-        self.process_parallel(
-            self.process_targets.has_multi_bottom_neighbor[self.process_count % 9].clone(),
-            current_time,
-        );
-        self.process_count += 1;
-
-        // Check for errors and unlock all chunks every 9 iterations
+        // On the first frame, we unlock everything, recalculate everything, and calculate heat
         if self.process_count % FRAMES_PER_FULL_PROCESS == 0 {
             debug_assert_eq!(
                 self.get_unprocessed_chunk_idxs().len(),
@@ -608,14 +602,61 @@ impl ElementGridDir {
                 self.get_unprocessed_chunk_idxs()
             );
             self.unlock_all_chunks();
-            self.recalculate_everything();
+            self.recalculate_everything(current_time);
+
+            // Calculate heat
+            for i in 0..self.process_targets.standard_convolution.len() {
+                self.process_parallel(
+                    self.process_targets.standard_convolution[i].clone(),
+                    current_time,
+                    ProcessKind::Heat,
+                );
+                self.process_sequence(
+                    self.process_targets.has_single_bottom_neighbor[i].clone(),
+                    current_time,
+                    ProcessKind::Heat,
+                );
+                self.process_parallel(
+                    self.process_targets.has_multi_bottom_neighbor[i].clone(),
+                    current_time,
+                    ProcessKind::Heat,
+                );
+            }
+        }
+        // In the second through ninth frames, we process the falling sand
+        else {
+            self.process_parallel(
+                self.process_targets.standard_convolution[(self.process_count - 1) % 9].clone(),
+                current_time,
+                ProcessKind::FallingSand,
+            );
+            self.process_sequence(
+                self.process_targets.has_single_bottom_neighbor[(self.process_count - 1) % 9]
+                    .clone(),
+                current_time,
+                ProcessKind::FallingSand,
+            );
+            self.process_parallel(
+                self.process_targets.has_multi_bottom_neighbor[(self.process_count - 1) % 9]
+                    .clone(),
+                current_time,
+                ProcessKind::FallingSand,
+            );
+            self.process_count += 1;
         }
     }
 
     /// Recalculates all the saved values
-    pub fn recalculate_everything(&mut self) {
+    pub fn recalculate_everything(&mut self, current_time: Clock) {
         // self.recalculate_max_min_temp();
         self.recalculate_total_mass();
+        self.recalculate_heat(current_time);
+    }
+
+    pub fn recalculate_heat(&mut self, current_time: Clock) {
+        for chunk in self.chunks.iter_mut().flatten().flatten() {
+            chunk.recalculate_heat(current_time);
+        }
     }
 
     /// Run process FRAMES_PER_FULL_PROCESS times
@@ -643,9 +684,15 @@ impl ElementGridDir {
     pub fn get_updated_target_textures(&self) -> HashMap<ChunkIjkVector, Textures> {
         // You should call this function only AFTER calling process
         let process_count = self.process_count - 1;
-        let targets1 = self.process_targets.standard_convolution[process_count % 9].clone();
-        let targets2 = self.process_targets.has_single_bottom_neighbor[process_count % 9].clone();
-        let targets3 = self.process_targets.has_multi_bottom_neighbor[process_count % 9].clone();
+        // No need to do anything on the first frame
+        if process_count % FRAMES_PER_FULL_PROCESS == 0 {
+            return HashMap::new();
+        }
+        let targets1 = self.process_targets.standard_convolution[(process_count - 1) % 9].clone();
+        let targets2 =
+            self.process_targets.has_single_bottom_neighbor[(process_count - 1) % 9].clone();
+        let targets3 =
+            self.process_targets.has_multi_bottom_neighbor[(process_count - 1) % 9].clone();
         let all_targets: Vec<ChunkIjkVector> = targets1
             .0
             .into_iter()
@@ -672,6 +719,7 @@ impl ElementGridDir {
         &mut self,
         targets: Sequential<HashSet<ChunkIjkVector>>,
         current_time: Clock,
+        kind: ProcessKind,
     ) {
         for target in targets.0 {
             let mut conv = self
@@ -680,7 +728,12 @@ impl ElementGridDir {
             let mut chunk = self.chunks[target.i]
                 .replace(target.to_jk_vector(), None)
                 .expect("Should not have been replaced already.");
-            chunk.process(self.get_coordinate_dir(), &mut conv, current_time);
+            match kind {
+                ProcessKind::Heat => chunk.process_heat(&mut conv, current_time),
+                ProcessKind::FallingSand => {
+                    chunk.process(self.get_coordinate_dir(), &mut conv, current_time)
+                }
+            }
             // Unpackage the convolution
             self.unpackage_convolution(chunk, conv);
         }
@@ -689,6 +742,7 @@ impl ElementGridDir {
         &mut self,
         targets: Parallel<HashSet<ChunkIjkVector>>,
         current_time: Clock,
+        kind: ProcessKind,
     ) {
         let (mut convolutions, mut target_chunks) = self
             .package_convolutions(targets.0)
@@ -696,8 +750,11 @@ impl ElementGridDir {
         convolutions
             .par_iter_mut()
             .zip(target_chunks.par_iter_mut())
-            .for_each(|(convolution, target_chunk)| {
-                target_chunk.process(self.get_coordinate_dir(), convolution, current_time);
+            .for_each(|(convolution, target_chunk)| match kind {
+                ProcessKind::Heat => target_chunk.process_heat(convolution, current_time),
+                ProcessKind::FallingSand => {
+                    target_chunk.process(self.get_coordinate_dir(), convolution, current_time)
+                }
             });
         self.unpackage_convolutions(convolutions, target_chunks);
     }
@@ -1090,11 +1147,16 @@ mod tests {
         }
 
         fn get_next_targets(this: &mut ElementGridDir) -> HashSet<ChunkIjkVector> {
-            let out1 = this.process_targets.standard_convolution[this.process_count % 9].clone();
-            let out2 =
-                this.process_targets.has_single_bottom_neighbor[this.process_count % 9].clone();
-            let out3 =
-                this.process_targets.has_multi_bottom_neighbor[this.process_count % 9].clone();
+            if this.process_count % FRAMES_PER_FULL_PROCESS == 0 {
+                return HashSet::new();
+            }
+            let out1 =
+                this.process_targets.standard_convolution[(this.process_count - 1) % 9].clone();
+            let out2 = this.process_targets.has_single_bottom_neighbor
+                [(this.process_count - 1) % 9]
+                .clone();
+            let out3 = this.process_targets.has_multi_bottom_neighbor[(this.process_count - 1) % 9]
+                .clone();
             this.process_count += 1;
             out1.0.into_iter().chain(out2.0).chain(out3.0).collect()
         }

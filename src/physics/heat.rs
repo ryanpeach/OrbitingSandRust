@@ -7,3 +7,6 @@ pub mod components;
 
 /// Heat related math functions such as the heat equation.
 pub mod math;
+
+/// Heat also needs to be chunk convoluted, but the implementation is a little simpler than [crate::physics::fallingsand::convolution].
+pub mod convolution;

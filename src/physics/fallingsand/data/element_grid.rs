@@ -9,7 +9,7 @@ use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::heat::components::{HeatCapacity, HeatEnergy, ThermodynamicTemperature};
-use crate::physics::heat::math::PropogateHeatBuilder;
+use crate::physics::heat::math::{PropogateHeat, PropogateHeatBuilder};
 use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 
@@ -39,6 +39,10 @@ pub struct ElementGrid {
     /// This deals with whether or not the element grid needs to be processed
     /// or if it hasn't seen any changes since the last frame maybe you can skip it
     last_set: Clock,
+
+    /// Its important that the temperature is calculated all at the same "point in time"
+    /// so we keep the temperature matrix of the current set of frames
+    temperature: Option<PropogateHeatBuilder>,
 }
 
 /// Useful for borrowing the grid to have a default value of one
@@ -75,6 +79,7 @@ impl ElementGrid {
             already_processed: false,
             last_set: Clock::default(),
             total_mass: Mass(0.0),
+            temperature: None,
         }
     }
 }
@@ -219,7 +224,6 @@ impl ElementGrid {
         current_time: Clock,
     ) {
         self.process_elements(coord_dir, element_grid_conv_neigh, current_time);
-        self.process_heat(element_grid_conv_neigh, current_time);
         self.process_mass(element_grid_conv_neigh);
     }
 
@@ -284,35 +288,34 @@ impl ElementGrid {
 
     /// Process the heat of the grid
     /// Currently disabled as it is broken
-    #[allow(dead_code)]
-    fn process_heat(
+    pub fn process_heat(
         &mut self,
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) {
-        let mut propogate_heat_builder = PropogateHeatBuilder::new(
-            self.coords.get_num_concentric_circles(),
-            self.coords.get_num_radial_lines(),
-            self.coords.get_cell_width(),
-        );
-        let avg_neigh_temp = element_grid_conv_neigh.get_border_temps(self);
-        for j in 0..self.coords.get_num_concentric_circles() {
-            for k in 0..self.coords.get_num_radial_lines() {
-                let pos = JkVector { j, k };
-                let element = self.grid.get(pos);
-
-                // Add to the propogate heat builder
-                propogate_heat_builder.add(self.get_chunk_coords(), pos, element);
-            }
-        }
-        // Set the total mass above
-        // propogate_heat_builder.total_mass_above(self.total_mass_above);
-
         // Now build and propogate updates to the element grid
-        let mut propogate_heat = propogate_heat_builder.build(avg_neigh_temp);
+        let avg_neigh_temp = element_grid_conv_neigh.get_border_temps(self);
+        let builder = self
+            .temperature
+            .as_ref()
+            .expect("Temperature not initialized");
+        let mut propogate_heat = builder.clone().build(avg_neigh_temp);
         propogate_heat.propagate_heat(current_time);
         propogate_heat.apply_to_grid(self, current_time);
-        // (self.max_temp, self.min_temp) = self.calc_max_min_temp();
+    }
+
+    /// Calculate the heat of the grid
+    pub fn recalculate_heat(&mut self, current_time: Clock) {
+        let builder = PropogateHeatBuilder::from_element_grid(self);
+        self.temperature = Some(builder);
+    }
+
+    /// Get the temperature of the grid from the last time calculate_heat was called
+    pub fn get_temperature(&self, jk_vector: JkVector) -> ThermodynamicTemperature {
+        self.temperature
+            .as_ref()
+            .expect("Temperature not initialized")
+            .get_temperature(jk_vector)
     }
 
     /// Process the mass of the grid and the mass above the grid
