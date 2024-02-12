@@ -359,6 +359,12 @@ impl PropogateHeat {
             .unwrap();
         // trace!("Second gradient temperature sum: {}", second_gradient_temperature.sum());
 
+        // Check everything is finite
+        assert!(
+            second_gradient_temperature.iter().all(|&x| x.is_finite()),
+            "Second gradient temperature must be finite"
+        );
+
         // Get the alpha grid
         // trace!("Thermal conductivity: {}", self.thermal_conductivity.sum());
         // trace!("Specific heat capacity: {}", self.specific_heat_capacity.sum());
@@ -387,7 +393,7 @@ impl PropogateHeat {
         // Check everything is finite
         // trace!("Delta temperature sum: {:?}", delta_temperature.sum());
         // trace!("time: {:?}", current_time.get_last_delta().as_secs_f32());
-        debug_assert!(
+        assert!(
             delta_temperature.iter().all(|&x| x.is_finite()),
             "Delta temperature must be finite"
         );
@@ -405,14 +411,10 @@ impl PropogateHeat {
         );
 
         // Check everything is finite
-        debug_assert!(
+        assert!(
             new_heat_energy.iter().all(|&x| x.is_finite()),
             "New heat energy must be finite"
         );
-        if !new_heat_energy.iter().all(|&x| x.is_finite()) {
-            error!("New heat energy is not finite");
-            return;
-        }
 
         // Save the new temperature
         self.temperature

@@ -186,7 +186,7 @@ impl ThermodynamicTemperature {
     /// The minimum temperature. In kelvin this is absolute zero.
     pub const MIN_TEMPERATURE: ThermodynamicTemperature = ThermodynamicTemperature(0.0);
     pub fn get_max_temp() -> ThermodynamicTemperature {
-        ElementType::Sand
+        ElementType::Lava
             .get_element(Length(1.0))
             .get_default_temperature()
     }

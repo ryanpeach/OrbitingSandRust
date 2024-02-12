@@ -92,7 +92,7 @@ fn compute_gravitational_force(
 
     // The final force vector is the direction scaled by the force magnitude
     let out = ForceVec((force_direction * force_magnitude).xy());
-    debug_assert!(out.0.is_finite());
+    assert!(out.0.is_finite(), "force: {:?}", out);
     out
 }
 
@@ -116,14 +116,14 @@ fn half_step_velocity_update(
         return;
     }
     let vdiff = net_force / this_body.3 .0 * (dt / 2.0);
-    debug_assert!(vdiff.is_finite());
+    assert!(vdiff.is_finite(), "vdiff: {:?}", vdiff);
     this_body.2 .0 += vdiff;
 }
 
 /// Updates the position of the entity one full step
 fn full_position_update(this_body: (Entity, &mut Transform, &Velocity, &Mass), dt: f32) {
     let pdiff = (this_body.2 .0 * dt).extend(0.0);
-    debug_assert!(pdiff.is_finite());
+    assert!(pdiff.is_finite(), "pdiff: {:?}", pdiff);
     this_body.1.translation += pdiff;
 }
 

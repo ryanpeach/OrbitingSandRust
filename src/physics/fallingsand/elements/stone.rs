@@ -99,7 +99,7 @@ impl Element for Stone {
     }
 
     fn get_specific_heat(&self) -> SpecificHeat {
-        SpecificHeat(840.) // This is a little low gameplay wise without this mult
+        SpecificHeat(0.84)
     }
 
     fn get_thermal_conductivity(&self) -> ThermalConductivity {

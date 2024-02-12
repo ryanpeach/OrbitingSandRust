@@ -1,4 +1,5 @@
 use bevy::math::Rect;
+use ndarray::Array2;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
