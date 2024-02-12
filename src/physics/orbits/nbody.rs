@@ -91,7 +91,9 @@ fn compute_gravitational_force(
     let force_direction = r.normalize();
 
     // The final force vector is the direction scaled by the force magnitude
-    ForceVec((force_direction * force_magnitude).xy())
+    let out = ForceVec((force_direction * force_magnitude).xy());
+    debug_assert!(out.0.is_finite());
+    out
 }
 
 /// Updates the velocity of the entity one half step
@@ -109,13 +111,19 @@ fn half_step_velocity_update(
             compute_gravitational_force(this_body.1, this_body.3, &other_body.1, &other_body.3);
         net_force += force.0;
     }
+    // If mass is 0, don't update the velocity
+    if this_body.3 .0 == 0.0 {
+        return;
+    }
     let vdiff = net_force / this_body.3 .0 * (dt / 2.0);
+    debug_assert!(vdiff.is_finite());
     this_body.2 .0 += vdiff;
 }
 
 /// Updates the position of the entity one full step
 fn full_position_update(this_body: (Entity, &mut Transform, &Velocity, &Mass), dt: f32) {
     let pdiff = (this_body.2 .0 * dt).extend(0.0);
+    debug_assert!(pdiff.is_finite());
     this_body.1.translation += pdiff;
 }
 
