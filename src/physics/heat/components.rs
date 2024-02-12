@@ -7,7 +7,13 @@ use bevy::{ecs::component::Component, log::warn, render::color::Color};
 use derive_more::{Add, AddAssign, From, Into, Sub, SubAssign};
 use ndarray::Array2;
 
-use crate::physics::orbits::components::{Force, Mass};
+use crate::physics::{
+    fallingsand::elements::{
+        element::{Element, ElementType},
+        solarplasma::SolarPlasma,
+    },
+    orbits::components::{Force, Mass},
+};
 
 /// The length of a system in meters.
 #[derive(Component, Default, Clone, Copy, Debug, Add, Sub, AddAssign, SubAssign, From, Into)]
@@ -177,86 +183,25 @@ impl ThermodynamicTemperature {
     const MIN_RED: f32 = 0.0;
     /// The maximum color alpha for the visualization of the temperature.
     const MAX_RED: f32 = 1.0;
-    /// The minimum temperature allowed for log display.
-    const MIN_TEMPERATURE: f32 = 1.0;
-    /// The maximum temperature allowed for log display.
-    pub const MAX_TEMPERATURE: ThermodynamicTemperature = ThermodynamicTemperature(1e6);
-
-    /// Returns the color of the system based on its temperature using a logarithmic scale.
-    pub fn log_color(&self) -> Color {
-        // This is useful for vaccum
-        if self.0 == 0.0 {
-            return Color::rgba(0.0, 0.0, 0.0, 0.0);
-        }
-
-        let min_temp_log = Self::MIN_TEMPERATURE.max(1.0).log(10.0);
-        let max_temp_log = Self::MAX_TEMPERATURE
-            .0
-            .min(Self::MAX_TEMPERATURE.0)
-            .log(10.0);
-        let temp_log = self
-            .0
-            .max(Self::MIN_TEMPERATURE)
-            .min(Self::MAX_TEMPERATURE.0)
-            .log(10.0);
-
-        // Calculate the normalized logarithmic position of the system's temperature
-        let normalized_log_pos = (temp_log - min_temp_log) / (max_temp_log - min_temp_log);
-
-        // Interpolate the red value logarithmically between MIN_RED and MAX_RED
-        let red = Self::MIN_RED + (Self::MAX_RED - Self::MIN_RED) * normalized_log_pos;
-        assert!(
-            red >= 0.0,
-            "red {} must be greater than or equal to 0.0",
-            red
-        );
-        assert!(red <= 1.0, "red {} must be less than or equal to 1.0", red);
-        assert!(red.is_finite(), "red {} must be finite", red);
-
-        Color::rgba(1.0, 0.0, 0.0, red)
+    /// The minimum temperature. In kelvin this is absolute zero.
+    pub const MIN_TEMPERATURE: ThermodynamicTemperature = ThermodynamicTemperature(0.0);
+    pub fn get_max_temp() -> ThermodynamicTemperature {
+        ElementType::SolarPlasma
+            .get_element(Length(1.0))
+            .get_default_temperature()
     }
 
     /// Returns the color of the system based on its temperature using a linear scale.
-    pub fn linear_color(
-        &self,
-        max_temp: ThermodynamicTemperature,
-        min_temp: ThermodynamicTemperature,
-    ) -> Color {
-        debug_assert_ne!(max_temp.0, 0.0, "max_temp cannot be zero");
-        debug_assert!(
-            max_temp.0 >= min_temp.0,
-            "max_temp must be greater than min_temp"
-        );
-
+    pub fn color(&self) -> Color {
         // This is useful for vaccum
         if self.0 == 0.0 {
             return Color::rgba(0.0, 0.0, 0.0, 0.0);
         }
 
-        debug_assert!(
-            self.0 >= min_temp.0,
-            "temperature {} must be greater than or equal to min_temp {}",
-            self.0,
-            min_temp.0
-        );
-        debug_assert!(
-            self.0 <= max_temp.0,
-            "temperature {} must be less than or equal to max_temp {}",
-            self.0,
-            max_temp.0
-        );
         // Calculate the normalized linear position of the system's temperature
-        let normalized_linear_pos = (self.0 - min_temp.0) / (max_temp.0 - min_temp.0);
-        debug_assert!(
-            normalized_linear_pos >= 0.0,
-            "normalized_linear_pos {} must be greater than or equal to 0.0",
-            normalized_linear_pos
-        );
-        debug_assert!(
-            normalized_linear_pos <= 1.0,
-            "normalized_linear_pos {} must be less than or equal to 1.0",
-            normalized_linear_pos
-        );
+        let normalized_linear_pos =
+            (self.0 - Self::MIN_TEMPERATURE.0) / (Self::get_max_temp().0 - Self::MIN_TEMPERATURE.0);
+        let normalized_linear_pos = normalized_linear_pos.max(0.0).min(1.0);
 
         // Interpolate the red value linearly between MIN_RED and MAX_RED
         let red = Self::MIN_RED + (Self::MAX_RED - Self::MIN_RED) * normalized_linear_pos;

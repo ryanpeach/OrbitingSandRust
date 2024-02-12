@@ -28,9 +28,9 @@ pub struct ElementGrid {
     total_mass: Mass, // Total mass in kilograms
     // total_mass_above: Mass, // Total mass above a certain point, in kilograms
     /// The minimum temperature in the chunk that is not 0
-    min_temp: ThermodynamicTemperature,
+    // min_temp: ThermodynamicTemperature,
     /// The maximum temperature in the chunk
-    max_temp: ThermodynamicTemperature,
+    // max_temp: ThermodynamicTemperature,
 
     /// This deals with a lock during convolution
     already_processed: bool,
@@ -74,8 +74,6 @@ impl ElementGrid {
             already_processed: false,
             last_set: Clock::default(),
             total_mass: Mass(0.0),
-            min_temp: ThermodynamicTemperature(0.0),
-            max_temp: ThermodynamicTemperature::MAX_TEMPERATURE,
         }
     }
 }
@@ -126,9 +124,9 @@ impl ElementGrid {
     // }
 
     /// Get the maximum temperature in the directory
-    pub fn get_max_min_temp(&self) -> (ThermodynamicTemperature, ThermodynamicTemperature) {
-        (self.max_temp, self.min_temp)
-    }
+    // pub fn get_max_min_temp(&self) -> (ThermodynamicTemperature, ThermodynamicTemperature) {
+    //     (self.max_temp, self.min_temp)
+    // }
 
     // /// Recalculate the maximum temperature in the directory
     // pub fn recalculate_max_min_temp(&mut self) {
@@ -136,26 +134,26 @@ impl ElementGrid {
     // }
 
     /// Calculate the maximum temperature in the directory
-    pub fn calc_max_min_temp(&self) -> (ThermodynamicTemperature, ThermodynamicTemperature) {
-        let mut max = ThermodynamicTemperature(0.0);
-        let mut min = ThermodynamicTemperature(f32::INFINITY);
-        for k in 0..self.coords.get_num_radial_lines() {
-            for j in 0..self.coords.get_num_concentric_circles() {
-                let pos = JkVector { j, k };
-                let element = self.grid.get(pos);
-                let temp = element.get_temperature(self.coords.get_cell_width());
-                if temp > max {
-                    max = temp;
-                }
-                // If the temperature is 0, we don't want to include it in the minimum
-                // Because its usually a vaccuum
-                if temp < min && temp != ThermodynamicTemperature(0.0) {
-                    min = temp;
-                }
-            }
-        }
-        (max, min)
-    }
+    // pub fn calc_max_min_temp(&self) -> (ThermodynamicTemperature, ThermodynamicTemperature) {
+    //     let mut max = ThermodynamicTemperature(0.0);
+    //     let mut min = ThermodynamicTemperature(f32::INFINITY);
+    //     for k in 0..self.coords.get_num_radial_lines() {
+    //         for j in 0..self.coords.get_num_concentric_circles() {
+    //             let pos = JkVector { j, k };
+    //             let element = self.grid.get(pos);
+    //             let temp = element.get_temperature(self.coords.get_cell_width());
+    //             if temp > max {
+    //                 max = temp;
+    //             }
+    //             // If the temperature is 0, we don't want to include it in the minimum
+    //             // Because its usually a vaccuum
+    //             if temp < min && temp != ThermodynamicTemperature(0.0) {
+    //                 min = temp;
+    //             }
+    //         }
+    //     }
+    //     (max, min)
+    // }
 
     /// Does not calculate the total mass, just gets the set value of it
     // pub fn get_total_mass_above(&self) -> Mass {
@@ -313,7 +311,7 @@ impl ElementGrid {
         let mut propogate_heat = propogate_heat_builder.build(avg_neigh_temp);
         propogate_heat.propagate_heat(current_time);
         propogate_heat.apply_to_grid(self, current_time);
-        (self.max_temp, self.min_temp) = self.calc_max_min_temp();
+        // (self.max_temp, self.min_temp) = self.calc_max_min_temp();
     }
 
     /// Process the mass of the grid and the mass above the grid
@@ -382,8 +380,8 @@ impl ElementGrid {
     /// min_temp is the minimum temperature of the entire directory
     pub fn get_heat_texture(
         &self,
-        max_temp: ThermodynamicTemperature,
-        min_temp: ThermodynamicTemperature,
+        // max_temp: ThermodynamicTemperature,
+        // min_temp: ThermodynamicTemperature,
     ) -> RawImage {
         let mut out = Vec::with_capacity(
             self.coords.get_num_radial_lines() * self.coords.get_num_concentric_circles() * 4,
@@ -392,10 +390,7 @@ impl ElementGrid {
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {
                 let element = self.grid.get(JkVector { j, k });
-                let color = element
-                    .get_temperature(cell_width)
-                    .linear_color(max_temp, min_temp)
-                    .as_rgba_u8();
+                let color = element.get_temperature(cell_width).color().as_rgba_u8();
                 out.push(color[0]);
                 out.push(color[1]);
                 out.push(color[2]);
