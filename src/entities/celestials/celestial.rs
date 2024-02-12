@@ -212,7 +212,7 @@ impl CelestialDataPlugin {
                             MaterialMesh2dBundle {
                                 mesh: mesh_handle.into(),
                                 material: materials.add(asset_server.add(sand_material).into()),
-                                visibility: Visibility::Hidden,
+                                visibility: Visibility::Visible,
                                 ..Default::default()
                             },
                             // mesh.calc_bounds(),
@@ -338,10 +338,6 @@ impl CelestialDataPlugin {
             let mut new_textures: HashMap<ChunkIjkVector, Textures> =
                 celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
             mass.0 = celestial.get_element_dir().get_total_mass().0;
-            if mass.0 == 0.0 {
-                warn!("Celestial has no mass");
-                continue;
-            }
 
             // Update the falling sand materials
             for (parent, material_handle, chunk_ijk) in falling_sand_materials.iter_mut() {
