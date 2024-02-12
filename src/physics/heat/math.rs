@@ -95,7 +95,7 @@ impl PropogateHeatBuilder {
         let thermal_conductivity = Array2::from_elem((width, height), 0.0);
         let specific_heat_capacity = Array2::from_elem((width, height), 0.0);
         let density = Array2::from_elem((width, height), 0.0);
-        let compressability = Array2::from_elem((width, height), 0.0);
+        // let compressability = Array2::from_elem((width, height), 0.0);
         Self {
             cell_width,
             temperature,
