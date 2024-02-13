@@ -28,10 +28,9 @@ jobs:
               run: sudo apt-get install -y librust-alsa-sys-dev pkg-config libudev-dev
 
             - name: Build Documentation
-              uses: actions-rs/cargo@v1
-              with:
-                command: doc
-                args: --all --no-deps
+              env:
+                RUSTFLAGS: "-D warnings"
+              run: cargo doc --all --no-deps --document-private-items
 
             - name: Deploy
               if: github.ref == 'refs/heads/main'
