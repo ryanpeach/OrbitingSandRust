@@ -9,6 +9,7 @@ use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::heat::components::{HeatCapacity, HeatEnergy, ThermodynamicTemperature};
+use crate::physics::heat::convolution::{ElementHeatProperties, MatrixBorderHeatProperties};
 use crate::physics::heat::math::{PropogateHeat, PropogateHeatBuilder};
 use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
@@ -300,7 +301,7 @@ impl ElementGrid {
             .as_ref()
             .expect("Temperature not initialized");
         let mut propogate_heat = builder.clone().build(avg_neigh_temp);
-        propogate_heat.propagate_heat(current_time);
+        propogate_heat.propagate_heat_implicit_euler(current_time);
         propogate_heat.apply_to_grid(self, current_time);
     }
 
@@ -311,11 +312,12 @@ impl ElementGrid {
     }
 
     /// Get the temperature of the grid from the last time calculate_heat was called
-    pub fn get_temperature(&self, jk_vector: JkVector) -> ThermodynamicTemperature {
-        self.temperature
+    pub fn get_heat_properties(&self, jk_vector: JkVector) -> ElementHeatProperties {
+        let builder = self
+            .temperature
             .as_ref()
-            .expect("Temperature not initialized")
-            .get_temperature(jk_vector)
+            .expect("Temperature not initialized");
+        builder.get_heat_properties(jk_vector)
     }
 
     /// Process the mass of the grid and the mass above the grid

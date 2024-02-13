@@ -1,3 +1,5 @@
+use std::ops::{Add, Div, Index, IndexMut};
+
 use ndarray::Array1;
 
 use crate::physics::fallingsand::{
@@ -9,12 +11,142 @@ use crate::physics::fallingsand::{
     util::vectors::JkVector,
 };
 
+use super::components::{Density, SpecificHeat, ThermalConductivity, ThermodynamicTemperature};
 #[derive(Clone, Debug, Default)]
 pub struct MatrixBorderHeatProperties {
-    pub temperature: Array1<f32>,
-    pub thermal_conductivity: Array1<f32>,
-    pub specific_heat_capacity: Array1<f32>,
-    pub density: Array1<f32>,
+    // Now stores a single array of ElementHeatProperties
+    pub properties: Option<Array1<ElementHeatProperties>>,
+}
+
+impl MatrixBorderHeatProperties {
+    pub fn new(
+        temperature: Array1<ThermodynamicTemperature>,
+        thermal_conductivity: Array1<ThermalConductivity>,
+        specific_heat_capacity: Array1<SpecificHeat>,
+        density: Array1<Density>,
+    ) -> MatrixBorderHeatProperties {
+        let properties = temperature
+            .iter()
+            .zip(thermal_conductivity.iter())
+            .zip(specific_heat_capacity.iter())
+            .zip(density.iter())
+            .map(
+                |(((temperature, thermal_conductivity), specific_heat_capacity), density)| {
+                    Some(ElementHeatProperties {
+                        temperature: *temperature,
+                        thermal_conductivity: *thermal_conductivity,
+                        specific_heat_capacity: *specific_heat_capacity,
+                        density: *density,
+                    })
+                },
+            )
+            .collect();
+        Self { properties }
+    }
+    pub fn zeros(size: usize) -> MatrixBorderHeatProperties {
+        let temperature = Array1::zeros(size);
+        let thermal_conductivity = Array1::zeros(size);
+        let specific_heat_capacity = Array1::zeros(size);
+        let density = Array1::zeros(size);
+        Self::new(
+            temperature,
+            thermal_conductivity,
+            specific_heat_capacity,
+            density,
+        )
+    }
+    pub fn temperature(&self, idx: usize) -> ThermodynamicTemperature {
+        self.properties.as_ref().unwrap()[idx].temperature
+    }
+    pub fn thermal_conductivity(&self, idx: usize) -> ThermalConductivity {
+        self.properties.as_ref().unwrap()[idx].thermal_conductivity
+    }
+    pub fn specific_heat_capacity(&self, idx: usize) -> SpecificHeat {
+        self.properties.as_ref().unwrap()[idx].specific_heat_capacity
+    }
+    pub fn density(&self, idx: usize) -> Density {
+        self.properties.as_ref().unwrap()[idx].density
+    }
+    pub fn temperatures(&self) -> Array1<f32> {
+        self.properties
+            .as_ref()
+            .unwrap()
+            .iter()
+            .map(|x| x.temperature.0)
+            .collect()
+    }
+    pub fn thermal_conductivities(&self) -> Array1<f32> {
+        self.properties
+            .as_ref()
+            .unwrap()
+            .iter()
+            .map(|x| x.thermal_conductivity.0)
+            .collect()
+    }
+    pub fn specific_heat_capacities(&self) -> Array1<f32> {
+        self.properties
+            .as_ref()
+            .unwrap()
+            .iter()
+            .map(|x| x.specific_heat_capacity.0)
+            .collect()
+    }
+    pub fn densities(&self) -> Array1<f32> {
+        self.properties
+            .as_ref()
+            .unwrap()
+            .iter()
+            .map(|x| x.density.0)
+            .collect()
+    }
+}
+
+impl Index<usize> for MatrixBorderHeatProperties {
+    type Output = ElementHeatProperties;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.properties.as_ref().unwrap()[index]
+    }
+}
+
+impl IndexMut<usize> for MatrixBorderHeatProperties {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.properties.as_mut().unwrap()[index]
+    }
+}
+
+#[derive(Clone, Debug, Copy)]
+pub struct ElementHeatProperties {
+    pub temperature: ThermodynamicTemperature,
+    pub thermal_conductivity: ThermalConductivity,
+    pub specific_heat_capacity: SpecificHeat,
+    pub density: Density,
+}
+
+impl Add for ElementHeatProperties {
+    type Output = ElementHeatProperties;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        ElementHeatProperties {
+            temperature: self.temperature + rhs.temperature,
+            thermal_conductivity: self.thermal_conductivity + rhs.thermal_conductivity,
+            specific_heat_capacity: self.specific_heat_capacity + rhs.specific_heat_capacity,
+            density: self.density + rhs.density,
+        }
+    }
+}
+
+impl Div<f32> for ElementHeatProperties {
+    type Output = ElementHeatProperties;
+
+    fn div(self, rhs: f32) -> Self::Output {
+        ElementHeatProperties {
+            temperature: self.temperature / rhs,
+            thermal_conductivity: self.thermal_conductivity / rhs,
+            specific_heat_capacity: self.specific_heat_capacity / rhs,
+            density: self.density / rhs,
+        }
+    }
 }
 
 /// The output of [BorderTemperatures::get_border_temps]
@@ -41,32 +173,32 @@ impl ElementGridConvolutionNeighbors {
     ) -> ElementGridConvolutionNeighborTemperatures {
         let coords = target_chunk.get_chunk_coords();
         let mut out = ElementGridConvolutionNeighborTemperatures::default();
-        let mut this = Array1::zeros(coords.get_num_radial_lines());
+        let mut top = MatrixBorderHeatProperties::zeros(coords.get_num_radial_lines());
         match &self.grids.top {
             TopNeighborGrids::Normal { t, tl, tr: _ } => {
-                top_neighbor_grids_normal(t, coords, &mut this, tl, &mut out);
-                out.top = Some(this);
+                top_neighbor_grids_normal(coords, tl, t, &mut top);
+                out.top = Some(top);
             }
             // In this case t1 and t0 are both half the size of target_chunk
             // TODO: Test this
             TopNeighborGrids::ChunkDoubling { t1, t0, .. } => {
-                top_neighbor_grids_chunk_doubling(t0, coords, t1, &mut this, &mut out);
-                out.top = Some(this);
+                top_neighbor_grids_chunk_doubling(coords, t0, t1, &mut top);
+                out.top = Some(top);
             }
             TopNeighborGrids::TopOfGrid => {
                 out.top = None;
             }
         }
-        let mut this = Array1::zeros(coords.get_num_radial_lines());
+        let mut bottom = MatrixBorderHeatProperties::zeros(coords.get_num_radial_lines());
         match &self.grids.bottom {
             BottomNeighborGrids::Normal { b, .. } => {
-                bottom_neighbor_grids_normal(coords, b, &mut this, &mut out);
-                out.bottom = Some(this);
+                bottom_neighbor_grids_normal(coords, b, &mut bottom);
+                out.bottom = Some(bottom);
             }
             // In this case bl and br are both twice the size of target_chunk
             BottomNeighborGrids::ChunkDoubling { bl, br } => {
-                bottom_neighbor_grids_chunk_doubling(coords, target_chunk, bl, br);
-                out.bottom = Some(this);
+                bottom_neighbor_grids_chunk_doubling(coords, bl, br, &mut bottom);
+                out.bottom = Some(bottom);
             }
             BottomNeighborGrids::BottomOfGrid => {
                 out.bottom = None;
@@ -74,7 +206,7 @@ impl ElementGridConvolutionNeighbors {
         }
         match &self.grids.left_right {
             LeftRightNeighborGrids::LR { l, r } => {
-                left_right_neighbor_grids(l, &mut out, r);
+                left_right_neighbor_grids(l, r, &mut out);
             }
         }
         out
@@ -82,45 +214,35 @@ impl ElementGridConvolutionNeighbors {
 }
 
 fn top_neighbor_grids_normal(
-    t: &ElementGrid,
     coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
-    this: &mut ndarray::prelude::ArrayBase<
-        ndarray::OwnedRepr<f32>,
-        ndarray::prelude::Dim<[usize; 1]>,
-    >,
     tl: &ElementGrid,
-    out: &mut ElementGridConvolutionNeighborTemperatures,
+    t: &ElementGrid,
+    this: &mut MatrixBorderHeatProperties,
 ) {
     if t.get_chunk_coords().get_num_radial_lines() == coords.get_num_radial_lines() {
         top_neighbor_grids_normal_no_cell_doubling(coords, t, this);
     } else {
-        top_neighbor_grids_normal_cell_doubling(coords, t, this, tl);
+        top_neighbor_grids_normal_cell_doubling(coords, tl, t, this);
     }
 }
 
 fn top_neighbor_grids_normal_no_cell_doubling(
     coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
     t: &ElementGrid,
-    this: &mut ndarray::prelude::ArrayBase<
-        ndarray::OwnedRepr<f32>,
-        ndarray::prelude::Dim<[usize; 1]>,
-    >,
+    this: &mut MatrixBorderHeatProperties,
 ) {
     for k in 0..coords.get_num_radial_lines() {
         let idx = JkVector { j: 0, k };
-        let temp = t.get_temperature(idx);
-        this[idx.to_ndarray_coords(coords).x] = temp.0;
+        let temp = t.get_heat_properties(idx);
+        this[idx.to_ndarray_coords(coords).x] = temp;
     }
 }
 
 fn top_neighbor_grids_normal_cell_doubling(
     coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
-    t: &ElementGrid,
-    this: &mut ndarray::prelude::ArrayBase<
-        ndarray::OwnedRepr<f32>,
-        ndarray::prelude::Dim<[usize; 1]>,
-    >,
     tl: &ElementGrid,
+    t: &ElementGrid,
+    this: &mut MatrixBorderHeatProperties,
 ) {
     // In this case we are dealing with a cell doubling tangentially
     // So we will average the two cells
@@ -131,27 +253,23 @@ fn top_neighbor_grids_normal_cell_doubling(
         // In this case we will put the cell in the memory because
         // it comes first
         if k % 2 == 0 {
-            let temp = t.get_temperature(their_idx);
-            this[our_idx.to_ndarray_coords(coords).x] = temp.0;
+            let temp = t.get_heat_properties(their_idx);
+            this[our_idx.to_ndarray_coords(coords).x] = temp;
         }
         // In this case we will average it with ourselves
         else {
-            let temp = tl.get_temperature(their_idx);
+            let temp = tl.get_heat_properties(their_idx);
             this[our_idx.to_ndarray_coords(coords).x] =
-                (temp.0 + this[our_idx.to_ndarray_coords(coords).x]) / 2.0;
+                (temp + this[our_idx.to_ndarray_coords(coords).x]) / 2.0;
         }
     }
 }
 
 fn top_neighbor_grids_chunk_doubling(
-    t0: &ElementGrid,
     coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
+    t0: &ElementGrid,
     t1: &ElementGrid,
-    this: &mut ndarray::prelude::ArrayBase<
-        ndarray::OwnedRepr<f32>,
-        ndarray::prelude::Dim<[usize; 1]>,
-    >,
-    out: &mut ElementGridConvolutionNeighborTemperatures,
+    this: &mut MatrixBorderHeatProperties,
 ) {
     debug_assert_eq!(
         t0.get_chunk_coords().get_num_radial_lines(),
@@ -167,7 +285,7 @@ fn top_neighbor_grids_chunk_doubling(
     // and averaging that into every other one of our cells
     for k in 0..t0.get_chunk_coords().get_num_radial_lines() {
         let their_idx = JkVector { j: 0, k };
-        let temp = t0.get_temperature(their_idx);
+        let temp = t0.get_heat_properties(their_idx);
         let our_idx = JkVector {
             j: coords.get_num_concentric_circles() - 1,
             k: k / 2,
@@ -175,12 +293,12 @@ fn top_neighbor_grids_chunk_doubling(
         // In this case we will put the cell in the memory because
         // it comes first
         if k % 2 == 0 {
-            this[our_idx.to_ndarray_coords(coords).x] = temp.0;
+            this[our_idx.to_ndarray_coords(coords).x] = temp;
         }
         // In this case we will average it with ourselves
         else {
             this[our_idx.to_ndarray_coords(coords).x] =
-                (temp.0 + this[our_idx.to_ndarray_coords(coords).x]) / 2.0;
+                (temp + this[our_idx.to_ndarray_coords(coords).x]) / 2.0;
         }
     }
     // Now lets do this from t1, iterating over its bottom border
@@ -188,7 +306,7 @@ fn top_neighbor_grids_chunk_doubling(
     // startging from the middle of our radial lines
     for k in 0..t1.get_chunk_coords().get_num_radial_lines() {
         let their_idx = JkVector { j: 0, k };
-        let temp = t1.get_temperature(their_idx);
+        let temp = t1.get_heat_properties(their_idx);
         let our_idx = JkVector {
             j: coords.get_num_concentric_circles() - 1,
             k: k / 2 + coords.get_num_radial_lines() / 2,
@@ -196,12 +314,12 @@ fn top_neighbor_grids_chunk_doubling(
         // In this case we will put the cell in the memory because
         // it comes first
         if k % 2 == 0 {
-            this[our_idx.to_ndarray_coords(coords).x] = temp.0;
+            this[our_idx.to_ndarray_coords(coords).x] = temp;
         }
         // In this case we will average it with ourselves
         else {
             this[our_idx.to_ndarray_coords(coords).x] =
-                (temp.0 + this[our_idx.to_ndarray_coords(coords).x]) / 2.0;
+                (temp + this[our_idx.to_ndarray_coords(coords).x]) / 2.0;
         }
     }
 }
@@ -209,27 +327,19 @@ fn top_neighbor_grids_chunk_doubling(
 fn bottom_neighbor_grids_normal(
     coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
     b: &ElementGrid,
-    this: &mut ndarray::prelude::ArrayBase<
-        ndarray::OwnedRepr<f32>,
-        ndarray::prelude::Dim<[usize; 1]>,
-    >,
-    out: &mut ElementGridConvolutionNeighborTemperatures,
+    this: &mut MatrixBorderHeatProperties,
 ) {
     if coords.get_num_radial_lines() == b.get_chunk_coords().get_num_radial_lines() {
         bottom_neighbor_grids_normal_no_cell_doubling(coords, b, this);
     } else {
-        bottom_neighbor_grids_normal_cell_doubling(coords, b, this, out);
+        bottom_neighbor_grids_normal_cell_doubling(coords, b, this);
     }
 }
 
 fn bottom_neighbor_grids_normal_cell_doubling(
     coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
     b: &ElementGrid,
-    this: &mut ndarray::prelude::ArrayBase<
-        ndarray::OwnedRepr<f32>,
-        ndarray::prelude::Dim<[usize; 1]>,
-    >,
-    out: &mut ElementGridConvolutionNeighborTemperatures,
+    this: &mut MatrixBorderHeatProperties,
 ) {
     // In this case we are dealing with a cell halving tangentially
     // So we put the same cell in the memory twice
@@ -242,41 +352,38 @@ fn bottom_neighbor_grids_normal_cell_doubling(
             j: b.get_chunk_coords().get_num_concentric_circles() - 1,
             k: k / 2,
         };
-        let temp = b.get_temperature(their_idx);
-        this[our_idx.to_ndarray_coords(coords).x] = temp.0;
+        let temp = b.get_heat_properties(their_idx);
+        this[our_idx.to_ndarray_coords(coords).x] = temp;
     }
 }
 
 fn bottom_neighbor_grids_normal_no_cell_doubling(
     coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
     b: &ElementGrid,
-    this: &mut ndarray::prelude::ArrayBase<
-        ndarray::OwnedRepr<f32>,
-        ndarray::prelude::Dim<[usize; 1]>,
-    >,
+    this: &mut MatrixBorderHeatProperties,
 ) {
     for k in 0..coords.get_num_radial_lines() {
         let idx = JkVector {
             j: coords.get_num_concentric_circles() - 1,
             k,
         };
-        let temp = b.get_temperature(idx);
-        this[idx.to_ndarray_coords(coords).x] = temp.0;
+        let temp = b.get_heat_properties(idx);
+        this[idx.to_ndarray_coords(coords).x] = temp;
     }
 }
 
 fn bottom_neighbor_grids_chunk_doubling(
     coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
-    target_chunk: &ElementGrid,
     bl: &ElementGrid,
     br: &ElementGrid,
+    this: &mut MatrixBorderHeatProperties,
 ) {
     // TODO: document this with pictures
     // TODO: Unit test
-    let mut this = Array1::zeros(coords.get_num_radial_lines());
+    let mut this = MatrixBorderHeatProperties::zeros(coords.get_num_radial_lines());
     // This is the case where the bottom neighbor is the bl chunk
     // And we are straddling the right side of the bl chunk
-    if target_chunk.get_chunk_coords().get_chunk_idx().k % 2 == 0 {
+    if coords.get_chunk_idx().k % 2 == 0 {
         debug_assert_eq!(
             bl.get_chunk_coords().get_num_radial_lines(),
             coords.get_num_radial_lines(),
@@ -293,8 +400,8 @@ fn bottom_neighbor_grids_chunk_doubling(
                 j: bl.get_chunk_coords().get_num_concentric_circles() - 1,
                 k: k / 2,
             };
-            let temp = bl.get_temperature(their_idx);
-            this[our_idx.to_ndarray_coords(coords).x] = temp.0;
+            let temp = bl.get_heat_properties(their_idx);
+            this[our_idx.to_ndarray_coords(coords).x] = temp;
         }
     }
     // This is the case where the bottom neighbor is the br chunk
@@ -316,35 +423,35 @@ fn bottom_neighbor_grids_chunk_doubling(
                 j: br.get_chunk_coords().get_num_concentric_circles() - 1,
                 k: k / 2 + br.get_chunk_coords().get_num_radial_lines() / 2,
             };
-            let temp = br.get_temperature(their_idx);
-            this[our_idx.to_ndarray_coords(coords).x] = temp.0;
+            let temp = br.get_heat_properties(their_idx);
+            this[our_idx.to_ndarray_coords(coords).x] = temp;
         }
     };
 }
 
 fn left_right_neighbor_grids(
     l: &ElementGrid,
-    out: &mut ElementGridConvolutionNeighborTemperatures,
     r: &ElementGrid,
+    out: &mut ElementGridConvolutionNeighborTemperatures,
 ) {
     let coords = l.get_chunk_coords();
-    let mut this = Array1::zeros(coords.get_num_concentric_circles());
+    let mut this = MatrixBorderHeatProperties::zeros(coords.get_num_concentric_circles());
     for j in 0..coords.get_num_concentric_circles() {
         let idx = JkVector { j, k: 0 };
-        let temp = l.get_temperature(idx);
-        this[idx.to_ndarray_coords(coords).y] = temp.0;
+        let temp = l.get_heat_properties(idx);
+        this[idx.to_ndarray_coords(coords).y] = temp;
     }
     out.left = this;
 
     let coords = r.get_chunk_coords();
-    let mut this = Array1::zeros(coords.get_num_concentric_circles());
+    let mut this = MatrixBorderHeatProperties::zeros(coords.get_num_concentric_circles());
     for j in 0..coords.get_num_concentric_circles() {
         let idx = JkVector {
             j,
             k: coords.get_num_radial_lines() - 1,
         };
-        let temp = r.get_temperature(idx);
-        this[idx.to_ndarray_coords(coords).y] = temp.0;
+        let temp = r.get_heat_properties(idx);
+        this[idx.to_ndarray_coords(coords).y] = temp;
     }
     out.right = this;
 }

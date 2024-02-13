@@ -22,6 +22,7 @@ hashbrown = { version = "0.14.2", features = ["rayon", "ahash"] }
 itertools = "0.12.1"
 nabo = "0.3.0"
 ndarray = { version = "0.15.6", features = ["rayon", "serde", "blas"] }
+num-traits = "0.2.18"
 rand = "0.8.5"
 rayon = "1.8.0"
 sprs = "0.11.1"

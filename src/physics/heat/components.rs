@@ -1,11 +1,15 @@
 //! This module contains the components for the heat simulation.
 //! Mostly relates to units of measure and the conversion between them.
 
-use std::time::Duration;
+use std::{
+    ops::{Div, Mul},
+    time::Duration,
+};
 
 use bevy::{ecs::component::Component, log::warn, render::color::Color};
 use derive_more::{Add, AddAssign, From, Into, Sub, SubAssign};
 use ndarray::Array2;
+use num_traits::{One, Zero};
 
 use crate::physics::{
     fallingsand::elements::{
@@ -51,6 +55,46 @@ impl Density {
     /// This gets the mass of the element based on the cell_width in matrix form
     pub fn matrix_mass(density_matrix: &Array2<f32>, cell_width: Length) -> Array2<f32> {
         density_matrix * cell_width.area().0
+    }
+}
+
+impl Zero for Density {
+    fn zero() -> Self {
+        Density(0.0)
+    }
+
+    fn is_zero(&self) -> bool {
+        self.0 == 0.0
+    }
+}
+
+impl One for Density {
+    fn one() -> Self {
+        Density(1.0)
+    }
+}
+
+impl Div<f32> for Density {
+    type Output = Density;
+
+    fn div(self, rhs: f32) -> Self::Output {
+        Density(self.0 / rhs)
+    }
+}
+
+impl Mul<f32> for Density {
+    type Output = Density;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        Density(self.0 * rhs)
+    }
+}
+
+impl Mul<Density> for Density {
+    type Output = Density;
+
+    fn mul(self, rhs: Density) -> Self::Output {
+        Density(self.0 * rhs.0)
     }
 }
 
@@ -127,6 +171,46 @@ impl SpecificHeat {
     }
 }
 
+impl Div<f32> for SpecificHeat {
+    type Output = SpecificHeat;
+
+    fn div(self, rhs: f32) -> Self::Output {
+        SpecificHeat(self.0 / rhs)
+    }
+}
+
+impl Mul<f32> for SpecificHeat {
+    type Output = SpecificHeat;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        SpecificHeat(self.0 * rhs)
+    }
+}
+
+impl Mul<SpecificHeat> for SpecificHeat {
+    type Output = SpecificHeat;
+
+    fn mul(self, rhs: SpecificHeat) -> Self::Output {
+        SpecificHeat(self.0 * rhs.0)
+    }
+}
+
+impl Zero for SpecificHeat {
+    fn zero() -> Self {
+        SpecificHeat(0.0)
+    }
+
+    fn is_zero(&self) -> bool {
+        self.0 == 0.0
+    }
+}
+
+impl One for SpecificHeat {
+    fn one() -> Self {
+        SpecificHeat(1.0)
+    }
+}
+
 /// Thermal Conductivity
 /// The ability of a material to conduct heat.
 /// Measured in watts per meter per degree celsius.
@@ -137,6 +221,46 @@ impl ThermalConductivity {
     /// Returns the heat capacity of the system.
     pub fn heat_capacity(&self, cell_width: Length, dt: Duration) -> HeatCapacity {
         HeatCapacity(self.0 * cell_width.0 * dt.as_secs_f32())
+    }
+}
+
+impl Div<f32> for ThermalConductivity {
+    type Output = ThermalConductivity;
+
+    fn div(self, rhs: f32) -> Self::Output {
+        ThermalConductivity(self.0 / rhs)
+    }
+}
+
+impl Mul<f32> for ThermalConductivity {
+    type Output = ThermalConductivity;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        ThermalConductivity(self.0 * rhs)
+    }
+}
+
+impl Mul<ThermalConductivity> for ThermalConductivity {
+    type Output = ThermalConductivity;
+
+    fn mul(self, rhs: ThermalConductivity) -> Self::Output {
+        ThermalConductivity(self.0 * rhs.0)
+    }
+}
+
+impl Zero for ThermalConductivity {
+    fn zero() -> Self {
+        ThermalConductivity(0.0)
+    }
+
+    fn is_zero(&self) -> bool {
+        self.0 == 0.0
+    }
+}
+
+impl One for ThermalConductivity {
+    fn one() -> Self {
+        ThermalConductivity(1.0)
     }
 }
 
@@ -152,6 +276,46 @@ impl HeatCapacity {
             return ThermodynamicTemperature(0.0);
         }
         ThermodynamicTemperature(heat_energy.0 / self.0)
+    }
+}
+
+impl Div<f32> for HeatCapacity {
+    type Output = HeatCapacity;
+
+    fn div(self, rhs: f32) -> Self::Output {
+        HeatCapacity(self.0 / rhs)
+    }
+}
+
+impl Mul<f32> for HeatCapacity {
+    type Output = HeatCapacity;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        HeatCapacity(self.0 * rhs)
+    }
+}
+
+impl Mul<HeatCapacity> for HeatCapacity {
+    type Output = HeatCapacity;
+
+    fn mul(self, rhs: HeatCapacity) -> Self::Output {
+        HeatCapacity(self.0 * rhs.0)
+    }
+}
+
+impl Zero for HeatCapacity {
+    fn zero() -> Self {
+        HeatCapacity(0.0)
+    }
+
+    fn is_zero(&self) -> bool {
+        self.0 == 0.0
+    }
+}
+
+impl One for HeatCapacity {
+    fn one() -> Self {
+        HeatCapacity(1.0)
     }
 }
 
@@ -177,6 +341,46 @@ impl HeatEnergy {
     Component, Default, Clone, Copy, Debug, Add, Sub, AddAssign, SubAssign, PartialEq, PartialOrd,
 )]
 pub struct ThermodynamicTemperature(pub f32);
+
+impl Div<f32> for ThermodynamicTemperature {
+    type Output = ThermodynamicTemperature;
+
+    fn div(self, rhs: f32) -> Self::Output {
+        ThermodynamicTemperature(self.0 / rhs)
+    }
+}
+
+impl Mul<f32> for ThermodynamicTemperature {
+    type Output = ThermodynamicTemperature;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        ThermodynamicTemperature(self.0 * rhs)
+    }
+}
+
+impl Mul<ThermodynamicTemperature> for ThermodynamicTemperature {
+    type Output = ThermodynamicTemperature;
+
+    fn mul(self, rhs: ThermodynamicTemperature) -> Self::Output {
+        ThermodynamicTemperature(self.0 * rhs.0)
+    }
+}
+
+impl Zero for ThermodynamicTemperature {
+    fn zero() -> Self {
+        ThermodynamicTemperature(0.0)
+    }
+
+    fn is_zero(&self) -> bool {
+        self.0 == 0.0
+    }
+}
+
+impl One for ThermodynamicTemperature {
+    fn one() -> Self {
+        ThermodynamicTemperature(1.0)
+    }
+}
 
 impl ThermodynamicTemperature {
     /// The minimum color alpha for the visualization of the temperature.

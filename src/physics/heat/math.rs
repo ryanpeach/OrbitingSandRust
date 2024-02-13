@@ -56,8 +56,8 @@ use crate::physics::{
 };
 
 use super::{
-    components::{HeatEnergy, Length, ThermodynamicTemperature},
-    convolution::ElementGridConvolutionNeighborTemperatures,
+    components::{HeatEnergy, Length, ThermalConductivity, ThermodynamicTemperature},
+    convolution::{ElementGridConvolutionNeighborTemperatures, ElementHeatProperties},
 };
 
 /// The builder of the inputs to the heat propogation system
@@ -171,11 +171,15 @@ impl PropogateHeatBuilder {
     }
 
     /// Get the temperature from a certain cell
-    pub fn get_temperature(&self, jk_vector: JkVector) -> ThermodynamicTemperature {
+    pub fn get_heat_properties(&self, jk_vector: JkVector) -> ElementHeatProperties {
         // Remove the padding
-        let temp = self.temperature.slice(s![1..-1, 1..-1]);
         let idx: [usize; 2] = jk_vector.to_ndarray_coords(&self.coords).into();
-        ThermodynamicTemperature(temp[idx])
+        ElementHeatProperties {
+            temperature: ThermodynamicTemperature(self.temperature[idx]),
+            density: Density(self.density[idx]),
+            specific_heat_capacity: SpecificHeat(self.specific_heat_capacity[idx]),
+            thermal_conductivity: ThermalConductivity(self.thermal_conductivity[idx]),
+        }
     }
 
     // /// Set the temperature of the border cells based on the convolved neighbor temperatures
@@ -301,16 +305,16 @@ impl PropogateHeatBuilder {
         for (property, neighbor_side) in [
             (
                 &mut self.temperature,
-                &neighbor_temperatures.left.temperature,
+                &neighbor_temperatures.left.temperatures(),
             ),
-            (&mut self.density, &neighbor_temperatures.left.density),
+            (&mut self.density, &neighbor_temperatures.left.densities()),
             (
                 &mut self.specific_heat_capacity,
-                &neighbor_temperatures.left.specific_heat_capacity,
+                &neighbor_temperatures.left.specific_heat_capacities(),
             ),
             (
                 &mut self.thermal_conductivity,
-                &neighbor_temperatures.left.thermal_conductivity,
+                &neighbor_temperatures.left.thermal_conductivities(),
             ),
         ]
         .iter_mut()
@@ -321,16 +325,16 @@ impl PropogateHeatBuilder {
         for (property, neighbor_side) in [
             (
                 &mut self.temperature,
-                &neighbor_temperatures.right.temperature,
+                &neighbor_temperatures.right.temperatures(),
             ),
-            (&mut self.density, &neighbor_temperatures.right.density),
+            (&mut self.density, &neighbor_temperatures.right.densities()),
             (
                 &mut self.specific_heat_capacity,
-                &neighbor_temperatures.right.specific_heat_capacity,
+                &neighbor_temperatures.right.specific_heat_capacities(),
             ),
             (
                 &mut self.thermal_conductivity,
-                &neighbor_temperatures.right.thermal_conductivity,
+                &neighbor_temperatures.right.thermal_conductivities(),
             ),
         ]
         .iter_mut()
@@ -356,15 +360,15 @@ impl PropogateHeatBuilder {
             match optional_neighbor {
                 Some(neighbor) => {
                     for (property, neighbor_property) in [
-                        (&mut self.temperature, &neighbor.temperature),
-                        (&mut self.density, &neighbor.density),
+                        (&mut self.temperature, &neighbor.temperatures()),
+                        (&mut self.density, &neighbor.densities()),
                         (
                             &mut self.specific_heat_capacity,
-                            &neighbor.specific_heat_capacity,
+                            &neighbor.specific_heat_capacities(),
                         ),
                         (
                             &mut self.thermal_conductivity,
-                            &neighbor.thermal_conductivity,
+                            &neighbor.thermal_conductivities(),
                         ),
                     ]
                     .iter_mut()
@@ -583,7 +587,7 @@ impl PropogateHeat {
             // Simple iteration limit
             let ap = A.dot(&p);
             let alpha = r_norm / p.dot(&ap);
-            x = x + &(p * alpha);
+            x = x + &(&p * alpha);
             let r_new = r - &(ap * alpha);
 
             let r_new_norm = r_new.dot(&r_new);
@@ -592,7 +596,7 @@ impl PropogateHeat {
             }
 
             let beta = r_new_norm / r_norm;
-            p = r_new + &(p * beta);
+            p = &r_new + &(p * beta);
             r = r_new;
             r_norm = r_new_norm;
         }
@@ -605,7 +609,7 @@ impl PropogateHeat {
     /// Rerun this method multiple times to propogate the heat multiple iterations
     /// without needing to reinitialize the system
     /// however, movement will not be accounted for if you do this
-    fn propagate_heat_implicit_euler(&mut self, current_time: Clock) {
+    pub fn propagate_heat_implicit_euler(&mut self, current_time: Clock) {
         if current_time.get_last_delta().as_secs_f32() == 0.0 {
             println!("Delta time is 0, not processing heat. May just be the first frame.");
             return;
@@ -802,30 +806,30 @@ impl PropogateHeat {
 
         // This is the border
         let mut heat = builder.build(ElementGridConvolutionNeighborTemperatures {
-            left: MatrixBorderHeatProperties {
-                temperature: Array1::zeros(5),
-                density: Array1::ones(5),
-                specific_heat_capacity: Array1::ones(5),
-                thermal_conductivity: Array1::ones(5),
-            },
-            right: MatrixBorderHeatProperties {
-                temperature: Array1::zeros(5),
-                density: Array1::ones(5),
-                specific_heat_capacity: Array1::ones(5),
-                thermal_conductivity: Array1::ones(5),
-            },
-            top: Some(MatrixBorderHeatProperties {
-                temperature: Array1::zeros(5),
-                density: Array1::ones(5),
-                specific_heat_capacity: Array1::ones(5),
-                thermal_conductivity: Array1::ones(5),
-            }),
-            bottom: Some(MatrixBorderHeatProperties {
-                temperature: Array1::zeros(5),
-                density: Array1::ones(5),
-                specific_heat_capacity: Array1::ones(5),
-                thermal_conductivity: Array1::ones(5),
-            }),
+            left: MatrixBorderHeatProperties::new(
+                Array1::zeros(5),
+                Array1::ones(5),
+                Array1::ones(5),
+                Array1::ones(5),
+            ),
+            right: MatrixBorderHeatProperties::new(
+                Array1::zeros(5),
+                Array1::ones(5),
+                Array1::ones(5),
+                Array1::ones(5),
+            ),
+            top: Some(MatrixBorderHeatProperties::new(
+                Array1::zeros(5),
+                Array1::ones(5),
+                Array1::ones(5),
+                Array1::ones(5),
+            )),
+            bottom: Some(MatrixBorderHeatProperties::new(
+                Array1::zeros(5),
+                Array1::ones(5),
+                Array1::ones(5),
+                Array1::ones(5),
+            )),
         });
 
         let mut clock = Clock::default();
