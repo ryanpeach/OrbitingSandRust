@@ -110,16 +110,21 @@ impl Element for Lava {
         Ok(())
     }
 
+    // State transition elements neet to at least have the same specific heat as the element they
+    // transition to, otherwise heat will be lost or gained in the transition
+    // I don't think they need the same thermal conductivity or compressability, but I'm not sure.
     fn get_specific_heat(&self) -> SpecificHeat {
-        SpecificHeat(840.0)
+        // Since this function doesn't need cell_width, it's fine to just use 1.0
+        // because the trait proves its invariant to the value of cell_width
+        ElementType::Stone.get_element(Length(1.0)).get_specific_heat()
     }
 
     fn get_thermal_conductivity(&self) -> ThermalConductivity {
-        ThermalConductivity(1.0)
+        ElementType::Stone.get_element(Length(1.0)).get_thermal_conductivity()
     }
 
     fn get_compressability(&self) -> Compressability {
-        Compressability(0.001)
+        ElementType::Stone.get_element(Length(1.0)).get_compressability()
     }
 }
 
