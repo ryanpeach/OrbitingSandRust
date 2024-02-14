@@ -290,11 +290,7 @@ impl ElementGrid {
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) {
-        let mut propogate_heat_builder = PropogateHeatBuilder::new(
-            self.coords.get_num_concentric_circles(),
-            self.coords.get_num_radial_lines(),
-            self.coords.get_cell_width(),
-        );
+        let mut propogate_heat_builder = PropogateHeatBuilder::new(self.coords);
         let avg_neigh_temp = element_grid_conv_neigh.get_border_temps(self);
         for j in 0..self.coords.get_num_concentric_circles() {
             for k in 0..self.coords.get_num_radial_lines() {

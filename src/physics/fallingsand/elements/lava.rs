@@ -116,15 +116,21 @@ impl Element for Lava {
     fn get_specific_heat(&self) -> SpecificHeat {
         // Since this function doesn't need cell_width, it's fine to just use 1.0
         // because the trait proves its invariant to the value of cell_width
-        ElementType::Stone.get_element(Length(1.0)).get_specific_heat()
+        ElementType::Stone
+            .get_element(Length(1.0))
+            .get_specific_heat()
     }
 
     fn get_thermal_conductivity(&self) -> ThermalConductivity {
-        ElementType::Stone.get_element(Length(1.0)).get_thermal_conductivity()
+        ElementType::Stone
+            .get_element(Length(1.0))
+            .get_thermal_conductivity()
     }
 
     fn get_compressability(&self) -> Compressability {
-        ElementType::Stone.get_element(Length(1.0)).get_compressability()
+        ElementType::Stone
+            .get_element(Length(1.0))
+            .get_compressability()
     }
 }
 

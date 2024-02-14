@@ -34,31 +34,36 @@
 //! It can be quickly calculated using ndarray-conv using the fft method. This also
 //! uses the matrix operators on your cpu rather than using loops, making it very fast.
 
-use std::time::Duration;
+use std::{ops::ControlFlow, time::Duration};
 
 use bevy::{log::error, log::warn};
 use ndarray::{s, Array1, Array2};
-use ndarray_conv::*;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use crate::physics::{
-    fallingsand::{
-        convolution::behaviors::ElementGridConvolutionNeighborTemperatures,
-        data::element_grid::ElementGrid,
-        elements::element::{Element, ElementType},
-        mesh::chunk_coords::{ChunkCoords, PartialLayerChunkCoordsBuilder},
-        util::vectors::{ChunkIjkVector, JkVector},
+use crate::{
+    gui::element_picker::ElementSelection,
+    physics::{
+        fallingsand::{
+            convolution::behaviors::ElementGridConvolutionNeighborTemperatures,
+            data::element_grid::ElementGrid,
+            elements::element::{self, Element, ElementType},
+            mesh::{
+                chunk_coords::{ChunkCoords, PartialLayerChunkCoordsBuilder},
+                coordinate_directory::CoordinateDir,
+            },
+            util::vectors::{ChunkIjkVector, JkVector},
+        },
+        heat::components::{Compressability, Density, SpecificHeat},
+        orbits::components::Mass,
+        util::clock::Clock,
     },
-    heat::components::{Compressability, Density, SpecificHeat},
-    orbits::components::Mass,
-    util::clock::Clock,
 };
 
 use super::components::{HeatEnergy, Length, ThermodynamicTemperature};
 
 /// The builder of the inputs to the heat propogation system
 pub struct PropogateHeatBuilder {
-    /// The width of each cell
-    cell_width: Length,
+    coords: ChunkCoords,
     /// The temperature of each cell in the chunk
     temperature: Array2<f32>,
     /// The thermal conductivity of each cell in the chunk
@@ -72,38 +77,42 @@ pub struct PropogateHeatBuilder {
     /// Set this to 1 to have no temperature gradient to space (space will feel like the top layer)
     /// TODO: I don't know what the thermal conductivity to space will be though
     top_temp_mult: f32,
-    // /// The compressability of each cell in the chunk
+    // / The compressability of each cell in the chunk
     // compressability: Array2<f32>,
-    // /// The total mass above the chunk
+    // / The total mass above the chunk
     // total_mass_above: Mass,
-    /// The multiplier for the delta temperature
-    /// Greater than 1 speeds up propogation
-    /// Greater than 0 but less than 1 slows down propogation
-    /// Must be greater than 0 and finite
-    /// Defaults to 1
-    delta_multiplier: f32,
-    /// Whether to enable compression
-    /// Defaults to true
-    enable_compression: bool,
+    // / The multiplier for the delta temperature
+    // / Greater than 1 speeds up propogation
+    // / Greater than 0 but less than 1 slows down propogation
+    // / Must be greater than 0 and finite
+    // / Defaults to 1
+    // delta_multiplier: f32,
+    // / Whether to enable compression
+    // / Defaults to true
+    // enable_compression: bool,
 }
 
 impl PropogateHeatBuilder {
     /// Create a new heat propogation system with the given width and height
     /// All the arrays will be initialized to 0
-    pub fn new(height: usize, width: usize, cell_width: Length) -> Self {
-        let temperature = Array2::from_elem((width + 2, height + 2), 0.0);
+    pub fn new(coords: ChunkCoords) -> Self {
+        let (height, width) = (
+            coords.get_num_concentric_circles(),
+            coords.get_num_radial_lines(),
+        );
+        let temperature = Array2::from_elem((width, height), 0.0);
         let thermal_conductivity = Array2::from_elem((width, height), 0.0);
         let specific_heat_capacity = Array2::from_elem((width, height), 0.0);
         let density = Array2::from_elem((width, height), 0.0);
         // let compressability = Array2::from_elem((width, height), 0.0);
         Self {
-            cell_width,
+            coords,
             temperature,
             thermal_conductivity,
             specific_heat_capacity,
             density,
-            delta_multiplier: 1.0,
-            enable_compression: false,
+            // delta_multiplier: 1.0,
+            // enable_compression: false,
             // This will leak a little heat to space over time
             top_temp_mult: 1.0,
             // compressability,
@@ -116,11 +125,10 @@ impl PropogateHeatBuilder {
     pub fn add(&mut self, coords: &ChunkCoords, jk_vector: JkVector, elem: &Box<dyn Element>) {
         let density = elem.get_density();
         let specific_heat = elem.get_specific_heat();
-        let mass = density.mass(self.cell_width);
+        let mass = density.mass(self.coords.get_cell_width());
         let heat_capacity = specific_heat.heat_capacity(mass);
         let idx: [usize; 2] = jk_vector.to_ndarray_coords(coords).into();
-        let one_plus_idx: [usize; 2] = [idx[0] + 1, idx[1] + 1];
-        self.temperature[one_plus_idx] = elem.get_heat().temperature(heat_capacity).0;
+        self.temperature[idx] = elem.get_heat().temperature(heat_capacity).0;
         self.thermal_conductivity[idx] = elem.get_thermal_conductivity().0;
         self.specific_heat_capacity[idx] = specific_heat.0;
         self.density[idx] = density.0;
@@ -229,23 +237,19 @@ impl PropogateHeatBuilder {
         );
         debug_assert_eq!(
             self.temperature.dim().0,
-            self.thermal_conductivity.dim().0 + 2,
-            "Temperature must be the size of the thermal conductivity + 4 on both hight and width"
+            self.thermal_conductivity.dim().0,
+            "Temperature must be the size of the thermal conductivity on both hight and width"
         );
         debug_assert_eq!(
             self.temperature.dim().1,
-            self.thermal_conductivity.dim().1 + 2,
-            "Temperature must be the size of the thermal conductivity + 4 on both hight and width"
+            self.thermal_conductivity.dim().1,
+            "Temperature must be the size of the thermal conductivity on both hight and width"
         );
         // debug_assert_eq!(
         //     self.compressability.dim(),
         //     self.thermal_conductivity.dim(),
         //     "Compressability must be the same size as the thermal conductivity"
         // );
-        debug_assert!(
-            self.cell_width.0 >= 0.0,
-            "Cell width must be greater than 0"
-        );
         // debug_assert!(
         //     self.total_mass_above.0 >= 0.0,
         //     "Total mass above must be greater than or equal to 0. Did you set it?"
@@ -280,22 +284,21 @@ impl PropogateHeatBuilder {
             "Delta multiplier must be greater than 0"
         );
         PropogateHeat {
-            cell_width: self.cell_width,
+            coords: self.coords,
             temperature: self.temperature,
             // total_mass_above: self.total_mass_above,
             thermal_conductivity: self.thermal_conductivity,
             specific_heat_capacity: self.specific_heat_capacity,
             density: self.density,
             // compressability: self.compressability,
-            delta_multiplier: self.delta_multiplier,
-            enable_compression: self.enable_compression,
+            // delta_multiplier: self.delta_multiplier,
+            // enable_compression: self.enable_compression,
         }
     }
 }
 /// The inputs to the heat propogation system
 pub struct PropogateHeat {
-    /// The width of each cell
-    cell_width: Length,
+    coords: ChunkCoords,
     /// The temperature of each cell in the chunk
     temperature: Array2<f32>,
     /// The total mass above the chunk
@@ -337,89 +340,178 @@ impl PropogateHeat {
 
         // Define the convolution kernel
         // Apparently it's VERY important that the center be a negative number
-        let laplace_kernel = Array2::from_shape_vec(
-            (3, 3),
-            vec![
-                1., 1., 1., //
-                1., -8., 1., //
-                1., 1., 1., //
-            ],
-        )
-        .unwrap();
-        debug_assert_eq!(laplace_kernel.sum(), 0.0, "Kernel must sum to 0");
+        // let laplace_kernel = Array2::from_shape_vec(
+        //     (3, 3),
+        //     vec![
+        //         1., 1., 1., //
+        //         1., -8., 1., //
+        //         1., 1., 1., //
+        //     ],
+        // )
+        // .unwrap();
+        // debug_assert_eq!(laplace_kernel.sum(), 0.0, "Kernel must sum to 0");
 
         // Convolve the temperature with the kernel to get the gradient
-        let second_gradient_temperature = self
-            .temperature
-            .conv_2d_fft(
-                &laplace_kernel,
-                PaddingSize::Valid,
-                PaddingMode::Zeros, // Doesn't matter in Valid mode
-            )
-            .unwrap();
-        // trace!("Second gradient temperature sum: {}", second_gradient_temperature.sum());
+        // let second_gradient_temperature = self
+        //     .temperature
+        //     .conv_2d_fft(
+        //         &laplace_kernel,
+        //         PaddingSize::Valid,
+        //         PaddingMode::Zeros, // Doesn't matter in Valid mode
+        //     )
+        //     .unwrap();
+        // // trace!("Second gradient temperature sum: {}", second_gradient_temperature.sum());
 
-        // Check everything is finite
-        assert!(
-            second_gradient_temperature.iter().all(|&x| x.is_finite()),
-            "Second gradient temperature must be finite"
-        );
-
-        // Get the alpha grid
-        // trace!("Thermal conductivity: {}", self.thermal_conductivity.sum());
-        // trace!("Specific heat capacity: {}", self.specific_heat_capacity.sum());
-        let density = {
-            if self.enable_compression {
-                todo!("Compression is not implemented");
-                // Compressability::matrix_get_density_from_mass(
-                //     &self.compressability,
-                //     &self.density,
-                //     self.total_mass_above,
-                // )
-            } else {
-                self.density.clone()
-            }
-        };
-        // trace!("Density: {}", matrix_get_density_from_mass.sum());
-        let alpha = &self.thermal_conductivity / (&self.specific_heat_capacity * density);
-        // Replace all Nans with zero because anything that has specific heat capacity 0 also has 0 thermal conductivity
+        let alpha = &self.thermal_conductivity / (&self.specific_heat_capacity * &self.density);
         let alpha = alpha.mapv(|x| if x.is_finite() { x } else { 0.0 });
-        // trace!("Apha sum: {}", alpha.sum());
-        let delta_temperature = alpha
-            * second_gradient_temperature
-            * current_time.get_last_delta().as_secs_f32()
-            * self.delta_multiplier;
 
-        // Check everything is finite
-        // trace!("Delta temperature sum: {:?}", delta_temperature.sum());
-        // trace!("time: {:?}", current_time.get_last_delta().as_secs_f32());
-        assert!(
-            delta_temperature.iter().all(|&x| x.is_finite()),
-            "Delta temperature must be finite"
-        );
+        let mut new_temp = self.get_temperature().clone();
+        (0..new_temp.dim().0 - 2)
+            .into_iter()
+            .skip(1)
+            .step_by(2)
+            .for_each(|j| {
+                (0..new_temp.dim().1 - 2)
+                    .into_iter()
+                    .skip(1)
+                    .step_by(2)
+                    .for_each(|k| {
+                        self.heat_cell(j, k, &mut new_temp);
+                    });
+            });
+        (0..new_temp.dim().0 - 2)
+            .into_iter()
+            .skip(2)
+            .step_by(2)
+            .for_each(|j| {
+                (0..new_temp.dim().1 - 2)
+                    .into_iter()
+                    .skip(2)
+                    .step_by(2)
+                    .for_each(|k| {
+                        self.heat_cell(j, k, &mut new_temp);
+                    });
+            });
 
-        // calculate the new temperature
-        let new_temp = &self.temperature.slice(s![1..-1, 1..-1]) + &delta_temperature;
+        // // Check everything is finite
+        // assert!(
+        //     second_gradient_temperature.iter().all(|&x| x.is_finite()),
+        //     "Second gradient temperature must be finite\n{:?}\n{:?}",
+        //     self.temperature,
+        //     second_gradient_temperature
+        // );
 
-        // Convert to heat
-        let new_heat_energy = ThermodynamicTemperature::matrix_heat_energy(
-            &new_temp,
-            &SpecificHeat::matrix_heat_capacity(
-                &self.specific_heat_capacity,
-                &Density::matrix_mass(&self.density, self.cell_width),
-            ),
-        );
+        // // // Normalize the second gradient temperature so that the sum is 0
+        // let mean = second_gradient_temperature.mean().unwrap();
+        // second_gradient_temperature = second_gradient_temperature.mapv(|x| x - mean);
+        // assert!(second_gradient_temperature.sum().abs() < 0.1, "Second gradient temperature must sum to 0");
 
-        // Check everything is finite
-        assert!(
-            new_heat_energy.iter().all(|&x| x.is_finite()),
-            "New heat energy must be finite"
-        );
+        // // trace!("Density: {}", matrix_get_density_from_mass.sum());
+
+        // // trace!("Apha sum: {}", alpha.sum());
+        // let mut delta_temperature = &second_gradient_temperature * &alpha * 0.0;
+        // // Eliminate any Nans or Infs
+        // delta_temperature = delta_temperature.mapv(|x| if x.is_finite() { x } else { 0.0 });
+
+        // // calculate the new temperature
+        // let mut new_temp = &self.temperature.slice(s![1..-1, 1..-1]) + &delta_temperature;
+
+        // // temperature must be greater than 0, if not, set to 0
+        // new_temp = new_temp.mapv(|x| if x < 0.0 { 0.0 } else { x });
+
+        // // Convert to heat
+        // let new_heat_energy = ThermodynamicTemperature::matrix_heat_energy(
+        //     &new_temp,
+        //     &SpecificHeat::matrix_heat_capacity(
+        //         &self.specific_heat_capacity,
+        //         &Density::matrix_mass(&self.density, self.coords.get_cell_width()),
+        //     ),
+        // );
+
+        // // Check everything is finite
+        // assert!(
+        //     new_heat_energy.iter().all(|&x| x.is_finite()),
+        //     "New heat energy must be finite"
+        // );
 
         // Save the new temperature
-        self.temperature
-            .slice_mut(s![1..-1, 1..-1])
-            .assign(&new_temp);
+        self.temperature = new_temp;
+    }
+
+    fn heat_cell(&self, j: usize, k: usize, new_temp: &mut Array2<f32>) {
+        if k == 0 || j == 0 || k == new_temp.dim().0 - 1 || j == new_temp.dim().1 - 1 {
+            return;
+        }
+        let elem = new_temp[[j, k]];
+        let left = new_temp[[j, k - 1]];
+        let right = new_temp[[j, k + 1]];
+        let top = new_temp[[j - 1, k]];
+        let bottom = new_temp[[j + 1, k]];
+        let tl = new_temp[[j - 1, k - 1]];
+        let tr = new_temp[[j - 1, k + 1]];
+        let bl = new_temp[[j + 1, k - 1]];
+        let br = new_temp[[j + 1, k + 1]];
+        let sum_neighbors = left + right + top + bottom + tl + tr + bl + br;
+        let mut dt = elem - 8.0 * sum_neighbors;
+        let alpha = self.thermal_conductivity[[j - 1, k - 1]]
+            / (self.specific_heat_capacity[[j - 1, k - 1]] * self.density[[j - 1, k - 1]]);
+        if alpha == 0.0 {
+            return;
+        }
+
+        dt *= alpha;
+        new_temp[[j, k]] += dt;
+
+        let delta_heat = self.specific_heat_capacity[[j, k]] * self.density[[j, k]] * dt;
+        // Reduce the temperature of the surrounding elements to sum to the same heat
+        // Do so in proportion to their contribution to the temperature
+        new_temp[[j, k - 1]] -= Self::heat_to_temp(
+            left / sum_neighbors * delta_heat,
+            self.specific_heat_capacity[[j, k - 1]],
+            self.density[[j, k - 1]],
+        );
+        new_temp[[j, k + 1]] -= Self::heat_to_temp(
+            right / sum_neighbors * delta_heat,
+            self.specific_heat_capacity[[j, k + 1]],
+            self.density[[j, k + 1]],
+        );
+        new_temp[[j - 1, k]] -= Self::heat_to_temp(
+            top / sum_neighbors * delta_heat,
+            self.specific_heat_capacity[[j - 1, k]],
+            self.density[[j - 1, k]],
+        );
+        new_temp[[j + 1, k]] -= Self::heat_to_temp(
+            bottom / sum_neighbors * delta_heat,
+            self.specific_heat_capacity[[j + 1, k]],
+            self.density[[j + 1, k]],
+        );
+        new_temp[[j - 1, k - 1]] -= Self::heat_to_temp(
+            tl / sum_neighbors * delta_heat,
+            self.specific_heat_capacity[[j - 1, k - 1]],
+            self.density[[j - 1, k - 1]],
+        );
+        new_temp[[j - 1, k + 1]] -= Self::heat_to_temp(
+            tr / sum_neighbors * delta_heat,
+            self.specific_heat_capacity[[j - 1, k + 1]],
+            self.density[[j - 1, k + 1]],
+        );
+        new_temp[[j + 1, k - 1]] -= Self::heat_to_temp(
+            bl / sum_neighbors * delta_heat,
+            self.specific_heat_capacity[[j + 1, k - 1]],
+            self.density[[j + 1, k - 1]],
+        );
+        new_temp[[j + 1, k + 1]] -= Self::heat_to_temp(
+            br / sum_neighbors * delta_heat,
+            self.specific_heat_capacity[[j + 1, k + 1]],
+            self.density[[j + 1, k + 1]],
+        );
+    }
+
+    fn heat_to_temp(heat: f32, specific_heat: f32, density: f32) -> f32 {
+        if specific_heat == 0.0 {
+            return 0.0;
+        }
+        heat / (specific_heat * density)
     }
 
     /// Get the temperature array
@@ -471,7 +563,7 @@ impl PropogateHeat {
             .build();
 
         // Set up the builder
-        let mut builder = PropogateHeatBuilder::new(5, 5, Length(1.0));
+        let mut builder = PropogateHeatBuilder::new(coords);
         builder.enable_compression(false);
         // builder.total_mass_above(Mass(0.0));
         for j in 0..5 {
