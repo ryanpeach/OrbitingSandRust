@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use bevy::math::Rect;
 use ndarray::Array2;
 use rand::seq::SliceRandom;
@@ -9,6 +11,7 @@ use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::heat::components::{HeatCapacity, HeatEnergy, ThermodynamicTemperature};
+use crate::physics::heat::convolution::ElementHeatProperties;
 use crate::physics::heat::math::PropogateHeatBuilder;
 use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
@@ -307,7 +310,7 @@ impl ElementGrid {
         // Now build and propogate updates to the element grid
         let mut propogate_heat = propogate_heat_builder.build(avg_neigh_temp);
         propogate_heat.propagate_heat(current_time);
-        propogate_heat.apply_to_grid(self, current_time);
+        propogate_heat.apply_to_grid(self, element_grid_conv_neigh, current_time);
         // (self.max_temp, self.min_temp) = self.calc_max_min_temp();
     }
 
@@ -339,6 +342,12 @@ impl ElementGrid {
                     .sum()
             })
             .sum()
+    }
+
+    /// Get the heat properties of an element at an index
+    pub fn get_heat_properties(&self, idx: JkVector) -> ElementHeatProperties {
+        let element = self.grid.get(idx);
+        element.get_heat_properties(self.coords.get_cell_width())
     }
 }
 

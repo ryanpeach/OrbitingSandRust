@@ -11,6 +11,7 @@ use crate::physics::heat::components::{
     Compressability, Density, HeatEnergy, Length, SpecificHeat, ThermalConductivity,
     ThermodynamicTemperature,
 };
+use crate::physics::heat::convolution::ElementHeatProperties;
 use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
@@ -125,6 +126,15 @@ pub trait Element: Send + Sync {
             self.get_specific_heat()
                 .heat_capacity(self.get_mass(cell_width)),
         )
+    }
+    /// This gets the heat properties of the element
+    fn get_heat_properties(&self, cell_width: Length) -> ElementHeatProperties {
+        ElementHeatProperties {
+            thermal_conductivity: self.get_thermal_conductivity(),
+            temperature: self.get_temperature(cell_width),
+            specific_heat_capacity: self.get_specific_heat(),
+            density: self.get_density(),
+        }
     }
     /// This gets the density of the element relative to the cell_width
     /// This is so bigger cells have more mass, so we don't have to have as many cells

@@ -44,7 +44,7 @@
 //! parallelize the computation on the CPU, so it is not a huge performance hit.
 
 use bevy::{
-    app::{App, Plugin, Update},
+    app::{App, FixedUpdate, Plugin, Update},
     ecs::{
         entity::Entity,
         query::{With, Without},
@@ -52,9 +52,11 @@ use bevy::{
         system::{Query, Res},
     },
     math::{Vec2, Vec3Swizzles},
-    time::Time,
+    time::{Fixed, Time},
     transform::components::Transform,
 };
+
+use crate::physics::PHYSICS_FRAME_RATE;
 
 use super::components::{ForceVec, GravitationalField, Mass, Velocity};
 
@@ -134,12 +136,13 @@ impl Plugin for NBodyPlugin {
     /// Adds the systems for the plugin
     fn build(&self, app: &mut App) {
         app.add_systems(
-            Update,
+            FixedUpdate,
             (
                 Self::grav_bodies_system,
                 Self::no_grav_bodies_system.after(Self::grav_bodies_system),
             ),
         );
+        app.insert_resource(Time::<Fixed>::from_seconds(1.0 / PHYSICS_FRAME_RATE));
     }
 }
 

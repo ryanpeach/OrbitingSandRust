@@ -7,3 +7,5 @@ pub mod components;
 
 /// Heat related math functions such as the heat equation.
 pub mod math;
+
+pub mod convolution;

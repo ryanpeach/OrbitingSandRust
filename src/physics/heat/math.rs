@@ -44,7 +44,7 @@ use crate::{
     gui::element_picker::ElementSelection,
     physics::{
         fallingsand::{
-            convolution::behaviors::ElementGridConvolutionNeighborTemperatures,
+            convolution::behaviors::ElementGridConvolutionNeighbors,
             data::element_grid::ElementGrid,
             elements::element::{self, Element, ElementType},
             mesh::{
@@ -53,7 +53,10 @@ use crate::{
             },
             util::vectors::{ChunkIjkVector, JkVector},
         },
-        heat::components::{Compressability, Density, SpecificHeat},
+        heat::{
+            components::{Compressability, Density, SpecificHeat},
+            convolution::ElementGridConvolutionNeighborTemperatures,
+        },
         orbits::components::Mass,
         util::clock::Clock,
     },
@@ -146,15 +149,15 @@ impl PropogateHeatBuilder {
         self.top_temp_mult = top_temp_mult
     }
 
-    /// Set the multiplier for the delta temperature
-    pub fn delta_multiplier(&mut self, delta_multiplier: f32) {
-        self.delta_multiplier = delta_multiplier;
-    }
+    // /// Set the multiplier for the delta temperature
+    // pub fn delta_multiplier(&mut self, delta_multiplier: f32) {
+    //     self.delta_multiplier = delta_multiplier;
+    // }
 
-    /// Set whether to enable compression
-    pub fn enable_compression(&mut self, enable_compression: bool) {
-        self.enable_compression = enable_compression;
-    }
+    // /// Set whether to enable compression
+    // pub fn enable_compression(&mut self, enable_compression: bool) {
+    //     self.enable_compression = enable_compression;
+    // }
 
     /// Set the temperature of the border cells based on the convolved neighbor temperatures
     /// This is only called by the build method because it needs to be called after all
@@ -176,12 +179,14 @@ impl PropogateHeatBuilder {
         // Set the border temperatures
         self.temperature
             .slice_mut(left_side)
-            .assign(&neighbor_temperatures.left);
+            .assign(&neighbor_temperatures.left.temperatures());
         self.temperature
             .slice_mut(right_side)
-            .assign(&neighbor_temperatures.right);
+            .assign(&neighbor_temperatures.right.temperatures());
         if let Some(top) = neighbor_temperatures.top {
-            self.temperature.slice_mut(top_side).assign(&top);
+            self.temperature
+                .slice_mut(top_side)
+                .assign(&top.temperatures());
         } else {
             // Else the top is open to space
             // and it will be the same as the next layer down times some multiplier
@@ -192,7 +197,9 @@ impl PropogateHeatBuilder {
                 .assign(&second_last_row);
         }
         if let Some(bottom) = neighbor_temperatures.bottom {
-            self.temperature.slice_mut(bottom_side).assign(&bottom);
+            self.temperature
+                .slice_mut(bottom_side)
+                .assign(&bottom.temperatures());
         } else {
             // Else the bottom is the bottom of the world
             // so we will set it to the same temp as the next layer up
@@ -275,14 +282,14 @@ impl PropogateHeatBuilder {
         //     self.compressability.iter().all(|&x| x.is_finite()),
         //     "Compressability must be finite"
         // );
-        debug_assert!(
-            self.delta_multiplier.is_finite(),
-            "Delta multiplier must be finite"
-        );
-        debug_assert!(
-            self.delta_multiplier > 0.0,
-            "Delta multiplier must be greater than 0"
-        );
+        // debug_assert!(
+        //     self.delta_multiplier.is_finite(),
+        //     "Delta multiplier must be finite"
+        // );
+        // debug_assert!(
+        //     self.delta_multiplier > 0.0,
+        //     "Delta multiplier must be greater than 0"
+        // );
         PropogateHeat {
             coords: self.coords,
             temperature: self.temperature,
@@ -312,17 +319,17 @@ pub struct PropogateHeat {
     /// The density of each cell in the chunk
     /// Should be the size of the chunk
     density: Array2<f32>,
-    /// Compressability of each cell in the chunk
-    /// Should be the size of the chunk
+    // / Compressability of each cell in the chunk
+    // / Should be the size of the chunk
     // compressability: Array2<f32>,
-    /// Whether to enable compression
-    enable_compression: bool,
-    /// The multiplier for the delta temperature
-    /// Greater than 1 speeds up propogation
-    /// Greater than 0 but less than 1 slows down propogation
-    /// Must be greater than 0 and finite
-    /// Defaults to 1
-    delta_multiplier: f32,
+    // / Whether to enable compression
+    // enable_compression: bool,
+    // / The multiplier for the delta temperature
+    // / Greater than 1 speeds up propogation
+    // / Greater than 0 but less than 1 slows down propogation
+    // / Must be greater than 0 and finite
+    // / Defaults to 1
+    // delta_multiplier: f32,
 }
 
 impl PropogateHeat {
@@ -519,8 +526,19 @@ impl PropogateHeat {
         &self.temperature
     }
 
-    /// Apply the new heat energy grid to the elements
-    pub fn apply_to_grid(&self, chunk: &mut ElementGrid, current_time: Clock) {
+    /// Apply the new temperature grid to the elements in the [ElementGrid] and [ElementGridConvolutionNeighbors]
+    pub fn apply_to_grid(
+        &self,
+        chunk: &mut ElementGrid,
+        element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
+        current_time: Clock,
+    ) {
+        self.apply_to_chunk(chunk, current_time);
+        self.apply_to_borders(chunk, element_grid_conv_neigh, current_time);
+    }
+
+    /// Just apply the new temperature grid to the elements in the [ElementGrid]
+    fn apply_to_chunk(&self, chunk: &mut ElementGrid, current_time: Clock) {
         let coords = *chunk.get_chunk_coords();
         for k in 0..self.temperature.dim().0 - 2 {
             for j in 0..self.temperature.dim().1 - 2 {
@@ -535,6 +553,16 @@ impl PropogateHeat {
                     .unwrap();
             }
         }
+    }
+
+    /// Apply the borders of the temperature grid back to the elements in [ElementGridConvolutionNeighbors]
+    fn apply_to_borders(
+        &self,
+        chunk: &mut ElementGrid,
+        element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
+        current_time: Clock,
+    ) {
+        todo!();
     }
 }
 
@@ -564,7 +592,7 @@ impl PropogateHeat {
 
         // Set up the builder
         let mut builder = PropogateHeatBuilder::new(coords);
-        builder.enable_compression(false);
+        // builder.enable_compression(false);
         // builder.total_mass_above(Mass(0.0));
         for j in 0..5 {
             for k in 0..5 {
@@ -577,12 +605,7 @@ impl PropogateHeat {
         }
 
         // This is the border
-        let mut heat = builder.build(ElementGridConvolutionNeighborTemperatures {
-            left: Array1::zeros(5),
-            right: Array1::zeros(5),
-            top: Some(Array1::zeros(5)),
-            bottom: Some(Array1::zeros(5)),
-        });
+        let mut heat = builder.build(ElementGridConvolutionNeighborTemperatures::zeros(5));
 
         let mut clock = Clock::default();
         let first_avg = heat.get_temperature().slice(s![1..-1, 1..-1]).sum() / (5 * 5) as f32;

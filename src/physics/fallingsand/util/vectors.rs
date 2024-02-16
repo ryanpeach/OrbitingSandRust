@@ -11,19 +11,14 @@ use derive_more::{Add, AddAssign, Sub, SubAssign};
 /// A coordinate system for [ndarray]
 /// [ndarray] is row-major, so the jk vector is flipped
 /// Top left is (0, 0)
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
-pub struct NdArrayCoords {
-    /// The x coordinate, as in the column
-    pub x: usize,
-    /// The y coordinate, as in the row
-    pub y: usize,
-}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct NdArrayCoords([usize; 2]);
 
 /// Instantiation
 impl NdArrayCoords {
     /// Create a new [NdArrayCoords]
     pub fn new(x: usize, y: usize) -> Self {
-        Self { x, y }
+        Self { 0: [x, y] }
     }
 }
 
@@ -33,22 +28,32 @@ impl NdArrayCoords {
     /// Bottom Right is (0, 0)
     pub fn to_jk_vector(self, coords: &ChunkCoords) -> JkVector {
         JkVector {
-            j: coords.get_num_concentric_circles() - 1 - self.y,
-            k: coords.get_num_radial_lines() - 1 - self.x,
+            j: coords.get_num_concentric_circles() - 1 - self.get_y(),
+            k: coords.get_num_radial_lines() - 1 - self.get_x(),
         }
+    }
+
+    /// Get the column index
+    pub fn get_x(&self) -> usize {
+        self.0[0]
+    }
+
+    /// Get the row index
+    pub fn get_y(&self) -> usize {
+        self.0[1]
     }
 }
 
 impl From<NdArrayCoords> for [usize; 2] {
     fn from(val: NdArrayCoords) -> Self {
-        [val.x, val.y]
+        val.0
     }
 }
 
 /// Constants
 impl NdArrayCoords {
     /// The zero vector
-    pub const ZERO: Self = Self { x: 0, y: 0 };
+    pub const ZERO: Self = Self { 0: [0, 0] };
 }
 
 /// My personal coordinate type for the circular grids

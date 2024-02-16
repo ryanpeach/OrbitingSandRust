@@ -162,6 +162,18 @@ pub struct ElementGridConvolutionNeighborTemperatures {
     pub right: MatrixBorderHeatProperties,
 }
 
+impl ElementGridConvolutionNeighborTemperatures {
+    /// Create a new [ElementGridConvolutionNeighborTemperatures] with zero arrays
+    pub fn zeros(size: usize) -> ElementGridConvolutionNeighborTemperatures {
+        ElementGridConvolutionNeighborTemperatures {
+            top: Some(MatrixBorderHeatProperties::zeros(size)),
+            bottom: Some(MatrixBorderHeatProperties::zeros(size)),
+            left: MatrixBorderHeatProperties::zeros(size),
+            right: MatrixBorderHeatProperties::zeros(size),
+        }
+    }
+}
+
 impl ElementGridConvolutionNeighbors {
     /// Get the heat of the neighbors at their border
     /// Keep these images in your mind as you read this code
@@ -176,13 +188,13 @@ impl ElementGridConvolutionNeighbors {
         let mut top = MatrixBorderHeatProperties::zeros(coords.get_num_radial_lines());
         match &self.grids.top {
             TopNeighborGrids::Normal { t, tl, tr: _ } => {
-                top_neighbor_grids_normal(coords, tl, t, &mut top);
+                get_top_neighbor_grids_normal(coords, tl, t, &mut top);
                 out.top = Some(top);
             }
             // In this case t1 and t0 are both half the size of target_chunk
             // TODO: Test this
             TopNeighborGrids::ChunkDoubling { t1, t0, .. } => {
-                top_neighbor_grids_chunk_doubling(coords, t0, t1, &mut top);
+                get_top_neighbor_grids_chunk_doubling(coords, t0, t1, &mut top);
                 out.top = Some(top);
             }
             TopNeighborGrids::TopOfGrid => {
@@ -192,12 +204,12 @@ impl ElementGridConvolutionNeighbors {
         let mut bottom = MatrixBorderHeatProperties::zeros(coords.get_num_radial_lines());
         match &self.grids.bottom {
             BottomNeighborGrids::Normal { b, .. } => {
-                bottom_neighbor_grids_normal(coords, b, &mut bottom);
+                get_bottom_neighbor_grids_normal(coords, b, &mut bottom);
                 out.bottom = Some(bottom);
             }
             // In this case bl and br are both twice the size of target_chunk
             BottomNeighborGrids::ChunkDoubling { bl, br } => {
-                bottom_neighbor_grids_chunk_doubling(coords, bl, br, &mut bottom);
+                get_bottom_neighbor_grids_chunk_doubling(coords, bl, br, &mut bottom);
                 out.bottom = Some(bottom);
             }
             BottomNeighborGrids::BottomOfGrid => {
@@ -206,27 +218,125 @@ impl ElementGridConvolutionNeighbors {
         }
         match &self.grids.left_right {
             LeftRightNeighborGrids::LR { l, r } => {
-                left_right_neighbor_grids(l, r, &mut out);
+                get_left_right_neighbor_grids(l, r, &mut out);
             }
         }
         out
     }
+
+    pub fn set_border_temps(
+        &mut self,
+        target_chunk: &mut ElementGrid,
+        temps: ElementGridConvolutionNeighborTemperatures,
+    ) {
+        let coords = target_chunk.get_chunk_coords();
+        match &mut self.grids.top {
+            TopNeighborGrids::Normal { t, tl, tr } => {
+                set_top_border_temps_normal(coords, tl, t, tr, temps.top.unwrap());
+            }
+            TopNeighborGrids::ChunkDoubling { t1, t0, .. } => {
+                set_top_border_temps_chunk_doubling(coords, t0, t1, temps.top.unwrap());
+            }
+            TopNeighborGrids::TopOfGrid => {}
+        }
+        match &mut self.grids.bottom {
+            BottomNeighborGrids::Normal { b, .. } => {
+                set_bottom_border_temps_normal(coords, b, temps.bottom.unwrap());
+            }
+            BottomNeighborGrids::ChunkDoubling { bl, br } => {
+                set_bottom_border_temps_chunk_doubling(coords, bl, br, temps.bottom.unwrap());
+            }
+            BottomNeighborGrids::BottomOfGrid => {}
+        }
+        match &mut self.grids.left_right {
+            LeftRightNeighborGrids::LR { l, r } => {
+                set_left_right_border_temps(l, r, temps.left, temps.right);
+            }
+        }
+    }
 }
 
-fn top_neighbor_grids_normal(
+fn set_top_border_temps_normal(
+    coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
+    tl: &mut ElementGrid,
+    t: &mut ElementGrid,
+    tr: &mut ElementGrid,
+    temps: MatrixBorderHeatProperties,
+) {
+    if t.get_chunk_coords().get_num_radial_lines() == coords.get_num_radial_lines() {
+        set_top_border_temps_normal_no_cell_doubling(coords, t, temps);
+    } else {
+        set_top_border_temps_normal_cell_doubling(coords, tl, t, tr, temps);
+    }
+}
+
+fn set_top_border_temps_normal_no_cell_doubling(
+    coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
+    t: &mut ElementGrid,
+    temps: MatrixBorderHeatProperties,
+) {
+    todo!()
+}
+
+fn set_top_border_temps_normal_cell_doubling(
+    coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
+    tl: &mut ElementGrid,
+    t: &mut ElementGrid,
+    tr: &mut ElementGrid,
+    temps: MatrixBorderHeatProperties,
+) {
+    todo!()
+}
+
+fn set_top_border_temps_chunk_doubling(
+    coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
+    t0: &mut ElementGrid,
+    t1: &mut ElementGrid,
+    temps: MatrixBorderHeatProperties,
+) {
+    todo!()
+}
+
+fn set_bottom_border_temps_normal(
+    coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
+    b: &mut ElementGrid,
+    temps: MatrixBorderHeatProperties,
+) {
+    todo!()
+}
+
+fn set_bottom_border_temps_chunk_doubling(
+    coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
+    bl: &mut ElementGrid,
+    br: &mut ElementGrid,
+    temps: MatrixBorderHeatProperties,
+) {
+    todo!()
+}
+
+fn set_left_right_border_temps(
+    l: &mut ElementGrid,
+    r: &mut ElementGrid,
+    temps_l: MatrixBorderHeatProperties,
+    temps_r: MatrixBorderHeatProperties,
+) {
+    todo!()
+}
+
+fn get_top_neighbor_grids_normal(
     coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
     tl: &ElementGrid,
     t: &ElementGrid,
     this: &mut MatrixBorderHeatProperties,
 ) {
     if t.get_chunk_coords().get_num_radial_lines() == coords.get_num_radial_lines() {
-        top_neighbor_grids_normal_no_cell_doubling(coords, t, this);
+        get_top_neighbor_grids_normal_no_cell_doubling(coords, t, this);
     } else {
-        top_neighbor_grids_normal_cell_doubling(coords, tl, t, this);
+        get_top_neighbor_grids_normal_cell_doubling(coords, tl, t, this);
     }
 }
 
-fn top_neighbor_grids_normal_no_cell_doubling(
+fn get_top_neighbor_grids_normal_no_cell_doubling(
     coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
     t: &ElementGrid,
     this: &mut MatrixBorderHeatProperties,
@@ -234,11 +344,11 @@ fn top_neighbor_grids_normal_no_cell_doubling(
     for k in 0..coords.get_num_radial_lines() {
         let idx = JkVector { j: 0, k };
         let temp = t.get_heat_properties(idx);
-        this[idx.to_ndarray_coords(coords).x] = temp;
+        this[idx.to_ndarray_coords(coords).get_x()] = temp;
     }
 }
 
-fn top_neighbor_grids_normal_cell_doubling(
+fn get_top_neighbor_grids_normal_cell_doubling(
     coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
     tl: &ElementGrid,
     t: &ElementGrid,
@@ -254,18 +364,18 @@ fn top_neighbor_grids_normal_cell_doubling(
         // it comes first
         if k % 2 == 0 {
             let temp = t.get_heat_properties(their_idx);
-            this[our_idx.to_ndarray_coords(coords).x] = temp;
+            this[our_idx.to_ndarray_coords(coords).get_x()] = temp;
         }
         // In this case we will average it with ourselves
         else {
             let temp = tl.get_heat_properties(their_idx);
-            this[our_idx.to_ndarray_coords(coords).x] =
-                (temp + this[our_idx.to_ndarray_coords(coords).x]) / 2.0;
+            this[our_idx.to_ndarray_coords(coords).get_x()] =
+                (temp + this[our_idx.to_ndarray_coords(coords).get_x()]) / 2.0;
         }
     }
 }
 
-fn top_neighbor_grids_chunk_doubling(
+fn get_top_neighbor_grids_chunk_doubling(
     coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
     t0: &ElementGrid,
     t1: &ElementGrid,
@@ -293,12 +403,12 @@ fn top_neighbor_grids_chunk_doubling(
         // In this case we will put the cell in the memory because
         // it comes first
         if k % 2 == 0 {
-            this[our_idx.to_ndarray_coords(coords).x] = temp;
+            this[our_idx.to_ndarray_coords(coords).get_x()] = temp;
         }
         // In this case we will average it with ourselves
         else {
-            this[our_idx.to_ndarray_coords(coords).x] =
-                (temp + this[our_idx.to_ndarray_coords(coords).x]) / 2.0;
+            this[our_idx.to_ndarray_coords(coords).get_x()] =
+                (temp + this[our_idx.to_ndarray_coords(coords).get_x()]) / 2.0;
         }
     }
     // Now lets do this from t1, iterating over its bottom border
@@ -314,29 +424,29 @@ fn top_neighbor_grids_chunk_doubling(
         // In this case we will put the cell in the memory because
         // it comes first
         if k % 2 == 0 {
-            this[our_idx.to_ndarray_coords(coords).x] = temp;
+            this[our_idx.to_ndarray_coords(coords).get_x()] = temp;
         }
         // In this case we will average it with ourselves
         else {
-            this[our_idx.to_ndarray_coords(coords).x] =
-                (temp + this[our_idx.to_ndarray_coords(coords).x]) / 2.0;
+            this[our_idx.to_ndarray_coords(coords).get_x()] =
+                (temp + this[our_idx.to_ndarray_coords(coords).get_x()]) / 2.0;
         }
     }
 }
 
-fn bottom_neighbor_grids_normal(
+fn get_bottom_neighbor_grids_normal(
     coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
     b: &ElementGrid,
     this: &mut MatrixBorderHeatProperties,
 ) {
     if coords.get_num_radial_lines() == b.get_chunk_coords().get_num_radial_lines() {
-        bottom_neighbor_grids_normal_no_cell_doubling(coords, b, this);
+        get_bottom_neighbor_grids_normal_no_cell_doubling(coords, b, this);
     } else {
-        bottom_neighbor_grids_normal_cell_doubling(coords, b, this);
+        get_bottom_neighbor_grids_normal_cell_doubling(coords, b, this);
     }
 }
 
-fn bottom_neighbor_grids_normal_cell_doubling(
+fn get_bottom_neighbor_grids_normal_cell_doubling(
     coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
     b: &ElementGrid,
     this: &mut MatrixBorderHeatProperties,
@@ -353,11 +463,11 @@ fn bottom_neighbor_grids_normal_cell_doubling(
             k: k / 2,
         };
         let temp = b.get_heat_properties(their_idx);
-        this[our_idx.to_ndarray_coords(coords).x] = temp;
+        this[our_idx.to_ndarray_coords(coords).get_x()] = temp;
     }
 }
 
-fn bottom_neighbor_grids_normal_no_cell_doubling(
+fn get_bottom_neighbor_grids_normal_no_cell_doubling(
     coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
     b: &ElementGrid,
     this: &mut MatrixBorderHeatProperties,
@@ -368,11 +478,11 @@ fn bottom_neighbor_grids_normal_no_cell_doubling(
             k,
         };
         let temp = b.get_heat_properties(idx);
-        this[idx.to_ndarray_coords(coords).x] = temp;
+        this[idx.to_ndarray_coords(coords).get_x()] = temp;
     }
 }
 
-fn bottom_neighbor_grids_chunk_doubling(
+fn get_bottom_neighbor_grids_chunk_doubling(
     coords: &crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords,
     bl: &ElementGrid,
     br: &ElementGrid,
@@ -401,7 +511,7 @@ fn bottom_neighbor_grids_chunk_doubling(
                 k: k / 2,
             };
             let temp = bl.get_heat_properties(their_idx);
-            this[our_idx.to_ndarray_coords(coords).x] = temp;
+            this[our_idx.to_ndarray_coords(coords).get_x()] = temp;
         }
     }
     // This is the case where the bottom neighbor is the br chunk
@@ -424,12 +534,12 @@ fn bottom_neighbor_grids_chunk_doubling(
                 k: k / 2 + br.get_chunk_coords().get_num_radial_lines() / 2,
             };
             let temp = br.get_heat_properties(their_idx);
-            this[our_idx.to_ndarray_coords(coords).x] = temp;
+            this[our_idx.to_ndarray_coords(coords).get_x()] = temp;
         }
     };
 }
 
-fn left_right_neighbor_grids(
+fn get_left_right_neighbor_grids(
     l: &ElementGrid,
     r: &ElementGrid,
     out: &mut ElementGridConvolutionNeighborTemperatures,
@@ -439,7 +549,7 @@ fn left_right_neighbor_grids(
     for j in 0..coords.get_num_concentric_circles() {
         let idx = JkVector { j, k: 0 };
         let temp = l.get_heat_properties(idx);
-        this[idx.to_ndarray_coords(coords).y] = temp;
+        this[idx.to_ndarray_coords(coords).get_y()] = temp;
     }
     out.left = this;
 
@@ -451,7 +561,7 @@ fn left_right_neighbor_grids(
             k: coords.get_num_radial_lines() - 1,
         };
         let temp = r.get_heat_properties(idx);
-        this[idx.to_ndarray_coords(coords).y] = temp;
+        this[idx.to_ndarray_coords(coords).get_y()] = temp;
     }
     out.right = this;
 }

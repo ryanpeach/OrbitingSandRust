@@ -1,4 +1,4 @@
-use bevy::app::{App, Plugin, Update};
+use bevy::app::{App, FixedUpdate, Plugin, Update};
 use bevy::asset::{AssetServer, Assets, Handle};
 use bevy::core::FrameCount;
 use bevy::ecs::component::Component;
@@ -26,7 +26,7 @@ use bevy_mod_picking::events::Pointer;
 use bevy_mod_picking::PickableBundle;
 
 use bevy::sprite::{ColorMaterial, MaterialMesh2dBundle};
-use bevy::time::Time;
+use bevy::time::{Fixed, Time};
 
 use bevy::transform::components::Transform;
 
@@ -42,6 +42,7 @@ use crate::physics::fallingsand::util::mesh::{GizmoDrawableLoop, GizmoDrawableTr
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
 use crate::physics::util::clock::Clock;
+use crate::physics::PHYSICS_FRAME_RATE;
 
 /// Identifies the mesh which draws the celestials chunk outlines
 #[derive(Component)]
@@ -68,7 +69,8 @@ pub struct CelestialDataPlugin;
 
 impl Plugin for CelestialDataPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, Self::process_system);
+        app.add_systems(FixedUpdate, Self::process_system);
+        app.insert_resource(Time::<Fixed>::from_seconds(1.0 / PHYSICS_FRAME_RATE));
         app.add_systems(
             Update,
             (
