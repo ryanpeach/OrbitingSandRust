@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["CelestialChunkIdk","CelestialData","CelestialDataPlugin","CelestialOutline","CelestialWireframe","FallingSandMaterial"]};
+window.SIDEBAR_ITEMS = {"struct":["CelestialBuilder","CelestialChunkIdk","CelestialData","CelestialDataPlugin","CelestialOutline","CelestialWireframe","FallingSandMaterial"]};

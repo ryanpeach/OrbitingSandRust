@@ -388,9 +388,16 @@
 <a href="#387" id="387">387</a>
 <a href="#388" id="388">388</a>
 <a href="#389" id="389">389</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>bevy::app::{App, FixedUpdate, Plugin, Update};
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! Celestial entities and their data
+//! A celestial is a large body in space, such as a planet or star
+</span><span class="attr">#![warn(missing_docs)]
+#![warn(clippy::missing_docs_in_private_items)]
+
+</span><span class="kw">use </span>bevy::app::{App, FixedUpdate, Plugin, Update};
 <span class="kw">use </span>bevy::asset::{AssetServer, Assets, Handle};
-<span class="kw">use </span>bevy::core::FrameCount;
+<span class="kw">use </span>bevy::core::{FrameCount, Name};
 <span class="kw">use </span>bevy::ecs::component::Component;
 
 <span class="kw">use </span>bevy::ecs::entity::Entity;
@@ -398,7 +405,7 @@
 <span class="kw">use </span>bevy::gizmos::gizmos::Gizmos;
 
 <span class="kw">use </span>bevy::render::color::Color;
-<span class="kw">use </span>bevy::render::view::{visibility, Visibility};
+<span class="kw">use </span>bevy::render::view::{ViewVisibility, Visibility, VisibilityBundle};
 <span class="kw">use </span>bevy_mod_picking::prelude::<span class="kw-2">*</span>;
 
 <span class="comment">// use bevy_mod_picking::PickableBundle;
@@ -423,7 +430,6 @@
 <span class="kw">use </span>hashbrown::HashMap;
 
 <span class="kw">use </span><span class="kw">crate</span>::gui::camera::{CelestialIdx, OverlayLayer2, OverlayLayer3, SelectCelestial};
-<span class="kw">use </span><span class="kw">crate</span>::gui::camera_window::CameraWindowCheckboxes;
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::mesh::{GizmoDrawableLoop, GizmoDrawableTriangles};
@@ -460,7 +466,6 @@
             (
                 CelestialDataPlugin::draw_wireframe_system,
                 CelestialDataPlugin::draw_outline_system,
-                CelestialDataPlugin::change_falling_sand_visibility_system,
             ),
         );
         app.add_event::&lt;SelectCelestial&gt;();
@@ -481,49 +486,7 @@
         <span class="self">Self </span>{ element_grid_dir }
     }
 
-    <span class="comment">// /// Save the combined mesh and textures to a directory
-    // /// As well as all the chunks
-    // pub fn save(&amp;self, ctx: &amp;mut Context, dir_path: &amp;str) -&gt; Result&lt;(), ggez::GameError&gt; {
-    //     let img = self.get_combined_mesh_texture().1.to_image(ctx);
-    //     let combined_path = format!("{}/combined.png", dir_path);
-    //     img.encode(ctx, ggez::graphics::ImageEncodingFormat::Png, combined_path)?;
-    //     self.data.element_grid_dir.save(ctx, dir_path)
-    // }
-
-    // pub fn calc_combined_mesh_outline(&amp;self) -&gt; OwnedMeshData {
-    //     OwnedMeshData::combine(
-    //         &amp;self
-    //             .element_grid_dir
-    //             .get_coordinate_dir()
-    //             .get_mesh_data(MeshDrawMode::Outline),
-    //     )
-    // }
-    // pub fn calc_combined_mesh_wireframe(&amp;self) -&gt; OwnedMeshData {
-    //     OwnedMeshData::combine(
-    //         &amp;self
-    //             .element_grid_dir
-    //             .get_coordinate_dir()
-    //             .get_mesh_data(MeshDrawMode::TriangleWireframe),
-    //     )
-    // }
-    // /// Only recalculates the mesh for the combined mesh, not the texture
-    // fn calc_combined_mesh(element_grid_dir: &amp;ElementGridDir) -&gt; OwnedMeshData {
-    //     OwnedMeshData::combine(
-    //         &amp;element_grid_dir
-    //             .get_coordinate_dir()
-    //             .get_mesh_data(MeshDrawMode::TexturedMesh),
-    //     )
-    // }
-    // /// Retrieves the combined mesh
-    // pub fn get_combined_mesh(&amp;self) -&gt; &amp;OwnedMeshData {
-    //     &amp;self.combined_mesh
-    // }
-    // /// Only recalculates the texture for the combined mesh, not the mesh itself
-    // pub fn calc_combined_mesh_texture(&amp;self) -&gt; RawImage {
-    //     RawImage::combine(self.all_textures.clone(), self.combined_mesh.uv_bounds)
-    // }
-
-    </span><span class="doccomment">/// Something to call every frame
+    <span class="doccomment">/// Something to call every frame
     /// This calculates only 1/9th of the grid each frame
     /// for maximum performance
     </span><span class="kw">pub fn </span>process(<span class="kw-2">&amp;mut </span><span class="self">self</span>, current_time: Clock) -&gt; HashMap&lt;ChunkIjkVector, Textures&gt; {
@@ -549,25 +512,68 @@
     }
 }
 
-<span class="doccomment">/// Bevy Systems
-</span><span class="kw">impl </span>CelestialDataPlugin {
-    <span class="doccomment">/// Draws all the chunks and sets them up as child entities of the celestial
-    /// TODO: Should this be a system
-    </span><span class="attr">#[allow(clippy::too_many_arguments)]
-    </span><span class="kw">pub fn </span>setup(
-        <span class="kw-2">mut </span>celestial: CelestialData,
-        velocity: Velocity,
-        translation: Vec2,
+<span class="doccomment">/// Create a celestial using a builder pattern
+</span><span class="kw">pub struct </span>CelestialBuilder {
+    <span class="doccomment">/// The name of the celestial
+    </span>name: String,
+    <span class="doccomment">/// A component that wraps the element directory
+    </span>celestial_data: CelestialData,
+    <span class="doccomment">/// The starting velocity of the celestial
+    </span>velocity: Velocity,
+    <span class="doccomment">/// The starting position of the celestial
+    </span>translation: Vec2,
+    <span class="doccomment">/// The index of the celestial (0 to n), used for camera control
+    </span>celestial_idx: CelestialIdx,
+    <span class="doccomment">/// Whether the celestial has a gravitational field
+    </span>gravitational: bool,
+}
+
+<span class="kw">impl </span>CelestialBuilder {
+    <span class="doccomment">/// Create a new celestial builder
+    </span><span class="kw">pub fn </span>new(idx: <span class="kw-2">&amp;mut </span>CelestialIdx, name: String, data: CelestialData) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>out = <span class="self">Self </span>{
+            name,
+            celestial_data: data,
+            celestial_idx: <span class="kw-2">*</span>idx,
+            velocity: Velocity(Vec2::new(<span class="number">0.</span>, <span class="number">0.</span>)),
+            translation: Vec2::new(<span class="number">0.</span>, <span class="number">0.</span>),
+            gravitational: <span class="bool-val">true</span>,
+        };
+        <span class="kw-2">*</span>idx = <span class="kw-2">*</span>idx + <span class="number">1</span>;
+        out
+    }
+
+    <span class="doccomment">/// Set the velocity of the celestial
+    </span><span class="kw">pub fn </span>velocity(<span class="kw-2">mut </span><span class="self">self</span>, velocity: Velocity) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.velocity = velocity;
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Set the translation of the celestial
+    </span><span class="kw">pub fn </span>translation(<span class="kw-2">mut </span><span class="self">self</span>, translation: Vec2) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.translation = translation;
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Set the gravitational field of the celestial
+    </span><span class="kw">pub fn </span>gravitational(<span class="kw-2">mut </span><span class="self">self</span>, gravitational: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.gravitational = gravitational;
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Build the celestial
+    </span><span class="kw">pub fn </span>build(
+        <span class="self">self</span>,
         commands: <span class="kw-2">&amp;mut </span>Commands,
         meshes: <span class="kw-2">&amp;mut </span>ResMut&lt;Assets&lt;Mesh&gt;&gt;,
         materials: <span class="kw-2">&amp;mut </span>ResMut&lt;Assets&lt;ColorMaterial&gt;&gt;,
         asset_server: <span class="kw-2">&amp;</span>Res&lt;AssetServer&gt;,
-        celestial_idx: usize,
-        gravitational: bool,
     ) -&gt; Entity {
         <span class="comment">// Create all the chunk meshes as pairs of ChunkIjkVector and Mesh2dBundle
-        </span><span class="kw">let </span><span class="kw-2">mut </span>children = Vec::new();
-        <span class="kw">let </span>element_dir = celestial.get_element_dir_mut();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>chunks = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>wireframes = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>outlines = Vec::new();
+        <span class="kw">let </span>element_dir = <span class="self">self</span>.celestial_data.get_element_dir();
         <span class="kw">let </span>coordinate_dir = element_dir.get_coordinate_dir();
         <span class="kw">let </span><span class="kw-2">mut </span>textures = element_dir.get_textures();
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..coordinate_dir.get_num_layers() {
@@ -592,11 +598,12 @@
                     <span class="comment">// Create the falling sand material
                     </span><span class="kw">let </span>chunk = commands
                         .spawn((
+                            Name::new(<span class="macro">format!</span>(<span class="string">"Chunk {:?}"</span>, chunk_ijk)),
                             celestial_chunk_id,
                             MaterialMesh2dBundle {
                                 mesh: mesh_handle.into(),
                                 material: materials.add(asset_server.add(sand_material).into()),
-                                visibility: Visibility::Visible,
+                                visibility: Visibility::Inherited,
                                 ..Default::default()
                             },
                             <span class="comment">// mesh.calc_bounds(),
@@ -608,10 +615,13 @@
                     <span class="comment">// Now create the gizmos
                     </span><span class="kw">let </span>outline_entity = commands
                         .spawn((
+                            Name::new(<span class="macro">format!</span>(<span class="string">"Outline {:?}"</span>, chunk_ijk)),
                             GizmoDrawableLoop::new(outline, Color::RED),
                             SpatialBundle {
-                                transform: Transform::from_translation(translation.extend(<span class="number">3.0</span>)),
-                                visibility: Visibility::Visible,
+                                transform: Transform::from_translation(
+                                    <span class="self">self</span>.translation.extend(<span class="number">3.0</span>),
+                                ),
+                                visibility: Visibility::Inherited,
                                 ..Default::default()
                             },
                             CelestialOutline,
@@ -620,10 +630,13 @@
                         .id();
                     <span class="kw">let </span>wireframe_entity = commands
                         .spawn((
+                            Name::new(<span class="macro">format!</span>(<span class="string">"Wireframe {:?}"</span>, chunk_ijk)),
                             GizmoDrawableTriangles::new(wireframe, Color::WHITE),
                             SpatialBundle {
-                                transform: Transform::from_translation(translation.extend(<span class="number">2.0</span>)),
-                                visibility: Visibility::Visible,
+                                transform: Transform::from_translation(
+                                    <span class="self">self</span>.translation.extend(<span class="number">2.0</span>),
+                                ),
+                                visibility: Visibility::Inherited,
                                 ..Default::default()
                             },
                             CelestialWireframe,
@@ -632,9 +645,9 @@
                         .id();
 
                     <span class="comment">// Parent celestial to chunk
-                    </span>children.push(chunk);
-                    children.push(outline_entity);
-                    children.push(wireframe_entity);
+                    </span>chunks.push(chunk);
+                    wireframes.push(outline_entity);
+                    outlines.push(wireframe_entity);
                 }
             }
         }
@@ -644,39 +657,67 @@
             commands
                 .spawn((
                     <span class="comment">// Physics
-                    </span>celestial
+                    </span>Name::new(<span class="self">self</span>.name.clone()),
+                    <span class="self">self</span>.celestial_data
                         .get_element_dir()
                         .get_coordinate_dir()
                         .get_radius(),
-                    celestial.get_element_dir().get_total_mass(),
-                    velocity,
-                    celestial,
-                    CelestialIdx(celestial_idx),
+                    <span class="self">self</span>.celestial_data.get_element_dir().get_total_mass(),
+                    <span class="self">self</span>.velocity,
+                    <span class="self">self</span>.celestial_data,
+                    <span class="self">self</span>.celestial_idx,
                     SpatialBundle {
-                        transform: Transform::from_translation(translation.extend(<span class="number">0.0</span>)),
+                        transform: Transform::from_translation(<span class="self">self</span>.translation.extend(<span class="number">0.0</span>)),
                         ..Default::default()
                     },
                 ))
                 .id()
         };
-        <span class="kw">if </span>gravitational {
+        <span class="kw">if </span><span class="self">self</span>.gravitational {
             commands.entity(celestial_id).insert(GravitationalField);
         }
 
-        <span class="comment">// Parent the celestial to all the chunks
-        </span>commands
-            .entity(celestial_id)
-            .push_children(children.as_slice());
+        <span class="comment">// Create a wireframes entity parented to the celestial
+        </span><span class="kw">let </span>wireframe_id = commands
+            .spawn((
+                Name::new(<span class="string">"Wireframes"</span>),
+                VisibilityBundle {
+                    visibility: Visibility::Hidden,
+                    ..Default::default()
+                },
+            ))
+            .id();
+        commands.entity(wireframe_id).push_children(<span class="kw-2">&amp;</span>wireframes);
+        commands.entity(celestial_id).push_children(<span class="kw-2">&amp;</span>[wireframe_id]);
+
+        <span class="comment">// Create an outlines entity parented to the celestial
+        </span><span class="kw">let </span>outline = commands
+            .spawn((
+                Name::new(<span class="string">"Outlines"</span>),
+                VisibilityBundle {
+                    visibility: Visibility::Hidden,
+                    ..Default::default()
+                },
+            ))
+            .id();
+        commands.entity(outline).push_children(<span class="kw-2">&amp;</span>outlines);
+        commands.entity(celestial_id).push_children(<span class="kw-2">&amp;</span>[outline]);
 
         <span class="comment">// And create events
         </span>commands
             .entity(celestial_id)
             .insert(On::&lt;Pointer&lt;Down&gt;&gt;::send_event::&lt;SelectCelestial&gt;());
 
+        <span class="comment">// Parent the chunks to the celestial
+        </span>commands.entity(celestial_id).push_children(<span class="kw-2">&amp;</span>chunks);
+
         <span class="comment">// Return the celestial
         </span>celestial_id
     }
+}
 
+<span class="doccomment">/// Bevy Systems
+</span><span class="kw">impl </span>CelestialDataPlugin {
     <span class="doccomment">/// Run this system every frame to update the celestial
     </span><span class="attr">#[allow(clippy::type_complexity)]
     </span><span class="kw">pub fn </span>process_system(
@@ -693,7 +734,10 @@
         <span class="kw">for </span>(celestial_id, <span class="kw-2">mut </span>celestial, <span class="kw-2">mut </span>mass) <span class="kw">in </span>celestial.iter_mut() {
             <span class="kw">let </span><span class="kw-2">mut </span>new_textures: HashMap&lt;ChunkIjkVector, Textures&gt; =
                 celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
-            mass.<span class="number">0 </span>= celestial.get_element_dir().get_total_mass().<span class="number">0</span>;
+
+            <span class="comment">// Update the mass of the celestial after processing, which
+            // can affect its gravitational pull
+            </span>mass.<span class="number">0 </span>= celestial.get_element_dir().get_total_mass().<span class="number">0</span>;
 
             <span class="comment">// Update the falling sand materials
             </span><span class="kw">for </span>(parent, material_handle, chunk_ijk) <span class="kw">in </span>falling_sand_materials.iter_mut() {
@@ -712,68 +756,28 @@
         }
     }
     <span class="doccomment">/// Draw the wireframe of the celestials cells
-    ///
-    /// &gt; **TODO**
-    /// &gt; Wish I could just set the gizmo to not have to have the camera window checkboxes
-    /// &gt; and instead just draw all visible gizmos.
-    /// &gt; but the checkbox utility in bevy_egui does not emit an event, and linking
-    /// &gt; the systems via one as a modifier of Visibility and this as a reader
-    /// &gt; created a system loop
     </span><span class="kw">pub fn </span>draw_wireframe_system(
         <span class="kw-2">mut </span>gizmos: Gizmos,
-        <span class="kw-2">mut </span>query: Query&lt;
-            (<span class="kw-2">&amp;</span>GizmoDrawableTriangles, <span class="kw-2">&amp;</span>Transform, <span class="kw-2">&amp;mut </span>Visibility),
+        query: Query&lt;
+            (<span class="kw-2">&amp;</span>GizmoDrawableTriangles, <span class="kw-2">&amp;</span>Transform, <span class="kw-2">&amp;</span>ViewVisibility),
             With&lt;CelestialWireframe&gt;,
         &gt;,
-        checkboxes: Res&lt;CameraWindowCheckboxes&gt;,
     ) {
-        <span class="kw">for </span>(drawable, transform, <span class="kw-2">mut </span>visibility) <span class="kw">in </span>query.iter_mut() {
-            <span class="kw-2">*</span>visibility = <span class="kw">if </span>checkboxes.wireframe {
-                visibility::Visibility::Visible
-            } <span class="kw">else </span>{
-                visibility::Visibility::Hidden
-            };
-            <span class="kw">if </span><span class="kw-2">*</span>visibility == visibility::Visibility::Visible {
+        <span class="kw">for </span>(drawable, transform, visibility) <span class="kw">in </span>query.iter() {
+            <span class="kw">if </span>visibility.get() {
                 drawable.draw_bevy_gizmo_triangles(<span class="kw-2">&amp;mut </span>gizmos, transform);
             }
         }
     }
     <span class="doccomment">/// Draw the outline of the celestials chunks
-    ///
-    /// &gt; **TODO**
-    /// &gt; Wish I could just set the gizmo to not have to have the camera window checkboxes
-    /// &gt; and instead just draw all visible gizmos.
-    /// &gt; but the checkbox utility in bevy_egui does not emit an event, and linking
-    /// &gt; the systems via one as a modifier of Visibility and this as a reader
-    /// &gt; created a system loop
     </span><span class="kw">pub fn </span>draw_outline_system(
         <span class="kw-2">mut </span>gizmos: Gizmos,
-        <span class="kw-2">mut </span>query: Query&lt;(<span class="kw-2">&amp;</span>GizmoDrawableLoop, <span class="kw-2">&amp;</span>Transform, <span class="kw-2">&amp;mut </span>Visibility), With&lt;CelestialOutline&gt;&gt;,
-        checkboxes: Res&lt;CameraWindowCheckboxes&gt;,
+        query: Query&lt;(<span class="kw-2">&amp;</span>GizmoDrawableLoop, <span class="kw-2">&amp;</span>Transform, <span class="kw-2">&amp;</span>ViewVisibility), With&lt;CelestialOutline&gt;&gt;,
     ) {
-        <span class="kw">for </span>(drawable, transform, <span class="kw-2">mut </span>visibility) <span class="kw">in </span>query.iter_mut() {
-            <span class="kw-2">*</span>visibility = <span class="kw">if </span>checkboxes.outline {
-                visibility::Visibility::Visible
-            } <span class="kw">else </span>{
-                visibility::Visibility::Hidden
-            };
-            <span class="kw">if </span><span class="kw-2">*</span>visibility == visibility::Visibility::Visible {
+        <span class="kw">for </span>(drawable, transform, visibility) <span class="kw">in </span>query.iter() {
+            <span class="kw">if </span>visibility.get() {
                 drawable.draw_bevy_gizmo_loop(<span class="kw-2">&amp;mut </span>gizmos, transform);
             }
-        }
-    }
-
-    <span class="doccomment">/// Change falling sand visibility
-    </span><span class="kw">pub fn </span>change_falling_sand_visibility_system(
-        <span class="kw-2">mut </span>query: Query&lt;<span class="kw-2">&amp;mut </span>Visibility, With&lt;FallingSandMaterial&gt;&gt;,
-        checkboxes: Res&lt;CameraWindowCheckboxes&gt;,
-    ) {
-        <span class="kw">for </span><span class="kw-2">mut </span>visibility <span class="kw">in </span>query.iter_mut() {
-            <span class="kw-2">*</span>visibility = <span class="kw">if </span>checkboxes.material {
-                visibility::Visibility::Visible
-            } <span class="kw">else </span>{
-                visibility::Visibility::Hidden
-            };
         }
     }
 }

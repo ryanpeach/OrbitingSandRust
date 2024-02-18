@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["brush","camera","camera_window","element_picker"],"struct":["GuiPluginGroup","GuiUnifiedPlugin"]};
+window.SIDEBAR_ITEMS = {"mod":["brush","camera","element_picker"],"struct":["GuiPluginGroup","GuiUnifiedPlugin"]};

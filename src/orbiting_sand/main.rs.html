@@ -126,30 +126,6 @@
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! These documents are for game developers to understand the code, rather than for players.
 //! For players, we will eventually create a mdbook describing gameplay.
 //! This is the entry point for the game. It installs the plugins and contains
@@ -159,8 +135,9 @@
 <span class="kw">pub mod </span>physics;
 
 <span class="kw">use </span>bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+<span class="kw">use </span>bevy_inspector_egui::quick::WorldInspectorPlugin;
 
-<span class="kw">use </span><span class="kw">crate</span>::entities::celestials::celestial::CelestialDataPlugin;
+<span class="kw">use </span><span class="kw">crate</span>::entities::celestials::celestial::CelestialBuilder;
 <span class="kw">use </span><span class="kw">crate</span>::entities::celestials::earthlike::EarthLikeBuilder;
 <span class="kw">use </span><span class="kw">crate</span>::entities::celestials::sun::SunBuilder;
 <span class="kw">use </span><span class="kw">crate</span>::entities::EntitiesPluginGroup;
@@ -171,7 +148,7 @@
 <span class="kw">use </span>bevy_mod_picking::DefaultPickingPlugins;
 <span class="kw">use </span>gui::camera::MainCamera;
 
-<span class="kw">use </span><span class="kw">crate</span>::gui::camera::BackgroundLayer1;
+<span class="kw">use </span><span class="kw">crate</span>::gui::camera::{BackgroundLayer1, CelestialIdx};
 <span class="kw">use </span><span class="kw">crate</span>::gui::GuiPluginGroup;
 <span class="kw">use </span><span class="kw">crate</span>::physics::orbits::components::{Mass, Velocity};
 
@@ -195,7 +172,8 @@
         .add_plugins(GuiPluginGroup)
         .add_plugins(PhysicsPluginGroup)
         .add_plugins(EntitiesPluginGroup)
-        .add_systems(PostStartup, solar_system_setup)
+        .add_plugins(WorldInspectorPlugin::new())
+        .add_systems(PostStartup, planet_only_setup)
         .run();
 }
 
@@ -207,46 +185,31 @@
     <span class="kw-2">mut </span>materials: ResMut&lt;Assets&lt;ColorMaterial&gt;&gt;,
     asset_server: Res&lt;AssetServer&gt;,
 ) {
+    <span class="comment">// This indexes our created entities
+    // The "new" functions will index it for you
+    </span><span class="kw">let </span><span class="kw-2">mut </span>idx = CelestialIdx(<span class="number">0</span>);
+
     <span class="comment">// Create earth
     </span><span class="kw">let </span>planet_data = EarthLikeBuilder::new().build();
-    CelestialDataPlugin::setup(
-        planet_data,
-        Velocity(Vec2::new(<span class="number">0.</span>, <span class="number">1200.</span>)),
-        Vec2::new(-<span class="number">10000.</span>, <span class="number">0.</span>),
-        <span class="kw-2">&amp;mut </span>commands,
-        <span class="kw-2">&amp;mut </span>meshes,
-        <span class="kw-2">&amp;mut </span>materials,
-        <span class="kw-2">&amp;</span>asset_server,
-        <span class="number">0</span>,
-        <span class="bool-val">true</span>,
-    );
+    CelestialBuilder::new(<span class="kw-2">&amp;mut </span>idx, <span class="string">"Earth1"</span>.to_string(), planet_data)
+        .translation(Vec2::new(-<span class="number">10000.</span>, <span class="number">0.</span>))
+        .velocity(Velocity(Vec2::new(<span class="number">0.</span>, <span class="number">1200.</span>)))
+        .build(<span class="kw-2">&amp;mut </span>commands, <span class="kw-2">&amp;mut </span>meshes, <span class="kw-2">&amp;mut </span>materials, <span class="kw-2">&amp;</span>asset_server);
 
     <span class="comment">// Create earth2
     </span><span class="kw">let </span>planet_data = EarthLikeBuilder::new().build();
-    CelestialDataPlugin::setup(
-        planet_data,
-        Velocity(Vec2::new(<span class="number">0.</span>, -<span class="number">1200.</span>)),
-        Vec2::new(<span class="number">10000.</span>, <span class="number">0.</span>),
-        <span class="kw-2">&amp;mut </span>commands,
-        <span class="kw-2">&amp;mut </span>meshes,
-        <span class="kw-2">&amp;mut </span>materials,
-        <span class="kw-2">&amp;</span>asset_server,
-        <span class="number">1</span>,
-        <span class="bool-val">true</span>,
-    );
+    CelestialBuilder::new(<span class="kw-2">&amp;mut </span>idx, <span class="string">"Earth2"</span>.to_string(), planet_data)
+        .translation(Vec2::new(<span class="number">10000.</span>, <span class="number">0.</span>))
+        .velocity(Velocity(Vec2::new(<span class="number">0.</span>, -<span class="number">1200.</span>)))
+        .build(<span class="kw-2">&amp;mut </span>commands, <span class="kw-2">&amp;mut </span>meshes, <span class="kw-2">&amp;mut </span>materials, <span class="kw-2">&amp;</span>asset_server);
 
     <span class="comment">// Create a sun
     </span><span class="kw">let </span>sun_data = SunBuilder::new().build();
-    CelestialDataPlugin::setup(
-        sun_data,
-        Velocity(Vec2::new(<span class="number">0.</span>, <span class="number">0.</span>)),
-        Vec2::new(<span class="number">0.</span>, <span class="number">0.</span>),
+    CelestialBuilder::new(<span class="kw-2">&amp;mut </span>idx, <span class="string">"Sun"</span>.to_string(), sun_data).build(
         <span class="kw-2">&amp;mut </span>commands,
         <span class="kw-2">&amp;mut </span>meshes,
         <span class="kw-2">&amp;mut </span>materials,
         <span class="kw-2">&amp;</span>asset_server,
-        <span class="number">2</span>,
-        <span class="bool-val">true</span>,
     );
 
     <span class="comment">// Create a bunch of asteroids
@@ -284,19 +247,8 @@
 ) {
     <span class="comment">// Create earth
     </span><span class="kw">let </span>planet_data = EarthLikeBuilder::new().build();
-    <span class="kw">let </span>planet_id = CelestialDataPlugin::setup(
-        planet_data,
-        <span class="comment">// Velocity(Vec2::new(0., 1200.)),
-        // Vec2::new(-10000., 0.),
-        </span>Velocity(Vec2::new(<span class="number">0.</span>, <span class="number">0.</span>)),
-        Vec2::new(<span class="number">0.</span>, <span class="number">0.</span>),
-        <span class="kw-2">&amp;mut </span>commands,
-        <span class="kw-2">&amp;mut </span>meshes,
-        <span class="kw-2">&amp;mut </span>materials,
-        <span class="kw-2">&amp;</span>asset_server,
-        <span class="number">0</span>,
-        <span class="bool-val">true</span>,
-    );
+    <span class="kw">let </span>planet_id = CelestialBuilder::new(<span class="kw-2">&amp;mut </span>CelestialIdx(<span class="number">0</span>), <span class="string">"Earth"</span>.to_string(), planet_data)
+        .build(<span class="kw-2">&amp;mut </span>commands, <span class="kw-2">&amp;mut </span>meshes, <span class="kw-2">&amp;mut </span>materials, <span class="kw-2">&amp;</span>asset_server);
 
     <span class="comment">// Parent the camera to the sun
     </span>commands.entity(planet_id).push_children(<span class="kw-2">&amp;</span>[camera.single()]);
