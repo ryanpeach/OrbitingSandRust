@@ -197,8 +197,6 @@ mod tests {
     use bevy::render::color::Color;
     use strum::IntoEnumIterator;
 
-    
-
     use super::ElementType;
 
     /// This tests that all elements have different colors

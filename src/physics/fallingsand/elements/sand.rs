@@ -1,7 +1,4 @@
-use super::element::{
-    Density, Element, ElementTakeOptions, ElementType,
-    StateOfMatter,
-};
+use super::element::{Density, Element, ElementTakeOptions, ElementType, StateOfMatter};
 use super::movement::solid::solid_process;
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 
@@ -66,7 +63,8 @@ mod tests {
         fallingsand::{
             data::element_directory::ElementGridDir,
             mesh::coordinate_directory::CoordinateDirBuilder,
-        }, orbits::components::Length,
+        },
+        orbits::components::Length,
     };
 
     use super::*;

@@ -549,7 +549,6 @@ impl CoordinateDir {
 
 #[cfg(test)]
 mod tests {
-    
 
     use super::*;
 

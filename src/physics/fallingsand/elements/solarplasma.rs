@@ -1,7 +1,4 @@
-use super::element::{
-    Density, Element, ElementTakeOptions, ElementType,
-    StateOfMatter,
-};
+use super::element::{Density, Element, ElementTakeOptions, ElementType, StateOfMatter};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
