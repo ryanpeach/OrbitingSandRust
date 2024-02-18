@@ -172,9 +172,9 @@ impl CelestialBuilder {
     /// Create a new celestial builder
     pub fn new(idx: &mut CelestialIdx, name: String, data: CelestialData) -> Self {
         let out = Self {
-            name: name,
+            name,
             celestial_data: data,
-            celestial_idx: idx.clone(),
+            celestial_idx: *idx,
             velocity: Velocity(Vec2::new(0., 0.)),
             translation: Vec2::new(0., 0.),
             gravitational: true,
