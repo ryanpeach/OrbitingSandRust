@@ -1,6 +1,5 @@
 use hashbrown::{HashMap, HashSet};
 
-use crate::physics::heat::components::ThermodynamicTemperature;
 use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 
@@ -27,8 +26,6 @@ const FRAMES_PER_FULL_PROCESS: usize = 9;
 pub struct Textures {
     /// The actual texture of the elements
     pub texture: Option<RawImage>,
-    /// The texture of the heat
-    pub heat_texture: Option<RawImage>,
 }
 
 /// Useful for indicating at compile time that an iterable should be ran in parallel
@@ -237,8 +234,8 @@ pub struct ElementGridDir {
     process_targets: ProcessTargets,
     process_count: usize,
     total_mass: Mass,
-    max_temp: ThermodynamicTemperature,
-    min_temp: ThermodynamicTemperature,
+    // max_temp: ThermodynamicTemperature,
+    // min_temp: ThermodynamicTemperature,
 }
 
 impl ElementGridDir {
@@ -259,14 +256,14 @@ impl ElementGridDir {
             chunks.push(layer);
         }
         let process_targets = pregen_process_targets(&coords);
-        let (max_temp, min_temp) = Self::calc_max_min_temp(&mut chunks);
+        // let (max_temp, min_temp) = Self::calc_max_min_temp(&mut chunks);
         Self {
             coords,
             process_targets,
             process_count: 0,
             total_mass: Self::calc_total_mass(&mut chunks),
-            max_temp,
-            min_temp,
+            // max_temp,
+            // min_temp,
             chunks,
         }
     }
@@ -295,14 +292,14 @@ impl ElementGridDir {
             chunks.push(layer);
         }
         let process_targets = pregen_process_targets(&coords);
-        let (max_temp, min_temp) = Self::calc_max_min_temp(&mut chunks);
+        // let (max_temp, min_temp) = Self::calc_max_min_temp(&mut chunks);
         Self {
             coords,
             process_targets,
             process_count: 0,
             total_mass: Self::calc_total_mass(&mut chunks),
-            max_temp,
-            min_temp,
+            // max_temp,
+            // min_temp,
             chunks,
         }
     }
@@ -614,7 +611,7 @@ impl ElementGridDir {
 
     /// Recalculates all the saved values
     pub fn recalculate_everything(&mut self) {
-        self.recalculate_max_min_temp();
+        // self.recalculate_max_min_temp();
         self.recalculate_total_mass();
     }
 
@@ -652,7 +649,7 @@ impl ElementGridDir {
             .chain(targets2.0)
             .chain(targets3.0)
             .collect();
-        let (max_temp, min_temp) = self.get_max_min_temp();
+        // let (max_temp, min_temp) = self.get_max_min_temp();
         all_targets
             .into_par_iter()
             .map(|target| {
@@ -661,7 +658,6 @@ impl ElementGridDir {
                     target,
                     Textures {
                         texture: Some(chunk.get_texture()),
-                        heat_texture: Some(chunk.get_heat_texture(max_temp, min_temp)),
                     },
                 )
             })
@@ -739,7 +735,6 @@ impl ElementGridDir {
         let mut out = Mass(0.0);
         for layer in chunks {
             for chunk in layer.into_iter().flatten() {
-                chunk.recalculate_total_mass();
                 out += chunk.get_total_mass();
             }
         }
@@ -747,36 +742,40 @@ impl ElementGridDir {
     }
 
     /// Get the maximum temperature in the directory
-    pub fn get_max_min_temp(&self) -> (ThermodynamicTemperature, ThermodynamicTemperature) {
-        (self.max_temp, self.min_temp)
-    }
+    // pub fn get_max_min_temp(&self) -> (ThermodynamicTemperature, ThermodynamicTemperature) {
+    //     (self.max_temp, self.min_temp)
+    // }
 
-    /// Recalculate the maximum temperature in the directory
-    fn recalculate_max_min_temp(&mut self) {
-        (self.max_temp, self.min_temp) = Self::calc_max_min_temp(&mut self.chunks);
-    }
+    // /// Recalculate the maximum temperature in the directory
+    // fn recalculate_max_min_temp(&mut self) {
+    //     (self.max_temp, self.min_temp) = Self::calc_max_min_temp(&mut self.chunks);
+    // }
 
-    /// Calculate the maximum temperature in the directory
-    pub fn calc_max_min_temp(
-        chunks: &mut Vec<Grid<Option<ElementGrid>>>,
-    ) -> (ThermodynamicTemperature, ThermodynamicTemperature) {
-        let mut max = ThermodynamicTemperature(0.0);
-        let mut min = ThermodynamicTemperature(f32::INFINITY);
-        for layer in chunks {
-            for chunk in layer.into_iter().flatten() {
-                chunk.recalculate_heat();
-                let temp = chunk.get_temperature();
-                if temp > max {
-                    max = temp;
-                }
-                // Min temperature should be greater than 0
-                if temp < min && temp > ThermodynamicTemperature(0.0) {
-                    min = temp;
-                }
-            }
-        }
-        (max, min)
-    }
+    // /// Calculate the maximum temperature in the directory
+    // pub fn calc_max_min_temp(
+    //     chunks: &mut Vec<Grid<Option<ElementGrid>>>,
+    // ) -> (ThermodynamicTemperature, ThermodynamicTemperature) {
+    //     let mut max = ThermodynamicTemperature(0.0);
+    //     let mut min = ThermodynamicTemperature(f32::INFINITY);
+    //     for layer in chunks {
+    //         for chunk in layer.into_iter().flatten() {
+    //             let (max_temp, min_temp) = chunk.get_max_min_temp();
+    //             if max_temp > max {
+    //                 max = max_temp;
+    //             }
+    //             // Min temperature should not equal exactly 0 because thats usually vacuum
+    //             if min_temp < min && min_temp != ThermodynamicTemperature(0.0) {
+    //                 min = min_temp;
+    //             }
+    //         }
+    //     }
+    //     // Because we exclude 0, if we get nothing but zero, we will get min==INF
+    //     // So we should fix that
+    //     if min == ThermodynamicTemperature(f32::INFINITY) {
+    //         min = ThermodynamicTemperature(0.0);
+    //     }
+    //     (max, min)
+    // }
 
     /// Gets the chunk at the given index
     /// Errors if it is currently borrowed
@@ -830,7 +829,7 @@ impl ElementGridDir {
         for i in 0..self.coords.get_num_layers() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
             let k_size = self.coords.get_layer_num_tangential_chunkss(i);
-            let layer = Grid::new_from_vec(k_size, j_size, vec![true; k_size * j_size]);
+            let layer = Grid::new_fill(k_size, j_size, true);
             filter.push(layer);
         }
 
@@ -841,7 +840,7 @@ impl ElementGridDir {
     /// Where filter is true, get the textures
     fn get_textures_filtered(&self, filter: &[Grid<bool>]) -> HashMap<ChunkIjkVector, Textures> {
         let mut out = HashMap::new();
-        let (max_temp, min_temp) = self.get_max_min_temp();
+        // let (max_temp, min_temp) = self.get_max_min_temp();
         for (i, item) in filter.iter().enumerate() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
             let k_size = self.coords.get_layer_num_tangential_chunkss(i);
@@ -852,16 +851,7 @@ impl ElementGridDir {
                     }
                     let coord = ChunkIjkVector { i, j, k };
                     let tex = self.get_chunk_by_chunk_ijk(coord).get_texture();
-                    let heat_tex = self
-                        .get_chunk_by_chunk_ijk(coord)
-                        .get_heat_texture(max_temp, min_temp);
-                    out.insert(
-                        coord,
-                        Textures {
-                            texture: Some(tex),
-                            heat_texture: Some(heat_tex),
-                        },
-                    );
+                    out.insert(coord, Textures { texture: Some(tex) });
                 }
             }
         }
@@ -871,14 +861,16 @@ impl ElementGridDir {
 
 #[cfg(test)]
 mod tests {
-    use crate::physics::{self, fallingsand::mesh::coordinate_directory::CoordinateDirBuilder};
+    use crate::physics::{
+        fallingsand::mesh::coordinate_directory::CoordinateDirBuilder, orbits::components::Length,
+    };
 
     use super::*;
 
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {
         let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(physics::heat::components::Length(1.0))
+            .cell_radius(Length(1.0))
             .num_layers(9)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)

@@ -3,9 +3,11 @@
 use bevy::app::{PluginGroup, PluginGroupBuilder};
 
 pub mod fallingsand;
-pub mod heat;
 pub mod orbits;
 pub mod util;
+
+/// The number of physics frames per second.
+pub const PHYSICS_FRAME_RATE: f64 = 30.0;
 
 pub struct PhysicsPluginGroup;
 

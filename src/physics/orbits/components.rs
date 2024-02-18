@@ -39,6 +39,33 @@ impl Force {
     }
 }
 
+/// A length in meters.
+#[derive(Component, Debug, Clone, Copy, Add, Sub, AddAssign, SubAssign, Sum)]
+pub struct Length(pub f32);
+
+impl Default for Length {
+    fn default() -> Self {
+        Length(1.0)
+    }
+}
+
+impl Length {
+    /// Returns the area of the length
+    pub fn area(&self) -> Area {
+        Area(self.0 * self.0)
+    }
+}
+
+/// An area in square meters.
+#[derive(Component, Debug, Clone, Copy, Add, Sub, AddAssign, SubAssign, Sum)]
+pub struct Area(pub f32);
+
+impl Default for Area {
+    fn default() -> Self {
+        Area(1.0)
+    }
+}
+
 /// The acceleration due to gravity
 #[derive(Component, Debug, Clone, Copy)]
 pub struct GravitationalAcceleration(pub f32);

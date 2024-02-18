@@ -1,17 +1,18 @@
+//! The [CoordinateDir] layouts the chunks in the game.
+//!
+
 use std::f32::consts::PI;
 
-use bevy::math::{Rect, Vec2};
+use bevy::math::Rect;
 
 use crate::entities::utils::Radius;
 use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
-use crate::physics::heat::components::Length;
-use crate::physics::util::vectors::{RelXyPoint, Vertex};
+use crate::physics::orbits::components::Length;
+use crate::physics::util::vectors::RelXyPoint;
 
+use super::chunk_coords::ChunkCoords;
 use super::chunk_coords::PartialLayerChunkCoordsBuilder;
-use super::chunk_coords::{ChunkCoords, VertexMode};
-use crate::physics::fallingsand::util::enums::MeshDrawMode;
-use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 
 /// A structure that contains all the chunk coordinates for a celestial body
 /// Useful for drawing the total mesh
@@ -226,114 +227,6 @@ impl CoordinateDirBuilder {
         let out = CoordinateDir { partial_chunks };
         debug_assert!(out.get_total_number_concentric_chunks() % 3 == 0);
         out
-    }
-}
-
-/* =========================================
- *           Aggregate Getters
- * These functions run a getter over each
- * chunk and return a vector of the results
- * ========================================= */
-impl CoordinateDir {
-    pub fn get_outlines(&self) -> Vec<Grid<Vec<Vec2>>> {
-        let mut outlines = Vec::new();
-        for layer in &self.partial_chunks {
-            let new_grid = Grid::new_from_vec(
-                layer.get_width(),
-                layer.get_height(),
-                layer
-                    .get_data_slice()
-                    .iter()
-                    .map(|partial_chunk| partial_chunk.get_outline())
-                    .collect(),
-            );
-            outlines.push(new_grid);
-        }
-        outlines
-    }
-    pub fn get_vertexes(&self, mode: VertexMode) -> Vec<Grid<Vec<Vertex>>> {
-        let mut vertexes = Vec::new();
-        for layer in &self.partial_chunks {
-            let new_grid = Grid::new_from_vec(
-                layer.get_width(),
-                layer.get_height(),
-                layer
-                    .get_data_slice()
-                    .iter()
-                    .map(|partial_chunk| partial_chunk.get_vertices(mode))
-                    .collect(),
-            );
-            vertexes.push(new_grid);
-        }
-        vertexes
-    }
-
-    pub fn get_positions(&self, mode: VertexMode) -> Vec<Grid<Vec<Vec2>>> {
-        let mut positions = Vec::new();
-        for layer in &self.partial_chunks {
-            let new_grid = Grid::new_from_vec(
-                layer.get_width(),
-                layer.get_height(),
-                layer
-                    .get_data_slice()
-                    .iter()
-                    .map(|partial_chunk| partial_chunk.get_positions(mode))
-                    .collect(),
-            );
-            positions.push(new_grid);
-        }
-        positions
-    }
-
-    pub fn get_uvs(&self, mode: VertexMode) -> Vec<Grid<Vec<Vec2>>> {
-        let mut uvs = Vec::new();
-        for layer in &self.partial_chunks {
-            let new_grid = Grid::new_from_vec(
-                layer.get_width(),
-                layer.get_height(),
-                layer
-                    .get_data_slice()
-                    .iter()
-                    .map(|partial_chunk| partial_chunk.get_uvs(mode))
-                    .collect(),
-            );
-            uvs.push(new_grid);
-        }
-        uvs
-    }
-
-    pub fn get_indices(&self, mode: VertexMode) -> Vec<Grid<Vec<u32>>> {
-        let mut indices = Vec::new();
-        for layer in &self.partial_chunks {
-            let new_grid = Grid::new_from_vec(
-                layer.get_width(),
-                layer.get_height(),
-                layer
-                    .get_data_slice()
-                    .iter()
-                    .map(|partial_chunk| partial_chunk.get_indices(mode))
-                    .collect(),
-            );
-            indices.push(new_grid);
-        }
-        indices
-    }
-
-    pub fn get_chunk_bounding_boxes(&self) -> Vec<Grid<Rect>> {
-        let mut bounding_boxes = Vec::new();
-        for layer in &self.partial_chunks {
-            let new_grid = Grid::new_from_vec(
-                layer.get_width(),
-                layer.get_height(),
-                layer
-                    .get_data_slice()
-                    .iter()
-                    .map(|partial_chunk| partial_chunk.get_bounding_box())
-                    .collect(),
-            );
-            bounding_boxes.push(new_grid);
-        }
-        bounding_boxes
     }
 }
 
@@ -654,39 +547,8 @@ impl CoordinateDir {
     }
 }
 
-/* ===================
- * Drawing
- * =================== */
-impl CoordinateDir {
-    /// Gets mesh data for every chunk in the directory
-    pub fn get_mesh_data(&self, draw_mode: MeshDrawMode) -> Vec<Grid<OwnedMeshData>> {
-        let mut out = Vec::with_capacity(self.get_num_chunks());
-
-        // Get the data for partial_chunks
-        for layer in &self.partial_chunks {
-            let new_grid = Grid::new_from_vec(
-                layer.get_width(),
-                layer.get_height(),
-                layer
-                    .get_data_slice()
-                    .iter()
-                    .map(|chunk| match draw_mode {
-                        MeshDrawMode::TexturedMesh => chunk.calc_chunk_meshdata(),
-                        MeshDrawMode::TriangleWireframe => chunk.calc_chunk_triangle_wireframe(),
-                        MeshDrawMode::Outline => chunk.calc_chunk_outline(),
-                    })
-                    .collect(),
-            );
-            out.push(new_grid);
-        }
-
-        out
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::physics;
 
     use super::*;
 
@@ -865,6 +727,8 @@ mod tests {
     mod inverse_coord {
         use super::*;
         mod coord_dir {
+            use bevy::math::Vec2;
+
             use super::*;
 
             /// Iterate around the circle in every direction, targetting each cells midpoint, and make sure
@@ -872,7 +736,7 @@ mod tests {
             #[test]
             fn test_rel_pos_to_cell_idx() {
                 let coordinate_dir = CoordinateDirBuilder::new()
-                    .cell_radius(physics::heat::components::Length(1.0))
+                    .cell_radius(Length(1.0))
                     .num_layers(8)
                     .first_num_radial_lines(6)
                     .second_num_concentric_circles(3)
@@ -957,7 +821,7 @@ mod tests {
             #[test]
             fn test_cell_idx_to_chunk_idx() {
                 let coordinate_dir = CoordinateDirBuilder::new()
-                    .cell_radius(physics::heat::components::Length(1.0))
+                    .cell_radius(Length(1.0))
                     .num_layers(8)
                     .first_num_radial_lines(6)
                     .second_num_concentric_circles(3)
@@ -1034,7 +898,7 @@ mod tests {
     #[test]
     fn test_radial_mesh_chunk_sizes_manual() {
         let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(physics::heat::components::Length(1.0))
+            .cell_radius(Length(1.0))
             .num_layers(8)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)

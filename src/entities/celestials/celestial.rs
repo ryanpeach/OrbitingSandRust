@@ -1,4 +1,4 @@
-use bevy::app::{App, Plugin, Update};
+use bevy::app::{App, FixedUpdate, Plugin, Update};
 use bevy::asset::{AssetServer, Assets, Handle};
 use bevy::core::FrameCount;
 use bevy::ecs::component::Component;
@@ -6,16 +6,17 @@ use bevy::ecs::component::Component;
 use bevy::ecs::entity::Entity;
 
 use bevy::gizmos::gizmos::Gizmos;
+
 use bevy::render::color::Color;
 use bevy::render::view::{visibility, Visibility};
 use bevy_mod_picking::prelude::*;
 
 // use bevy_mod_picking::PickableBundle;
-use bevy::ecs::query::{With, Without};
+use bevy::ecs::query::With;
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
-use bevy::math::{Vec2, Vec3};
+use bevy::math::Vec2;
 
 use bevy::prelude::SpatialBundle;
 use bevy::render::mesh::Mesh;
@@ -25,15 +26,13 @@ use bevy_mod_picking::events::Pointer;
 use bevy_mod_picking::PickableBundle;
 
 use bevy::sprite::{ColorMaterial, MaterialMesh2dBundle};
-use bevy::time::Time;
+use bevy::time::{Fixed, Time};
 
 use bevy::transform::components::Transform;
 
 use hashbrown::HashMap;
 
-use crate::gui::camera::{
-    CelestialIdx, OverlayLayer1, OverlayLayer2, OverlayLayer3, SelectCelestial,
-};
+use crate::gui::camera::{CelestialIdx, OverlayLayer2, OverlayLayer3, SelectCelestial};
 use crate::gui::camera_window::CameraWindowCheckboxes;
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
@@ -41,6 +40,7 @@ use crate::physics::fallingsand::util::mesh::{GizmoDrawableLoop, GizmoDrawableTr
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
 use crate::physics::util::clock::Clock;
+use crate::physics::PHYSICS_FRAME_RATE;
 
 /// Identifies the mesh which draws the celestials chunk outlines
 #[derive(Component)]
@@ -54,10 +54,6 @@ pub struct CelestialWireframe;
 #[derive(Component, Debug, Clone, Copy)]
 pub struct CelestialChunkIdk(ChunkIjkVector);
 
-/// Put this alongside the mesh that represents the heat map
-#[derive(Component, Debug, Clone, Copy)]
-pub struct HeatMapMaterial;
-
 /// Put this alongside the mesh that represents the falling sand itself
 #[derive(Component, Debug, Clone, Copy)]
 pub struct FallingSandMaterial;
@@ -67,14 +63,14 @@ pub struct CelestialDataPlugin;
 
 impl Plugin for CelestialDataPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, Self::process_system);
+        app.add_systems(FixedUpdate, Self::process_system);
+        app.insert_resource(Time::<Fixed>::from_seconds(1.0 / PHYSICS_FRAME_RATE));
         app.add_systems(
             Update,
             (
                 CelestialDataPlugin::draw_wireframe_system,
                 CelestialDataPlugin::draw_outline_system,
                 CelestialDataPlugin::change_falling_sand_visibility_system,
-                CelestialDataPlugin::change_heat_visibility_system,
             ),
         );
         app.add_event::<SelectCelestial>();
@@ -201,7 +197,6 @@ impl CelestialDataPlugin {
                         .calc_chunk_outline();
 
                     let textures = textures.remove(&chunk_ijk).unwrap();
-                    let heat_material = textures.heat_texture.unwrap().to_bevy_image();
                     let sand_material = textures.texture.unwrap().to_bevy_image();
 
                     // Create the falling sand material
@@ -211,35 +206,12 @@ impl CelestialDataPlugin {
                             MaterialMesh2dBundle {
                                 mesh: mesh_handle.into(),
                                 material: materials.add(asset_server.add(sand_material).into()),
-                                visibility: Visibility::Hidden,
+                                visibility: Visibility::Visible,
                                 ..Default::default()
                             },
                             // mesh.calc_bounds(),
                             PickableBundle::default(), // Makes the entity pickable
                             FallingSandMaterial,
-                        ))
-                        .id();
-
-                    // Now create the heat map
-                    // TODO: This could be optimized by just using the outline
-                    let mesh = coordinate_dir
-                        .get_chunk_at_idx(chunk_ijk)
-                        .calc_chunk_meshdata();
-                    let mesh_handle = mesh.load_bevy_mesh(meshes);
-                    let heat_chunk = commands
-                        .spawn((
-                            celestial_chunk_id,
-                            MaterialMesh2dBundle {
-                                mesh: mesh_handle.into(),
-                                material: materials.add(asset_server.add(heat_material).into()),
-                                // Move the heat map to the front
-                                transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
-                                // Turning off the heat map for now
-                                visibility: Visibility::Hidden,
-                                ..Default::default()
-                            },
-                            HeatMapMaterial,
-                            OverlayLayer1,
                         ))
                         .id();
 
@@ -271,7 +243,6 @@ impl CelestialDataPlugin {
 
                     // Parent celestial to chunk
                     children.push(chunk);
-                    children.push(heat_chunk);
                     children.push(outline_entity);
                     children.push(wireframe_entity);
                 }
@@ -324,10 +295,6 @@ impl CelestialDataPlugin {
             (&Parent, &mut Handle<ColorMaterial>, &CelestialChunkIdk),
             With<FallingSandMaterial>,
         >,
-        mut heat_materials: Query<
-            (&Parent, &mut Handle<ColorMaterial>, &CelestialChunkIdk),
-            (With<HeatMapMaterial>, Without<FallingSandMaterial>),
-        >,
         mut materials: ResMut<Assets<ColorMaterial>>,
         asset_server: Res<AssetServer>,
         time: Res<Time>,
@@ -337,7 +304,6 @@ impl CelestialDataPlugin {
             let mut new_textures: HashMap<ChunkIjkVector, Textures> =
                 celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
             mass.0 = celestial.get_element_dir().get_total_mass().0;
-            debug_assert_ne!(mass.0, 0.0, "Celestial mass is 0");
 
             // Update the falling sand materials
             for (parent, material_handle, chunk_ijk) in falling_sand_materials.iter_mut() {
@@ -353,31 +319,16 @@ impl CelestialDataPlugin {
                     material.texture = Some(asset_server.add(new_texture));
                 }
             }
-
-            // Update the heat textures
-            for (parent, material_handle, chunk_ijk) in heat_materials.iter_mut() {
-                if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
-                    let material = materials.get_mut(&*material_handle).unwrap();
-                    let new_texture = new_textures
-                        .get_mut(&chunk_ijk.0)
-                        .unwrap()
-                        .heat_texture
-                        .take()
-                        .unwrap()
-                        .to_bevy_image();
-                    material.texture = Some(asset_server.add(new_texture));
-                }
-            }
         }
     }
     /// Draw the wireframe of the celestials cells
     ///
-    /// > [!WARNING]
-    /// > TODO: Wish I could just set the gizmo to not have to have the camera window checkboxes
-    /// >       and instead just draw all visible gizmos.
-    /// >       but the checkbox utility in bevy_egui does not emit an event, and linking
-    /// >       the systems via one as a modifier of Visibility and this as a reader
-    /// >       created a system loop
+    /// > **TODO**
+    /// > Wish I could just set the gizmo to not have to have the camera window checkboxes
+    /// > and instead just draw all visible gizmos.
+    /// > but the checkbox utility in bevy_egui does not emit an event, and linking
+    /// > the systems via one as a modifier of Visibility and this as a reader
+    /// > created a system loop
     pub fn draw_wireframe_system(
         mut gizmos: Gizmos,
         mut query: Query<
@@ -399,12 +350,12 @@ impl CelestialDataPlugin {
     }
     /// Draw the outline of the celestials chunks
     ///
-    /// > [!WARNING]
-    /// > TODO: Wish I could just set the gizmo to not have to have the camera window checkboxes
-    /// >       and instead just draw all visible gizmos.
-    /// >       but the checkbox utility in bevy_egui does not emit an event, and linking
-    /// >       the systems via one as a modifier of Visibility and this as a reader
-    /// >       created a system loop
+    /// > **TODO**
+    /// > Wish I could just set the gizmo to not have to have the camera window checkboxes
+    /// > and instead just draw all visible gizmos.
+    /// > but the checkbox utility in bevy_egui does not emit an event, and linking
+    /// > the systems via one as a modifier of Visibility and this as a reader
+    /// > created a system loop
     pub fn draw_outline_system(
         mut gizmos: Gizmos,
         mut query: Query<(&GizmoDrawableLoop, &Transform, &mut Visibility), With<CelestialOutline>>,
@@ -419,20 +370,6 @@ impl CelestialDataPlugin {
             if *visibility == visibility::Visibility::Visible {
                 drawable.draw_bevy_gizmo_loop(&mut gizmos, transform);
             }
-        }
-    }
-
-    /// Change heat visibility
-    pub fn change_heat_visibility_system(
-        mut query: Query<&mut Visibility, With<HeatMapMaterial>>,
-        checkboxes: Res<CameraWindowCheckboxes>,
-    ) {
-        for mut visibility in query.iter_mut() {
-            *visibility = if checkboxes.heat {
-                visibility::Visibility::Visible
-            } else {
-                visibility::Visibility::Hidden
-            };
         }
     }
 
