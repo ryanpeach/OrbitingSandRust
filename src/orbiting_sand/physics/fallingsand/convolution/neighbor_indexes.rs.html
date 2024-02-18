@@ -219,177 +219,104 @@
 <a href="#218" id="218">218</a>
 <a href="#219" id="219">219</a>
 <a href="#220" id="220">220</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::vectors::ChunkIjkVector;
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! Indexes in [ChunkIjkVector]s for all the neighbors of a chunk
+</span><span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::vectors::ChunkIjkVector;
 
-<span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-</span><span class="kw">pub enum </span>LeftRightNeighborIdxs {
-    LR {
-        l: ChunkIjkVector,
-        r: ChunkIjkVector,
-    },
-}
-
-<span class="kw">pub struct </span>LeftRightNeighborIdxsIter {
-    lr: <span class="prelude-ty">Option</span>&lt;LeftRightNeighborIdxs&gt;,
-    index: usize,
-}
-
-<span class="kw">impl </span>Iterator <span class="kw">for </span>LeftRightNeighborIdxsIter {
-    <span class="kw">type </span>Item = ChunkIjkVector;
-
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">match </span><span class="self">self</span>.lr {
-            <span class="prelude-val">Some</span>(LeftRightNeighborIdxs::LR { l, r }) =&gt; {
-                <span class="self">self</span>.index += <span class="number">1</span>;
-                <span class="kw">match </span><span class="self">self</span>.index {
-                    <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(l),
-                    <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(r),
-                    <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-                }
-            }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-        }
-    }
-}
-
-<span class="kw">impl </span>LeftRightNeighborIdxs {
-    <span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LeftRightNeighborIdxsIter {
-        LeftRightNeighborIdxsIter {
-            lr: <span class="prelude-val">Some</span>(<span class="self">self</span>.clone()),
-            index: <span class="number">0</span>,
-        }
-    }
-}
-
-<span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-</span><span class="kw">pub enum </span>TopNeighborIdxs {
-    Normal {
-        tl: ChunkIjkVector,
-        t: ChunkIjkVector,
-        tr: ChunkIjkVector,
-    },
-    ChunkDoubling {
-        tl: ChunkIjkVector,
-        t1: ChunkIjkVector,
-        t0: ChunkIjkVector,
-        tr: ChunkIjkVector,
-    },
-    TopOfGrid,
-}
-
-<span class="kw">pub struct </span>TopNeighborIdxsIter {
-    top: <span class="prelude-ty">Option</span>&lt;TopNeighborIdxs&gt;,
-    index: usize,
-}
-
-<span class="kw">impl </span>Iterator <span class="kw">for </span>TopNeighborIdxsIter {
-    <span class="kw">type </span>Item = ChunkIjkVector;
-
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.top {
-            <span class="prelude-val">Some</span>(TopNeighborIdxs::Normal { tl, t, tr }) =&gt; {
-                <span class="self">self</span>.index += <span class="number">1</span>;
-                <span class="kw">match </span><span class="self">self</span>.index {
-                    <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>tl),
-                    <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>t),
-                    <span class="number">3 </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>tr),
-                    <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-                }
-            }
-            <span class="prelude-val">Some</span>(TopNeighborIdxs::ChunkDoubling { tl, t0, t1, tr }) =&gt; {
-                <span class="self">self</span>.index += <span class="number">1</span>;
-                <span class="kw">match </span><span class="self">self</span>.index {
-                    <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>tl),
-                    <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>t1),
-                    <span class="number">3 </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>t0),
-                    <span class="number">4 </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>tr),
-                    <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-                }
-            }
-            <span class="prelude-val">Some</span>(TopNeighborIdxs::TopOfGrid) =&gt; <span class="prelude-val">None</span>,
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
-        }
-    }
-}
-
-<span class="kw">impl </span>TopNeighborIdxs {
-    <span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TopNeighborIdxsIter {
-        TopNeighborIdxsIter {
-            top: <span class="prelude-val">Some</span>(<span class="self">self</span>.clone()),
-            index: <span class="number">0</span>,
-        }
-    }
-}
-
-<span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-</span><span class="kw">pub enum </span>BottomNeighborIdxs {
-    Normal {
-        bl: ChunkIjkVector,
-        b: ChunkIjkVector,
-        br: ChunkIjkVector,
-    },
-    ChunkDoubling {
-        bl: ChunkIjkVector,
-        br: ChunkIjkVector,
-    },
-    BottomOfGrid,
-}
-
-<span class="kw">pub struct </span>BottomNeighborIdxsIter {
-    bottom: <span class="prelude-ty">Option</span>&lt;BottomNeighborIdxs&gt;,
-    index: usize,
-}
-
-<span class="kw">impl </span>Iterator <span class="kw">for </span>BottomNeighborIdxsIter {
-    <span class="kw">type </span>Item = ChunkIjkVector;
-
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">match </span><span class="self">self</span>.bottom {
-            <span class="prelude-val">Some</span>(BottomNeighborIdxs::Normal { bl, b, br }) =&gt; {
-                <span class="self">self</span>.index += <span class="number">1</span>;
-                <span class="kw">match </span><span class="self">self</span>.index {
-                    <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(bl),
-                    <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(b),
-                    <span class="number">3 </span>=&gt; <span class="prelude-val">Some</span>(br),
-                    <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-                }
-            }
-            <span class="prelude-val">Some</span>(BottomNeighborIdxs::ChunkDoubling { bl, br }) =&gt; {
-                <span class="self">self</span>.index += <span class="number">1</span>;
-                <span class="kw">match </span><span class="self">self</span>.index {
-                    <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(bl),
-                    <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(br),
-                    <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-                }
-            }
-            <span class="prelude-val">Some</span>(BottomNeighborIdxs::BottomOfGrid) =&gt; <span class="prelude-val">None</span>,
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
-        }
-    }
-}
-
-<span class="kw">impl </span>BottomNeighborIdxs {
-    <span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BottomNeighborIdxsIter {
-        BottomNeighborIdxsIter {
-            bottom: <span class="prelude-val">Some</span>(<span class="self">self</span>.clone()),
-            index: <span class="number">0</span>,
-        }
-    }
-}
-
-<span class="doccomment">/// Just the indices of the element grid convolution
+<span class="doccomment">/// The main type exported by this module
+/// Contains all the [ChunkIjkVector] indexes for the convolution
+/// Check out the [super::neighbor_identifiers::ConvolutionIdentifier] and
+/// [super::neighbor_indexes::ElementGridConvolutionNeighborIdxs] documentation for more information
 </span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>ElementGridConvolutionNeighborIdxs {
-    <span class="kw">pub </span>top: TopNeighborIdxs,
-    <span class="kw">pub </span>left_right: LeftRightNeighborIdxs,
-    <span class="kw">pub </span>bottom: BottomNeighborIdxs,
+    <span class="doccomment">/// Top neighbor indexes
+    </span><span class="kw">pub </span>top: TopNeighborIdxs,
+    <span class="doccomment">/// Left and Right neighbor indexes
+    </span><span class="kw">pub </span>left_right: LeftRightNeighborIdxs,
+    <span class="doccomment">/// Bottom neighbor indexes
+    </span><span class="kw">pub </span>bottom: BottomNeighborIdxs,
 }
 
-<span class="kw">pub struct </span>ElementGridConvolutionNeighborIdxsIter {
-    top_neighbors_iter: TopNeighborIdxsIter,
-    left_right_neighbors_iter: LeftRightNeighborIdxsIter,
-    bottom_neighbors_iter: BottomNeighborIdxsIter,
-    index: usize,
+<span class="doccomment">/// An iterator for the neighbor indexes
+</span><span class="kw">pub struct </span>ElementGridConvolutionNeighborIdxsIter {
+    <span class="doccomment">/// The iterator for the top neighbor indexes
+    </span>top_neighbors_iter: TopNeighborIdxsIter,
+    <span class="doccomment">/// The iterator for the left and right neighbor indexes
+    </span>left_right_neighbors_iter: LeftRightNeighborIdxsIter,
+    <span class="doccomment">/// The iterator for the bottom neighbor indexes
+    </span>bottom_neighbors_iter: BottomNeighborIdxsIter,
+    <span class="doccomment">/// The current index
+    </span>index: usize,
 }
 
 <span class="kw">impl </span>Iterator <span class="kw">for </span>ElementGridConvolutionNeighborIdxsIter {
@@ -427,7 +354,8 @@
 }
 
 <span class="kw">impl </span>ElementGridConvolutionNeighborIdxs {
-    <span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ElementGridConvolutionNeighborIdxsIter {
+    <span class="doccomment">/// Get the iterator for the neighbor indexes
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ElementGridConvolutionNeighborIdxsIter {
         ElementGridConvolutionNeighborIdxsIter {
             top_neighbors_iter: <span class="self">self</span>.top.iter(),
             left_right_neighbors_iter: <span class="self">self</span>.left_right.iter(),
@@ -435,8 +363,222 @@
             index: <span class="number">0</span>,
         }
     }
-    <span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_idx: <span class="kw-2">&amp;</span>ChunkIjkVector) -&gt; bool {
+
+    <span class="doccomment">/// Check if the given [ChunkIjkVector] is contained in the neighbor indexes
+    </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_idx: <span class="kw-2">&amp;</span>ChunkIjkVector) -&gt; bool {
         <span class="self">self</span>.iter().any(|c| c == <span class="kw-2">*</span>chunk_idx)
+    }
+}
+
+<span class="doccomment">/// Left and Right neighbor indexes in the convolution
+/// Check out the [super::neighbor_identifiers::LeftRightNeighborIdentifier] and
+/// [super::neighbor_grids::LeftRightNeighborGrids] documentation for more information
+/// documentation for more information
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+</span><span class="kw">pub enum </span>LeftRightNeighborIdxs {
+    <span class="doccomment">/// The left and right elements
+    /// TODO: Unecessary to have a struct for this, flatten into the enum
+    </span>LR {
+        <span class="doccomment">/// Left element
+        </span>l: ChunkIjkVector,
+        <span class="doccomment">/// Right element
+        </span>r: ChunkIjkVector,
+    },
+}
+
+<span class="doccomment">/// An iterator for the left and right neighbor indexes
+</span><span class="kw">pub struct </span>LeftRightNeighborIdxsIter {
+    <span class="doccomment">/// Whether or not there are left and right neighbors
+    /// TODO: Shouldnt this always be Some?
+    </span>lr: <span class="prelude-ty">Option</span>&lt;LeftRightNeighborIdxs&gt;,
+    <span class="doccomment">/// The current index
+    </span>index: usize,
+}
+
+<span class="kw">impl </span>Iterator <span class="kw">for </span>LeftRightNeighborIdxsIter {
+    <span class="kw">type </span>Item = ChunkIjkVector;
+
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">match </span><span class="self">self</span>.lr {
+            <span class="prelude-val">Some</span>(LeftRightNeighborIdxs::LR { l, r }) =&gt; {
+                <span class="self">self</span>.index += <span class="number">1</span>;
+                <span class="kw">match </span><span class="self">self</span>.index {
+                    <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(l),
+                    <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(r),
+                    <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+                }
+            }
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+}
+
+<span class="kw">impl </span>LeftRightNeighborIdxs {
+    <span class="doccomment">/// Get the iterator for the left and right neighbor indexes
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LeftRightNeighborIdxsIter {
+        LeftRightNeighborIdxsIter {
+            lr: <span class="prelude-val">Some</span>(<span class="self">self</span>.clone()),
+            index: <span class="number">0</span>,
+        }
+    }
+}
+
+<span class="doccomment">/// Top neighbor indexes in the convolution
+/// Check out the [super::neighbor_identifiers::TopNeighborIdentifier] and
+/// [super::neighbor_grids::TopNeighborGrids] documentation for more information
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+</span><span class="kw">pub enum </span>TopNeighborIdxs {
+    <span class="doccomment">/// Indicates that there are the same number of chunks above as you have
+    /// However, the cells may still double tangentially
+    /// However, some enums need that information and others dont, so we
+    /// dont want to add too much complexity to the match statements if we can help it
+    </span>Normal {
+        <span class="doccomment">/// Top left element
+        </span>tl: ChunkIjkVector,
+        <span class="doccomment">/// Top center element
+        </span>t: ChunkIjkVector,
+        <span class="doccomment">/// Top right element
+        </span>tr: ChunkIjkVector,
+    },
+    <span class="doccomment">/// Indicates a **chunk doubling** layer transition
+    </span>ChunkDoubling {
+        <span class="doccomment">/// Top left element
+        </span>tl: ChunkIjkVector,
+        <span class="doccomment">/// Second top center element, left of center
+        </span>t1: ChunkIjkVector,
+        <span class="doccomment">/// First top center element, right of center
+        </span>t0: ChunkIjkVector,
+        <span class="doccomment">/// Top right element
+        </span>tr: ChunkIjkVector,
+    },
+    <span class="doccomment">/// Indicates that you are at the top of the grid
+    </span>TopOfGrid,
+}
+
+<span class="doccomment">/// An iterator for the top neighbor indexes
+</span><span class="kw">pub struct </span>TopNeighborIdxsIter {
+    <span class="doccomment">/// Whether or not there are top neighbors
+    </span>top: <span class="prelude-ty">Option</span>&lt;TopNeighborIdxs&gt;,
+    <span class="doccomment">/// The current index
+    </span>index: usize,
+}
+
+<span class="kw">impl </span>Iterator <span class="kw">for </span>TopNeighborIdxsIter {
+    <span class="kw">type </span>Item = ChunkIjkVector;
+
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.top {
+            <span class="prelude-val">Some</span>(TopNeighborIdxs::Normal { tl, t, tr }) =&gt; {
+                <span class="self">self</span>.index += <span class="number">1</span>;
+                <span class="kw">match </span><span class="self">self</span>.index {
+                    <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>tl),
+                    <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>t),
+                    <span class="number">3 </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>tr),
+                    <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+                }
+            }
+            <span class="prelude-val">Some</span>(TopNeighborIdxs::ChunkDoubling { tl, t0, t1, tr }) =&gt; {
+                <span class="self">self</span>.index += <span class="number">1</span>;
+                <span class="kw">match </span><span class="self">self</span>.index {
+                    <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>tl),
+                    <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>t1),
+                    <span class="number">3 </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>t0),
+                    <span class="number">4 </span>=&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>tr),
+                    <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+                }
+            }
+            <span class="prelude-val">Some</span>(TopNeighborIdxs::TopOfGrid) =&gt; <span class="prelude-val">None</span>,
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+}
+
+<span class="kw">impl </span>TopNeighborIdxs {
+    <span class="doccomment">/// Get the iterator for the top neighbor indexes
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TopNeighborIdxsIter {
+        TopNeighborIdxsIter {
+            top: <span class="prelude-val">Some</span>(<span class="self">self</span>.clone()),
+            index: <span class="number">0</span>,
+        }
+    }
+}
+
+<span class="doccomment">/// Bottom neighbor indexes in the convolution
+/// Check out the [super::neighbor_identifiers::BottomNeighborIdentifier] and
+/// [super::neighbor_grids::BottomNeighborGrids] documentation for more information
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+</span><span class="kw">pub enum </span>BottomNeighborIdxs {
+    <span class="doccomment">/// Indicates that there are the same number of chunks below as you have
+    /// However, the cells may still half tangentially
+    /// However, some enums need that information and others dont, so we
+    /// dont want to add too much complexity to the match statements if we can help it
+    </span>Normal {
+        <span class="doccomment">/// The bottom left chunk
+        </span>bl: ChunkIjkVector,
+        <span class="doccomment">/// The bottom chunk
+        </span>b: ChunkIjkVector,
+        <span class="doccomment">/// The bottom right chunk
+        </span>br: ChunkIjkVector,
+    },
+    <span class="doccomment">/// Indicates a **chunk doubling** layer transition
+    /// One of these will be directly below you, and be bigger than you off to one direction
+    /// Whereas the other will be diagonally below you
+    /// This depends on if your [ChunkIjkVector] has a `k` value which is even or odd
+    /// If it is even, then the `bl` will be directly below you, and you will be straddling its right side
+    /// If it is odd, then the `br` will be directly below you, and you will be straddling its left side
+    </span>ChunkDoubling {
+        <span class="doccomment">/// The bottom left chunk
+        </span>bl: ChunkIjkVector,
+        <span class="doccomment">/// The bottom right chunk
+        </span>br: ChunkIjkVector,
+    },
+    <span class="doccomment">/// Indicates that you are at the bottom of the grid
+    </span>BottomOfGrid,
+}
+
+<span class="doccomment">/// An iterator for the bottom neighbor indexes
+</span><span class="kw">pub struct </span>BottomNeighborIdxsIter {
+    <span class="doccomment">/// Whether or not there are bottom neighbors
+    </span>bottom: <span class="prelude-ty">Option</span>&lt;BottomNeighborIdxs&gt;,
+    <span class="doccomment">/// The current index
+    </span>index: usize,
+}
+
+<span class="kw">impl </span>Iterator <span class="kw">for </span>BottomNeighborIdxsIter {
+    <span class="kw">type </span>Item = ChunkIjkVector;
+
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">match </span><span class="self">self</span>.bottom {
+            <span class="prelude-val">Some</span>(BottomNeighborIdxs::Normal { bl, b, br }) =&gt; {
+                <span class="self">self</span>.index += <span class="number">1</span>;
+                <span class="kw">match </span><span class="self">self</span>.index {
+                    <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(bl),
+                    <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(b),
+                    <span class="number">3 </span>=&gt; <span class="prelude-val">Some</span>(br),
+                    <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+                }
+            }
+            <span class="prelude-val">Some</span>(BottomNeighborIdxs::ChunkDoubling { bl, br }) =&gt; {
+                <span class="self">self</span>.index += <span class="number">1</span>;
+                <span class="kw">match </span><span class="self">self</span>.index {
+                    <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(bl),
+                    <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(br),
+                    <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+                }
+            }
+            <span class="prelude-val">Some</span>(BottomNeighborIdxs::BottomOfGrid) =&gt; <span class="prelude-val">None</span>,
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+}
+
+<span class="kw">impl </span>BottomNeighborIdxs {
+    <span class="doccomment">/// Get the iterator for the bottom neighbor indexes
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BottomNeighborIdxsIter {
+        BottomNeighborIdxsIter {
+            bottom: <span class="prelude-val">Some</span>(<span class="self">self</span>.clone()),
+            index: <span class="number">0</span>,
+        }
     }
 }
 </code></pre></div></section></main></body></html>

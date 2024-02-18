@@ -1278,17 +1278,8 @@
 <a href="#1277" id="1277">1277</a>
 <a href="#1278" id="1278">1278</a>
 <a href="#1279" id="1279">1279</a>
-<a href="#1280" id="1280">1280</a>
-<a href="#1281" id="1281">1281</a>
-<a href="#1282" id="1282">1282</a>
-<a href="#1283" id="1283">1283</a>
-<a href="#1284" id="1284">1284</a>
-<a href="#1285" id="1285">1285</a>
-<a href="#1286" id="1286">1286</a>
-<a href="#1287" id="1287">1287</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>hashbrown::{HashMap, HashSet};
 
-<span class="kw">use </span><span class="kw">crate</span>::physics::heat::components::ThermodynamicTemperature;
 <span class="kw">use </span><span class="kw">crate</span>::physics::orbits::components::Mass;
 <span class="kw">use </span><span class="kw">crate</span>::physics::util::clock::Clock;
 
@@ -1315,8 +1306,6 @@
 </span><span class="kw">pub struct </span>Textures {
     <span class="doccomment">/// The actual texture of the elements
     </span><span class="kw">pub </span>texture: <span class="prelude-ty">Option</span>&lt;RawImage&gt;,
-    <span class="doccomment">/// The texture of the heat
-    </span><span class="kw">pub </span>heat_texture: <span class="prelude-ty">Option</span>&lt;RawImage&gt;,
 }
 
 <span class="doccomment">/// Useful for indicating at compile time that an iterable should be ran in parallel
@@ -1525,9 +1514,9 @@
     process_targets: ProcessTargets,
     process_count: usize,
     total_mass: Mass,
-    max_temp: ThermodynamicTemperature,
-    min_temp: ThermodynamicTemperature,
-}
+    <span class="comment">// max_temp: ThermodynamicTemperature,
+    // min_temp: ThermodynamicTemperature,
+</span>}
 
 <span class="kw">impl </span>ElementGridDir {
     <span class="kw">pub fn </span>new_empty(coords: CoordinateDir) -&gt; <span class="self">Self </span>{
@@ -1547,15 +1536,15 @@
             chunks.push(layer);
         }
         <span class="kw">let </span>process_targets = pregen_process_targets(<span class="kw-2">&amp;</span>coords);
-        <span class="kw">let </span>(max_temp, min_temp) = <span class="self">Self</span>::calc_max_min_temp(<span class="kw-2">&amp;mut </span>chunks);
-        <span class="self">Self </span>{
+        <span class="comment">// let (max_temp, min_temp) = Self::calc_max_min_temp(&amp;mut chunks);
+        </span><span class="self">Self </span>{
             coords,
             process_targets,
             process_count: <span class="number">0</span>,
             total_mass: <span class="self">Self</span>::calc_total_mass(<span class="kw-2">&amp;mut </span>chunks),
-            max_temp,
-            min_temp,
-            chunks,
+            <span class="comment">// max_temp,
+            // min_temp,
+            </span>chunks,
         }
     }
 
@@ -1583,15 +1572,15 @@
             chunks.push(layer);
         }
         <span class="kw">let </span>process_targets = pregen_process_targets(<span class="kw-2">&amp;</span>coords);
-        <span class="kw">let </span>(max_temp, min_temp) = <span class="self">Self</span>::calc_max_min_temp(<span class="kw-2">&amp;mut </span>chunks);
-        <span class="self">Self </span>{
+        <span class="comment">// let (max_temp, min_temp) = Self::calc_max_min_temp(&amp;mut chunks);
+        </span><span class="self">Self </span>{
             coords,
             process_targets,
             process_count: <span class="number">0</span>,
             total_mass: <span class="self">Self</span>::calc_total_mass(<span class="kw-2">&amp;mut </span>chunks),
-            max_temp,
-            min_temp,
-            chunks,
+            <span class="comment">// max_temp,
+            // min_temp,
+            </span>chunks,
         }
     }
 
@@ -1902,8 +1891,8 @@
 
     <span class="doccomment">/// Recalculates all the saved values
     </span><span class="kw">pub fn </span>recalculate_everything(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.recalculate_max_min_temp();
-        <span class="self">self</span>.recalculate_total_mass();
+        <span class="comment">// self.recalculate_max_min_temp();
+        </span><span class="self">self</span>.recalculate_total_mass();
     }
 
     <span class="doccomment">/// Run process FRAMES_PER_FULL_PROCESS times
@@ -1940,8 +1929,8 @@
             .chain(targets2.<span class="number">0</span>)
             .chain(targets3.<span class="number">0</span>)
             .collect();
-        <span class="kw">let </span>(max_temp, min_temp) = <span class="self">self</span>.get_max_min_temp();
-        all_targets
+        <span class="comment">// let (max_temp, min_temp) = self.get_max_min_temp();
+        </span>all_targets
             .into_par_iter()
             .map(|target| {
                 <span class="kw">let </span>chunk = <span class="self">self</span>.get_chunk_by_chunk_ijk(target);
@@ -1949,7 +1938,6 @@
                     target,
                     Textures {
                         texture: <span class="prelude-val">Some</span>(chunk.get_texture()),
-                        heat_texture: <span class="prelude-val">Some</span>(chunk.get_heat_texture(max_temp, min_temp)),
                     },
                 )
             })
@@ -2027,7 +2015,6 @@
         <span class="kw">let </span><span class="kw-2">mut </span>out = Mass(<span class="number">0.0</span>);
         <span class="kw">for </span>layer <span class="kw">in </span>chunks {
             <span class="kw">for </span>chunk <span class="kw">in </span>layer.into_iter().flatten() {
-                chunk.recalculate_total_mass();
                 out += chunk.get_total_mass();
             }
         }
@@ -2035,38 +2022,42 @@
     }
 
     <span class="doccomment">/// Get the maximum temperature in the directory
-    </span><span class="kw">pub fn </span>get_max_min_temp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (ThermodynamicTemperature, ThermodynamicTemperature) {
-        (<span class="self">self</span>.max_temp, <span class="self">self</span>.min_temp)
-    }
+    </span><span class="comment">// pub fn get_max_min_temp(&amp;self) -&gt; (ThermodynamicTemperature, ThermodynamicTemperature) {
+    //     (self.max_temp, self.min_temp)
+    // }
 
-    <span class="doccomment">/// Recalculate the maximum temperature in the directory
-    </span><span class="kw">fn </span>recalculate_max_min_temp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        (<span class="self">self</span>.max_temp, <span class="self">self</span>.min_temp) = <span class="self">Self</span>::calc_max_min_temp(<span class="kw-2">&amp;mut </span><span class="self">self</span>.chunks);
-    }
+    // /// Recalculate the maximum temperature in the directory
+    // fn recalculate_max_min_temp(&amp;mut self) {
+    //     (self.max_temp, self.min_temp) = Self::calc_max_min_temp(&amp;mut self.chunks);
+    // }
 
-    <span class="doccomment">/// Calculate the maximum temperature in the directory
-    </span><span class="kw">pub fn </span>calc_max_min_temp(
-        chunks: <span class="kw-2">&amp;mut </span>Vec&lt;Grid&lt;<span class="prelude-ty">Option</span>&lt;ElementGrid&gt;&gt;&gt;,
-    ) -&gt; (ThermodynamicTemperature, ThermodynamicTemperature) {
-        <span class="kw">let </span><span class="kw-2">mut </span>max = ThermodynamicTemperature(<span class="number">0.0</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>min = ThermodynamicTemperature(f32::INFINITY);
-        <span class="kw">for </span>layer <span class="kw">in </span>chunks {
-            <span class="kw">for </span>chunk <span class="kw">in </span>layer.into_iter().flatten() {
-                chunk.recalculate_heat();
-                <span class="kw">let </span>temp = chunk.get_temperature();
-                <span class="kw">if </span>temp &gt; max {
-                    max = temp;
-                }
-                <span class="comment">// Min temperature should be greater than 0
-                </span><span class="kw">if </span>temp &lt; min &amp;&amp; temp &gt; ThermodynamicTemperature(<span class="number">0.0</span>) {
-                    min = temp;
-                }
-            }
-        }
-        (max, min)
-    }
+    // /// Calculate the maximum temperature in the directory
+    // pub fn calc_max_min_temp(
+    //     chunks: &amp;mut Vec&lt;Grid&lt;Option&lt;ElementGrid&gt;&gt;&gt;,
+    // ) -&gt; (ThermodynamicTemperature, ThermodynamicTemperature) {
+    //     let mut max = ThermodynamicTemperature(0.0);
+    //     let mut min = ThermodynamicTemperature(f32::INFINITY);
+    //     for layer in chunks {
+    //         for chunk in layer.into_iter().flatten() {
+    //             let (max_temp, min_temp) = chunk.get_max_min_temp();
+    //             if max_temp &gt; max {
+    //                 max = max_temp;
+    //             }
+    //             // Min temperature should not equal exactly 0 because thats usually vacuum
+    //             if min_temp &lt; min &amp;&amp; min_temp != ThermodynamicTemperature(0.0) {
+    //                 min = min_temp;
+    //             }
+    //         }
+    //     }
+    //     // Because we exclude 0, if we get nothing but zero, we will get min==INF
+    //     // So we should fix that
+    //     if min == ThermodynamicTemperature(f32::INFINITY) {
+    //         min = ThermodynamicTemperature(0.0);
+    //     }
+    //     (max, min)
+    // }
 
-    <span class="doccomment">/// Gets the chunk at the given index
+    </span><span class="doccomment">/// Gets the chunk at the given index
     /// Errors if it is currently borrowed
     </span><span class="kw">pub fn </span>get_chunk_by_chunk_ijk(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: ChunkIjkVector) -&gt; <span class="kw-2">&amp;</span>ElementGrid {
         <span class="self">self</span>.chunks[coord.i]
@@ -2118,7 +2109,7 @@
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_layers() {
             <span class="kw">let </span>j_size = <span class="self">self</span>.coords.get_layer_num_concentric_chunks(i);
             <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(i);
-            <span class="kw">let </span>layer = Grid::new_from_vec(k_size, j_size, <span class="macro">vec!</span>[<span class="bool-val">true</span>; k_size * j_size]);
+            <span class="kw">let </span>layer = Grid::new_fill(k_size, j_size, <span class="bool-val">true</span>);
             filter.push(layer);
         }
 
@@ -2129,8 +2120,8 @@
     <span class="doccomment">/// Where filter is true, get the textures
     </span><span class="kw">fn </span>get_textures_filtered(<span class="kw-2">&amp;</span><span class="self">self</span>, filter: <span class="kw-2">&amp;</span>[Grid&lt;bool&gt;]) -&gt; HashMap&lt;ChunkIjkVector, Textures&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>out = HashMap::new();
-        <span class="kw">let </span>(max_temp, min_temp) = <span class="self">self</span>.get_max_min_temp();
-        <span class="kw">for </span>(i, item) <span class="kw">in </span>filter.iter().enumerate() {
+        <span class="comment">// let (max_temp, min_temp) = self.get_max_min_temp();
+        </span><span class="kw">for </span>(i, item) <span class="kw">in </span>filter.iter().enumerate() {
             <span class="kw">let </span>j_size = <span class="self">self</span>.coords.get_layer_num_concentric_chunks(i);
             <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(i);
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
@@ -2140,16 +2131,7 @@
                     }
                     <span class="kw">let </span>coord = ChunkIjkVector { i, j, k };
                     <span class="kw">let </span>tex = <span class="self">self</span>.get_chunk_by_chunk_ijk(coord).get_texture();
-                    <span class="kw">let </span>heat_tex = <span class="self">self
-                        </span>.get_chunk_by_chunk_ijk(coord)
-                        .get_heat_texture(max_temp, min_temp);
-                    out.insert(
-                        coord,
-                        Textures {
-                            texture: <span class="prelude-val">Some</span>(tex),
-                            heat_texture: <span class="prelude-val">Some</span>(heat_tex),
-                        },
-                    );
+                    out.insert(coord, Textures { texture: <span class="prelude-val">Some</span>(tex) });
                 }
             }
         }
@@ -2159,14 +2141,16 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use </span><span class="kw">crate</span>::physics::{<span class="self">self</span>, fallingsand::mesh::coordinate_directory::CoordinateDirBuilder};
+    <span class="kw">use </span><span class="kw">crate</span>::physics::{
+        fallingsand::mesh::coordinate_directory::CoordinateDirBuilder, orbits::components::Length,
+    };
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="doccomment">/// The default element grid directory for testing
     </span><span class="kw">fn </span>get_element_grid_dir() -&gt; ElementGridDir {
         <span class="kw">let </span>coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(physics::heat::components::Length(<span class="number">1.0</span>))
+            .cell_radius(Length(<span class="number">1.0</span>))
             .num_layers(<span class="number">9</span>)
             .first_num_radial_lines(<span class="number">6</span>)
             .second_num_concentric_circles(<span class="number">3</span>)

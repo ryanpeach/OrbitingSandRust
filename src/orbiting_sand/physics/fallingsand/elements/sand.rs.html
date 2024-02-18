@@ -145,103 +145,21 @@
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a>
-<a href="#161" id="161">161</a>
-<a href="#162" id="162">162</a>
-<a href="#163" id="163">163</a>
-<a href="#164" id="164">164</a>
-<a href="#165" id="165">165</a>
-<a href="#166" id="166">166</a>
-<a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
-<a href="#176" id="176">176</a>
-<a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
-<a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
-<a href="#197" id="197">197</a>
-<a href="#198" id="198">198</a>
-<a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::element::{
-    Compressability, Density, Element, ElementTakeOptions, ElementType,
-    SetHeatOnZeroSpecificHeatError, StateOfMatter,
-};
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::element::{Density, Element, ElementTakeOptions, ElementType, StateOfMatter};
 <span class="kw">use </span><span class="kw">super</span>::movement::solid::solid_process;
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::data::element_grid::ElementGrid;
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::vectors::JkVector;
-<span class="kw">use </span><span class="kw">crate</span>::physics::heat::components::{
-    HeatEnergy, Length, SpecificHeat, ThermalConductivity, ThermodynamicTemperature,
-    ROOM_TEMPERATURE_K,
-};
+
 <span class="kw">use </span><span class="kw">crate</span>::physics::util::clock::Clock;
 <span class="kw">use </span>bevy::render::color::Color;
 
 <span class="doccomment">/// Literally nothing
-</span><span class="attr">#[derive(Copy, Clone, Debug)]
+</span><span class="attr">#[derive(Default, Copy, Clone, Debug)]
 </span><span class="kw">pub struct </span>Sand {
     last_processed: Clock,
-    heat: HeatEnergy,
-}
-
-<span class="kw">impl </span>Sand {
-    <span class="doccomment">/// Create a new sand element
-    </span><span class="kw">pub fn </span>new(cell_width: Length) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>out = <span class="self">Self </span>{
-            last_processed: Clock::default(),
-            heat: HeatEnergy::default(),
-        };
-        out.set_heat(
-            out.get_default_temperature().heat_energy(
-                out.get_specific_heat()
-                    .heat_capacity(out.get_density().mass(cell_width)),
-            ),
-            Clock::default(),
-        )
-        .unwrap();
-        out
-    }
 }
 
 <span class="kw">impl </span>Element <span class="kw">for </span>Sand {
@@ -283,47 +201,17 @@
     <span class="kw">fn </span>box_clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>Element&gt; {
         Box::new(<span class="kw-2">*</span><span class="self">self</span>)
     }
-
-    <span class="kw">fn </span>get_default_temperature(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ThermodynamicTemperature {
-        ROOM_TEMPERATURE_K
-    }
-
-    <span class="kw">fn </span>get_heat(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HeatEnergy {
-        <span class="self">self</span>.heat
-    }
-
-    <span class="kw">fn </span>set_heat(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        heat: HeatEnergy,
-        current_time: Clock,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SetHeatOnZeroSpecificHeatError&gt; {
-        <span class="self">self</span>.heat = heat;
-        <span class="self">self</span>._set_last_processed(current_time);
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="kw">fn </span>get_specific_heat(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SpecificHeat {
-        SpecificHeat(<span class="number">830.</span>)
-    }
-
-    <span class="kw">fn </span>get_thermal_conductivity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ThermalConductivity {
-        ThermalConductivity(<span class="number">0.2</span>)
-    }
-
-    <span class="kw">fn </span>get_compressability(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Compressability {
-        Compressability(<span class="number">0.001</span>)
-    }
 }
 
 <span class="comment">// 6, 0, 0
 </span><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span><span class="kw">crate</span>::physics::{
-        <span class="self">self</span>,
         fallingsand::{
             data::element_directory::ElementGridDir,
             mesh::coordinate_directory::CoordinateDirBuilder,
         },
+        orbits::components::Length,
     };
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
@@ -331,7 +219,7 @@
     <span class="doccomment">/// The default element grid directory for testing
     </span><span class="kw">fn </span>get_element_grid_dir() -&gt; ElementGridDir {
         <span class="kw">let </span>coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(physics::heat::components::Length(<span class="number">1.0</span>))
+            .cell_radius(Length(<span class="number">1.0</span>))
             .num_layers(<span class="number">10</span>)
             .first_num_radial_lines(<span class="number">6</span>)
             .second_num_concentric_circles(<span class="number">3</span>)
@@ -361,7 +249,7 @@
             <span class="comment">// Set the bottom right to sand
             </span>{
                 <span class="kw">let </span>chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc1.<span class="number">0</span>);
-                <span class="kw">let </span>sand = Sand::new(Length(<span class="number">1.0</span>));
+                <span class="kw">let </span>sand = Sand::default();
                 chunk.set(loc1.<span class="number">1</span>, Box::new(sand), clock);
             }
 

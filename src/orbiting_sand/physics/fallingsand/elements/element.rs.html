@@ -245,72 +245,6 @@
 <a href="#244" id="244">244</a>
 <a href="#245" id="245">245</a>
 <a href="#246" id="246">246</a>
-<a href="#247" id="247">247</a>
-<a href="#248" id="248">248</a>
-<a href="#249" id="249">249</a>
-<a href="#250" id="250">250</a>
-<a href="#251" id="251">251</a>
-<a href="#252" id="252">252</a>
-<a href="#253" id="253">253</a>
-<a href="#254" id="254">254</a>
-<a href="#255" id="255">255</a>
-<a href="#256" id="256">256</a>
-<a href="#257" id="257">257</a>
-<a href="#258" id="258">258</a>
-<a href="#259" id="259">259</a>
-<a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
-<a href="#264" id="264">264</a>
-<a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
-<a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
-<a href="#270" id="270">270</a>
-<a href="#271" id="271">271</a>
-<a href="#272" id="272">272</a>
-<a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
-<a href="#276" id="276">276</a>
-<a href="#277" id="277">277</a>
-<a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a>
-<a href="#280" id="280">280</a>
-<a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
-<a href="#283" id="283">283</a>
-<a href="#284" id="284">284</a>
-<a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a>
-<a href="#288" id="288">288</a>
-<a href="#289" id="289">289</a>
-<a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
-<a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a>
-<a href="#304" id="304">304</a>
-<a href="#305" id="305">305</a>
-<a href="#306" id="306">306</a>
-<a href="#307" id="307">307</a>
-<a href="#308" id="308">308</a>
-<a href="#309" id="309">309</a>
-<a href="#310" id="310">310</a>
-<a href="#311" id="311">311</a>
-<a href="#312" id="312">312</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the trait Element and associated types
 //! This is the trait that all elements must implement
 //! It also contains info about states of matter and other useful enums and components
@@ -320,10 +254,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::data::element_grid::ElementGrid;
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::vectors::JkVector;
-<span class="kw">use </span><span class="kw">crate</span>::physics::heat::components::{
-    HeatEnergy, Length, SpecificHeat, ThermalConductivity, ThermodynamicTemperature,
-};
-<span class="kw">use </span><span class="kw">crate</span>::physics::orbits::components::{Force, Mass};
+<span class="kw">use </span><span class="kw">crate</span>::physics::orbits::components::{Length, Mass};
 <span class="kw">use </span><span class="kw">crate</span>::physics::util::clock::Clock;
 <span class="kw">use </span>bevy::render::color::Color;
 <span class="kw">use </span>ndarray::Array2;
@@ -355,36 +286,6 @@
     </span><span class="kw">pub fn </span>matrix_mass(density_matrix: <span class="kw-2">&amp;</span>Array2&lt;f32&gt;, cell_width: Length) -&gt; Array2&lt;f32&gt; {
         density_matrix * cell_width.area().<span class="number">0
     </span>}
-}
-
-<span class="doccomment">/// The compressability of the element
-/// In units of dm^2/N
-</span><span class="attr">#[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd, Add, Sub)]
-</span><span class="kw">pub struct </span>Compressability(<span class="kw">pub </span>f32);
-
-<span class="kw">impl </span>Compressability {
-    <span class="doccomment">/// This perportions the density of the element based on the mass above it
-    </span><span class="kw">const </span>PERPORTIONALITY_CONSTANT: f32 = <span class="number">1.0</span>;
-
-    <span class="doccomment">/// This gets the density of the element based on the force applied to it
-    </span><span class="kw">pub fn </span>get_density(<span class="kw-2">&amp;</span><span class="self">self</span>, original_density: Density, force: Force) -&gt; Density {
-        original_density + Density(force.<span class="number">0 </span>* <span class="self">self</span>.<span class="number">0</span>)
-    }
-    <span class="doccomment">/// This gets the density of the element based on the force applied to it
-    /// by proxy of using the mass of the elements above it and a perportionality constant
-    /// Very much an approximation, but much faster for the simulation
-    </span><span class="kw">pub fn </span>get_density_from_mass(<span class="kw-2">&amp;</span><span class="self">self</span>, original_density: Density, mass_above: Mass) -&gt; Density {
-        original_density + Density(mass_above.<span class="number">0 </span>* <span class="self">self</span>.<span class="number">0 </span>* <span class="self">Self</span>::PERPORTIONALITY_CONSTANT)
-    }
-
-    <span class="doccomment">/// This is a matrix equivalent of the get_density_from_mass function
-    </span><span class="kw">pub fn </span>matrix_get_density_from_mass(
-        compressability_matrix: <span class="kw-2">&amp;</span>Array2&lt;f32&gt;,
-        original_density: <span class="kw-2">&amp;</span>Array2&lt;f32&gt;,
-        mass_above: Mass,
-    ) -&gt; Array2&lt;f32&gt; {
-        original_density + mass_above.<span class="number">0 </span>* compressability_matrix * <span class="self">Self</span>::PERPORTIONALITY_CONSTANT
-    }
 }
 
 <span class="doccomment">/// What to do after process is called on the elementgrid
@@ -427,17 +328,17 @@
 
 <span class="kw">impl </span>ElementType {
     <span class="doccomment">/// This gets the default element of the type
-    </span><span class="kw">pub fn </span>get_element(<span class="kw-2">&amp;</span><span class="self">self</span>, cell_width: Length) -&gt; Box&lt;<span class="kw">dyn </span>Element&gt; {
+    </span><span class="kw">pub fn </span>get_element(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>Element&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             ElementType::Vacuum =&gt; Box::&lt;Vacuum&gt;::default(),
             ElementType::DownFlier =&gt; Box::&lt;DownFlier&gt;::default(),
             ElementType::LeftFlier =&gt; Box::&lt;LeftFlier&gt;::default(),
             ElementType::RightFlier =&gt; Box::&lt;RightFlier&gt;::default(),
-            ElementType::Sand =&gt; Box::&lt;Sand&gt;::new(Sand::new(cell_width)),
-            ElementType::Stone =&gt; Box::&lt;Stone&gt;::new(Stone::new(cell_width)),
-            ElementType::Water =&gt; Box::&lt;Water&gt;::new(Water::new(cell_width)),
-            ElementType::SolarPlasma =&gt; Box::&lt;SolarPlasma&gt;::new(SolarPlasma::new(cell_width)),
-            ElementType::Lava =&gt; Box::&lt;Lava&gt;::new(Lava::new(cell_width)),
+            ElementType::Sand =&gt; Box::&lt;Sand&gt;::default(),
+            ElementType::Stone =&gt; Box::&lt;Stone&gt;::default(),
+            ElementType::Water =&gt; Box::&lt;Water&gt;::default(),
+            ElementType::SolarPlasma =&gt; Box::&lt;SolarPlasma&gt;::default(),
+            ElementType::Lava =&gt; Box::&lt;Lava&gt;::default(),
         }
     }
 }
@@ -459,41 +360,10 @@
     /// in fragment shaders knowing their type just by their color
     /// You can map them to other colors and add effects using the fragment shader
     </span><span class="kw">fn </span>get_color(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Color;
-    <span class="doccomment">/// This gets the heat of the element
-    </span><span class="kw">fn </span>get_heat(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HeatEnergy;
-    <span class="doccomment">/// This sets the heat of the element
-    /// Do not call this if the heat capacity is 0
-    </span><span class="kw">fn </span>set_heat(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        heat: HeatEnergy,
-        current_time: Clock,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SetHeatOnZeroSpecificHeatError&gt;;
-    <span class="doccomment">/// This gets the specific heat capacity of the element at atp
-    /// Usually constant
-    </span><span class="kw">fn </span>get_specific_heat(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SpecificHeat;
-    <span class="doccomment">/// This gets the thermal conductivity of the element at atp
-    /// Usually constant
-    /// Source: &lt;https://www.engineeringtoolbox.com/thermal-conductivity-d_429.html&gt;
-    </span><span class="kw">fn </span>get_thermal_conductivity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ThermalConductivity;
-    <span class="doccomment">/// This is a convienence function that gets the "default" temperature of an element
-    /// For example, lava should start out hot, ice cold, etc.
-    /// This answers the question "how hot is the element when it is created?"
-    /// Usually constant
-    </span><span class="kw">fn </span>get_default_temperature(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ThermodynamicTemperature;
-    <span class="doccomment">/// Get the actual temperature of the element
-    </span><span class="kw">fn </span>get_temperature(<span class="kw-2">&amp;</span><span class="self">self</span>, cell_width: Length) -&gt; ThermodynamicTemperature {
-        <span class="self">self</span>.get_heat().temperature(
-            <span class="self">self</span>.get_specific_heat()
-                .heat_capacity(<span class="self">self</span>.get_mass(cell_width)),
-        )
-    }
     <span class="doccomment">/// This gets the density of the element relative to the cell_width
     /// This is so bigger cells have more mass, so we don't have to have as many cells
     /// for simpler bodies, like gas giants or the sun
     </span><span class="kw">fn </span>get_density(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Density;
-    <span class="doccomment">/// This gets the compressibility of the element under pressure
-    /// Usually constant
-    </span><span class="kw">fn </span>get_compressability(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Compressability;
     <span class="doccomment">/// This gets the mass of the element based on the density and the cell_width
     </span><span class="kw">fn </span>get_mass(<span class="kw-2">&amp;</span><span class="self">self</span>, cell_width: Length) -&gt; Mass {
         <span class="self">self</span>.get_density().mass(cell_width)
@@ -574,8 +444,6 @@
     <span class="kw">use </span>bevy::render::color::Color;
     <span class="kw">use </span>strum::IntoEnumIterator;
 
-    <span class="kw">use </span><span class="kw">crate</span>::physics::heat::components::Length;
-
     <span class="kw">use </span><span class="kw">super</span>::ElementType;
 
     <span class="doccomment">/// This tests that all elements have different colors
@@ -584,7 +452,7 @@
     </span><span class="kw">fn </span>test_all_elements_have_different_color() {
         <span class="kw">let </span><span class="kw-2">mut </span>colors = Vec::&lt;Color&gt;::new();
         <span class="kw">for </span>element_type <span class="kw">in </span>ElementType::iter() {
-            <span class="kw">let </span>color = element_type.get_element(Length(<span class="number">1.0</span>)).get_color();
+            <span class="kw">let </span>color = element_type.get_element().get_color();
             <span class="macro">assert!</span>(
                 !colors.contains(<span class="kw-2">&amp;</span>color),
                 <span class="string">"Color {:?} of element {:?} is not unique"</span>,
@@ -613,7 +481,7 @@
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>test_all_types_and_elements_correspond() {
         <span class="kw">for </span>element_type <span class="kw">in </span>ElementType::iter() {
-            <span class="kw">let </span>element = element_type.get_element(Length(<span class="number">1.0</span>));
+            <span class="kw">let </span>element = element_type.get_element();
             <span class="macro">assert_eq!</span>(
                 element_type,
                 element.get_type(),

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["ChunkIjkVector","FullIdx","IjkVector","JkVector","RelJkVector","TempJkVector","Vertex"]};
+window.SIDEBAR_ITEMS = {"struct":["ChunkIjkVector","FullIdx","IjkVector","JkVector","NdArrayCoords","RelJkVector","TempJkVector","Vertex"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ElementTakeOptions","ElementType","StateOfMatter"],"struct":["Compressability","Density","ElementTypeIter","SetHeatOnZeroSpecificHeatError","StateOfMatterIter"],"trait":["Element"]};
+window.SIDEBAR_ITEMS = {"enum":["ElementTakeOptions","ElementType","StateOfMatter"],"struct":["Density","ElementTypeIter","SetHeatOnZeroSpecificHeatError","StateOfMatterIter"],"trait":["Element"]};

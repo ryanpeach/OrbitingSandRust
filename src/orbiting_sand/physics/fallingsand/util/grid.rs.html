@@ -189,6 +189,16 @@
 <a href="#188" id="188">188</a>
 <a href="#189" id="189">189</a>
 <a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A simple 2d grid type
 //! This was originally created seperate from the ndarray crate, but it was later decided to
 //! use the ndarray crate as the backend for this type. This is because the ndarray crate
@@ -209,13 +219,16 @@
  * Initialization
  * ================= */
 </span><span class="kw">impl</span>&lt;T&gt; Grid&lt;T&gt; {
-    <span class="doccomment">/// Create a new grid from an ndarray
-    </span><span class="kw">pub fn </span>new(data: ndarray::Array2&lt;T&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(data)
+    <span class="doccomment">/// Create a new grid filled with one value
+    </span><span class="kw">pub fn </span>new_fill(width: usize, height: usize, value: T) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>T: Clone,
+    {
+        <span class="self">Self</span>(ndarray::Array2::from_elem((width, height), value))
     }
     <span class="doccomment">/// Create a new grid with the given width and height, and fill it with the given data
     </span><span class="kw">pub fn </span>new_from_vec(width: usize, height: usize, data: Vec&lt;T&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(ndarray::Array2::from_shape_vec((height, width), data).unwrap())
+        <span class="self">Self</span>(ndarray::Array2::from_shape_vec((width, height), data).unwrap())
     }
     <span class="doccomment">/// Create a new grid with the given width and height, and fill it with default values
     </span><span class="kw">pub fn </span>new_empty(width: usize, height: usize) -&gt; <span class="self">Self
@@ -226,7 +239,7 @@
         <span class="kw">for _ in </span><span class="number">0</span>..width * height {
             data.push(Default::default());
         }
-        <span class="self">Self</span>(ndarray::Array2::from_shape_vec((height, width), data).unwrap())
+        <span class="self">Self</span>(ndarray::Array2::from_shape_vec((width, height), data).unwrap())
     }
 }
 
@@ -237,11 +250,11 @@
 </span><span class="kw">impl</span>&lt;T&gt; Grid&lt;T&gt; {
     <span class="doccomment">/// Get the width of the grid
     </span><span class="kw">pub fn </span>get_width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="self">self</span>.<span class="number">0</span>.shape()[<span class="number">1</span>]
+        <span class="self">self</span>.<span class="number">0</span>.shape()[<span class="number">0</span>]
     }
     <span class="doccomment">/// Get the height of the grid
     </span><span class="kw">pub fn </span>get_height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="self">self</span>.<span class="number">0</span>.shape()[<span class="number">0</span>]
+        <span class="self">self</span>.<span class="number">0</span>.shape()[<span class="number">1</span>]
     }
     <span class="doccomment">/// Get the total size of the grid
     </span><span class="kw">pub fn </span>total_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
@@ -273,27 +286,34 @@
 </span><span class="doccomment">/// Access data using JK coordinates, which are height and width respectively
 </span><span class="kw">impl</span>&lt;T&gt; Grid&lt;T&gt; {
     <span class="doccomment">/// Gets the value at the given coordinate
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: JkVector) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[[coord.j, coord.k]]
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: JkVector) -&gt; <span class="kw-2">&amp;</span>T {
+        <span class="kw">let </span>idx = <span class="self">self</span>.transform_jk_coord_to_ndarray(idx);
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[idx]
     }
     <span class="doccomment">/// Gets the value at the given coordinate, or returns an error if the coordinate is out of bounds
-    </span><span class="kw">pub fn </span>checked_get(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: JkVector) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>T, GridOutOfBoundsError&gt; {
-        <span class="kw">if </span>coord.j &gt;= <span class="self">self</span>.get_height() || coord.k &gt;= <span class="self">self</span>.get_width() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(GridOutOfBoundsError(coord));
+    </span><span class="kw">pub fn </span>checked_get(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: JkVector) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>T, GridOutOfBoundsError&gt; {
+        <span class="kw">if </span>idx.k &gt;= <span class="self">self</span>.get_width() || idx.j &gt;= <span class="self">self</span>.get_height() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(GridOutOfBoundsError(idx));
         }
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.get(coord))
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.get(idx))
     }
     <span class="doccomment">/// Gets the value at the given coordinate, mutably
-    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, coord: JkVector) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>[[coord.j, coord.k]]
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, idx: JkVector) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw">let </span>idx = <span class="self">self</span>.transform_jk_coord_to_ndarray(idx);
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>[idx]
     }
     <span class="doccomment">/// Sets the value at the given coordinate, overwriting the old value
-    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, coord: JkVector, value: T) {
-        <span class="self">self</span>.replace(coord, value);
+    </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, idx: JkVector, value: T) {
+        <span class="self">self</span>.replace(idx, value);
     }
     <span class="doccomment">/// Like set, but gives you ownership of the original value
-    </span><span class="kw">pub fn </span>replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>, coord: JkVector, replacement: T) -&gt; T {
-        std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>[[coord.j, coord.k]], replacement)
+    </span><span class="kw">pub fn </span>replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>, idx: JkVector, replacement: T) -&gt; T {
+        <span class="kw">let </span>coord = <span class="self">self</span>.transform_jk_coord_to_ndarray(idx);
+        std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>[coord], replacement)
+    }
+    <span class="doccomment">/// Transforms the coordinate to the ndarray coordinate system using this grid's width and height
+    </span><span class="kw">fn </span>transform_jk_coord_to_ndarray(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: JkVector) -&gt; [usize; <span class="number">2</span>] {
+        [<span class="self">self</span>.get_width() - <span class="number">1 </span>- idx.k, <span class="self">self</span>.get_height() - <span class="number">1 </span>- idx.j]
     }
 }
 

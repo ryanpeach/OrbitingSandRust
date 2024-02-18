@@ -1162,7 +1162,7 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::mesh::OwnedMeshData;
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
-<span class="kw">use </span><span class="kw">crate</span>::physics::heat::components::Length;
+<span class="kw">use </span><span class="kw">crate</span>::physics::orbits::components::Length;
 <span class="kw">use </span><span class="kw">crate</span>::physics::util::vectors::{RelXyPoint, Vertex};
 <span class="kw">use </span>bevy::math::{Rect, Vec2};
 <span class="kw">use </span>bevy::render::color::Color;
@@ -1696,7 +1696,7 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span><span class="kw">crate</span>::physics;
+
     <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
     <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::vectors::{IjkVector, JkVector};
     <span class="kw">use </span><span class="kw">crate</span>::physics::util::vectors::RelXyPoint;
@@ -1706,7 +1706,7 @@
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>test_rel_pos_to_cell_idx() {
         <span class="kw">let </span>coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(physics::heat::components::Length(<span class="number">1.0</span>))
+            .cell_radius(Length(<span class="number">1.0</span>))
             .num_layers(<span class="number">8</span>)
             .first_num_radial_lines(<span class="number">6</span>)
             .second_num_concentric_circles(<span class="number">3</span>)
@@ -1774,7 +1774,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_cell_idx_to_chunk_idx() {
         <span class="kw">let </span>coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(physics::heat::components::Length(<span class="number">1.0</span>))
+            .cell_radius(Length(<span class="number">1.0</span>))
             .num_layers(<span class="number">8</span>)
             .first_num_radial_lines(<span class="number">6</span>)
             .second_num_concentric_circles(<span class="number">3</span>)
@@ -1859,7 +1859,7 @@
         <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
         <span class="kw">const </span>FIRST_LAYER: ChunkCoords = ChunkCoords {
-            width: physics::heat::components::Length(<span class="number">1.0</span>),
+            width: Length(<span class="number">1.0</span>),
             num_concentric_circles: <span class="number">2</span>,
             chunk_idx: ChunkIjkVector { i: <span class="number">1</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>},
             start_concentric_circle_layer_relative: <span class="number">0</span>,
@@ -2128,7 +2128,7 @@
         <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
         <span class="kw">const </span>FIRST_LAYER_PARTIAL: ChunkCoords = ChunkCoords {
-            width: physics::heat::components::Length(<span class="number">1.0</span>),
+            width: Length(<span class="number">1.0</span>),
             num_concentric_circles: <span class="number">1</span>,
             chunk_idx: ChunkIjkVector { i: <span class="number">1</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>},
             start_concentric_circle_layer_relative: <span class="number">1</span>,

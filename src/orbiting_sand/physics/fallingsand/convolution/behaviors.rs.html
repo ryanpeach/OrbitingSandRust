@@ -785,24 +785,27 @@
 <a href="#784" id="784">784</a>
 <a href="#785" id="785">785</a>
 <a href="#786" id="786">786</a>
-<a href="#787" id="787">787</a>
-<a href="#788" id="788">788</a>
-<a href="#789" id="789">789</a>
-<a href="#790" id="790">790</a>
-<a href="#791" id="791">791</a>
-<a href="#792" id="792">792</a>
-<a href="#793" id="793">793</a>
-<a href="#794" id="794">794</a>
-<a href="#795" id="795">795</a>
-<a href="#796" id="796">796</a>
-<a href="#797" id="797">797</a>
-<a href="#798" id="798">798</a>
-<a href="#799" id="799">799</a>
-<a href="#800" id="800">800</a>
-<a href="#801" id="801">801</a>
-<a href="#802" id="802">802</a>
-<a href="#803" id="803">803</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>hashbrown::HashMap;
+</pre></div><pre class="rust"><code><span class="doccomment">//! # Element Behavior API
+//!
+//! This module contains the behaviors of the convolution
+//! It exports the [ElementGridConvolutionNeighbors] struct which contains
+//! both the indexes and the grids of the neighbors
+//! It contains getters for the chunks based on index or identifier
+//! and both getters and setters by element
+//! It also allows the user to get the element "below" or "left"/"right" of a given element
+//! This is its main purpose, in defining element behaviors, being able to check
+//! and change the state of the elements around it. This is the main way that the
+//! elements interact with each other. Within the same chunk this is very easy,
+//! but between chunks the behavior is very complex:
+//!
+//! 1. What does "down" mean if the resolution of cells below you is half the resolution of cells in your chunk?
+//! 2. What does "up" mean if the resolution of cells above you is double the resolution of cells in your chunk?
+//! 3. What if you want to go diagonally between chunks
+//! 4. What are the boundaries of the chunks? Have you accessed a value you don't have ownership of?
+//!
+//! All of that is handled automagically by this API.
+
+</span><span class="kw">use </span>hashbrown::HashMap;
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::{
     fallingsand::{
@@ -814,7 +817,6 @@
             vectors::{ChunkIjkVector, JkVector},
         },
     },
-    heat::components::ThermodynamicTemperature,
     util::clock::Clock,
 };
 
@@ -824,9 +826,9 @@
         LeftRightNeighborGrids, TopNeighborGrids,
     },
     neighbor_identifiers::{
-        BottomNeighborIdentifier, BottomNeighborIdentifierLayerTransition,
+        BottomNeighborIdentifier, BottomNeighborIdentifierChunkDoubling,
         BottomNeighborIdentifierNormal, ConvolutionIdentifier, ConvolutionIdx,
-        LeftRightNeighborIdentifier, TopNeighborIdentifier, TopNeighborIdentifierLayerTransition,
+        LeftRightNeighborIdentifier, TopNeighborIdentifier, TopNeighborIdentifierChunkDoubling,
         TopNeighborIdentifierNormal,
     },
     neighbor_indexes::{
@@ -835,14 +837,21 @@
     },
 };
 
-<span class="kw">pub struct </span>ElementGridConvolutionNeighbors {
-    <span class="kw">pub </span>chunk_idxs: ElementGridConvolutionNeighborIdxs,
-    <span class="kw">pub </span>grids: ElementGridConvolutionNeighborGrids,
+<span class="doccomment">/// This is the main struct exported by this module
+/// It contains all the neighbors of a chunk in the convolution
+/// It does not contain the target chunk itself, as this usually violates several
+/// borrow checker rules
+</span><span class="kw">pub struct </span>ElementGridConvolutionNeighbors {
+    <span class="doccomment">/// The indexes of the neighbors, tells you where they come from in the [crate::physics::fallingsand::data::element_directory::ElementGridDir]
+    </span><span class="kw">pub </span>chunk_idxs: ElementGridConvolutionNeighborIdxs,
+    <span class="doccomment">/// The grids of the neighbors, actually stores the data
+    </span><span class="kw">pub </span>grids: ElementGridConvolutionNeighborGrids,
 }
 
 <span class="doccomment">/// Instantiation
 </span><span class="kw">impl </span>ElementGridConvolutionNeighbors {
-    <span class="kw">pub fn </span>new(
+    <span class="doccomment">/// Create a new ElementGridConvolutionNeighbors
+    </span><span class="kw">pub fn </span>new(
         chunk_idxs: ElementGridConvolutionNeighborIdxs,
         <span class="kw-2">mut </span>grids: HashMap&lt;ChunkIjkVector, ElementGrid&gt;,
     ) -&gt; <span class="self">Self </span>{
@@ -875,8 +884,10 @@
 /// and the iter method on the neighbor indexes
 /// taking from the hashmap on each iteration of the iter
 </span><span class="kw">pub struct </span>ElementGridConvolutionNeighborsIntoIter {
-    chunk_idxs_iter: ElementGridConvolutionNeighborIdxsIter,
-    grids: HashMap&lt;ChunkIjkVector, ElementGrid&gt;,
+    <span class="doccomment">/// The iterator for the neighbor indexes
+    </span>chunk_idxs_iter: ElementGridConvolutionNeighborIdxsIter,
+    <span class="doccomment">/// The grids of the neighbors
+    </span>grids: HashMap&lt;ChunkIjkVector, ElementGrid&gt;,
 }
 
 <span class="kw">impl </span>Iterator <span class="kw">for </span>ElementGridConvolutionNeighborsIntoIter {
@@ -900,66 +911,6 @@
             chunk_idxs_iter: <span class="self">self</span>.chunk_idxs.iter(),
             grids: <span class="self">self</span>.grids.into_hashmap(),
         }
-    }
-}
-
-<span class="doccomment">/// The average temperature of the neighbors
-</span><span class="attr">#[derive(Copy, Clone, Debug, Default)]
-</span><span class="kw">pub struct </span>ElementGridConvolutionNeighborTemperatures {
-    <span class="kw">pub </span>top: <span class="prelude-ty">Option</span>&lt;ThermodynamicTemperature&gt;,
-    <span class="kw">pub </span>bottom: <span class="prelude-ty">Option</span>&lt;ThermodynamicTemperature&gt;,
-    <span class="kw">pub </span>left: ThermodynamicTemperature,
-    <span class="kw">pub </span>right: ThermodynamicTemperature,
-}
-
-<span class="kw">impl </span>ElementGridConvolutionNeighbors {
-    <span class="kw">pub fn </span>get_avg_temp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ElementGridConvolutionNeighborTemperatures {
-        <span class="kw">let </span><span class="kw-2">mut </span>out = ElementGridConvolutionNeighborTemperatures::default();
-        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.grids.top {
-            TopNeighborGrids::Normal { t, tl, tr } =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>sum = ThermodynamicTemperature(<span class="number">0.0</span>);
-                sum += t.get_temperature();
-                sum += tl.get_temperature();
-                sum += tr.get_temperature();
-                out.top = <span class="prelude-val">Some</span>(ThermodynamicTemperature(sum.<span class="number">0 </span>/ <span class="number">3.0</span>));
-            }
-            TopNeighborGrids::ChunkDoubling { t0, t1, tl, tr } =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>sum = ThermodynamicTemperature(<span class="number">0.0</span>);
-                sum += t0.get_temperature();
-                sum += t1.get_temperature();
-                sum += tl.get_temperature();
-                sum += tr.get_temperature();
-                out.top = <span class="prelude-val">Some</span>(ThermodynamicTemperature(sum.<span class="number">0 </span>/ <span class="number">4.0</span>));
-            }
-            TopNeighborGrids::TopOfGrid =&gt; {
-                out.top = <span class="prelude-val">None</span>;
-            }
-        }
-        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.grids.bottom {
-            BottomNeighborGrids::Normal { b, bl, br } =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>sum = ThermodynamicTemperature(<span class="number">0.0</span>);
-                sum += b.get_temperature();
-                sum += bl.get_temperature();
-                sum += br.get_temperature();
-                out.bottom = <span class="prelude-val">Some</span>(ThermodynamicTemperature(sum.<span class="number">0 </span>/ <span class="number">3.0</span>));
-            }
-            BottomNeighborGrids::ChunkDoubling { bl, br } =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>sum = ThermodynamicTemperature(<span class="number">0.0</span>);
-                sum += bl.get_temperature();
-                sum += br.get_temperature();
-                out.bottom = <span class="prelude-val">Some</span>(ThermodynamicTemperature(sum.<span class="number">0 </span>/ <span class="number">2.0</span>));
-            }
-            BottomNeighborGrids::BottomOfGrid =&gt; {
-                out.bottom = <span class="prelude-val">None</span>;
-            }
-        }
-        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.grids.left_right {
-            LeftRightNeighborGrids::LR { l, r } =&gt; {
-                out.left = l.get_temperature();
-                out.right = r.get_temperature();
-            }
-        }
-        out
     }
 }
 
@@ -999,16 +950,21 @@
                 JkVector { j: pos.j, k: pos.k },
                 ConvolutionIdentifier::Center,
             ))),
-            BottomNeighborIdxs::ChunkDoubling { .. } =&gt; {
+            <span class="comment">// TODO: Unit test
+            </span>BottomNeighborIdxs::ChunkDoubling { .. } =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>new_coords = JkVector {
                     j: pos.j + b_concentric_circles - n,
                     k: pos.k / <span class="number">2</span>,
                 };
-                <span class="kw">let </span>transition = <span class="kw">if </span>target_chunk.get_chunk_coords().get_chunk_idx().k % <span class="number">2 </span>== <span class="number">0 </span>{
-                    BottomNeighborIdentifierLayerTransition::BottomLeft
+                <span class="comment">// If you are an even index chunk, the right half of bl is the same as b
+                // If you are on odd index chunk, the left half of br is the same as b
+                // TODO: document this with pictures
+                // TODO: Unit test
+                </span><span class="kw">let </span>transition = <span class="kw">if </span>target_chunk.get_chunk_coords().get_chunk_idx().k % <span class="number">2 </span>== <span class="number">0 </span>{
+                    BottomNeighborIdentifierChunkDoubling::BottomLeft
                 } <span class="kw">else </span>{
                     new_coords.k += <span class="self">self</span>.grids.bottom.get_num_radial_lines() / <span class="number">2</span>;
-                    BottomNeighborIdentifierLayerTransition::BottomRight
+                    BottomNeighborIdentifierChunkDoubling::BottomRight
                 };
                 <span class="prelude-val">Ok</span>(ConvolutionIdx(
                     new_coords,
@@ -1084,9 +1040,13 @@
     }
 }
 
-<span class="attr">#[derive(Debug)]
+<span class="doccomment">/// Errors for the getter methods
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>GetChunkErr {
-    CenterChunk,
+    <span class="doccomment">/// You aren't allowed to get the center chunk.
+    /// As [ElementGridConvolutionNeighbors] describes in its documentation,
+    /// it doesn't contain the center chunk.
+    </span>CenterChunk,
 }
 
 <span class="doccomment">/// Getter and setter methods
@@ -1123,7 +1083,7 @@
                 },
                 TopNeighborIdentifier::ChunkDoubling(layer_transition_id) =&gt; {
                     <span class="kw">match </span>layer_transition_id {
-                        TopNeighborIdentifierLayerTransition::Top0 { .. } =&gt; {
+                        TopNeighborIdentifierChunkDoubling::Top0 { .. } =&gt; {
                             <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling { t0, .. } = <span class="kw-2">&amp;mut </span><span class="self">self</span>.grids.top
                             {
                                 <span class="prelude-val">Ok</span>(t0)
@@ -1131,7 +1091,7 @@
                                 <span class="macro">panic!</span>(<span class="string">"Tried to get t0 chunk that doesn't exist"</span>)
                             }
                         }
-                        TopNeighborIdentifierLayerTransition::Top1 { .. } =&gt; {
+                        TopNeighborIdentifierChunkDoubling::Top1 { .. } =&gt; {
                             <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling { t1, .. } = <span class="kw-2">&amp;mut </span><span class="self">self</span>.grids.top
                             {
                                 <span class="prelude-val">Ok</span>(t1)
@@ -1139,7 +1099,7 @@
                                 <span class="macro">panic!</span>(<span class="string">"Tried to get t1 chunk that doesn't exist"</span>)
                             }
                         }
-                        TopNeighborIdentifierLayerTransition::TopLeft { .. } =&gt; {
+                        TopNeighborIdentifierChunkDoubling::TopLeft { .. } =&gt; {
                             <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling { tl, .. } = <span class="kw-2">&amp;mut </span><span class="self">self</span>.grids.top
                             {
                                 <span class="prelude-val">Ok</span>(tl)
@@ -1147,7 +1107,7 @@
                                 <span class="macro">panic!</span>(<span class="string">"Tried to get tl chunk that doesn't exist"</span>)
                             }
                         }
-                        TopNeighborIdentifierLayerTransition::TopRight { .. } =&gt; {
+                        TopNeighborIdentifierChunkDoubling::TopRight { .. } =&gt; {
                             <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling { tr, .. } = <span class="kw-2">&amp;mut </span><span class="self">self</span>.grids.top
                             {
                                 <span class="prelude-val">Ok</span>(tr)
@@ -1184,7 +1144,7 @@
                 },
                 BottomNeighborIdentifier::ChunkDoubling(layer_transition_id) =&gt; {
                     <span class="kw">match </span>layer_transition_id {
-                        BottomNeighborIdentifierLayerTransition::BottomLeft { .. } =&gt; {
+                        BottomNeighborIdentifierChunkDoubling::BottomLeft { .. } =&gt; {
                             <span class="kw">if let </span>BottomNeighborGrids::ChunkDoubling { bl, .. } =
                                 <span class="kw-2">&amp;mut </span><span class="self">self</span>.grids.bottom
                             {
@@ -1193,7 +1153,7 @@
                                 <span class="macro">panic!</span>(<span class="string">"Tried to get bl chunk that doesn't exist"</span>)
                             }
                         }
-                        BottomNeighborIdentifierLayerTransition::BottomRight { .. } =&gt; {
+                        BottomNeighborIdentifierChunkDoubling::BottomRight { .. } =&gt; {
                             <span class="kw">if let </span>BottomNeighborGrids::ChunkDoubling { br, .. } =
                                 <span class="kw-2">&amp;mut </span><span class="self">self</span>.grids.bottom
                             {
@@ -1219,7 +1179,8 @@
         }
     }
 
-    <span class="kw">fn </span>get_chunk(<span class="kw-2">&amp;</span><span class="self">self</span>, id: ConvolutionIdentifier) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>ElementGrid, GetChunkErr&gt; {
+    <span class="doccomment">/// Get the chunk identified by the given identifier
+    </span><span class="kw">fn </span>get_chunk(<span class="kw-2">&amp;</span><span class="self">self</span>, id: ConvolutionIdentifier) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>ElementGrid, GetChunkErr&gt; {
         <span class="kw">match </span>id {
             ConvolutionIdentifier::Top(top_id) =&gt; <span class="kw">match </span>top_id {
                 TopNeighborIdentifier::Normal(normal_id) =&gt; <span class="kw">match </span>normal_id {
@@ -1247,28 +1208,28 @@
                 },
                 TopNeighborIdentifier::ChunkDoubling(layer_transition_id) =&gt; {
                     <span class="kw">match </span>layer_transition_id {
-                        TopNeighborIdentifierLayerTransition::Top0 { .. } =&gt; {
+                        TopNeighborIdentifierChunkDoubling::Top0 { .. } =&gt; {
                             <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling { t0, .. } = <span class="kw-2">&amp;</span><span class="self">self</span>.grids.top {
                                 <span class="prelude-val">Ok</span>(t0)
                             } <span class="kw">else </span>{
                                 <span class="macro">panic!</span>(<span class="string">"Tried to get t0 chunk that doesn't exist"</span>)
                             }
                         }
-                        TopNeighborIdentifierLayerTransition::Top1 { .. } =&gt; {
+                        TopNeighborIdentifierChunkDoubling::Top1 { .. } =&gt; {
                             <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling { t1, .. } = <span class="kw-2">&amp;</span><span class="self">self</span>.grids.top {
                                 <span class="prelude-val">Ok</span>(t1)
                             } <span class="kw">else </span>{
                                 <span class="macro">panic!</span>(<span class="string">"Tried to get t1 chunk that doesn't exist"</span>)
                             }
                         }
-                        TopNeighborIdentifierLayerTransition::TopLeft { .. } =&gt; {
+                        TopNeighborIdentifierChunkDoubling::TopLeft { .. } =&gt; {
                             <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling { tl, .. } = <span class="kw-2">&amp;</span><span class="self">self</span>.grids.top {
                                 <span class="prelude-val">Ok</span>(tl)
                             } <span class="kw">else </span>{
                                 <span class="macro">panic!</span>(<span class="string">"Tried to get tl chunk that doesn't exist"</span>)
                             }
                         }
-                        TopNeighborIdentifierLayerTransition::TopRight { .. } =&gt; {
+                        TopNeighborIdentifierChunkDoubling::TopRight { .. } =&gt; {
                             <span class="kw">if let </span>TopNeighborGrids::ChunkDoubling { tr, .. } = <span class="kw-2">&amp;</span><span class="self">self</span>.grids.top {
                                 <span class="prelude-val">Ok</span>(tr)
                             } <span class="kw">else </span>{
@@ -1304,7 +1265,7 @@
                 },
                 BottomNeighborIdentifier::ChunkDoubling(layer_transition_id) =&gt; {
                     <span class="kw">match </span>layer_transition_id {
-                        BottomNeighborIdentifierLayerTransition::BottomLeft { .. } =&gt; {
+                        BottomNeighborIdentifierChunkDoubling::BottomLeft { .. } =&gt; {
                             <span class="kw">if let </span>BottomNeighborGrids::ChunkDoubling { bl, .. } =
                                 <span class="kw-2">&amp;</span><span class="self">self</span>.grids.bottom
                             {
@@ -1313,7 +1274,7 @@
                                 <span class="macro">panic!</span>(<span class="string">"Tried to get bl chunk that doesn't exist"</span>)
                             }
                         }
-                        BottomNeighborIdentifierLayerTransition::BottomRight { .. } =&gt; {
+                        BottomNeighborIdentifierChunkDoubling::BottomRight { .. } =&gt; {
                             <span class="kw">if let </span>BottomNeighborGrids::ChunkDoubling { br, .. } =
                                 <span class="kw-2">&amp;</span><span class="self">self</span>.grids.bottom
                             {
@@ -1339,7 +1300,8 @@
         }
     }
 
-    <span class="kw">pub fn </span>get(
+    <span class="doccomment">/// Get the element at the given index
+    </span><span class="kw">pub fn </span>get(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         target_grid: <span class="kw-2">&amp;</span>ElementGrid,
         idx: ConvolutionIdx,
@@ -1361,7 +1323,11 @@
         }
     }
 
-    <span class="kw">pub fn </span>replace(
+    <span class="doccomment">/// Replace the element at the given index
+    /// Great for taking ownership of the element
+    /// Can also be used to give ownership back
+    /// Returns an error if the index is out of bounds
+    </span><span class="kw">pub fn </span>replace(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         target_grid: <span class="kw-2">&amp;mut </span>ElementGrid,
         idx: ConvolutionIdx,
@@ -1395,12 +1361,12 @@
 
     <span class="kw">mod </span>get_below_idx_from_center {
         <span class="kw">use super</span>::<span class="kw-2">*</span>;
-        <span class="kw">use </span><span class="kw">crate</span>::physics::{<span class="self">self</span>, fallingsand::util::vectors::IjkVector};
+        <span class="kw">use </span><span class="kw">crate</span>::physics::{fallingsand::util::vectors::IjkVector, orbits::components::Length};
 
         <span class="doccomment">/// The default element grid directory for testing
         </span><span class="kw">fn </span>get_element_grid_dir() -&gt; ElementGridDir {
             <span class="kw">let </span>coordinate_dir = CoordinateDirBuilder::new()
-                .cell_radius(physics::heat::components::Length(<span class="number">1.0</span>))
+                .cell_radius(Length(<span class="number">1.0</span>))
                 .num_layers(<span class="number">10</span>)
                 .first_num_radial_lines(<span class="number">6</span>)
                 .second_num_concentric_circles(<span class="number">3</span>)
@@ -1496,12 +1462,12 @@
 
     <span class="kw">mod </span>get_left_right_idx_from_center {
         <span class="kw">use super</span>::<span class="kw-2">*</span>;
-        <span class="kw">use </span><span class="kw">crate</span>::physics::{<span class="self">self</span>, fallingsand::util::vectors::IjkVector};
+        <span class="kw">use </span><span class="kw">crate</span>::physics::{fallingsand::util::vectors::IjkVector, orbits::components::Length};
 
         <span class="doccomment">/// The default element grid directory for testing
         </span><span class="kw">fn </span>get_element_grid_dir() -&gt; ElementGridDir {
             <span class="kw">let </span>coordinate_dir = CoordinateDirBuilder::new()
-                .cell_radius(physics::heat::components::Length(<span class="number">1.0</span>))
+                .cell_radius(Length(<span class="number">1.0</span>))
                 .num_layers(<span class="number">7</span>)
                 .first_num_radial_lines(<span class="number">12</span>)
                 .second_num_concentric_circles(<span class="number">3</span>)

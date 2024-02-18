@@ -204,6 +204,17 @@
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
 <a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! # NxM-Body Physics
 //!
 //! In this module, we implement a type of gravitational physics simulation I will call
@@ -250,7 +261,7 @@
 //! parallelize the computation on the CPU, so it is not a huge performance hit.
 
 </span><span class="kw">use </span>bevy::{
-    app::{App, Plugin, Update},
+    app::{App, FixedUpdate, Plugin},
     ecs::{
         entity::Entity,
         query::{With, Without},
@@ -258,9 +269,11 @@
         system::{Query, Res},
     },
     math::{Vec2, Vec3Swizzles},
-    time::Time,
+    time::{Fixed, Time},
     transform::components::Transform,
 };
+
+<span class="kw">use </span><span class="kw">crate</span>::physics::PHYSICS_FRAME_RATE;
 
 <span class="kw">use </span><span class="kw">super</span>::components::{ForceVec, GravitationalField, Mass, Velocity};
 
@@ -297,7 +310,9 @@
     </span><span class="kw">let </span>force_direction = r.normalize();
 
     <span class="comment">// The final force vector is the direction scaled by the force magnitude
-    </span>ForceVec((force_direction * force_magnitude).xy())
+    </span><span class="kw">let </span>out = ForceVec((force_direction * force_magnitude).xy());
+    <span class="macro">assert!</span>(out.<span class="number">0</span>.is_finite(), <span class="string">"force: {:?}"</span>, out);
+    out
 }
 
 <span class="doccomment">/// Updates the velocity of the entity one half step
@@ -315,13 +330,19 @@
             compute_gravitational_force(this_body.<span class="number">1</span>, this_body.<span class="number">3</span>, <span class="kw-2">&amp;</span>other_body.<span class="number">1</span>, <span class="kw-2">&amp;</span>other_body.<span class="number">3</span>);
         net_force += force.<span class="number">0</span>;
     }
+    <span class="comment">// If mass is 0, don't update the velocity
+    </span><span class="kw">if </span>this_body.<span class="number">3 </span>.<span class="number">0 </span>== <span class="number">0.0 </span>{
+        <span class="kw">return</span>;
+    }
     <span class="kw">let </span>vdiff = net_force / this_body.<span class="number">3 </span>.<span class="number">0 </span>* (dt / <span class="number">2.0</span>);
+    <span class="macro">assert!</span>(vdiff.is_finite(), <span class="string">"vdiff: {:?}"</span>, vdiff);
     this_body.<span class="number">2 </span>.<span class="number">0 </span>+= vdiff;
 }
 
 <span class="doccomment">/// Updates the position of the entity one full step
 </span><span class="kw">fn </span>full_position_update(this_body: (Entity, <span class="kw-2">&amp;mut </span>Transform, <span class="kw-2">&amp;</span>Velocity, <span class="kw-2">&amp;</span>Mass), dt: f32) {
     <span class="kw">let </span>pdiff = (this_body.<span class="number">2 </span>.<span class="number">0 </span>* dt).extend(<span class="number">0.0</span>);
+    <span class="macro">assert!</span>(pdiff.is_finite(), <span class="string">"pdiff: {:?}"</span>, pdiff);
     this_body.<span class="number">1</span>.translation += pdiff;
 }
 
@@ -332,12 +353,13 @@
     <span class="doccomment">/// Adds the systems for the plugin
     </span><span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, app: <span class="kw-2">&amp;mut </span>App) {
         app.add_systems(
-            Update,
+            FixedUpdate,
             (
                 <span class="self">Self</span>::grav_bodies_system,
                 <span class="self">Self</span>::no_grav_bodies_system.after(<span class="self">Self</span>::grav_bodies_system),
             ),
         );
+        app.insert_resource(Time::&lt;Fixed&gt;::from_seconds(<span class="number">1.0 </span>/ PHYSICS_FRAME_RATE));
     }
 }
 

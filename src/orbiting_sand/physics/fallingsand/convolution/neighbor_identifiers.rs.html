@@ -66,71 +66,167 @@
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
 <a href="#67" id="67">67</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>strum_macros::EnumIter;
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! Identifiers for the different locations chunks can be in the convolution
+</span><span class="kw">use </span>strum_macros::EnumIter;
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::vectors::JkVector;
 
-<span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub enum </span>LeftRightNeighborIdentifier {
-    Left,
-    Right,
-}
-
-<span class="attr">#[derive(Debug, Clone, Copy, Default, EnumIter)]
-</span><span class="kw">pub enum </span>TopNeighborIdentifierNormal {
-    TopLeft,
-    <span class="attr">#[default]
-    </span>Top,
-    TopRight,
-}
-
-<span class="attr">#[derive(Debug, Clone, Copy, Default, EnumIter)]
-</span><span class="kw">pub enum </span>TopNeighborIdentifierLayerTransition {
-    TopLeft,
-    Top1,
-    <span class="attr">#[default]
-    </span>Top0,
-    TopRight,
-}
-
-<span class="attr">#[derive(Debug, Clone, Copy, EnumIter)]
-</span><span class="kw">pub enum </span>TopNeighborIdentifier {
-    Normal(TopNeighborIdentifierNormal),
-    ChunkDoubling(TopNeighborIdentifierLayerTransition),
-}
-
-<span class="attr">#[derive(Debug, Clone, Copy, Default, EnumIter)]
-</span><span class="kw">pub enum </span>BottomNeighborIdentifierNormal {
-    BottomLeft,
-    <span class="attr">#[default]
-    </span>Bottom,
-    BottomRight,
-}
-
-<span class="attr">#[derive(Debug, Clone, Copy, Default, EnumIter)]
-</span><span class="kw">pub enum </span>BottomNeighborIdentifierLayerTransition {
-    <span class="attr">#[default]
-    </span>BottomLeft,
-    BottomRight,
-}
-
-<span class="attr">#[derive(Debug, Clone, Copy, EnumIter)]
-</span><span class="kw">pub enum </span>BottomNeighborIdentifier {
-    Normal(BottomNeighborIdentifierNormal),
-    ChunkDoubling(BottomNeighborIdentifierLayerTransition),
-}
-
-<span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub enum </span>ConvolutionIdentifier {
-    LR(LeftRightNeighborIdentifier),
-    Top(TopNeighborIdentifier),
-    Bottom(BottomNeighborIdentifier),
-    Center,
-}
-
 <span class="doccomment">/// The main type exported by this module
-/// Identifies a coordinate on an element grid, and then uniquely identifies the chunk in the convolution that it is in
-/// This is better than a hashmap because by using enums it can be quite a bit faster and more rhobust
+/// An enum that identifies the location in the structure of the convolution
+/// Check out the [super::neighbor_grids::ElementGridConvolutionNeighborGrids] and
+/// [super::neighbor_indexes::ElementGridConvolutionNeighborIdxs] documentation for more information
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub enum </span>ConvolutionIdentifier {
+    <span class="doccomment">/// The left and right neighbors
+    </span>LR(LeftRightNeighborIdentifier),
+    <span class="doccomment">/// The top neighbors
+    </span>Top(TopNeighborIdentifier),
+    <span class="doccomment">/// The bottom neighbors
+    </span>Bottom(BottomNeighborIdentifier),
+    <span class="doccomment">/// The center
+    </span>Center,
+}
+
+<span class="doccomment">/// Identifies a coordinate on an element grid, and then uniquely identifies the chunk in the convolution that it is in
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>ConvolutionIdx(<span class="kw">pub </span>JkVector, <span class="kw">pub </span>ConvolutionIdentifier);
+
+<span class="doccomment">/// Identifies a chunk is the left or right neighbor in the convolution
+/// Check out the [super::neighbor_grids::LeftRightNeighborGrids] and
+/// [super::neighbor_indexes::LeftRightNeighborIdxs] documentation for more information
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub enum </span>LeftRightNeighborIdentifier {
+    <span class="doccomment">/// The left neighbor
+    </span>Left,
+    <span class="doccomment">/// The right neighbor
+    </span>Right,
+}
+
+<span class="doccomment">/// Identifies a chunk is one of the top neighbors in the convolution
+/// Check out the [super::neighbor_grids::TopNeighborGrids] and
+/// [super::neighbor_indexes::TopNeighborIdxs] documentation for more information
+</span><span class="attr">#[derive(Debug, Clone, Copy, EnumIter)]
+</span><span class="kw">pub enum </span>TopNeighborIdentifier {
+    <span class="doccomment">/// Indicates the top neighbors are not part of a chunk doubling layer transition
+    </span>Normal(TopNeighborIdentifierNormal),
+    <span class="doccomment">/// Indicates a **chunk doubling** layer transition
+    </span>ChunkDoubling(TopNeighborIdentifierChunkDoubling),
+}
+
+<span class="doccomment">/// Identifies that the bottom neighbor is not part of a chunk doubling layer transition
+/// However, remember that it still may have half the number of cells tangentially
+</span><span class="attr">#[derive(Debug, Clone, Copy, Default, EnumIter)]
+</span><span class="kw">pub enum </span>TopNeighborIdentifierNormal {
+    <span class="doccomment">/// The top left neighbor
+    </span>TopLeft,
+    <span class="doccomment">/// The top neighbor
+    </span><span class="attr">#[default]
+    </span>Top,
+    <span class="doccomment">/// The top right neighbor
+    </span>TopRight,
+}
+
+<span class="doccomment">/// Identifies a **chunk doubling** layer transition
+</span><span class="attr">#[derive(Debug, Clone, Copy, Default, EnumIter)]
+</span><span class="kw">pub enum </span>TopNeighborIdentifierChunkDoubling {
+    <span class="doccomment">/// The top left neighbor
+    </span>TopLeft,
+    <span class="doccomment">/// Second top center element, left of center
+    </span>Top1,
+    <span class="doccomment">/// Second top center element, right of center
+    </span><span class="attr">#[default]
+    </span>Top0,
+    <span class="doccomment">/// The top right neighbor
+    </span>TopRight,
+}
+
+<span class="doccomment">/// Identifies a chunk is one of the bottom neighbors in the convolution
+/// Check out the [super::neighbor_grids::BottomNeighborGrids] and
+/// [super::neighbor_indexes::BottomNeighborIdxs] documentation for more information
+</span><span class="attr">#[derive(Debug, Clone, Copy, EnumIter)]
+</span><span class="kw">pub enum </span>BottomNeighborIdentifier {
+    <span class="doccomment">/// Indicates the bottom neighbors are not part of a chunk doubling layer transition
+    /// However, remember that it still may have half the number of cells tangentially
+    </span>Normal(BottomNeighborIdentifierNormal),
+    <span class="doccomment">/// Indicates a **chunk doubling** layer transition
+    /// In this case the chunks half because you are going down
+    </span>ChunkDoubling(BottomNeighborIdentifierChunkDoubling),
+}
+
+<span class="doccomment">/// Identifies that the bottom neighbor is not part of a chunk doubling layer transition
+/// However, remember that it still may have half the number of cells tangentially
+</span><span class="attr">#[derive(Debug, Clone, Copy, Default, EnumIter)]
+</span><span class="kw">pub enum </span>BottomNeighborIdentifierNormal {
+    <span class="doccomment">/// The bottom left neighbor
+    </span>BottomLeft,
+    <span class="doccomment">/// The bottom neighbor
+    </span><span class="attr">#[default]
+    </span>Bottom,
+    <span class="doccomment">/// The bottom right neighbor
+    </span>BottomRight,
+}
+
+<span class="doccomment">/// Identifies a **chunk doubling** layer transition
+/// (or halfing in this case because you are going down)
+/// One of these will be directly below you, and be bigger than you off to one direction
+/// Whereas the other will be diagonally below you
+/// This depends on if your [crate::physics::fallingsand::util::vectors::ChunkIjkVector] has a `k` value which is even or odd
+/// If it is even, then the `bl` will be directly below you, and you will be straddling its right side
+/// If it is odd, then the `br` will be directly below you, and you will be straddling its left side
+</span><span class="attr">#[derive(Debug, Clone, Copy, Default, EnumIter)]
+</span><span class="kw">pub enum </span>BottomNeighborIdentifierChunkDoubling {
+    <span class="doccomment">/// The bottom left neighbor
+    </span><span class="attr">#[default]
+    </span>BottomLeft,
+    <span class="doccomment">/// The bottom right neighbor
+    </span>BottomRight,
+}
 </code></pre></div></section></main></body></html>

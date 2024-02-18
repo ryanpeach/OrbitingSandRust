@@ -417,47 +417,14 @@
 <a href="#416" id="416">416</a>
 <a href="#417" id="417">417</a>
 <a href="#418" id="418">418</a>
-<a href="#419" id="419">419</a>
-<a href="#420" id="420">420</a>
-<a href="#421" id="421">421</a>
-<a href="#422" id="422">422</a>
-<a href="#423" id="423">423</a>
-<a href="#424" id="424">424</a>
-<a href="#425" id="425">425</a>
-<a href="#426" id="426">426</a>
-<a href="#427" id="427">427</a>
-<a href="#428" id="428">428</a>
-<a href="#429" id="429">429</a>
-<a href="#430" id="430">430</a>
-<a href="#431" id="431">431</a>
-<a href="#432" id="432">432</a>
-<a href="#433" id="433">433</a>
-<a href="#434" id="434">434</a>
-<a href="#435" id="435">435</a>
-<a href="#436" id="436">436</a>
-<a href="#437" id="437">437</a>
-<a href="#438" id="438">438</a>
-<a href="#439" id="439">439</a>
-<a href="#440" id="440">440</a>
-<a href="#441" id="441">441</a>
-<a href="#442" id="442">442</a>
-<a href="#443" id="443">443</a>
-<a href="#444" id="444">444</a>
-<a href="#445" id="445">445</a>
-<a href="#446" id="446">446</a>
-<a href="#447" id="447">447</a>
-<a href="#448" id="448">448</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>bevy::math::Rect;
 <span class="kw">use </span>rand::seq::SliceRandom;
 <span class="kw">use </span>rand::thread_rng;
 <span class="kw">use </span>rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-<span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::convolution::neighbor_grids::TopNeighborGrids;
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::vectors::JkVector;
-<span class="kw">use </span><span class="kw">crate</span>::physics::heat::components::{HeatCapacity, HeatEnergy, ThermodynamicTemperature};
-<span class="kw">use </span><span class="kw">crate</span>::physics::heat::math::PropogateHeatBuilder;
 <span class="kw">use </span><span class="kw">crate</span>::physics::orbits::components::Mass;
 <span class="kw">use </span><span class="kw">crate</span>::physics::util::clock::Clock;
 
@@ -475,9 +442,11 @@
 
     <span class="doccomment">/// Some low resolution data about the world
     </span>total_mass: Mass, <span class="comment">// Total mass in kilograms
-    </span>total_mass_above: Mass, <span class="comment">// Total mass above a certain point, in kilograms
-    </span>total_heat: HeatEnergy, <span class="comment">// Total heat in joules
-    </span>total_heat_capacity_at_atp: HeatCapacity, <span class="comment">// Total heat capacity at ATP in joules per kelvin
+    // total_mass_above: Mass, // Total mass above a certain point, in kilograms
+    </span><span class="doccomment">/// The minimum temperature in the chunk that is not 0
+    </span><span class="comment">// min_temp: ThermodynamicTemperature,
+    </span><span class="doccomment">/// The maximum temperature in the chunk
+    </span><span class="comment">// max_temp: ThermodynamicTemperature,
 
     </span><span class="doccomment">/// This deals with a lock during convolution
     </span>already_processed: bool,
@@ -511,7 +480,7 @@
         {
             grid.push(fill.box_clone());
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>out = <span class="self">Self </span>{
+        <span class="self">Self </span>{
             grid: Grid::new_from_vec(
                 chunk_coords.get_num_radial_lines(),
                 chunk_coords.get_num_concentric_circles(),
@@ -521,12 +490,7 @@
             already_processed: <span class="bool-val">false</span>,
             last_set: Clock::default(),
             total_mass: Mass(<span class="number">0.0</span>),
-            total_heat_capacity_at_atp: HeatCapacity(<span class="number">0.0</span>),
-            total_heat: HeatEnergy(<span class="number">0.0</span>),
-            total_mass_above: Mass(<span class="number">0.0</span>),
-        };
-        out.recalculate_everything();
-        out
+        }
     }
 }
 
@@ -563,69 +527,56 @@
         <span class="self">self</span>.total_mass
     }
 
-    <span class="doccomment">/// Recalculate the total mass
-    </span><span class="kw">pub fn </span>recalculate_total_mass(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>mass = Mass(<span class="number">0.0</span>);
-        <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_concentric_circles() {
-            <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_radial_lines() {
-                <span class="kw">let </span>pos = JkVector { j, k };
-                mass += <span class="self">self</span>.grid.get(pos).get_mass(<span class="self">self</span>.coords.get_cell_width());
-            }
-        }
-        <span class="self">self</span>.total_mass = mass;
-    }
+    <span class="comment">// /// Recalculate the total mass
+    // pub fn recalculate_total_mass(&amp;mut self) {
+    //     let mut mass = Mass(0.0);
+    //     for j in 0..self.coords.get_num_concentric_circles() {
+    //         for k in 0..self.coords.get_num_radial_lines() {
+    //             let pos = JkVector { j, k };
+    //             mass += self.grid.get(pos).get_mass(self.coords.get_cell_width());
+    //         }
+    //     }
+    //     self.total_mass = mass;
+    // }
 
-    <span class="doccomment">/// Recalculate the heat values
-    </span><span class="kw">pub fn </span>recalculate_heat(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>heat = HeatEnergy(<span class="number">0.0</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>heat_capacity = HeatCapacity(<span class="number">0.0</span>);
-        <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_concentric_circles() {
-            <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_radial_lines() {
-                <span class="kw">let </span>pos = JkVector { j, k };
-                <span class="kw">let </span>element = <span class="self">self</span>.grid.get(pos);
-                <span class="kw">let </span>mass = element.get_mass(<span class="self">self</span>.coords.get_cell_width());
-                <span class="kw">let </span>this_heat_capacity = element.get_specific_heat().heat_capacity(mass);
-                <span class="kw">let </span>this_heat = element.get_heat();
+    </span><span class="doccomment">/// Get the maximum temperature in the directory
+    </span><span class="comment">// pub fn get_max_min_temp(&amp;self) -&gt; (ThermodynamicTemperature, ThermodynamicTemperature) {
+    //     (self.max_temp, self.min_temp)
+    // }
 
-                <span class="comment">// Add to the top level variables
-                </span>heat += this_heat;
-                heat_capacity += this_heat_capacity;
-            }
-        }
-        <span class="self">self</span>.total_heat = heat;
-        <span class="self">self</span>.total_heat_capacity_at_atp = heat_capacity;
-    }
+    // /// Recalculate the maximum temperature in the directory
+    // pub fn recalculate_max_min_temp(&amp;mut self) {
+    //     (self.max_temp, self.min_temp) = self.calc_max_min_temp();
+    // }
 
-    <span class="doccomment">/// Recalculate everything without processing
-    </span><span class="kw">pub fn </span>recalculate_everything(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.recalculate_total_mass();
-        <span class="self">self</span>.recalculate_heat();
-    }
+    </span><span class="doccomment">/// Calculate the maximum temperature in the directory
+    </span><span class="comment">// pub fn calc_max_min_temp(&amp;self) -&gt; (ThermodynamicTemperature, ThermodynamicTemperature) {
+    //     let mut max = ThermodynamicTemperature(0.0);
+    //     let mut min = ThermodynamicTemperature(f32::INFINITY);
+    //     for k in 0..self.coords.get_num_radial_lines() {
+    //         for j in 0..self.coords.get_num_concentric_circles() {
+    //             let pos = JkVector { j, k };
+    //             let element = self.grid.get(pos);
+    //             let temp = element.get_temperature(self.coords.get_cell_width());
+    //             if temp &gt; max {
+    //                 max = temp;
+    //             }
+    //             // If the temperature is 0, we don't want to include it in the minimum
+    //             // Because its usually a vaccuum
+    //             if temp &lt; min &amp;&amp; temp != ThermodynamicTemperature(0.0) {
+    //                 min = temp;
+    //             }
+    //         }
+    //     }
+    //     (max, min)
+    // }
 
-    <span class="doccomment">/// Does not calculate the total mass, just gets the set value of it
-    </span><span class="kw">pub fn </span>get_total_mass_above(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Mass {
-        <span class="self">self</span>.total_mass_above
-    }
+    </span><span class="doccomment">/// Does not calculate the total mass, just gets the set value of it
+    </span><span class="comment">// pub fn get_total_mass_above(&amp;self) -&gt; Mass {
+    //     self.total_mass_above
+    // }
 
-    <span class="doccomment">/// Get the total heat capacity at ATP
-    </span><span class="kw">pub fn </span>get_total_heat_capacity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HeatCapacity {
-        <span class="self">self</span>.total_heat_capacity_at_atp
-    }
-
-    <span class="doccomment">/// Get the total heat
-    </span><span class="kw">pub fn </span>get_total_heat(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HeatEnergy {
-        <span class="self">self</span>.total_heat
-    }
-
-    <span class="doccomment">/// Get temperature
-    /// Assume total_mass_above correlates to pressure
-    </span><span class="kw">pub fn </span>get_temperature(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ThermodynamicTemperature {
-        <span class="kw">if </span><span class="self">self</span>.get_total_heat_capacity().<span class="number">0 </span>== <span class="number">0.0 </span>{
-            <span class="kw">return </span>ThermodynamicTemperature(<span class="number">0.0</span>);
-        }
-        ThermodynamicTemperature(<span class="self">self</span>.get_total_heat().<span class="number">0 </span>/ <span class="self">self</span>.get_total_heat_capacity().<span class="number">0</span>)
-    }
-    <span class="kw">pub fn </span>get_process_unneeded(<span class="kw-2">&amp;</span><span class="self">self</span>, current_time: Clock) -&gt; bool {
+    </span><span class="kw">pub fn </span>get_process_unneeded(<span class="kw-2">&amp;</span><span class="self">self</span>, current_time: Clock) -&gt; bool {
         <span class="self">self</span>.last_set.get_current_frame() &lt; current_time.get_current_frame() - <span class="number">1
     </span>}
 }
@@ -665,8 +616,7 @@
         <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.get_chunk_coords().get_num_concentric_circles() {
             <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.get_chunk_coords().get_num_radial_lines() {
                 <span class="kw">let </span>pos = JkVector { j, k };
-                <span class="self">self</span>.grid
-                    .replace(pos, element.get_element(<span class="self">self</span>.coords.get_cell_width()));
+                <span class="self">self</span>.grid.replace(pos, element.get_element());
             }
         }
     }
@@ -683,8 +633,8 @@
         current_time: Clock,
     ) {
         <span class="self">self</span>.process_elements(coord_dir, element_grid_conv_neigh, current_time);
-        <span class="self">self</span>.process_heat(element_grid_conv_neigh, current_time);
-        <span class="self">self</span>.process_mass(element_grid_conv_neigh);
+        <span class="comment">// self.process_heat(element_grid_conv_neigh, current_time);
+        </span><span class="self">self</span>.process_mass(element_grid_conv_neigh);
     }
 
     <span class="doccomment">/// Run each elements process method
@@ -748,60 +698,48 @@
 
     <span class="doccomment">/// Process the heat of the grid
     /// Currently disabled as it is broken
-    </span><span class="attr">#[allow(dead_code)]
-    </span><span class="kw">fn </span>process_heat(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        element_grid_conv_neigh: <span class="kw-2">&amp;mut </span>ElementGridConvolutionNeighbors,
-        current_time: Clock,
-    ) {
-        <span class="self">self</span>.total_heat = HeatEnergy(<span class="number">0.0</span>);
-        <span class="self">self</span>.total_heat_capacity_at_atp = HeatCapacity(<span class="number">0.0</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>propogate_heat_builder = PropogateHeatBuilder::new(
-            <span class="self">self</span>.coords.get_num_concentric_circles(),
-            <span class="self">self</span>.coords.get_num_radial_lines(),
-            <span class="self">self</span>.coords.get_cell_width(),
-        );
-        <span class="kw">let </span>avg_neigh_temp = element_grid_conv_neigh.get_avg_temp();
-        propogate_heat_builder.border_temperatures(avg_neigh_temp);
-        <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_concentric_circles() {
-            <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_radial_lines() {
-                <span class="kw">let </span>pos = JkVector { j, k };
-                <span class="kw">let </span>element = <span class="self">self</span>.grid.get(pos);
-                <span class="kw">let </span>mass = element.get_mass(<span class="self">self</span>.coords.get_cell_width());
-                <span class="kw">let </span>heat_capacity = element.get_specific_heat().heat_capacity(mass);
-                <span class="kw">let </span>heat = element.get_heat();
+    </span><span class="comment">// #[allow(dead_code)]
+    // fn process_heat(
+    //     &amp;mut self,
+    //     element_grid_conv_neigh: &amp;mut ElementGridConvolutionNeighbors,
+    //     current_time: Clock,
+    // ) {
+    //     let mut propogate_heat_builder = PropogateHeatBuilder::new(self.coords);
+    //     let avg_neigh_temp = element_grid_conv_neigh.get_border_temps(self);
+    //     for j in 0..self.coords.get_num_concentric_circles() {
+    //         for k in 0..self.coords.get_num_radial_lines() {
+    //             let pos = JkVector { j, k };
+    //             let element = self.grid.get(pos);
 
-                <span class="comment">// Add to the top level variables
-                </span><span class="self">self</span>.total_heat += heat;
-                <span class="self">self</span>.total_heat_capacity_at_atp += heat_capacity;
+    //             // Add to the propogate heat builder
+    //             propogate_heat_builder.add(self.get_chunk_coords(), pos, element);
+    //         }
+    //     }
+    //     // Set the total mass above
+    //     // propogate_heat_builder.total_mass_above(self.total_mass_above);
 
-                <span class="comment">// Add to the propogate heat builder
-                </span>propogate_heat_builder.add(pos, element);
-            }
-        }
-        <span class="comment">// Set the total mass above
-        </span>propogate_heat_builder.total_mass_above(<span class="self">self</span>.total_mass_above);
+    //     // Now build and propogate updates to the element grid
+    //     let mut propogate_heat = propogate_heat_builder.build(avg_neigh_temp);
+    //     propogate_heat.propagate_heat(current_time);
+    //     propogate_heat.apply_to_grid(self, element_grid_conv_neigh, current_time);
+    //     // (self.max_temp, self.min_temp) = self.calc_max_min_temp();
+    // }
 
-        <span class="comment">// Now build and propogate updates to the element grid
-        </span><span class="kw">let </span>propogate_heat = propogate_heat_builder.build();
-        propogate_heat.propagate_heat(<span class="self">self</span>, current_time);
-    }
-
-    <span class="doccomment">/// Process the mass of the grid and the mass above the grid
-    </span><span class="kw">fn </span>process_mass(<span class="kw-2">&amp;mut </span><span class="self">self</span>, element_grid_conv_neigh: <span class="kw-2">&amp;mut </span>ElementGridConvolutionNeighbors) {
-        <span class="self">self</span>.total_mass_above = {
-            <span class="kw">match </span><span class="kw-2">&amp;</span>element_grid_conv_neigh.grids.top {
-                TopNeighborGrids::Normal { t, .. } =&gt; t.get_total_mass_above() + t.get_total_mass(),
-                TopNeighborGrids::ChunkDoubling { tl, tr, .. } =&gt; {
-                    tl.get_total_mass_above()
-                        + tl.get_total_mass()
-                        + tr.get_total_mass_above()
-                        + tr.get_total_mass()
-                }
-                TopNeighborGrids::TopOfGrid =&gt; Mass(<span class="number">0.0</span>),
-            }
-        };
-        <span class="self">self</span>.total_mass = (<span class="number">0</span>..<span class="self">self</span>.coords.get_num_concentric_circles())
+    </span><span class="doccomment">/// Process the mass of the grid and the mass above the grid
+    </span><span class="kw">fn </span>process_mass(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _element_grid_conv_neigh: <span class="kw-2">&amp;mut </span>ElementGridConvolutionNeighbors) {
+        <span class="comment">// self.total_mass_above = {
+        //     match &amp;element_grid_conv_neigh.grids.top {
+        //         TopNeighborGrids::Normal { t, .. } =&gt; t.get_total_mass_above() + t.get_total_mass(),
+        //         TopNeighborGrids::ChunkDoubling { tl, tr, .. } =&gt; {
+        //             tl.get_total_mass_above()
+        //                 + tl.get_total_mass()
+        //                 + tr.get_total_mass_above()
+        //                 + tr.get_total_mass()
+        //         }
+        //         TopNeighborGrids::TopOfGrid =&gt; Mass(0.0),
+        //     }
+        // };
+        </span><span class="self">self</span>.total_mass = (<span class="number">0</span>..<span class="self">self</span>.coords.get_num_concentric_circles())
             .into_par_iter()
             .map(|j| -&gt; Mass {
                 (<span class="number">0</span>..<span class="self">self</span>.coords.get_num_radial_lines())
@@ -816,7 +754,13 @@
             })
             .sum()
     }
-}
+
+    <span class="comment">// Get the heat properties of an element at an index
+    // pub fn get_heat_properties(&amp;self, idx: JkVector) -&gt; ElementHeatProperties {
+    //     let element = self.grid.get(idx);
+    //     element.get_heat_properties(self.coords.get_cell_width())
+    // }
+</span>}
 
 <span class="comment">/* Drawing */
 </span><span class="kw">impl </span>ElementGrid {
@@ -848,46 +792,42 @@
         }
     }
 
-    <span class="doccomment">/// Get the texture of the grid as to its heat
-    /// max_temp is the maximum temperature of the entire directory
-    /// min_temp is the minimum temperature of the entire directory
-    </span><span class="kw">pub fn </span>get_heat_texture(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        max_temp: ThermodynamicTemperature,
-        min_temp: ThermodynamicTemperature,
-    ) -&gt; RawImage {
-        <span class="kw">let </span><span class="kw-2">mut </span>out = Vec::with_capacity(
-            <span class="self">self</span>.coords.get_num_radial_lines() * <span class="self">self</span>.coords.get_num_concentric_circles() * <span class="number">4</span>,
-        );
-        <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_concentric_circles() {
-            <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_radial_lines() {
-                <span class="kw">let </span>element = <span class="self">self</span>.grid.get(JkVector { j, k });
-                <span class="kw">let </span>mass = element.get_mass(<span class="self">self</span>.coords.get_cell_width());
-                <span class="kw">let </span>color = element
-                    .get_heat()
-                    .temperature(element.get_specific_heat().heat_capacity(mass))
-                    .linear_color(max_temp, min_temp)
-                    .as_rgba_u8();
-                out.push(color[<span class="number">0</span>]);
-                out.push(color[<span class="number">1</span>]);
-                out.push(color[<span class="number">2</span>]);
-                out.push(color[<span class="number">3</span>]);
-            }
-        }
-        RawImage {
-            pixels: out,
-            bounds: Rect::new(
-                <span class="self">self</span>.coords.get_start_radial_line() <span class="kw">as </span>f32,
-                <span class="self">self</span>.coords.get_start_concentric_circle_absolute() <span class="kw">as </span>f32,
-                <span class="self">self</span>.coords.get_start_radial_line() <span class="kw">as </span>f32
-                    + <span class="self">self</span>.coords.get_num_radial_lines() <span class="kw">as </span>f32,
-                <span class="self">self</span>.coords.get_start_concentric_circle_absolute() <span class="kw">as </span>f32
-                    + <span class="self">self</span>.coords.get_num_concentric_circles() <span class="kw">as </span>f32,
-            ),
-        }
-    }
+    <span class="comment">// Get the texture of the grid as to its heat
+    // max_temp is the maximum temperature of the entire directory
+    // min_temp is the minimum temperature of the entire directory
+    // pub fn get_heat_texture(
+    //     &amp;self,
+    //     // max_temp: ThermodynamicTemperature,
+    //     // min_temp: ThermodynamicTemperature,
+    // ) -&gt; RawImage {
+    //     let mut out = Vec::with_capacity(
+    //         self.coords.get_num_radial_lines() * self.coords.get_num_concentric_circles() * 4,
+    //     );
+    //     let cell_width = self.coords.get_cell_width();
+    //     for j in 0..self.coords.get_num_concentric_circles() {
+    //         for k in 0..self.coords.get_num_radial_lines() {
+    //             let element = self.grid.get(JkVector { j, k });
+    //             let color = element.get_temperature(cell_width).color().as_rgba_u8();
+    //             out.push(color[0]);
+    //             out.push(color[1]);
+    //             out.push(color[2]);
+    //             out.push(color[3]);
+    //         }
+    //     }
+    //     RawImage {
+    //         pixels: out,
+    //         bounds: Rect::new(
+    //             self.coords.get_start_radial_line() as f32,
+    //             self.coords.get_start_concentric_circle_absolute() as f32,
+    //             self.coords.get_start_radial_line() as f32
+    //                 + self.coords.get_num_radial_lines() as f32,
+    //             self.coords.get_start_concentric_circle_absolute() as f32
+    //                 + self.coords.get_num_concentric_circles() as f32,
+    //         ),
+    //     }
+    // }
 
-    <span class="comment">// /// Save the grid
+    // /// Save the grid
     // /// dir_path is the path to the directory where the grid will be saved WITHOUT a trailing slash
     // pub fn save(&amp;self, ctx: &amp;mut ggez::Context, dir_path: &amp;str) -&gt; Result&lt;(), ggez::GameError&gt; {
     //     let idx = self.get_chunk_coords().get_chunk_idx();

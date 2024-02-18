@@ -201,10 +201,6 @@
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The brush is a circle that can be resized and moved around the screen.
 //! It can be used to apply elements to a celestial.
 
@@ -402,11 +398,7 @@
             <span class="kw">let </span>coord_dir = element_dir.get_coordinate_dir();
             <span class="kw">let </span>conversion = coord_dir.rel_pos_to_cell_idx(pos);
             <span class="kw">if let </span><span class="prelude-val">Ok</span>(coords) = conversion {
-                element_dir.set_element(
-                    coords,
-                    element_picker.<span class="number">0</span>.get_element(coord_dir.get_cell_width()),
-                    current_time,
-                );
+                element_dir.set_element(coords, element_picker.<span class="number">0</span>.get_element(), current_time);
             }
         }
     }

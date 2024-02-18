@@ -50,6 +50,33 @@
 <a href="#49" id="49">49</a>
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
+<a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
+<a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
 </pre></div><pre class="rust"><code><span class="attr">#![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
@@ -88,6 +115,33 @@
     <span class="doccomment">/// Returns the force applied to the entity by gravitation
     </span><span class="kw">pub fn </span>from_mass(mass: Mass, acceleration: GravitationalAcceleration) -&gt; <span class="self">Self </span>{
         Force(mass.<span class="number">0 </span>* acceleration.<span class="number">0</span>)
+    }
+}
+
+<span class="doccomment">/// A length in meters.
+</span><span class="attr">#[derive(Component, Debug, Clone, Copy, Add, Sub, AddAssign, SubAssign, Sum)]
+</span><span class="kw">pub struct </span>Length(<span class="kw">pub </span>f32);
+
+<span class="kw">impl </span>Default <span class="kw">for </span>Length {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        Length(<span class="number">1.0</span>)
+    }
+}
+
+<span class="kw">impl </span>Length {
+    <span class="doccomment">/// Returns the area of the length
+    </span><span class="kw">pub fn </span>area(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Area {
+        Area(<span class="self">self</span>.<span class="number">0 </span>* <span class="self">self</span>.<span class="number">0</span>)
+    }
+}
+
+<span class="doccomment">/// An area in square meters.
+</span><span class="attr">#[derive(Component, Debug, Clone, Copy, Add, Sub, AddAssign, SubAssign, Sum)]
+</span><span class="kw">pub struct </span>Area(<span class="kw">pub </span>f32);
+
+<span class="kw">impl </span>Default <span class="kw">for </span>Area {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        Area(<span class="number">1.0</span>)
     }
 }
 

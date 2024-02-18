@@ -135,56 +135,239 @@
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>bevy::{math::Vec2, render::color::Color};
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! A collection of coordinate types and their conversions
+//! Mostly for the [ChunkCoords] [crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir]
+</span><span class="attr">#![warn(missing_docs)]
+#![warn(clippy::missing_docs_in_private_items)]
 
-<span class="doccomment">/// My personal coordinate type
-/// j is the "radial" axis, kinda like y,
+</span><span class="kw">use </span>bevy::{math::Vec2, render::color::Color};
+
+<span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
+<span class="kw">use </span>derive_more::{Add, AddAssign, Sub, SubAssign};
+
+<span class="doccomment">/// A coordinate system for [ndarray]
+/// [ndarray] is row-major, so the jk vector is flipped
+/// Top left is (0, 0)
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+</span><span class="kw">pub struct </span>NdArrayCoords([usize; <span class="number">2</span>]);
+
+<span class="doccomment">/// Instantiation
+</span><span class="kw">impl </span>NdArrayCoords {
+    <span class="doccomment">/// Create a new [NdArrayCoords]
+    </span><span class="kw">pub fn </span>new(x: usize, y: usize) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>([x, y])
+    }
+}
+
+<span class="kw">impl </span>NdArrayCoords {
+    <span class="doccomment">/// Convert to a [JkVector]
+    /// ndarray is row-major, so the jk vector is flipped
+    /// Bottom Right is (0, 0)
+    </span><span class="kw">pub fn </span>to_jk_vector(<span class="self">self</span>, coords: <span class="kw-2">&amp;</span>ChunkCoords) -&gt; JkVector {
+        JkVector {
+            j: coords.get_num_concentric_circles() - <span class="number">1 </span>- <span class="self">self</span>.get_y(),
+            k: coords.get_num_radial_lines() - <span class="number">1 </span>- <span class="self">self</span>.get_x(),
+        }
+    }
+
+    <span class="doccomment">/// Get the column index
+    </span><span class="kw">pub fn </span>get_x(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>]
+    }
+
+    <span class="doccomment">/// Get the row index
+    </span><span class="kw">pub fn </span>get_y(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>]
+    }
+}
+
+<span class="kw">impl </span>From&lt;NdArrayCoords&gt; <span class="kw">for </span>[usize; <span class="number">2</span>] {
+    <span class="kw">fn </span>from(val: NdArrayCoords) -&gt; <span class="self">Self </span>{
+        val.<span class="number">0
+    </span>}
+}
+
+<span class="doccomment">/// Constants
+</span><span class="kw">impl </span>NdArrayCoords {
+    <span class="doccomment">/// The zero vector
+    </span><span class="kw">pub const </span>ZERO: <span class="self">Self </span>= <span class="self">Self</span>([<span class="number">0</span>, <span class="number">0</span>]);
+}
+
+<span class="doccomment">/// My personal coordinate type for the circular grids
+/// basically radius-theta coordinates, with integer radius and theta
+/// "counter clockwise" is positive just like in the unit circle
+/// j is the "concentric circle" or "radial" axis, kinda like y,
 ///   towards the core is 0
 /// k is the "tangential" axis, kinda like x,
-///   positive is counter clockwise from unit circle 0 degrees
-</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+///   positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
+/// Can also be used to describe a grid, like a chunk taken from the circle
+/// In this case j is the height and k is the width
+/// Bottom right is (0, 0)
+/// If you need to also know the layer number, use [IjkVector]
+/// If you need a relative vector, use [RelJkVector]
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
 </span><span class="kw">pub struct </span>JkVector {
-    <span class="kw">pub </span>j: usize,
-    <span class="kw">pub </span>k: usize,
+    <span class="doccomment">/// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
+    </span><span class="kw">pub </span>j: usize,
+    <span class="doccomment">/// The k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
+    </span><span class="kw">pub </span>k: usize,
+}
+
+<span class="doccomment">/// To [NdArrayCoords]
+/// ndarray is row-major, so the jk vector is flipped
+/// Top left is (0, 0)
+/// Whereas in a Jk Vector, the bottom right is (0, 0)
+</span><span class="kw">impl </span>JkVector {
+    <span class="doccomment">/// Convert to a [NdArrayCoords]
+    </span><span class="kw">pub fn </span>to_ndarray_coords(<span class="self">self</span>, coords: <span class="kw-2">&amp;</span>ChunkCoords) -&gt; NdArrayCoords {
+        NdArrayCoords::new(
+            coords.get_num_radial_lines() - <span class="number">1 </span>- <span class="self">self</span>.k,
+            coords.get_num_concentric_circles() - <span class="number">1 </span>- <span class="self">self</span>.j,
+        )
+    }
 }
 
 <span class="doccomment">/// Convienient constants
 </span><span class="kw">impl </span>JkVector {
-    <span class="kw">pub const </span>ZERO: <span class="self">Self </span>= <span class="self">Self </span>{ j: <span class="number">0</span>, k: <span class="number">0 </span>};
+    <span class="doccomment">/// The zero vector
+    </span><span class="kw">pub const </span>ZERO: <span class="self">Self </span>= <span class="self">Self </span>{ j: <span class="number">0</span>, k: <span class="number">0 </span>};
 }
 
 <span class="doccomment">/// Instantiation
 </span><span class="kw">impl </span>JkVector {
-    <span class="kw">pub fn </span>new(j: usize, k: usize) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Create a new [JkVector]
+    </span><span class="kw">pub fn </span>new(j: usize, k: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ j, k }
     }
 }
 
-<span class="doccomment">/// This defines a movement or a vector relative to some position
+<span class="doccomment">/// This defines a movement or a vector relative to some position on the circular grid
+/// Same as [JkVector], but with isize type fields which can contain negative numbers
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>RelJkVector {
-    <span class="kw">pub </span>rj: isize,
-    <span class="kw">pub </span>rk: isize,
+    <span class="doccomment">/// The relative j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
+    </span><span class="kw">pub </span>rj: isize,
+    <span class="doccomment">/// The relative k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
+    </span><span class="kw">pub </span>rk: isize,
 }
 
 <span class="doccomment">/// Instantiation
 </span><span class="kw">impl </span>RelJkVector {
-    <span class="kw">pub fn </span>new(rj: isize, rk: isize) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Create a new [RelJkVector]
+    </span><span class="kw">pub fn </span>new(rj: isize, rk: isize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ rj, rk }
     }
 }
 
-<span class="doccomment">/// Sometimes while resolving a relative JKVector into a JKVector you
+<span class="doccomment">/// Sometimes while resolving a relative [JkVector] into a [JkVector] when you
 /// need isize type fields
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>TempJkVector {
-    <span class="kw">pub </span>j: isize,
-    <span class="kw">pub </span>k: isize,
+    <span class="doccomment">/// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
+    </span><span class="kw">pub </span>j: isize,
+    <span class="doccomment">/// The k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
+    </span><span class="kw">pub </span>k: isize,
 }
 
 <span class="doccomment">/// Instantiation
 </span><span class="kw">impl </span>TempJkVector {
-    <span class="kw">pub fn </span>add(pos: <span class="kw-2">&amp;</span>JkVector, rel: <span class="kw-2">&amp;</span>RelJkVector) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Add a [RelJkVector] to a [JkVector]
+    </span><span class="kw">pub fn </span>add(pos: <span class="kw-2">&amp;</span>JkVector, rel: <span class="kw-2">&amp;</span>RelJkVector) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             j: pos.j <span class="kw">as </span>isize + rel.rj,
             k: pos.k <span class="kw">as </span>isize + rel.rk,
@@ -195,33 +378,41 @@
 <span class="doccomment">/// Defines both the chunk and the internal idx of the element
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>FullIdx {
-    <span class="kw">pub </span>chunk_idx: ChunkIjkVector,
-    <span class="kw">pub </span>pos: JkVector,
+    <span class="doccomment">/// The chunk index
+    </span><span class="kw">pub </span>chunk_idx: ChunkIjkVector,
+    <span class="doccomment">/// The position of an element within a chunk
+    </span><span class="kw">pub </span>pos: JkVector,
 }
 
 <span class="doccomment">/// Instantiation
 </span><span class="kw">impl </span>FullIdx {
-    <span class="kw">pub fn </span>new(chunk_idx: ChunkIjkVector, pos: JkVector) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Create a new [FullIdx]
+    </span><span class="kw">pub fn </span>new(chunk_idx: ChunkIjkVector, pos: JkVector) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ chunk_idx, pos }
     }
 }
 
-<span class="doccomment">/// Same as JkVector, but with i indicating the "layer number"
+<span class="doccomment">/// Same as [JkVector], but with i indicating the "layer number"
 /// The core is layer 0
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>IjkVector {
-    <span class="kw">pub </span>i: usize,
-    <span class="kw">pub </span>j: usize,
-    <span class="kw">pub </span>k: usize,
+    <span class="doccomment">/// The i coordinate, as in the layer number, the core is 0
+    </span><span class="kw">pub </span>i: usize,
+    <span class="doccomment">/// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
+    </span><span class="kw">pub </span>j: usize,
+    <span class="doccomment">/// The k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
+    </span><span class="kw">pub </span>k: usize,
 }
 
-<span class="doccomment">/// Convienient constants
-</span><span class="kw">impl </span>IjkVector {
-    <span class="kw">pub const </span>ZERO: <span class="self">Self </span>= <span class="self">Self </span>{ i: <span class="number">0</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>};
-    <span class="kw">pub fn </span>new(i: usize, j: usize, k: usize) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>IjkVector {
+    <span class="doccomment">/// The zero vector
+    </span><span class="kw">pub const </span>ZERO: <span class="self">Self </span>= <span class="self">Self </span>{ i: <span class="number">0</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>};
+    <span class="doccomment">/// Instantiation
+    </span><span class="kw">pub fn </span>new(i: usize, j: usize, k: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ i, j, k }
     }
-    <span class="kw">pub fn </span>to_jk_vector(<span class="self">self</span>) -&gt; JkVector {
+    <span class="doccomment">/// Convert to a [JkVector]
+    </span><span class="kw">pub fn </span>to_jk_vector(<span class="self">self</span>) -&gt; JkVector {
         JkVector {
             j: <span class="self">self</span>.j,
             k: <span class="self">self</span>.k,
@@ -231,40 +422,39 @@
 
 <span class="doccomment">/// A vertex in a mesh
 /// Originally from ggez
+/// TODO: move to bevy's types
 </span><span class="attr">#[derive(Debug, Copy, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>Vertex {
-    <span class="kw">pub </span>position: Vec2,
-    <span class="kw">pub </span>uv: Vec2,
-    <span class="kw">pub </span>color: Color,
+    <span class="doccomment">/// The position of the vertex
+    </span><span class="kw">pub </span>position: Vec2,
+    <span class="doccomment">/// The texture coordinates of the vertex
+    </span><span class="kw">pub </span>uv: Vec2,
+    <span class="doccomment">/// The color of the vertex
+    </span><span class="kw">pub </span>color: Color,
 }
 
-<span class="doccomment">/// The ijk coordinates of a chunk within an element grid directory
+<span class="doccomment">/// The [IjkVector] of a chunk within an [crate::physics::fallingsand::data::element_directory::ElementGridDir]
 /// In this case Ijk relate to the index of the chunk itself, not
 /// perportional to the cells within the chunk
-/// Eg: The chunk on the 3rd layer, two chunks up and one chunk around would be
-/// &gt; ChunkIjkVector { i: 3, j: 2, k: 1 }
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 </span><span class="kw">pub struct </span>ChunkIjkVector {
-    <span class="kw">pub </span>i: usize,
-    <span class="kw">pub </span>j: usize,
-    <span class="kw">pub </span>k: usize,
+    <span class="doccomment">/// The i coordinate, as in the layer number, the core is 0
+    </span><span class="kw">pub </span>i: usize,
+    <span class="doccomment">/// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
+    </span><span class="kw">pub </span>j: usize,
+    <span class="doccomment">/// The k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
+    </span><span class="kw">pub </span>k: usize,
 }
 
-<span class="doccomment">/// Instantiation
-</span><span class="kw">impl </span>ChunkIjkVector {
-    <span class="kw">pub fn </span>new(i: usize, j: usize, k: usize) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>ChunkIjkVector {
+    <span class="doccomment">/// Instantiation
+    </span><span class="kw">pub fn </span>new(i: usize, j: usize, k: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ i, j, k }
     }
-}
-
-<span class="doccomment">/// Convienient constants
-</span><span class="kw">impl </span>ChunkIjkVector {
-    <span class="kw">pub const </span>ZERO: <span class="self">Self </span>= <span class="self">Self </span>{ i: <span class="number">0</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>};
-}
-
-<span class="doccomment">/// Convienient conversions between coordinate types
-</span><span class="kw">impl </span>ChunkIjkVector {
-    <span class="kw">pub fn </span>to_jk_vector(<span class="self">self</span>) -&gt; JkVector {
+    <span class="doccomment">/// The zero vector
+    </span><span class="kw">pub const </span>ZERO: <span class="self">Self </span>= <span class="self">Self </span>{ i: <span class="number">0</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>};
+    <span class="doccomment">/// Convert to a [JkVector]
+    </span><span class="kw">pub fn </span>to_jk_vector(<span class="self">self</span>) -&gt; JkVector {
         JkVector {
             j: <span class="self">self</span>.j,
             k: <span class="self">self</span>.k,

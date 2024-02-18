@@ -119,9 +119,6 @@
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
 <a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>bevy::{
     app::{App, Plugin, Update},
     core_pipeline::core_2d::Camera2d,
@@ -159,7 +156,6 @@
     <span class="kw">pub </span>outline: bool,
     <span class="kw">pub </span>wireframe: bool,
     <span class="kw">pub </span>material: bool,
-    <span class="kw">pub </span>heat: bool,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>CameraWindowCheckboxes {
@@ -168,7 +164,6 @@
             outline: <span class="bool-val">false</span>,
             wireframe: <span class="bool-val">false</span>,
             material: <span class="bool-val">true</span>,
-            heat: <span class="bool-val">false</span>,
         }
     }
 }
@@ -207,7 +202,6 @@
             ui.checkbox(<span class="kw-2">&amp;mut </span>checkboxes.outline, <span class="string">"Outline"</span>);
             ui.checkbox(<span class="kw-2">&amp;mut </span>checkboxes.wireframe, <span class="string">"Wireframe"</span>);
             ui.checkbox(<span class="kw-2">&amp;mut </span>checkboxes.material, <span class="string">"Material"</span>);
-            ui.checkbox(<span class="kw-2">&amp;mut </span>checkboxes.heat, <span class="string">"Heat"</span>);
             <span class="comment">// TODO: Play Step MicroStep Pause
             // ui.separator();
             // ui.horizontal(|ui| {

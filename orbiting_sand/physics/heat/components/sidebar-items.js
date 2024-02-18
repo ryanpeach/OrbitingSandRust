@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["ROOM_TEMPERATURE_K"],"struct":["Area","HeatCapacity","HeatEnergy","Length","SpecificHeat","ThermalConductivity","ThermodynamicTemperature"]};

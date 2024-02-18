@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["fallingsand","heat","orbits","util"],"struct":["PhysicsPluginGroup"]};
+window.SIDEBAR_ITEMS = {"constant":["PHYSICS_FRAME_RATE"],"mod":["fallingsand","orbits","util"],"struct":["PhysicsPluginGroup"]};
