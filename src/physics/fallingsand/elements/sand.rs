@@ -1,5 +1,5 @@
 use super::element::{
-    Density, Element, ElementTakeOptions, ElementType, SetHeatOnZeroSpecificHeatError,
+    Density, Element, ElementTakeOptions, ElementType,
     StateOfMatter,
 };
 use super::movement::solid::solid_process;
@@ -8,7 +8,7 @@ use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionN
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
-use crate::physics::orbits::components::Length;
+
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
 

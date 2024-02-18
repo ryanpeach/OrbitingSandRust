@@ -6,17 +6,17 @@ use bevy::ecs::component::Component;
 use bevy::ecs::entity::Entity;
 
 use bevy::gizmos::gizmos::Gizmos;
-use bevy::log::warn;
+
 use bevy::render::color::Color;
 use bevy::render::view::{visibility, Visibility};
 use bevy_mod_picking::prelude::*;
 
 // use bevy_mod_picking::PickableBundle;
-use bevy::ecs::query::{With, Without};
+use bevy::ecs::query::{With};
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
-use bevy::math::{Vec2, Vec3};
+use bevy::math::{Vec2};
 
 use bevy::prelude::SpatialBundle;
 use bevy::render::mesh::Mesh;

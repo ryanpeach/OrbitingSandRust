@@ -19,7 +19,7 @@
 //! All of that is handled automagically by this API.
 
 use hashbrown::HashMap;
-use ndarray::Array1;
+
 
 use crate::physics::{
     fallingsand::{

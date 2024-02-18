@@ -44,7 +44,7 @@
 //! parallelize the computation on the CPU, so it is not a huge performance hit.
 
 use bevy::{
-    app::{App, FixedUpdate, Plugin, Update},
+    app::{App, FixedUpdate, Plugin},
     ecs::{
         entity::Entity,
         query::{With, Without},
