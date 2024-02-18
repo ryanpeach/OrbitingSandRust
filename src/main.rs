@@ -7,8 +7,9 @@ pub mod gui;
 pub mod physics;
 
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
-use crate::entities::celestials::celestial::CelestialDataPlugin;
+use crate::entities::celestials::celestial::CelestialBuilder;
 use crate::entities::celestials::earthlike::EarthLikeBuilder;
 use crate::entities::celestials::sun::SunBuilder;
 use crate::entities::EntitiesPluginGroup;
@@ -19,7 +20,7 @@ use bevy_mod_picking::low_latency_window_plugin;
 use bevy_mod_picking::DefaultPickingPlugins;
 use gui::camera::MainCamera;
 
-use crate::gui::camera::BackgroundLayer1;
+use crate::gui::camera::{BackgroundLayer1, CelestialIdx};
 use crate::gui::GuiPluginGroup;
 use crate::physics::orbits::components::{Mass, Velocity};
 
@@ -43,7 +44,8 @@ fn main() {
         .add_plugins(GuiPluginGroup)
         .add_plugins(PhysicsPluginGroup)
         .add_plugins(EntitiesPluginGroup)
-        .add_systems(PostStartup, solar_system_setup)
+        .add_plugins(WorldInspectorPlugin::new())
+        .add_systems(PostStartup, planet_only_setup)
         .run();
 }
 
@@ -55,46 +57,31 @@ fn solar_system_setup(
     mut materials: ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
+    // This indexes our created entities
+    // The "new" functions will index it for you
+    let mut idx = CelestialIdx(0);
+
     // Create earth
     let planet_data = EarthLikeBuilder::new().build();
-    CelestialDataPlugin::setup(
-        planet_data,
-        Velocity(Vec2::new(0., 1200.)),
-        Vec2::new(-10000., 0.),
-        &mut commands,
-        &mut meshes,
-        &mut materials,
-        &asset_server,
-        0,
-        true,
-    );
+    CelestialBuilder::new(&mut idx, "Earth1".to_string(), planet_data)
+        .translation(Vec2::new(-10000., 0.))
+        .velocity(Velocity(Vec2::new(0., 1200.)))
+        .build(&mut commands, &mut meshes, &mut materials, &asset_server);
 
     // Create earth2
     let planet_data = EarthLikeBuilder::new().build();
-    CelestialDataPlugin::setup(
-        planet_data,
-        Velocity(Vec2::new(0., -1200.)),
-        Vec2::new(10000., 0.),
-        &mut commands,
-        &mut meshes,
-        &mut materials,
-        &asset_server,
-        1,
-        true,
-    );
+    CelestialBuilder::new(&mut idx, "Earth2".to_string(), planet_data)
+        .translation(Vec2::new(10000., 0.))
+        .velocity(Velocity(Vec2::new(0., -1200.)))
+        .build(&mut commands, &mut meshes, &mut materials, &asset_server);
 
     // Create a sun
     let sun_data = SunBuilder::new().build();
-    CelestialDataPlugin::setup(
-        sun_data,
-        Velocity(Vec2::new(0., 0.)),
-        Vec2::new(0., 0.),
+    CelestialBuilder::new(&mut idx, "Sun".to_string(), sun_data).build(
         &mut commands,
         &mut meshes,
         &mut materials,
         &asset_server,
-        2,
-        true,
     );
 
     // Create a bunch of asteroids
@@ -132,19 +119,8 @@ fn planet_only_setup(
 ) {
     // Create earth
     let planet_data = EarthLikeBuilder::new().build();
-    let planet_id = CelestialDataPlugin::setup(
-        planet_data,
-        // Velocity(Vec2::new(0., 1200.)),
-        // Vec2::new(-10000., 0.),
-        Velocity(Vec2::new(0., 0.)),
-        Vec2::new(0., 0.),
-        &mut commands,
-        &mut meshes,
-        &mut materials,
-        &asset_server,
-        0,
-        true,
-    );
+    let planet_id = CelestialBuilder::new(&mut CelestialIdx(0), "Earth".to_string(), planet_data)
+        .build(&mut commands, &mut meshes, &mut materials, &asset_server);
 
     // Parent the camera to the sun
     commands.entity(planet_id).push_children(&[camera.single()]);

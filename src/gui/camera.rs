@@ -3,6 +3,8 @@
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
+use std::ops::Add;
+
 use bevy::{
     app::{App, Plugin, Update},
     core_pipeline::{
@@ -59,6 +61,14 @@ pub struct BackgroundLayer1;
 /// A component that allows us to enumerate over all the celestials
 #[derive(Component, Debug, Clone, Copy)]
 pub struct CelestialIdx(pub usize);
+
+impl Add<usize> for CelestialIdx {
+    type Output = Self;
+
+    fn add(self, rhs: usize) -> Self::Output {
+        CelestialIdx(self.0 + rhs)
+    }
+}
 
 impl CelestialIdx {
     /// Returns the selected celestials index
