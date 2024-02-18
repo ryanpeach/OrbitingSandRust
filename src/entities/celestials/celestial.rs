@@ -1,6 +1,6 @@
 use bevy::app::{App, FixedUpdate, Plugin, Update};
 use bevy::asset::{AssetServer, Assets, Handle};
-use bevy::core::FrameCount;
+use bevy::core::{FrameCount, Name};
 use bevy::ecs::component::Component;
 
 use bevy::ecs::entity::Entity;
@@ -8,7 +8,7 @@ use bevy::ecs::entity::Entity;
 use bevy::gizmos::gizmos::Gizmos;
 
 use bevy::render::color::Color;
-use bevy::render::view::{visibility, Visibility};
+use bevy::render::view::{ViewVisibility, Visibility, VisibilityBundle};
 use bevy_mod_picking::prelude::*;
 
 // use bevy_mod_picking::PickableBundle;
@@ -89,48 +89,6 @@ impl CelestialData {
         Self { element_grid_dir }
     }
 
-    // /// Save the combined mesh and textures to a directory
-    // /// As well as all the chunks
-    // pub fn save(&self, ctx: &mut Context, dir_path: &str) -> Result<(), ggez::GameError> {
-    //     let img = self.get_combined_mesh_texture().1.to_image(ctx);
-    //     let combined_path = format!("{}/combined.png", dir_path);
-    //     img.encode(ctx, ggez::graphics::ImageEncodingFormat::Png, combined_path)?;
-    //     self.data.element_grid_dir.save(ctx, dir_path)
-    // }
-
-    // pub fn calc_combined_mesh_outline(&self) -> OwnedMeshData {
-    //     OwnedMeshData::combine(
-    //         &self
-    //             .element_grid_dir
-    //             .get_coordinate_dir()
-    //             .get_mesh_data(MeshDrawMode::Outline),
-    //     )
-    // }
-    // pub fn calc_combined_mesh_wireframe(&self) -> OwnedMeshData {
-    //     OwnedMeshData::combine(
-    //         &self
-    //             .element_grid_dir
-    //             .get_coordinate_dir()
-    //             .get_mesh_data(MeshDrawMode::TriangleWireframe),
-    //     )
-    // }
-    // /// Only recalculates the mesh for the combined mesh, not the texture
-    // fn calc_combined_mesh(element_grid_dir: &ElementGridDir) -> OwnedMeshData {
-    //     OwnedMeshData::combine(
-    //         &element_grid_dir
-    //             .get_coordinate_dir()
-    //             .get_mesh_data(MeshDrawMode::TexturedMesh),
-    //     )
-    // }
-    // /// Retrieves the combined mesh
-    // pub fn get_combined_mesh(&self) -> &OwnedMeshData {
-    //     &self.combined_mesh
-    // }
-    // /// Only recalculates the texture for the combined mesh, not the mesh itself
-    // pub fn calc_combined_mesh_texture(&self) -> RawImage {
-    //     RawImage::combine(self.all_textures.clone(), self.combined_mesh.uv_bounds)
-    // }
-
     /// Something to call every frame
     /// This calculates only 1/9th of the grid each frame
     /// for maximum performance
@@ -165,7 +123,6 @@ pub struct CelestialBuilder {
     translation: Vec2,
     celestial_idx: CelestialIdx,
     gravitational: bool,
-    children: Vec<Entity>,
 }
 
 impl CelestialBuilder {
@@ -178,7 +135,6 @@ impl CelestialBuilder {
             velocity: Velocity(Vec2::new(0., 0.)),
             translation: Vec2::new(0., 0.),
             gravitational: true,
-            children: Vec::new(),
         };
         *idx = *idx + 1;
         out
@@ -211,7 +167,9 @@ impl CelestialBuilder {
         asset_server: &Res<AssetServer>,
     ) -> Entity {
         // Create all the chunk meshes as pairs of ChunkIjkVector and Mesh2dBundle
-        let mut children = Vec::new();
+        let mut chunks = Vec::new();
+        let mut wireframes = Vec::new();
+        let mut outlines = Vec::new();
         let element_dir = self.celestial_data.get_element_dir();
         let coordinate_dir = element_dir.get_coordinate_dir();
         let mut textures = element_dir.get_textures();
@@ -237,11 +195,12 @@ impl CelestialBuilder {
                     // Create the falling sand material
                     let chunk = commands
                         .spawn((
+                            Name::new(format!("Chunk {:?}", chunk_ijk)),
                             celestial_chunk_id,
                             MaterialMesh2dBundle {
                                 mesh: mesh_handle.into(),
                                 material: materials.add(asset_server.add(sand_material).into()),
-                                visibility: Visibility::Visible,
+                                visibility: Visibility::Inherited,
                                 ..Default::default()
                             },
                             // mesh.calc_bounds(),
@@ -253,12 +212,13 @@ impl CelestialBuilder {
                     // Now create the gizmos
                     let outline_entity = commands
                         .spawn((
+                            Name::new(format!("Outline {:?}", chunk_ijk)),
                             GizmoDrawableLoop::new(outline, Color::RED),
                             SpatialBundle {
                                 transform: Transform::from_translation(
                                     self.translation.extend(3.0),
                                 ),
-                                visibility: Visibility::Hidden,
+                                visibility: Visibility::Inherited,
                                 ..Default::default()
                             },
                             CelestialOutline,
@@ -267,12 +227,13 @@ impl CelestialBuilder {
                         .id();
                     let wireframe_entity = commands
                         .spawn((
+                            Name::new(format!("Wireframe {:?}", chunk_ijk)),
                             GizmoDrawableTriangles::new(wireframe, Color::WHITE),
                             SpatialBundle {
                                 transform: Transform::from_translation(
                                     self.translation.extend(2.0),
                                 ),
-                                visibility: Visibility::Hidden,
+                                visibility: Visibility::Inherited,
                                 ..Default::default()
                             },
                             CelestialWireframe,
@@ -281,9 +242,9 @@ impl CelestialBuilder {
                         .id();
 
                     // Parent celestial to chunk
-                    children.push(chunk);
-                    children.push(outline_entity);
-                    children.push(wireframe_entity);
+                    chunks.push(chunk);
+                    wireframes.push(outline_entity);
+                    outlines.push(wireframe_entity);
                 }
             }
         }
@@ -293,6 +254,7 @@ impl CelestialBuilder {
             commands
                 .spawn((
                     // Physics
+                    Name::new(self.name.clone()),
                     self.celestial_data
                         .get_element_dir()
                         .get_coordinate_dir()
@@ -312,15 +274,39 @@ impl CelestialBuilder {
             commands.entity(celestial_id).insert(GravitationalField);
         }
 
-        // Parent the celestial to all the chunks
-        commands
-            .entity(celestial_id)
-            .push_children(children.as_slice());
+        // Create a wireframes entity parented to the celestial
+        let wireframe_id = commands
+            .spawn((
+                Name::new("Wireframes"),
+                VisibilityBundle {
+                    visibility: Visibility::Hidden,
+                    ..Default::default()
+                },
+            ))
+            .id();
+        commands.entity(wireframe_id).push_children(&wireframes);
+        commands.entity(celestial_id).push_children(&[wireframe_id]);
+
+        // Create an outlines entity parented to the celestial
+        let outline = commands
+            .spawn((
+                Name::new("Outlines"),
+                VisibilityBundle {
+                    visibility: Visibility::Hidden,
+                    ..Default::default()
+                },
+            ))
+            .id();
+        commands.entity(outline).push_children(&outlines);
+        commands.entity(celestial_id).push_children(&[outline]);
 
         // And create events
         commands
             .entity(celestial_id)
             .insert(On::<Pointer<Down>>::send_event::<SelectCelestial>());
+
+        // Parent the chunks to the celestial
+        commands.entity(celestial_id).push_children(&chunks);
 
         // Return the celestial
         celestial_id
@@ -345,6 +331,9 @@ impl CelestialDataPlugin {
         for (celestial_id, mut celestial, mut mass) in celestial.iter_mut() {
             let mut new_textures: HashMap<ChunkIjkVector, Textures> =
                 celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
+
+            // Update the mass of the celestial after processing, which
+            // can affect its gravitational pull
             mass.0 = celestial.get_element_dir().get_total_mass().0;
 
             // Update the falling sand materials
@@ -366,10 +355,13 @@ impl CelestialDataPlugin {
     /// Draw the wireframe of the celestials cells
     pub fn draw_wireframe_system(
         mut gizmos: Gizmos,
-        query: Query<(&GizmoDrawableTriangles, &Transform, &Visibility), With<CelestialWireframe>>,
+        query: Query<
+            (&GizmoDrawableTriangles, &Transform, &ViewVisibility),
+            With<CelestialWireframe>,
+        >,
     ) {
         for (drawable, transform, visibility) in query.iter() {
-            if *visibility == visibility::Visibility::Visible {
+            if visibility.get() {
                 drawable.draw_bevy_gizmo_triangles(&mut gizmos, transform);
             }
         }
@@ -377,10 +369,10 @@ impl CelestialDataPlugin {
     /// Draw the outline of the celestials chunks
     pub fn draw_outline_system(
         mut gizmos: Gizmos,
-        query: Query<(&GizmoDrawableLoop, &Transform, &Visibility), With<CelestialOutline>>,
+        query: Query<(&GizmoDrawableLoop, &Transform, &ViewVisibility), With<CelestialOutline>>,
     ) {
         for (drawable, transform, visibility) in query.iter() {
-            if *visibility == visibility::Visibility::Visible {
+            if visibility.get() {
                 drawable.draw_bevy_gizmo_loop(&mut gizmos, transform);
             }
         }
