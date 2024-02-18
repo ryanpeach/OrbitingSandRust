@@ -12,7 +12,7 @@ opt-level = 3
 debug = false
 
 [dependencies]
-bevy = "0.12.1"
+bevy = "0.13.0"
 bevy_egui = "0.24.0"
 bevy_eventlistener = "0.6.1"
 bevy_mod_picking = { version = "0.17.0", features = ["bevy_picking_raycast"] }
