@@ -5,10 +5,7 @@
 
 use bevy::{
     app::{App, Plugin, Update},
-    core_pipeline::{
-        clear_color::ClearColorConfig,
-        core_2d::{Camera2d, Camera2dBundle},
-    },
+    core_pipeline::core_2d::{Camera2d, Camera2dBundle},
     ecs::{
         component::Component,
         entity::Entity,
@@ -20,10 +17,10 @@ use bevy::{
     input::{
         keyboard::KeyCode,
         mouse::{MouseScrollUnit, MouseWheel},
-        Input,
+        ButtonInput,
     },
     math::{Rect, Vec2, Vec3},
-    render::{color::Color, view::Visibility},
+    render::view::Visibility,
     time::Time,
     transform::components::{GlobalTransform, Transform},
     window::Window,
@@ -143,9 +140,7 @@ impl CameraPlugin {
         commands
             .spawn((
                 Camera2dBundle {
-                    camera_2d: Camera2d {
-                        clear_color: ClearColorConfig::Custom(Color::rgb(0.0, 0.0, 0.0)),
-                    },
+                    camera_2d: Camera2d::default(),
                     transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0) * 100.0),
                     ..Default::default()
                 },
@@ -184,20 +179,20 @@ impl CameraPlugin {
     /// Move the camera based on keyboard input
     fn move_camera_system(
         time: Res<Time>,
-        keyboard_input: Res<Input<KeyCode>>,
+        keyboard_input: Res<ButtonInput<KeyCode>>,
         mut query: Query<(&mut Transform, &mut Camera2d)>,
     ) {
         let mut delta = Vec3::ZERO;
-        if keyboard_input.pressed(KeyCode::A) {
+        if keyboard_input.pressed(KeyCode::KeyA) {
             delta.x -= 1.;
         }
-        if keyboard_input.pressed(KeyCode::D) {
+        if keyboard_input.pressed(KeyCode::KeyD) {
             delta.x += 1.;
         }
-        if keyboard_input.pressed(KeyCode::W) {
+        if keyboard_input.pressed(KeyCode::KeyW) {
             delta.y += 1.;
         }
-        if keyboard_input.pressed(KeyCode::S) {
+        if keyboard_input.pressed(KeyCode::KeyS) {
             delta.y -= 1.;
         }
         if delta != Vec3::ZERO {
@@ -273,7 +268,7 @@ impl CameraPlugin {
         mut commands: Commands,
         celestials: Query<(Entity, &CelestialIdx)>,
         mut camera: Query<(&Parent, Entity, &mut Transform), With<MainCamera>>,
-        mut input: ResMut<Input<KeyCode>>,
+        mut input: ResMut<ButtonInput<KeyCode>>,
     ) {
         if let Ok((parent, camera, mut transform)) = camera.get_single_mut() {
             let celestials_vec = celestials.iter().collect::<Vec<_>>();
@@ -316,7 +311,7 @@ impl CameraPlugin {
         mut commands: Commands,
         celestials: Query<(Entity, &CelestialIdx)>,
         mut camera: Query<(Entity, &mut Transform), (With<MainCamera>, Without<Parent>)>,
-        mut input: ResMut<Input<KeyCode>>,
+        mut input: ResMut<ButtonInput<KeyCode>>,
     ) {
         if input.just_pressed(KeyCode::BracketLeft) || input.just_pressed(KeyCode::BracketRight) {
             input.reset(KeyCode::BracketLeft);

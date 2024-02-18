@@ -12,6 +12,7 @@ use crate::entities::celestials::celestial::CelestialDataPlugin;
 use crate::entities::celestials::earthlike::EarthLikeBuilder;
 use crate::entities::celestials::sun::SunBuilder;
 use crate::entities::EntitiesPluginGroup;
+use bevy::math::primitives::Circle;
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy::{log::LogPlugin, prelude::*};
 use bevy_egui::EguiPlugin;
@@ -112,7 +113,7 @@ fn solar_system_setup(
             Mass(1.0),
             BackgroundLayer1,
             MaterialMesh2dBundle {
-                mesh: meshes.add(shape::Circle::new(20.).into()).into(),
+                mesh: meshes.add(Circle::new(20.).into()).into(),
                 material: materials.add(ColorMaterial::from(Color::PURPLE)),
                 transform: Transform::from_translation(pos.extend(-1.0)),
                 ..default()
