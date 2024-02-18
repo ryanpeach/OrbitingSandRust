@@ -87,11 +87,11 @@ impl ElementType {
             ElementType::DownFlier => Box::<DownFlier>::default(),
             ElementType::LeftFlier => Box::<LeftFlier>::default(),
             ElementType::RightFlier => Box::<RightFlier>::default(),
-            ElementType::Sand => Box::<Sand>::new(Sand::default()),
-            ElementType::Stone => Box::<Stone>::new(Stone::default()),
-            ElementType::Water => Box::<Water>::new(Water::default()),
-            ElementType::SolarPlasma => Box::<SolarPlasma>::new(SolarPlasma::default()),
-            ElementType::Lava => Box::<Lava>::new(Lava::default()),
+            ElementType::Sand => Box::<Sand>::default(),
+            ElementType::Stone => Box::<Stone>::default(),
+            ElementType::Water => Box::<Water>::default(),
+            ElementType::SolarPlasma => Box::<SolarPlasma>::default(),
+            ElementType::Lava => Box::<Lava>::default(),
         }
     }
 }

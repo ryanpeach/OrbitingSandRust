@@ -18,7 +18,7 @@ pub struct NdArrayCoords([usize; 2]);
 impl NdArrayCoords {
     /// Create a new [NdArrayCoords]
     pub fn new(x: usize, y: usize) -> Self {
-        Self { 0: [x, y] }
+        Self([x, y])
     }
 }
 
@@ -53,7 +53,7 @@ impl From<NdArrayCoords> for [usize; 2] {
 /// Constants
 impl NdArrayCoords {
     /// The zero vector
-    pub const ZERO: Self = Self { 0: [0, 0] };
+    pub const ZERO: Self = Self([0, 0]);
 }
 
 /// My personal coordinate type for the circular grids
