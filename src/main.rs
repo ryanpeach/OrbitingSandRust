@@ -7,6 +7,7 @@ pub mod gui;
 pub mod physics;
 
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 use crate::entities::celestials::celestial::CelestialDataPlugin;
 use crate::entities::celestials::earthlike::EarthLikeBuilder;
@@ -43,6 +44,7 @@ fn main() {
         .add_plugins(GuiPluginGroup)
         .add_plugins(PhysicsPluginGroup)
         .add_plugins(EntitiesPluginGroup)
+        .add_plugins(WorldInspectorPlugin::new())
         .add_systems(PostStartup, solar_system_setup)
         .run();
 }

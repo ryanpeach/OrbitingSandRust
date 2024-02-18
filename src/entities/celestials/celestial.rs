@@ -33,7 +33,6 @@ use bevy::transform::components::Transform;
 use hashbrown::HashMap;
 
 use crate::gui::camera::{CelestialIdx, OverlayLayer2, OverlayLayer3, SelectCelestial};
-use crate::gui::camera_window::CameraWindowCheckboxes;
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
 use crate::physics::fallingsand::util::mesh::{GizmoDrawableLoop, GizmoDrawableTriangles};
@@ -70,7 +69,6 @@ impl Plugin for CelestialDataPlugin {
             (
                 CelestialDataPlugin::draw_wireframe_system,
                 CelestialDataPlugin::draw_outline_system,
-                CelestialDataPlugin::change_falling_sand_visibility_system,
             ),
         );
         app.add_event::<SelectCelestial>();
@@ -221,7 +219,7 @@ impl CelestialDataPlugin {
                             GizmoDrawableLoop::new(outline, Color::RED),
                             SpatialBundle {
                                 transform: Transform::from_translation(translation.extend(3.0)),
-                                visibility: Visibility::Visible,
+                                visibility: Visibility::Hidden,
                                 ..Default::default()
                             },
                             CelestialOutline,
@@ -233,7 +231,7 @@ impl CelestialDataPlugin {
                             GizmoDrawableTriangles::new(wireframe, Color::WHITE),
                             SpatialBundle {
                                 transform: Transform::from_translation(translation.extend(2.0)),
-                                visibility: Visibility::Visible,
+                                visibility: Visibility::Hidden,
                                 ..Default::default()
                             },
                             CelestialWireframe,
@@ -322,68 +320,25 @@ impl CelestialDataPlugin {
         }
     }
     /// Draw the wireframe of the celestials cells
-    ///
-    /// > **TODO**
-    /// > Wish I could just set the gizmo to not have to have the camera window checkboxes
-    /// > and instead just draw all visible gizmos.
-    /// > but the checkbox utility in bevy_egui does not emit an event, and linking
-    /// > the systems via one as a modifier of Visibility and this as a reader
-    /// > created a system loop
     pub fn draw_wireframe_system(
         mut gizmos: Gizmos,
-        mut query: Query<
-            (&GizmoDrawableTriangles, &Transform, &mut Visibility),
-            With<CelestialWireframe>,
-        >,
-        checkboxes: Res<CameraWindowCheckboxes>,
+        query: Query<(&GizmoDrawableTriangles, &Transform, &Visibility), With<CelestialWireframe>>,
     ) {
-        for (drawable, transform, mut visibility) in query.iter_mut() {
-            *visibility = if checkboxes.wireframe {
-                visibility::Visibility::Visible
-            } else {
-                visibility::Visibility::Hidden
-            };
+        for (drawable, transform, visibility) in query.iter() {
             if *visibility == visibility::Visibility::Visible {
                 drawable.draw_bevy_gizmo_triangles(&mut gizmos, transform);
             }
         }
     }
     /// Draw the outline of the celestials chunks
-    ///
-    /// > **TODO**
-    /// > Wish I could just set the gizmo to not have to have the camera window checkboxes
-    /// > and instead just draw all visible gizmos.
-    /// > but the checkbox utility in bevy_egui does not emit an event, and linking
-    /// > the systems via one as a modifier of Visibility and this as a reader
-    /// > created a system loop
     pub fn draw_outline_system(
         mut gizmos: Gizmos,
-        mut query: Query<(&GizmoDrawableLoop, &Transform, &mut Visibility), With<CelestialOutline>>,
-        checkboxes: Res<CameraWindowCheckboxes>,
+        query: Query<(&GizmoDrawableLoop, &Transform, &Visibility), With<CelestialOutline>>,
     ) {
-        for (drawable, transform, mut visibility) in query.iter_mut() {
-            *visibility = if checkboxes.outline {
-                visibility::Visibility::Visible
-            } else {
-                visibility::Visibility::Hidden
-            };
+        for (drawable, transform, visibility) in query.iter() {
             if *visibility == visibility::Visibility::Visible {
                 drawable.draw_bevy_gizmo_loop(&mut gizmos, transform);
             }
-        }
-    }
-
-    /// Change falling sand visibility
-    pub fn change_falling_sand_visibility_system(
-        mut query: Query<&mut Visibility, With<FallingSandMaterial>>,
-        checkboxes: Res<CameraWindowCheckboxes>,
-    ) {
-        for mut visibility in query.iter_mut() {
-            *visibility = if checkboxes.material {
-                visibility::Visibility::Visible
-            } else {
-                visibility::Visibility::Hidden
-            };
         }
     }
 }
