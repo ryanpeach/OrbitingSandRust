@@ -210,8 +210,8 @@ impl CameraPlugin {
 
     /// Don't render entities that are not in the camera's frustum
     /// Uses the Visibility component to hide and show entities
-    /// > [!WARNING]
-    /// > TODO: This system is not currently working
+    ///
+    /// **TODO**: This system is not currently working
     #[allow(dead_code)]
     fn frustum_culling_2d(
         mut commands: Commands,

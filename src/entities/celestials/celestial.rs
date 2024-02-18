@@ -323,12 +323,12 @@ impl CelestialDataPlugin {
     }
     /// Draw the wireframe of the celestials cells
     ///
-    /// > [!WARNING]
-    /// > TODO: Wish I could just set the gizmo to not have to have the camera window checkboxes
-    /// >       and instead just draw all visible gizmos.
-    /// >       but the checkbox utility in bevy_egui does not emit an event, and linking
-    /// >       the systems via one as a modifier of Visibility and this as a reader
-    /// >       created a system loop
+    /// > **TODO**
+    /// > Wish I could just set the gizmo to not have to have the camera window checkboxes
+    /// > and instead just draw all visible gizmos.
+    /// > but the checkbox utility in bevy_egui does not emit an event, and linking
+    /// > the systems via one as a modifier of Visibility and this as a reader
+    /// > created a system loop
     pub fn draw_wireframe_system(
         mut gizmos: Gizmos,
         mut query: Query<
@@ -350,12 +350,12 @@ impl CelestialDataPlugin {
     }
     /// Draw the outline of the celestials chunks
     ///
-    /// > [!WARNING]
-    /// > TODO: Wish I could just set the gizmo to not have to have the camera window checkboxes
-    /// >       and instead just draw all visible gizmos.
-    /// >       but the checkbox utility in bevy_egui does not emit an event, and linking
-    /// >       the systems via one as a modifier of Visibility and this as a reader
-    /// >       created a system loop
+    /// > **TODO**
+    /// > Wish I could just set the gizmo to not have to have the camera window checkboxes
+    /// > and instead just draw all visible gizmos.
+    /// > but the checkbox utility in bevy_egui does not emit an event, and linking
+    /// > the systems via one as a modifier of Visibility and this as a reader
+    /// > created a system loop
     pub fn draw_outline_system(
         mut gizmos: Gizmos,
         mut query: Query<(&GizmoDrawableLoop, &Transform, &mut Visibility), With<CelestialOutline>>,

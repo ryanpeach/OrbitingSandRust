@@ -102,7 +102,7 @@ pub enum BottomNeighborIdentifierNormal {
 /// (or halfing in this case because you are going down)
 /// One of these will be directly below you, and be bigger than you off to one direction
 /// Whereas the other will be diagonally below you
-/// This depends on if your [ChunkIjkVector] has a `k` value which is even or odd
+/// This depends on if your [crate::physics::fallingsand::util::vectors::ChunkIjkVector] has a `k` value which is even or odd
 /// If it is even, then the `bl` will be directly below you, and you will be straddling its right side
 /// If it is odd, then the `br` will be directly below you, and you will be straddling its left side
 #[derive(Debug, Clone, Copy, Default, EnumIter)]

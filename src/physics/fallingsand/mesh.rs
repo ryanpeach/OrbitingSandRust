@@ -1,6 +1,6 @@
 //! # Cells
 //!
-//! ![wireframe layout](assets/docs/wireframe/wireframe.png)
+//! TODO: Find out how to add an image
 //!
 //! This is the wireframe layout of a game Celestial ([crate::entities::celestials]).
 //! Each cell in this wireframe is a "pixel"
@@ -9,6 +9,8 @@
 //! a [crate::physics::fallingsand::data::element_grid::ElementGrid].
 //!
 //! # Chunks
+//!
+//! TODO: Find out how to add an image
 //!
 //! Chunks are the most basic unit of storage in the game. They are rectangular grids
 //! in memory, and mostly rectangular wrapped around a circle in the game world.
@@ -21,7 +23,7 @@
 //!
 //! # Chunk Layouts
 //!
-//! ![chunk layout](assets/docs/wireframe/default_chunks.png)
+//! TODO: Find out how to add an image
 //!
 //! This is the default layout of chunks in the game. The game operates on a radial
 //! coordinate mesh, and the trick with radial cells is that they get smaller as
@@ -33,7 +35,7 @@
 //!
 //! # Chunk Doubling Layer Transitions
 //!
-//! ![axial chunk doubling](assets/docs/wireframe/layer_transition.png)
+//! TODO: Find out how to add an image
 //!
 //! In this picture you can see a **chunk doubling** layer transition.
 //! Not all layer transitions are chunk doubling. The goal once you start chunk doubling

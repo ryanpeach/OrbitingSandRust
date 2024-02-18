@@ -22,7 +22,7 @@
 //! 0 has 1 as its right neighbor, 3 has 2 as its left neighbor, so we can only in
 //! parallel process 0 and 3 together.
 //!
-//! > [!TIP]
+//! > **TIP**
 //! > Please familiarize yourself with [super::mesh::chunk_coords] and
 //! > [super::mesh::coordinate_directory] documentation before continuing to understand
 //! > chunk layouts etc.
@@ -34,7 +34,7 @@
 //! between layers which are not the same number of chunks, there is an order of 2
 //! difference that layers number of chunks and out own.
 //!
-//! ![layer transition](assets/docs/wireframe/layer_transition.png)
+//! TODO: Add an image of the problem
 //!
 //! This makes accessing a cell "above" or "below" us difficult, because we have to
 //! know if we are crossing a layer transition or not, and how to handle it.
@@ -50,7 +50,6 @@
 //! game would basically be impossible to be chunked.
 //!
 //! Please continue by reading the documentation for the [self::behaviors] module.
-
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
