@@ -12,8 +12,8 @@ use std::f32::consts::PI;
 /// The settings for generating the vertexes
 #[derive(Debug, Clone, Copy)]
 pub struct VertexSettings {
-    lod: usize,
-    mode: VertexMode,
+    pub lod: usize,
+    pub mode: VertexMode,
 }
 
 impl Default for VertexSettings {

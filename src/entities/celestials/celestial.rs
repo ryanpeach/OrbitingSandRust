@@ -196,7 +196,10 @@ impl CelestialBuilder {
                     let mesh_handle = mesh.load_bevy_mesh(meshes);
                     let wireframe = coordinate_dir
                         .get_chunk_at_idx(chunk_ijk)
-                        .calc_chunk_triangle_wireframe(VertexSettings::default());
+                        .calc_chunk_triangle_wireframe(VertexSettings {
+                            lod: 1,
+                            ..Default::default()
+                        });
                     let outline = coordinate_dir
                         .get_chunk_at_idx(chunk_ijk)
                         .calc_chunk_outline();
@@ -245,7 +248,7 @@ impl CelestialBuilder {
                                 transform: Transform::from_translation(
                                     self.translation.extend(2.0),
                                 ),
-                                visibility: Visibility::Inherited,
+                                visibility: Visibility::Visible,
                                 ..Default::default()
                             },
                             CelestialWireframe,
@@ -255,8 +258,8 @@ impl CelestialBuilder {
 
                     // Parent celestial to chunk
                     chunks.push(chunk);
-                    wireframes.push(outline_entity);
-                    outlines.push(wireframe_entity);
+                    wireframes.push(wireframe_entity);
+                    outlines.push(outline_entity);
                 }
             }
         }
