@@ -91,16 +91,11 @@ cargo test
 cargo bench
 
 # Now run your code
-cargo run
+cargo run --release
 
 # Install Pre-Commit Hooks
 # pip install pre-commit  # Use the pip of your choice
 pre-commit install
-
-# OPTIONAL: Install perf and https://github.com/flamegraph-rs/flamegraph for profiling
-sudo apt install linux-tools-common linux-tools-generic linux-tools-`uname -r`
-cargo install flamegraph
-cargo flamegraph
 ```
 
 # Statement on Open Source
