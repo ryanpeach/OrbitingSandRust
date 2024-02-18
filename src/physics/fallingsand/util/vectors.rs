@@ -11,6 +11,7 @@ use derive_more::{Add, AddAssign, Sub, SubAssign};
 /// A coordinate system for [ndarray]
 /// [ndarray] is row-major, so the jk vector is flipped
 /// Top left is (0, 0)
+/// ![ndarray coords](../../../../../assets/docs/wireframe/ndarray_coords.png)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NdArrayCoords([usize; 2]);
 
@@ -59,10 +60,14 @@ impl NdArrayCoords {
 /// My personal coordinate type for the circular grids
 /// basically radius-theta coordinates, with integer radius and theta
 /// "counter clockwise" is positive just like in the unit circle
+///
+/// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
+///
 /// j is the "concentric circle" or "radial" axis, kinda like y,
 ///   towards the core is 0
 /// k is the "tangential" axis, kinda like x,
 ///   positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
+///
 /// Can also be used to describe a grid, like a chunk taken from the circle
 /// In this case j is the height and k is the width
 /// Bottom right is (0, 0)
@@ -106,6 +111,7 @@ impl JkVector {
 
 /// This defines a movement or a vector relative to some position on the circular grid
 /// Same as [JkVector], but with isize type fields which can contain negative numbers
+/// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct RelJkVector {
     /// The relative j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
@@ -124,6 +130,7 @@ impl RelJkVector {
 
 /// Sometimes while resolving a relative [JkVector] into a [JkVector] when you
 /// need isize type fields
+/// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TempJkVector {
     /// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
@@ -162,6 +169,7 @@ impl FullIdx {
 
 /// Same as [JkVector], but with i indicating the "layer number"
 /// The core is layer 0
+/// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct IjkVector {
     /// The i coordinate, as in the layer number, the core is 0
@@ -204,6 +212,7 @@ pub struct Vertex {
 /// The [IjkVector] of a chunk within an [crate::physics::fallingsand::data::element_directory::ElementGridDir]
 /// In this case Ijk relate to the index of the chunk itself, not
 /// perportional to the cells within the chunk
+/// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct ChunkIjkVector {
     /// The i coordinate, as in the layer number, the core is 0

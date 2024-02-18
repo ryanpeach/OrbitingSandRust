@@ -1,3 +1,6 @@
+//! The convolution module contains the logic for getting elements from locations relative to another element
+//! in a way that is convienient for parallel processing of chunks.
+//!
 //! # Chunk Convolution and the Borrow Checker
 //!
 //! Chunk convolutions are the basis for the speed of all the planetary simulations in the game
@@ -34,10 +37,14 @@
 //! between layers which are not the same number of chunks, there is an order of 2
 //! difference that layers number of chunks and out own.
 //!
-//! TODO: Add an image of the problem
+//! In this image, a "layer" can be identified by having a consistent "chunk density"
+//! between layers chunks tend to double either in the radial or tangential direction.
+//! Chunks may also change size between layers.
 //!
-//! This makes accessing a cell "above" or "below" us difficult, because we have to
-//! know if we are crossing a layer transition or not, and how to handle it.
+//! ![default chunks](../../../../assets/docs/wireframe/default_chunks.png)
+//!
+//! This makes accessing a cell (a member of a chunk) "above" or "below" us difficult,
+//! because we have to know if we are crossing a layer transition or not, and how to handle it.
 //!
 //! # The Solution
 //!
