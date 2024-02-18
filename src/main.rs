@@ -9,7 +9,7 @@ pub mod physics;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
-use crate::entities::celestials::celestial::{CelestialBuilder, CelestialDataPlugin};
+use crate::entities::celestials::celestial::{CelestialBuilder};
 use crate::entities::celestials::earthlike::EarthLikeBuilder;
 use crate::entities::celestials::sun::SunBuilder;
 use crate::entities::EntitiesPluginGroup;
