@@ -230,6 +230,15 @@
 <a href="#229" id="229">229</a>
 <a href="#230" id="230">230</a>
 <a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A collection of coordinate types and their conversions
 //! Mostly for the [ChunkCoords] [crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir]
 </span><span class="attr">#![warn(missing_docs)]
@@ -243,6 +252,7 @@
 <span class="doccomment">/// A coordinate system for [ndarray]
 /// [ndarray] is row-major, so the jk vector is flipped
 /// Top left is (0, 0)
+/// ![ndarray coords](../../../../../assets/docs/wireframe/ndarray_coords.png)
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>NdArrayCoords([usize; <span class="number">2</span>]);
 
@@ -291,10 +301,14 @@
 <span class="doccomment">/// My personal coordinate type for the circular grids
 /// basically radius-theta coordinates, with integer radius and theta
 /// "counter clockwise" is positive just like in the unit circle
+///
+/// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
+///
 /// j is the "concentric circle" or "radial" axis, kinda like y,
 ///   towards the core is 0
 /// k is the "tangential" axis, kinda like x,
 ///   positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
+///
 /// Can also be used to describe a grid, like a chunk taken from the circle
 /// In this case j is the height and k is the width
 /// Bottom right is (0, 0)
@@ -338,6 +352,7 @@
 
 <span class="doccomment">/// This defines a movement or a vector relative to some position on the circular grid
 /// Same as [JkVector], but with isize type fields which can contain negative numbers
+/// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>RelJkVector {
     <span class="doccomment">/// The relative j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
@@ -356,6 +371,7 @@
 
 <span class="doccomment">/// Sometimes while resolving a relative [JkVector] into a [JkVector] when you
 /// need isize type fields
+/// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>TempJkVector {
     <span class="doccomment">/// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
@@ -394,6 +410,7 @@
 
 <span class="doccomment">/// Same as [JkVector], but with i indicating the "layer number"
 /// The core is layer 0
+/// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>IjkVector {
     <span class="doccomment">/// The i coordinate, as in the layer number, the core is 0
@@ -436,6 +453,7 @@
 <span class="doccomment">/// The [IjkVector] of a chunk within an [crate::physics::fallingsand::data::element_directory::ElementGridDir]
 /// In this case Ijk relate to the index of the chunk itself, not
 /// perportional to the cells within the chunk
+/// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 </span><span class="kw">pub struct </span>ChunkIjkVector {
     <span class="doccomment">/// The i coordinate, as in the layer number, the core is 0
