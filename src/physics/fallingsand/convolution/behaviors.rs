@@ -576,7 +576,7 @@ mod tests {
     mod get_below_idx_from_center {
         use super::*;
         use crate::physics::{
-            self, fallingsand::util::vectors::IjkVector, orbits::components::Length,
+            fallingsand::util::vectors::IjkVector, orbits::components::Length,
         };
 
         /// The default element grid directory for testing
@@ -679,7 +679,7 @@ mod tests {
     mod get_left_right_idx_from_center {
         use super::*;
         use crate::physics::{
-            self, fallingsand::util::vectors::IjkVector, orbits::components::Length,
+            fallingsand::util::vectors::IjkVector, orbits::components::Length,
         };
 
         /// The default element grid directory for testing

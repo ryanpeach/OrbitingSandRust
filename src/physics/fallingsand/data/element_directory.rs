@@ -862,7 +862,7 @@ impl ElementGridDir {
 #[cfg(test)]
 mod tests {
     use crate::physics::{
-        self, fallingsand::mesh::coordinate_directory::CoordinateDirBuilder,
+        fallingsand::mesh::coordinate_directory::CoordinateDirBuilder,
         orbits::components::Length,
     };
 

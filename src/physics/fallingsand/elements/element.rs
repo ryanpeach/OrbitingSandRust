@@ -197,7 +197,7 @@ mod tests {
     use bevy::render::color::Color;
     use strum::IntoEnumIterator;
 
-    use crate::physics::orbits::components::Length;
+    
 
     use super::ElementType;
 

@@ -71,7 +71,6 @@ impl Element for DownFlier {
 #[cfg(test)]
 mod tests {
     use crate::physics::{
-        self,
         fallingsand::{
             data::element_directory::ElementGridDir,
             mesh::coordinate_directory::CoordinateDirBuilder,
