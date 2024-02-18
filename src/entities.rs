@@ -4,6 +4,7 @@
 use bevy::app::{PluginGroup, PluginGroupBuilder};
 
 pub mod celestials;
+pub mod sprites;
 pub mod utils;
 
 pub struct EntitiesPluginGroup;
