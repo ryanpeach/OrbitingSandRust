@@ -8,7 +8,7 @@ use bevy::math::Rect;
 use crate::entities::utils::Radius;
 use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
-use crate::physics::heat::components::Length;
+use crate::physics::orbits::components::Length;
 use crate::physics::util::vectors::RelXyPoint;
 
 use super::chunk_coords::ChunkCoords;
@@ -737,7 +737,7 @@ mod tests {
             #[test]
             fn test_rel_pos_to_cell_idx() {
                 let coordinate_dir = CoordinateDirBuilder::new()
-                    .cell_radius(physics::heat::components::Length(1.0))
+                    .cell_radius(Length(1.0))
                     .num_layers(8)
                     .first_num_radial_lines(6)
                     .second_num_concentric_circles(3)
@@ -822,7 +822,7 @@ mod tests {
             #[test]
             fn test_cell_idx_to_chunk_idx() {
                 let coordinate_dir = CoordinateDirBuilder::new()
-                    .cell_radius(physics::heat::components::Length(1.0))
+                    .cell_radius(Length(1.0))
                     .num_layers(8)
                     .first_num_radial_lines(6)
                     .second_num_concentric_circles(3)
@@ -899,7 +899,7 @@ mod tests {
     #[test]
     fn test_radial_mesh_chunk_sizes_manual() {
         let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(physics::heat::components::Length(1.0))
+            .cell_radius(Length(1.0))
             .num_layers(8)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)

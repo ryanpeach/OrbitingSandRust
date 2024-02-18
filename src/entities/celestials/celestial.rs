@@ -32,9 +32,7 @@ use bevy::transform::components::Transform;
 
 use hashbrown::HashMap;
 
-use crate::gui::camera::{
-    CelestialIdx, OverlayLayer1, OverlayLayer2, OverlayLayer3, SelectCelestial,
-};
+use crate::gui::camera::{CelestialIdx, OverlayLayer2, OverlayLayer3, SelectCelestial};
 use crate::gui::camera_window::CameraWindowCheckboxes;
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
@@ -56,10 +54,6 @@ pub struct CelestialWireframe;
 #[derive(Component, Debug, Clone, Copy)]
 pub struct CelestialChunkIdk(ChunkIjkVector);
 
-/// Put this alongside the mesh that represents the heat map
-#[derive(Component, Debug, Clone, Copy)]
-pub struct HeatMapMaterial;
-
 /// Put this alongside the mesh that represents the falling sand itself
 #[derive(Component, Debug, Clone, Copy)]
 pub struct FallingSandMaterial;
@@ -77,7 +71,6 @@ impl Plugin for CelestialDataPlugin {
                 CelestialDataPlugin::draw_wireframe_system,
                 CelestialDataPlugin::draw_outline_system,
                 CelestialDataPlugin::change_falling_sand_visibility_system,
-                CelestialDataPlugin::change_heat_visibility_system,
             ),
         );
         app.add_event::<SelectCelestial>();
@@ -204,7 +197,6 @@ impl CelestialDataPlugin {
                         .calc_chunk_outline();
 
                     let textures = textures.remove(&chunk_ijk).unwrap();
-                    let heat_material = textures.heat_texture.unwrap().to_bevy_image();
                     let sand_material = textures.texture.unwrap().to_bevy_image();
 
                     // Create the falling sand material
@@ -220,29 +212,6 @@ impl CelestialDataPlugin {
                             // mesh.calc_bounds(),
                             PickableBundle::default(), // Makes the entity pickable
                             FallingSandMaterial,
-                        ))
-                        .id();
-
-                    // Now create the heat map
-                    // TODO: This could be optimized by just using the outline
-                    let mesh = coordinate_dir
-                        .get_chunk_at_idx(chunk_ijk)
-                        .calc_chunk_meshdata();
-                    let mesh_handle = mesh.load_bevy_mesh(meshes);
-                    let heat_chunk = commands
-                        .spawn((
-                            celestial_chunk_id,
-                            MaterialMesh2dBundle {
-                                mesh: mesh_handle.into(),
-                                material: materials.add(asset_server.add(heat_material).into()),
-                                // Move the heat map to the front
-                                transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
-                                // Turning off the heat map for now
-                                visibility: Visibility::Visible,
-                                ..Default::default()
-                            },
-                            HeatMapMaterial,
-                            OverlayLayer1,
                         ))
                         .id();
 
@@ -274,7 +243,6 @@ impl CelestialDataPlugin {
 
                     // Parent celestial to chunk
                     children.push(chunk);
-                    children.push(heat_chunk);
                     children.push(outline_entity);
                     children.push(wireframe_entity);
                 }
@@ -327,10 +295,6 @@ impl CelestialDataPlugin {
             (&Parent, &mut Handle<ColorMaterial>, &CelestialChunkIdk),
             With<FallingSandMaterial>,
         >,
-        mut heat_materials: Query<
-            (&Parent, &mut Handle<ColorMaterial>, &CelestialChunkIdk),
-            (With<HeatMapMaterial>, Without<FallingSandMaterial>),
-        >,
         mut materials: ResMut<Assets<ColorMaterial>>,
         asset_server: Res<AssetServer>,
         time: Res<Time>,
@@ -349,21 +313,6 @@ impl CelestialDataPlugin {
                         .get_mut(&chunk_ijk.0)
                         .unwrap()
                         .texture
-                        .take()
-                        .unwrap()
-                        .to_bevy_image();
-                    material.texture = Some(asset_server.add(new_texture));
-                }
-            }
-
-            // Update the heat textures
-            for (parent, material_handle, chunk_ijk) in heat_materials.iter_mut() {
-                if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
-                    let material = materials.get_mut(&*material_handle).unwrap();
-                    let new_texture = new_textures
-                        .get_mut(&chunk_ijk.0)
-                        .unwrap()
-                        .heat_texture
                         .take()
                         .unwrap()
                         .to_bevy_image();
@@ -421,20 +370,6 @@ impl CelestialDataPlugin {
             if *visibility == visibility::Visibility::Visible {
                 drawable.draw_bevy_gizmo_loop(&mut gizmos, transform);
             }
-        }
-    }
-
-    /// Change heat visibility
-    pub fn change_heat_visibility_system(
-        mut query: Query<&mut Visibility, With<HeatMapMaterial>>,
-        checkboxes: Res<CameraWindowCheckboxes>,
-    ) {
-        for mut visibility in query.iter_mut() {
-            *visibility = if checkboxes.heat {
-                visibility::Visibility::Visible
-            } else {
-                visibility::Visibility::Hidden
-            };
         }
     }
 

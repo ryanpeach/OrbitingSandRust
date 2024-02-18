@@ -1,6 +1,5 @@
 use hashbrown::{HashMap, HashSet};
 
-use crate::physics::heat::components::ThermodynamicTemperature;
 use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 
@@ -27,8 +26,6 @@ const FRAMES_PER_FULL_PROCESS: usize = 9;
 pub struct Textures {
     /// The actual texture of the elements
     pub texture: Option<RawImage>,
-    /// The texture of the heat
-    pub heat_texture: Option<RawImage>,
 }
 
 /// Useful for indicating at compile time that an iterable should be ran in parallel
@@ -661,7 +658,6 @@ impl ElementGridDir {
                     target,
                     Textures {
                         texture: Some(chunk.get_texture()),
-                        heat_texture: Some(chunk.get_heat_texture()),
                     },
                 )
             })
@@ -855,14 +851,7 @@ impl ElementGridDir {
                     }
                     let coord = ChunkIjkVector { i, j, k };
                     let tex = self.get_chunk_by_chunk_ijk(coord).get_texture();
-                    let heat_tex = self.get_chunk_by_chunk_ijk(coord).get_heat_texture();
-                    out.insert(
-                        coord,
-                        Textures {
-                            texture: Some(tex),
-                            heat_texture: Some(heat_tex),
-                        },
-                    );
+                    out.insert(coord, Textures { texture: Some(tex) });
                 }
             }
         }
@@ -872,14 +861,17 @@ impl ElementGridDir {
 
 #[cfg(test)]
 mod tests {
-    use crate::physics::{self, fallingsand::mesh::coordinate_directory::CoordinateDirBuilder};
+    use crate::physics::{
+        self, fallingsand::mesh::coordinate_directory::CoordinateDirBuilder,
+        orbits::components::Length,
+    };
 
     use super::*;
 
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {
         let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(physics::heat::components::Length(1.0))
+            .cell_radius(Length(1.0))
             .num_layers(9)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)

@@ -195,11 +195,7 @@ impl BrushPlugin {
             let coord_dir = element_dir.get_coordinate_dir();
             let conversion = coord_dir.rel_pos_to_cell_idx(pos);
             if let Ok(coords) = conversion {
-                element_dir.set_element(
-                    coords,
-                    element_picker.0.get_element(coord_dir.get_cell_width()),
-                    current_time,
-                );
+                element_dir.set_element(coords, element_picker.0.get_element(), current_time);
             }
         }
     }

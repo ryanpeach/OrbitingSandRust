@@ -7,10 +7,7 @@ use crate::physics::fallingsand::convolution::neighbor_identifiers::ConvolutionI
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
-use crate::physics::heat::components::{
-    HeatEnergy, Length, SpecificHeat, ThermalConductivity, ThermodynamicTemperature,
-};
-use crate::physics::orbits::components::{Force, Mass};
+use crate::physics::orbits::components::{Force, Length, Mass};
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
 use ndarray::Array2;
@@ -84,17 +81,17 @@ pub enum ElementType {
 
 impl ElementType {
     /// This gets the default element of the type
-    pub fn get_element(&self, cell_width: Length) -> Box<dyn Element> {
+    pub fn get_element(&self) -> Box<dyn Element> {
         match self {
             ElementType::Vacuum => Box::<Vacuum>::default(),
             ElementType::DownFlier => Box::<DownFlier>::default(),
             ElementType::LeftFlier => Box::<LeftFlier>::default(),
             ElementType::RightFlier => Box::<RightFlier>::default(),
-            ElementType::Sand => Box::<Sand>::new(Sand::new(cell_width)),
-            ElementType::Stone => Box::<Stone>::new(Stone::new(cell_width)),
-            ElementType::Water => Box::<Water>::new(Water::new(cell_width)),
-            ElementType::SolarPlasma => Box::<SolarPlasma>::new(SolarPlasma::new(cell_width)),
-            ElementType::Lava => Box::<Lava>::new(Lava::new(cell_width)),
+            ElementType::Sand => Box::<Sand>::new(Sand::default()),
+            ElementType::Stone => Box::<Stone>::new(Stone::default()),
+            ElementType::Water => Box::<Water>::new(Water::default()),
+            ElementType::SolarPlasma => Box::<SolarPlasma>::new(SolarPlasma::default()),
+            ElementType::Lava => Box::<Lava>::new(Lava::default()),
         }
     }
 }
@@ -200,7 +197,7 @@ mod tests {
     use bevy::render::color::Color;
     use strum::IntoEnumIterator;
 
-    use crate::physics::heat::components::Length;
+    use crate::physics::orbits::components::Length;
 
     use super::ElementType;
 
@@ -210,7 +207,7 @@ mod tests {
     fn test_all_elements_have_different_color() {
         let mut colors = Vec::<Color>::new();
         for element_type in ElementType::iter() {
-            let color = element_type.get_element(Length(1.0)).get_color();
+            let color = element_type.get_element().get_color();
             assert!(
                 !colors.contains(&color),
                 "Color {:?} of element {:?} is not unique",
@@ -239,7 +236,7 @@ mod tests {
     #[test]
     fn test_all_types_and_elements_correspond() {
         for element_type in ElementType::iter() {
-            let element = element_type.get_element(Length(1.0));
+            let element = element_type.get_element();
             assert_eq!(
                 element_type,
                 element.get_type(),

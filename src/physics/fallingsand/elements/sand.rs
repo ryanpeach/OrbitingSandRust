@@ -1,6 +1,6 @@
 use super::element::{
-    Compressability, Density, Element, ElementTakeOptions, ElementType,
-    SetHeatOnZeroSpecificHeatError, StateOfMatter,
+    Density, Element, ElementTakeOptions, ElementType, SetHeatOnZeroSpecificHeatError,
+    StateOfMatter,
 };
 use super::movement::solid::solid_process;
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
@@ -8,37 +8,14 @@ use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionN
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
-use crate::physics::heat::components::{
-    HeatEnergy, Length, SpecificHeat, ThermalConductivity, ThermodynamicTemperature,
-    ROOM_TEMPERATURE_K,
-};
+use crate::physics::orbits::components::Length;
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
 
 /// Literally nothing
-#[derive(Copy, Clone, Debug)]
+#[derive(Default, Copy, Clone, Debug)]
 pub struct Sand {
     last_processed: Clock,
-    heat: HeatEnergy,
-}
-
-impl Sand {
-    /// Create a new sand element
-    pub fn new(cell_width: Length) -> Self {
-        let mut out = Self {
-            last_processed: Clock::default(),
-            heat: HeatEnergy::default(),
-        };
-        out.set_heat(
-            out.get_default_temperature().heat_energy(
-                out.get_specific_heat()
-                    .heat_capacity(out.get_density().mass(cell_width)),
-            ),
-            Clock::default(),
-        )
-        .unwrap();
-        out
-    }
 }
 
 impl Element for Sand {
@@ -80,36 +57,6 @@ impl Element for Sand {
     fn box_clone(&self) -> Box<dyn Element> {
         Box::new(*self)
     }
-
-    fn get_default_temperature(&self) -> ThermodynamicTemperature {
-        ROOM_TEMPERATURE_K
-    }
-
-    fn get_heat(&self) -> HeatEnergy {
-        self.heat
-    }
-
-    fn set_heat(
-        &mut self,
-        heat: HeatEnergy,
-        current_time: Clock,
-    ) -> Result<(), SetHeatOnZeroSpecificHeatError> {
-        self.heat = heat;
-        self._set_last_processed(current_time);
-        Ok(())
-    }
-
-    fn get_specific_heat(&self) -> SpecificHeat {
-        SpecificHeat(830.)
-    }
-
-    fn get_thermal_conductivity(&self) -> ThermalConductivity {
-        ThermalConductivity(0.2)
-    }
-
-    fn get_compressability(&self) -> Compressability {
-        Compressability(0.001)
-    }
 }
 
 // 6, 0, 0
@@ -128,7 +75,7 @@ mod tests {
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {
         let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(physics::heat::components::Length(1.0))
+            .cell_radius(Length(1.0))
             .num_layers(10)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
@@ -158,7 +105,7 @@ mod tests {
             // Set the bottom right to sand
             {
                 let chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc1.0);
-                let sand = Sand::new(Length(1.0));
+                let sand = Sand::default();
                 chunk.set(loc1.1, Box::new(sand), clock);
             }
 
