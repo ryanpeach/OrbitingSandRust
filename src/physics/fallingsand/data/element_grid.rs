@@ -1,4 +1,7 @@
+use std::cell::RefCell;
+
 use bevy::math::Rect;
+use ndarray::Array2;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -8,6 +11,7 @@ use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::heat::components::{HeatCapacity, HeatEnergy, ThermodynamicTemperature};
+use crate::physics::heat::convolution::ElementHeatProperties;
 use crate::physics::heat::math::PropogateHeatBuilder;
 use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
@@ -26,9 +30,11 @@ pub struct ElementGrid {
 
     /// Some low resolution data about the world
     total_mass: Mass, // Total mass in kilograms
-    total_mass_above: Mass, // Total mass above a certain point, in kilograms
-    total_heat: HeatEnergy, // Total heat in joules
-    total_heat_capacity_at_atp: HeatCapacity, // Total heat capacity at ATP in joules per kelvin
+    // total_mass_above: Mass, // Total mass above a certain point, in kilograms
+    /// The minimum temperature in the chunk that is not 0
+    // min_temp: ThermodynamicTemperature,
+    /// The maximum temperature in the chunk
+    // max_temp: ThermodynamicTemperature,
 
     /// This deals with a lock during convolution
     already_processed: bool,
@@ -62,7 +68,7 @@ impl ElementGrid {
         {
             grid.push(fill.box_clone());
         }
-        let mut out = Self {
+        Self {
             grid: Grid::new_from_vec(
                 chunk_coords.get_num_radial_lines(),
                 chunk_coords.get_num_concentric_circles(),
@@ -72,12 +78,7 @@ impl ElementGrid {
             already_processed: false,
             last_set: Clock::default(),
             total_mass: Mass(0.0),
-            total_heat_capacity_at_atp: HeatCapacity(0.0),
-            total_heat: HeatEnergy(0.0),
-            total_mass_above: Mass(0.0),
-        };
-        out.recalculate_everything();
-        out
+        }
     }
 }
 
@@ -114,68 +115,55 @@ impl ElementGrid {
         self.total_mass
     }
 
-    /// Recalculate the total mass
-    pub fn recalculate_total_mass(&mut self) {
-        let mut mass = Mass(0.0);
-        for j in 0..self.coords.get_num_concentric_circles() {
-            for k in 0..self.coords.get_num_radial_lines() {
-                let pos = JkVector { j, k };
-                mass += self.grid.get(pos).get_mass(self.coords.get_cell_width());
-            }
-        }
-        self.total_mass = mass;
-    }
+    // /// Recalculate the total mass
+    // pub fn recalculate_total_mass(&mut self) {
+    //     let mut mass = Mass(0.0);
+    //     for j in 0..self.coords.get_num_concentric_circles() {
+    //         for k in 0..self.coords.get_num_radial_lines() {
+    //             let pos = JkVector { j, k };
+    //             mass += self.grid.get(pos).get_mass(self.coords.get_cell_width());
+    //         }
+    //     }
+    //     self.total_mass = mass;
+    // }
 
-    /// Recalculate the heat values
-    pub fn recalculate_heat(&mut self) {
-        let mut heat = HeatEnergy(0.0);
-        let mut heat_capacity = HeatCapacity(0.0);
-        for j in 0..self.coords.get_num_concentric_circles() {
-            for k in 0..self.coords.get_num_radial_lines() {
-                let pos = JkVector { j, k };
-                let element = self.grid.get(pos);
-                let mass = element.get_mass(self.coords.get_cell_width());
-                let this_heat_capacity = element.get_specific_heat().heat_capacity(mass);
-                let this_heat = element.get_heat();
+    /// Get the maximum temperature in the directory
+    // pub fn get_max_min_temp(&self) -> (ThermodynamicTemperature, ThermodynamicTemperature) {
+    //     (self.max_temp, self.min_temp)
+    // }
 
-                // Add to the top level variables
-                heat += this_heat;
-                heat_capacity += this_heat_capacity;
-            }
-        }
-        self.total_heat = heat;
-        self.total_heat_capacity_at_atp = heat_capacity;
-    }
+    // /// Recalculate the maximum temperature in the directory
+    // pub fn recalculate_max_min_temp(&mut self) {
+    //     (self.max_temp, self.min_temp) = self.calc_max_min_temp();
+    // }
 
-    /// Recalculate everything without processing
-    pub fn recalculate_everything(&mut self) {
-        self.recalculate_total_mass();
-        self.recalculate_heat();
-    }
+    /// Calculate the maximum temperature in the directory
+    // pub fn calc_max_min_temp(&self) -> (ThermodynamicTemperature, ThermodynamicTemperature) {
+    //     let mut max = ThermodynamicTemperature(0.0);
+    //     let mut min = ThermodynamicTemperature(f32::INFINITY);
+    //     for k in 0..self.coords.get_num_radial_lines() {
+    //         for j in 0..self.coords.get_num_concentric_circles() {
+    //             let pos = JkVector { j, k };
+    //             let element = self.grid.get(pos);
+    //             let temp = element.get_temperature(self.coords.get_cell_width());
+    //             if temp > max {
+    //                 max = temp;
+    //             }
+    //             // If the temperature is 0, we don't want to include it in the minimum
+    //             // Because its usually a vaccuum
+    //             if temp < min && temp != ThermodynamicTemperature(0.0) {
+    //                 min = temp;
+    //             }
+    //         }
+    //     }
+    //     (max, min)
+    // }
 
     /// Does not calculate the total mass, just gets the set value of it
-    pub fn get_total_mass_above(&self) -> Mass {
-        self.total_mass_above
-    }
+    // pub fn get_total_mass_above(&self) -> Mass {
+    //     self.total_mass_above
+    // }
 
-    /// Get the total heat capacity at ATP
-    pub fn get_total_heat_capacity(&self) -> HeatCapacity {
-        self.total_heat_capacity_at_atp
-    }
-
-    /// Get the total heat
-    pub fn get_total_heat(&self) -> HeatEnergy {
-        self.total_heat
-    }
-
-    /// Get temperature
-    /// Assume total_mass_above correlates to pressure
-    pub fn get_temperature(&self) -> ThermodynamicTemperature {
-        if self.get_total_heat_capacity().0 == 0.0 {
-            return ThermodynamicTemperature(0.0);
-        }
-        ThermodynamicTemperature(self.get_total_heat().0 / self.get_total_heat_capacity().0)
-    }
     pub fn get_process_unneeded(&self, current_time: Clock) -> bool {
         self.last_set.get_current_frame() < current_time.get_current_frame() - 1
     }
@@ -234,7 +222,7 @@ impl ElementGrid {
         current_time: Clock,
     ) {
         self.process_elements(coord_dir, element_grid_conv_neigh, current_time);
-        self.process_heat(element_grid_conv_neigh, current_time);
+        // self.process_heat(element_grid_conv_neigh, current_time);
         self.process_mass(element_grid_conv_neigh);
     }
 
@@ -299,59 +287,47 @@ impl ElementGrid {
 
     /// Process the heat of the grid
     /// Currently disabled as it is broken
-    #[allow(dead_code)]
-    fn process_heat(
-        &mut self,
-        element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
-        current_time: Clock,
-    ) {
-        self.total_heat = HeatEnergy(0.0);
-        self.total_heat_capacity_at_atp = HeatCapacity(0.0);
-        let mut propogate_heat_builder = PropogateHeatBuilder::new(
-            self.coords.get_num_concentric_circles(),
-            self.coords.get_num_radial_lines(),
-            self.coords.get_cell_width(),
-        );
-        let avg_neigh_temp = element_grid_conv_neigh.get_avg_temp();
-        propogate_heat_builder.border_temperatures(avg_neigh_temp);
-        for j in 0..self.coords.get_num_concentric_circles() {
-            for k in 0..self.coords.get_num_radial_lines() {
-                let pos = JkVector { j, k };
-                let element = self.grid.get(pos);
-                let mass = element.get_mass(self.coords.get_cell_width());
-                let heat_capacity = element.get_specific_heat().heat_capacity(mass);
-                let heat = element.get_heat();
+    // #[allow(dead_code)]
+    // fn process_heat(
+    //     &mut self,
+    //     element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
+    //     current_time: Clock,
+    // ) {
+    //     let mut propogate_heat_builder = PropogateHeatBuilder::new(self.coords);
+    //     let avg_neigh_temp = element_grid_conv_neigh.get_border_temps(self);
+    //     for j in 0..self.coords.get_num_concentric_circles() {
+    //         for k in 0..self.coords.get_num_radial_lines() {
+    //             let pos = JkVector { j, k };
+    //             let element = self.grid.get(pos);
 
-                // Add to the top level variables
-                self.total_heat += heat;
-                self.total_heat_capacity_at_atp += heat_capacity;
+    //             // Add to the propogate heat builder
+    //             propogate_heat_builder.add(self.get_chunk_coords(), pos, element);
+    //         }
+    //     }
+    //     // Set the total mass above
+    //     // propogate_heat_builder.total_mass_above(self.total_mass_above);
 
-                // Add to the propogate heat builder
-                propogate_heat_builder.add(pos, element);
-            }
-        }
-        // Set the total mass above
-        propogate_heat_builder.total_mass_above(self.total_mass_above);
-
-        // Now build and propogate updates to the element grid
-        let propogate_heat = propogate_heat_builder.build();
-        propogate_heat.propagate_heat(self, current_time);
-    }
+    //     // Now build and propogate updates to the element grid
+    //     let mut propogate_heat = propogate_heat_builder.build(avg_neigh_temp);
+    //     propogate_heat.propagate_heat(current_time);
+    //     propogate_heat.apply_to_grid(self, element_grid_conv_neigh, current_time);
+    //     // (self.max_temp, self.min_temp) = self.calc_max_min_temp();
+    // }
 
     /// Process the mass of the grid and the mass above the grid
-    fn process_mass(&mut self, element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors) {
-        self.total_mass_above = {
-            match &element_grid_conv_neigh.grids.top {
-                TopNeighborGrids::Normal { t, .. } => t.get_total_mass_above() + t.get_total_mass(),
-                TopNeighborGrids::ChunkDoubling { tl, tr, .. } => {
-                    tl.get_total_mass_above()
-                        + tl.get_total_mass()
-                        + tr.get_total_mass_above()
-                        + tr.get_total_mass()
-                }
-                TopNeighborGrids::TopOfGrid => Mass(0.0),
-            }
-        };
+    fn process_mass(&mut self, _element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors) {
+        // self.total_mass_above = {
+        //     match &element_grid_conv_neigh.grids.top {
+        //         TopNeighborGrids::Normal { t, .. } => t.get_total_mass_above() + t.get_total_mass(),
+        //         TopNeighborGrids::ChunkDoubling { tl, tr, .. } => {
+        //             tl.get_total_mass_above()
+        //                 + tl.get_total_mass()
+        //                 + tr.get_total_mass_above()
+        //                 + tr.get_total_mass()
+        //         }
+        //         TopNeighborGrids::TopOfGrid => Mass(0.0),
+        //     }
+        // };
         self.total_mass = (0..self.coords.get_num_concentric_circles())
             .into_par_iter()
             .map(|j| -> Mass {
@@ -367,6 +343,12 @@ impl ElementGrid {
             })
             .sum()
     }
+
+    // Get the heat properties of an element at an index
+    // pub fn get_heat_properties(&self, idx: JkVector) -> ElementHeatProperties {
+    //     let element = self.grid.get(idx);
+    //     element.get_heat_properties(self.coords.get_cell_width())
+    // }
 }
 
 /* Drawing */
@@ -399,44 +381,40 @@ impl ElementGrid {
         }
     }
 
-    /// Get the texture of the grid as to its heat
-    /// max_temp is the maximum temperature of the entire directory
-    /// min_temp is the minimum temperature of the entire directory
-    pub fn get_heat_texture(
-        &self,
-        max_temp: ThermodynamicTemperature,
-        min_temp: ThermodynamicTemperature,
-    ) -> RawImage {
-        let mut out = Vec::with_capacity(
-            self.coords.get_num_radial_lines() * self.coords.get_num_concentric_circles() * 4,
-        );
-        for j in 0..self.coords.get_num_concentric_circles() {
-            for k in 0..self.coords.get_num_radial_lines() {
-                let element = self.grid.get(JkVector { j, k });
-                let mass = element.get_mass(self.coords.get_cell_width());
-                let color = element
-                    .get_heat()
-                    .temperature(element.get_specific_heat().heat_capacity(mass))
-                    .linear_color(max_temp, min_temp)
-                    .as_rgba_u8();
-                out.push(color[0]);
-                out.push(color[1]);
-                out.push(color[2]);
-                out.push(color[3]);
-            }
-        }
-        RawImage {
-            pixels: out,
-            bounds: Rect::new(
-                self.coords.get_start_radial_line() as f32,
-                self.coords.get_start_concentric_circle_absolute() as f32,
-                self.coords.get_start_radial_line() as f32
-                    + self.coords.get_num_radial_lines() as f32,
-                self.coords.get_start_concentric_circle_absolute() as f32
-                    + self.coords.get_num_concentric_circles() as f32,
-            ),
-        }
-    }
+    // Get the texture of the grid as to its heat
+    // max_temp is the maximum temperature of the entire directory
+    // min_temp is the minimum temperature of the entire directory
+    // pub fn get_heat_texture(
+    //     &self,
+    //     // max_temp: ThermodynamicTemperature,
+    //     // min_temp: ThermodynamicTemperature,
+    // ) -> RawImage {
+    //     let mut out = Vec::with_capacity(
+    //         self.coords.get_num_radial_lines() * self.coords.get_num_concentric_circles() * 4,
+    //     );
+    //     let cell_width = self.coords.get_cell_width();
+    //     for j in 0..self.coords.get_num_concentric_circles() {
+    //         for k in 0..self.coords.get_num_radial_lines() {
+    //             let element = self.grid.get(JkVector { j, k });
+    //             let color = element.get_temperature(cell_width).color().as_rgba_u8();
+    //             out.push(color[0]);
+    //             out.push(color[1]);
+    //             out.push(color[2]);
+    //             out.push(color[3]);
+    //         }
+    //     }
+    //     RawImage {
+    //         pixels: out,
+    //         bounds: Rect::new(
+    //             self.coords.get_start_radial_line() as f32,
+    //             self.coords.get_start_concentric_circle_absolute() as f32,
+    //             self.coords.get_start_radial_line() as f32
+    //                 + self.coords.get_num_radial_lines() as f32,
+    //             self.coords.get_start_concentric_circle_absolute() as f32
+    //                 + self.coords.get_num_concentric_circles() as f32,
+    //         ),
+    //     }
+    // }
 
     // /// Save the grid
     // /// dir_path is the path to the directory where the grid will be saved WITHOUT a trailing slash
