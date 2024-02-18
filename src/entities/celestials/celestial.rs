@@ -1,3 +1,8 @@
+//! Celestial entities and their data
+//! A celestial is a large body in space, such as a planet or star
+#![warn(missing_docs)]
+#![warn(clippy::missing_docs_in_private_items)]
+
 use bevy::app::{App, FixedUpdate, Plugin, Update};
 use bevy::asset::{AssetServer, Assets, Handle};
 use bevy::core::{FrameCount, Name};
@@ -117,11 +122,17 @@ impl CelestialData {
 
 /// Create a celestial using a builder pattern
 pub struct CelestialBuilder {
+    /// The name of the celestial
     name: String,
+    /// A component that wraps the element directory
     celestial_data: CelestialData,
+    /// The starting velocity of the celestial
     velocity: Velocity,
+    /// The starting position of the celestial
     translation: Vec2,
+    /// The index of the celestial (0 to n), used for camera control
     celestial_idx: CelestialIdx,
+    /// Whether the celestial has a gravitational field
     gravitational: bool,
 }
 
