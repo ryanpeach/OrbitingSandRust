@@ -157,25 +157,62 @@ impl CelestialData {
     }
 }
 
-/// Bevy Systems
-impl CelestialDataPlugin {
-    /// Draws all the chunks and sets them up as child entities of the celestial
-    /// TODO: Should this be a system
-    #[allow(clippy::too_many_arguments)]
-    pub fn setup(
-        mut celestial: CelestialData,
-        velocity: Velocity,
-        translation: Vec2,
+/// Create a celestial using a builder pattern
+pub struct CelestialBuilder {
+    name: String,
+    celestial_data: CelestialData,
+    velocity: Velocity,
+    translation: Vec2,
+    celestial_idx: CelestialIdx,
+    gravitational: bool,
+    children: Vec<Entity>,
+}
+
+impl CelestialBuilder {
+    /// Create a new celestial builder
+    pub fn new(idx: &mut CelestialIdx, name: String, data: CelestialData) -> Self {
+        let out = Self {
+            name: name,
+            celestial_data: data,
+            celestial_idx: idx.clone(),
+            velocity: Velocity(Vec2::new(0., 0.)),
+            translation: Vec2::new(0., 0.),
+            gravitational: true,
+            children: Vec::new(),
+        };
+        *idx = *idx + 1;
+        out
+    }
+
+    /// Set the velocity of the celestial
+    pub fn velocity(mut self, velocity: Velocity) -> Self {
+        self.velocity = velocity;
+        self
+    }
+
+    /// Set the translation of the celestial
+    pub fn translation(mut self, translation: Vec2) -> Self {
+        self.translation = translation;
+        self
+    }
+
+    /// Set the gravitational field of the celestial
+    pub fn gravitational(mut self, gravitational: bool) -> Self {
+        self.gravitational = gravitational;
+        self
+    }
+
+    /// Build the celestial
+    pub fn build(
+        self,
         commands: &mut Commands,
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<ColorMaterial>>,
         asset_server: &Res<AssetServer>,
-        celestial_idx: usize,
-        gravitational: bool,
     ) -> Entity {
         // Create all the chunk meshes as pairs of ChunkIjkVector and Mesh2dBundle
         let mut children = Vec::new();
-        let element_dir = celestial.get_element_dir_mut();
+        let element_dir = self.celestial_data.get_element_dir();
         let coordinate_dir = element_dir.get_coordinate_dir();
         let mut textures = element_dir.get_textures();
         for i in 0..coordinate_dir.get_num_layers() {
@@ -218,7 +255,9 @@ impl CelestialDataPlugin {
                         .spawn((
                             GizmoDrawableLoop::new(outline, Color::RED),
                             SpatialBundle {
-                                transform: Transform::from_translation(translation.extend(3.0)),
+                                transform: Transform::from_translation(
+                                    self.translation.extend(3.0),
+                                ),
                                 visibility: Visibility::Hidden,
                                 ..Default::default()
                             },
@@ -230,7 +269,9 @@ impl CelestialDataPlugin {
                         .spawn((
                             GizmoDrawableTriangles::new(wireframe, Color::WHITE),
                             SpatialBundle {
-                                transform: Transform::from_translation(translation.extend(2.0)),
+                                transform: Transform::from_translation(
+                                    self.translation.extend(2.0),
+                                ),
                                 visibility: Visibility::Hidden,
                                 ..Default::default()
                             },
@@ -252,22 +293,22 @@ impl CelestialDataPlugin {
             commands
                 .spawn((
                     // Physics
-                    celestial
+                    self.celestial_data
                         .get_element_dir()
                         .get_coordinate_dir()
                         .get_radius(),
-                    celestial.get_element_dir().get_total_mass(),
-                    velocity,
-                    celestial,
-                    CelestialIdx(celestial_idx),
+                    self.celestial_data.get_element_dir().get_total_mass(),
+                    self.velocity,
+                    self.celestial_data,
+                    self.celestial_idx,
                     SpatialBundle {
-                        transform: Transform::from_translation(translation.extend(0.0)),
+                        transform: Transform::from_translation(self.translation.extend(0.0)),
                         ..Default::default()
                     },
                 ))
                 .id()
         };
-        if gravitational {
+        if self.gravitational {
             commands.entity(celestial_id).insert(GravitationalField);
         }
 
@@ -284,7 +325,10 @@ impl CelestialDataPlugin {
         // Return the celestial
         celestial_id
     }
+}
 
+/// Bevy Systems
+impl CelestialDataPlugin {
     /// Run this system every frame to update the celestial
     #[allow(clippy::type_complexity)]
     pub fn process_system(
