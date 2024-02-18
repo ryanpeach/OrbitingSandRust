@@ -1,3 +1,5 @@
+//! This module contains all the elements that are used in the game.
+
 pub mod element;
 pub mod fliers;
 pub mod lava;

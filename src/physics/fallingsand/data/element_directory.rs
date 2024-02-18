@@ -1,6 +1,5 @@
 use hashbrown::{HashMap, HashSet};
 
-use crate::physics::heat::components::ThermodynamicTemperature;
 use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 
@@ -27,8 +26,6 @@ const FRAMES_PER_FULL_PROCESS: usize = 9;
 pub struct Textures {
     /// The actual texture of the elements
     pub texture: Option<RawImage>,
-    /// The texture of the heat
-    pub heat_texture: Option<RawImage>,
 }
 
 /// Useful for indicating at compile time that an iterable should be ran in parallel
@@ -51,7 +48,7 @@ struct ProcessTargets {
 }
 
 /// This calculates the convolution targets you would get by standard iteration over
-/// 3x3 convolution kernels. It excludes known edge cases, like the bottom of a layer where there is a reduction in radial chunks.
+/// 3x3 convolution kernels. It excludes known edge cases, like the bottom of a layer where there is a reduction in tangential chunkss.
 /// Run this over 0..9 frame_nb to get the targets for each frame
 fn calculate_ith_standard_convolution_targets(
     coords: CoordinateDir,
@@ -63,7 +60,7 @@ fn calculate_ith_standard_convolution_targets(
     let j_size = coords.get_total_number_concentric_chunks();
     debug_assert!(
         j_size % 3 == 0,
-        "Number of chunks in concentric circle dimension must be divisible by 3, but it is {}",
+        "Number of chunks in radial dimension must be divisible by 3, but it is {}",
         j_size
     );
 
@@ -79,36 +76,36 @@ fn calculate_ith_standard_convolution_targets(
         let (layer_num, chunk_layer_concentric_circle) = coords
             .get_layer_and_chunk_num_from_absolute_concentric_chunk(j)
             .expect("We are iterating in a well defined range");
-        let chunk_layer_radial_chunks = coords.get_layer_num_radial_chunks(layer_num);
-        let prev_chunk_layer_radial_chunks = {
+        let chunk_layer_tangential_chunkss = coords.get_layer_num_tangential_chunkss(layer_num);
+        let prev_chunk_layer_tangential_chunkss = {
             if j == 0 {
                 1usize
             } else {
-                coords.get_layer_num_radial_chunks(layer_num - 1)
+                coords.get_layer_num_tangential_chunkss(layer_num - 1)
             }
         };
         debug_assert!(
-            chunk_layer_radial_chunks == 1 || chunk_layer_radial_chunks % 3 == 0,
+            chunk_layer_tangential_chunkss == 1 || chunk_layer_tangential_chunkss % 3 == 0,
             "Chunk layer radial lines must be divisible by 3, but it is {}",
-            chunk_layer_radial_chunks
+            chunk_layer_tangential_chunkss
         );
 
-        // Skip chunks who have a neighboring bottom layer which has a reduction in radial chunks
+        // Skip chunks who have a neighboring bottom layer which has a reduction in tangential chunkss
         // as this causes convolution overlap
         if chunk_layer_concentric_circle == 0
-            && prev_chunk_layer_radial_chunks < chunk_layer_radial_chunks
-            || prev_chunk_layer_radial_chunks == 1
+            && prev_chunk_layer_tangential_chunkss < chunk_layer_tangential_chunkss
+            || prev_chunk_layer_tangential_chunkss == 1
         {
             continue;
         }
 
         // Some layers just have one chunk, we need to only produce these values on a new k
-        if chunk_layer_radial_chunks == 1 && (frame_nb % 3) != 0 {
+        if chunk_layer_tangential_chunkss == 1 && (frame_nb % 3) != 0 {
             continue;
         }
 
         // We need to step by 3 to prevent overlap. Think of a 3x3 convolution
-        for k in (start_k..chunk_layer_radial_chunks).step_by(3) {
+        for k in (start_k..chunk_layer_tangential_chunkss).step_by(3) {
             out.insert(ChunkIjkVector {
                 i: layer_num,
                 j: chunk_layer_concentric_circle,
@@ -135,20 +132,20 @@ fn calculate_ith_has_single_bottom_neighbor_targets(
     // We need to step by 3 to prevent overlap. Think of a 3x3 convolution
     for layer_num in (start_i..i_size).step_by(3) {
         // Skip any layers whos previous layer doesn't only have one chunk
-        let prev_chunk_layer_radial_chunks = {
+        let prev_chunk_layer_tangential_chunkss = {
             if layer_num == 0 {
                 1usize // Include the bottom layer
             } else {
-                coords.get_layer_num_radial_chunks(layer_num - 1)
+                coords.get_layer_num_tangential_chunkss(layer_num - 1)
             }
         };
-        if prev_chunk_layer_radial_chunks != 1 {
+        if prev_chunk_layer_tangential_chunkss != 1 {
             continue;
         }
 
         // Now add all the k's in this layer
-        let chunk_layer_radial_chunks = coords.get_layer_num_radial_chunks(layer_num);
-        for k in 0..chunk_layer_radial_chunks {
+        let chunk_layer_tangential_chunkss = coords.get_layer_num_tangential_chunkss(layer_num);
+        for k in 0..chunk_layer_tangential_chunkss {
             out.insert(ChunkIjkVector {
                 i: layer_num,
                 j: 0,
@@ -160,7 +157,7 @@ fn calculate_ith_has_single_bottom_neighbor_targets(
     Sequential(out)
 }
 
-/// This calculates the targets for the edge case where the bottom layer has a different number of radial chunks than this layer.
+/// This calculates the targets for the edge case where the bottom layer has a different number of tangential chunkss than this layer.
 /// In this case we still need to maintain a j step of 3, but we need to
 /// process all k's sequentially.
 fn calculate_ith_has_different_k_bottom_neighbor_targets(
@@ -176,22 +173,23 @@ fn calculate_ith_has_different_k_bottom_neighbor_targets(
     }
     let k_start = (frame_nb - 3) % 6;
     // We need to step by 3 to prevent overlap. Think of a 3x3 convolution
-    // We don't need to step by 3 because this only happens after concentric layer splitting
-    // and concentric layer splitting starts with 3rds
+    // We don't need to step by 3 because this only happens after radial layer splitting
+    // and radial layer splitting starts with 3rds
     // and we will always be on the bottom chunk of the layer
     for layer_num in 1..i_size {
         // Skip any layers whos previous layer doesn't only have one chunk
-        let chunk_layer_radial_chunks = coords.get_layer_num_radial_chunks(layer_num);
-        let prev_chunk_layer_radial_chunks = coords.get_layer_num_radial_chunks(layer_num - 1);
-        if prev_chunk_layer_radial_chunks == 1
-            || prev_chunk_layer_radial_chunks == chunk_layer_radial_chunks
+        let chunk_layer_tangential_chunkss = coords.get_layer_num_tangential_chunkss(layer_num);
+        let prev_chunk_layer_tangential_chunkss =
+            coords.get_layer_num_tangential_chunkss(layer_num - 1);
+        if prev_chunk_layer_tangential_chunkss == 1
+            || prev_chunk_layer_tangential_chunkss == chunk_layer_tangential_chunkss
         {
             continue;
         }
 
         // Now add all the k's in this layer but skip by 6 to prevent overlap
-        let chunk_layer_radial_chunks = coords.get_layer_num_radial_chunks(layer_num);
-        for k in (k_start..chunk_layer_radial_chunks).step_by(6) {
+        let chunk_layer_tangential_chunkss = coords.get_layer_num_tangential_chunkss(layer_num);
+        for k in (k_start..chunk_layer_tangential_chunkss).step_by(6) {
             out.insert(ChunkIjkVector {
                 i: layer_num,
                 j: 0,
@@ -236,8 +234,8 @@ pub struct ElementGridDir {
     process_targets: ProcessTargets,
     process_count: usize,
     total_mass: Mass,
-    max_temp: ThermodynamicTemperature,
-    min_temp: ThermodynamicTemperature,
+    // max_temp: ThermodynamicTemperature,
+    // min_temp: ThermodynamicTemperature,
 }
 
 impl ElementGridDir {
@@ -246,7 +244,7 @@ impl ElementGridDir {
             Vec::with_capacity(coords.get_num_layers());
         for i in 0..coords.get_num_layers() {
             let j_size = coords.get_layer_num_concentric_chunks(i);
-            let k_size = coords.get_layer_num_radial_chunks(i);
+            let k_size = coords.get_layer_num_tangential_chunkss(i);
             let mut layer = Grid::new_empty(k_size, j_size);
             for j in 0..j_size {
                 for k in 0..k_size {
@@ -258,14 +256,14 @@ impl ElementGridDir {
             chunks.push(layer);
         }
         let process_targets = pregen_process_targets(&coords);
-        let (max_temp, min_temp) = Self::calc_max_min_temp(&mut chunks);
+        // let (max_temp, min_temp) = Self::calc_max_min_temp(&mut chunks);
         Self {
             coords,
             process_targets,
             process_count: 0,
             total_mass: Self::calc_total_mass(&mut chunks),
-            max_temp,
-            min_temp,
+            // max_temp,
+            // min_temp,
             chunks,
         }
     }
@@ -279,7 +277,7 @@ impl ElementGridDir {
             Vec::with_capacity(coords.get_num_layers());
         for i in 0..coords.get_num_layers() {
             let j_size = coords.get_layer_num_concentric_chunks(i);
-            let k_size = coords.get_layer_num_radial_chunks(i);
+            let k_size = coords.get_layer_num_tangential_chunkss(i);
             let mut layer = Grid::new_empty(k_size, j_size);
             for j in 0..j_size {
                 for k in 0..k_size {
@@ -294,14 +292,14 @@ impl ElementGridDir {
             chunks.push(layer);
         }
         let process_targets = pregen_process_targets(&coords);
-        let (max_temp, min_temp) = Self::calc_max_min_temp(&mut chunks);
+        // let (max_temp, min_temp) = Self::calc_max_min_temp(&mut chunks);
         Self {
             coords,
             process_targets,
             process_count: 0,
             total_mass: Self::calc_total_mass(&mut chunks),
-            max_temp,
-            min_temp,
+            // max_temp,
+            // min_temp,
             chunks,
         }
     }
@@ -315,7 +313,7 @@ impl ElementGridDir {
     fn get_chunk_top_neighbors(&self, coord: ChunkIjkVector) -> TopNeighborIdxs {
         let top_chunk_in_layer = self.coords.get_layer_num_concentric_chunks(coord.i) - 1;
         let top_layer = self.coords.get_num_layers() - 1;
-        let radial_lines = |i: usize| self.coords.get_layer_num_radial_chunks(i);
+        let radial_lines = |i: usize| self.coords.get_layer_num_tangential_chunkss(i);
         let k_isize = coord.k as isize;
 
         // A convenience function for making a vector and adding it to the out set
@@ -340,7 +338,7 @@ impl ElementGridDir {
                 _ => default_neighbors,
             },
             (i, j) if j == top_chunk_in_layer && radial_lines(i) != radial_lines(i + 1) => {
-                TopNeighborIdxs::LayerTransition {
+                TopNeighborIdxs::ChunkDoubling {
                     tl: make_vector(i + 1, 0, k_isize * 2 + 2),
                     t1: make_vector(i + 1, 0, k_isize * 2 + 1),
                     t0: make_vector(i + 1, 0, k_isize * 2),
@@ -360,21 +358,21 @@ impl ElementGridDir {
 
     // TODO: This needs testing
     fn get_chunk_left_right_neighbors(&self, coord: ChunkIjkVector) -> LeftRightNeighborIdxs {
-        let num_radial_chunks = self.coords.get_layer_num_radial_chunks(coord.i);
+        let num_tangential_chunkss = self.coords.get_layer_num_tangential_chunkss(coord.i);
         debug_assert!(
-            num_radial_chunks > 0,
-            "Number of radial chunks must be greater than 0"
+            num_tangential_chunkss > 0,
+            "Number of tangential chunkss must be greater than 0"
         );
         let left = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
-            k: modulo(coord.k as isize + 1, num_radial_chunks),
+            k: modulo(coord.k as isize + 1, num_tangential_chunkss),
         };
         debug_assert_ne!(left, coord);
         let right = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
-            k: modulo(coord.k as isize - 1, num_radial_chunks),
+            k: modulo(coord.k as isize - 1, num_tangential_chunkss),
         };
         debug_assert_ne!(right, coord);
         debug_assert_ne!(left, right);
@@ -385,7 +383,7 @@ impl ElementGridDir {
     fn get_chunk_bottom_neighbors(&self, coord: ChunkIjkVector) -> BottomNeighborIdxs {
         let bottom_chunk_in_layer = 0usize;
         let bottom_layer = 0usize;
-        let radial_chunks = |i: usize| self.coords.get_layer_num_radial_chunks(i);
+        let tangential_chunkss = |i: usize| self.coords.get_layer_num_tangential_chunkss(i);
         let top_chunk_in_prev_layer =
             |i: usize| self.coords.get_layer_num_concentric_chunks(i - 1) - 1;
         let k_isize = coord.k as isize;
@@ -394,7 +392,7 @@ impl ElementGridDir {
             ChunkIjkVector {
                 i,
                 j,
-                k: modulo(k, radial_chunks(i)),
+                k: modulo(k, tangential_chunkss(i)),
             }
         };
 
@@ -405,25 +403,28 @@ impl ElementGridDir {
             // If going down a layer but you are not at the bottom
             (i, j, k)
                 if j == bottom_chunk_in_layer
-                    && radial_chunks(i) != radial_chunks(i - 1)
+                    && tangential_chunkss(i) != tangential_chunkss(i - 1)
                     && k % 2 == 0 =>
             {
-                BottomNeighborIdxs::LayerTransition {
+                BottomNeighborIdxs::ChunkDoubling {
                     bl: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2),
                     br: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2 - 1),
                 }
             }
             (i, j, k)
                 if j == bottom_chunk_in_layer
-                    && radial_chunks(i) != radial_chunks(i - 1)
+                    && tangential_chunkss(i) != tangential_chunkss(i - 1)
                     && k % 2 == 1 =>
             {
-                BottomNeighborIdxs::LayerTransition {
+                BottomNeighborIdxs::ChunkDoubling {
                     bl: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2 + 1),
                     br: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize / 2),
                 }
             }
-            (i, j, _) if j == bottom_chunk_in_layer && radial_chunks(i) == radial_chunks(i - 1) => {
+            (i, j, _)
+                if j == bottom_chunk_in_layer
+                    && tangential_chunkss(i) == tangential_chunkss(i - 1) =>
+            {
                 BottomNeighborIdxs::Normal {
                     bl: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize + 1),
                     b: make_vector(coord.i - 1, top_chunk_in_prev_layer(i), k_isize),
@@ -546,7 +547,7 @@ impl ElementGridDir {
         let mut out = Vec::new();
         for i in 0..self.coords.get_num_layers() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
-            let k_size = self.coords.get_layer_num_radial_chunks(i);
+            let k_size = self.coords.get_layer_num_tangential_chunkss(i);
             for j in 0..j_size {
                 for k in 0..k_size {
                     let coord = ChunkIjkVector { i, j, k };
@@ -563,7 +564,7 @@ impl ElementGridDir {
     fn unlock_all_chunks(&mut self) {
         for i in 0..self.coords.get_num_layers() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
-            let k_size = self.coords.get_layer_num_radial_chunks(i);
+            let k_size = self.coords.get_layer_num_tangential_chunkss(i);
             for j in 0..j_size {
                 for k in 0..k_size {
                     let coord = ChunkIjkVector { i, j, k };
@@ -610,7 +611,7 @@ impl ElementGridDir {
 
     /// Recalculates all the saved values
     pub fn recalculate_everything(&mut self) {
-        self.recalculate_max_min_temp();
+        // self.recalculate_max_min_temp();
         self.recalculate_total_mass();
     }
 
@@ -657,8 +658,6 @@ impl ElementGridDir {
                     target,
                     Textures {
                         texture: Some(chunk.get_texture()),
-                        // heat_texture: Some(chunk.get_heat_texture(max_temp, min_temp)),
-                        heat_texture: None,
                     },
                 )
             })
@@ -707,7 +706,7 @@ impl ElementGridDir {
         let mut out = 0;
         for i in 0..self.coords.get_num_layers() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
-            let k_size = self.coords.get_layer_num_radial_chunks(i);
+            let k_size = self.coords.get_layer_num_tangential_chunkss(i);
             for j in 0..j_size {
                 for k in 0..k_size {
                     let coord = ChunkIjkVector { i, j, k };
@@ -736,7 +735,6 @@ impl ElementGridDir {
         let mut out = Mass(0.0);
         for layer in chunks {
             for chunk in layer.into_iter().flatten() {
-                chunk.recalculate_total_mass();
                 out += chunk.get_total_mass();
             }
         }
@@ -744,36 +742,40 @@ impl ElementGridDir {
     }
 
     /// Get the maximum temperature in the directory
-    pub fn get_max_min_temp(&self) -> (ThermodynamicTemperature, ThermodynamicTemperature) {
-        (self.max_temp, self.min_temp)
-    }
+    // pub fn get_max_min_temp(&self) -> (ThermodynamicTemperature, ThermodynamicTemperature) {
+    //     (self.max_temp, self.min_temp)
+    // }
 
-    /// Recalculate the maximum temperature in the directory
-    fn recalculate_max_min_temp(&mut self) {
-        (self.max_temp, self.min_temp) = Self::calc_max_min_temp(&mut self.chunks);
-    }
+    // /// Recalculate the maximum temperature in the directory
+    // fn recalculate_max_min_temp(&mut self) {
+    //     (self.max_temp, self.min_temp) = Self::calc_max_min_temp(&mut self.chunks);
+    // }
 
-    /// Calculate the maximum temperature in the directory
-    pub fn calc_max_min_temp(
-        chunks: &mut Vec<Grid<Option<ElementGrid>>>,
-    ) -> (ThermodynamicTemperature, ThermodynamicTemperature) {
-        let mut max = ThermodynamicTemperature(0.0);
-        let mut min = ThermodynamicTemperature(f32::INFINITY);
-        for layer in chunks {
-            for chunk in layer.into_iter().flatten() {
-                chunk.recalculate_heat();
-                let temp = chunk.get_temperature();
-                if temp > max {
-                    max = temp;
-                }
-                // Min temperature should be greater than 0
-                if temp < min && temp > ThermodynamicTemperature(0.0) {
-                    min = temp;
-                }
-            }
-        }
-        (max, min)
-    }
+    // /// Calculate the maximum temperature in the directory
+    // pub fn calc_max_min_temp(
+    //     chunks: &mut Vec<Grid<Option<ElementGrid>>>,
+    // ) -> (ThermodynamicTemperature, ThermodynamicTemperature) {
+    //     let mut max = ThermodynamicTemperature(0.0);
+    //     let mut min = ThermodynamicTemperature(f32::INFINITY);
+    //     for layer in chunks {
+    //         for chunk in layer.into_iter().flatten() {
+    //             let (max_temp, min_temp) = chunk.get_max_min_temp();
+    //             if max_temp > max {
+    //                 max = max_temp;
+    //             }
+    //             // Min temperature should not equal exactly 0 because thats usually vacuum
+    //             if min_temp < min && min_temp != ThermodynamicTemperature(0.0) {
+    //                 min = min_temp;
+    //             }
+    //         }
+    //     }
+    //     // Because we exclude 0, if we get nothing but zero, we will get min==INF
+    //     // So we should fix that
+    //     if min == ThermodynamicTemperature(f32::INFINITY) {
+    //         min = ThermodynamicTemperature(0.0);
+    //     }
+    //     (max, min)
+    // }
 
     /// Gets the chunk at the given index
     /// Errors if it is currently borrowed
@@ -826,8 +828,8 @@ impl ElementGridDir {
         let mut filter: Vec<Grid<bool>> = Vec::with_capacity(self.coords.get_num_layers());
         for i in 0..self.coords.get_num_layers() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
-            let k_size = self.coords.get_layer_num_radial_chunks(i);
-            let layer = Grid::new_from_vec(k_size, j_size, vec![true; k_size * j_size]);
+            let k_size = self.coords.get_layer_num_tangential_chunkss(i);
+            let layer = Grid::new_fill(k_size, j_size, true);
             filter.push(layer);
         }
 
@@ -841,7 +843,7 @@ impl ElementGridDir {
         // let (max_temp, min_temp) = self.get_max_min_temp();
         for (i, item) in filter.iter().enumerate() {
             let j_size = self.coords.get_layer_num_concentric_chunks(i);
-            let k_size = self.coords.get_layer_num_radial_chunks(i);
+            let k_size = self.coords.get_layer_num_tangential_chunkss(i);
             for j in 0..j_size {
                 for k in 0..k_size {
                     if !item.get(JkVector { j, k }) {
@@ -849,16 +851,7 @@ impl ElementGridDir {
                     }
                     let coord = ChunkIjkVector { i, j, k };
                     let tex = self.get_chunk_by_chunk_ijk(coord).get_texture();
-                    // let heat_tex = self
-                    //     .get_chunk_by_chunk_ijk(coord)
-                    //     .get_heat_texture(max_temp, min_temp);
-                    out.insert(
-                        coord,
-                        Textures {
-                            texture: Some(tex),
-                            heat_texture: None,
-                        },
-                    );
+                    out.insert(coord, Textures { texture: Some(tex) });
                 }
             }
         }
@@ -868,14 +861,16 @@ impl ElementGridDir {
 
 #[cfg(test)]
 mod tests {
-    use crate::physics::{self, fallingsand::mesh::coordinate_directory::CoordinateDirBuilder};
+    use crate::physics::{
+        fallingsand::mesh::coordinate_directory::CoordinateDirBuilder, orbits::components::Length,
+    };
 
     use super::*;
 
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {
         let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(physics::heat::components::Length(1.0))
+            .cell_radius(Length(1.0))
             .num_layers(9)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
@@ -1108,7 +1103,7 @@ mod tests {
             let mut full_coverage = HashSet::new();
             for i in 0..element_grid_dir.coords.get_num_layers() {
                 let j_size = element_grid_dir.coords.get_layer_num_concentric_chunks(i);
-                let k_size = element_grid_dir.coords.get_layer_num_radial_chunks(i);
+                let k_size = element_grid_dir.coords.get_layer_num_tangential_chunkss(i);
                 for j in 0..j_size {
                     for k in 0..k_size {
                         full_coverage.insert(ChunkIjkVector { i, j, k });

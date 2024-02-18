@@ -4,7 +4,7 @@ A resource management and mining game simulating a realistic solar system econom
 
 # Sand
 
-Planets are circular falling sand simulations taking place on a radial grid that geometrically gets larger as it gets further from the center (like an onion).
+Planets are circular falling sand simulations taking place on a polar grid that geometrically gets larger as it gets further from the center (like an onion).
 
 The grid is drawn onto a texture which is projected onto a mesh which is generated proceedurally.
 
@@ -91,16 +91,11 @@ cargo test
 cargo bench
 
 # Now run your code
-cargo run
+cargo run --release
 
 # Install Pre-Commit Hooks
 # pip install pre-commit  # Use the pip of your choice
 pre-commit install
-
-# OPTIONAL: Install perf and https://github.com/flamegraph-rs/flamegraph for profiling
-sudo apt install linux-tools-common linux-tools-generic linux-tools-`uname -r`
-cargo install flamegraph
-cargo flamegraph
 ```
 
 # Statement on Open Source

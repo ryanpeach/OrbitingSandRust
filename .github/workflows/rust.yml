@@ -44,18 +44,10 @@ jobs:
       run: cargo install cargo-tarpaulin
 
     - name: Run tests and collect coverage
-      run: cargo tarpaulin --out Xml > coverage_output.txt
+      run: cargo tarpaulin --verbose --all-features --workspace --out xml
       continue-on-error: true
 
-    - name: Comment PR with coverage output
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const fs = require('fs');
-          const coverageOutput = fs.readFileSync('coverage_output.txt', 'utf-8');
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: `Test Coverage Output:\n\`\`\`\n${coverageOutput}\n\`\`\``
-          });
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

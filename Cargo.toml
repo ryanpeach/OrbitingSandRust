@@ -13,6 +13,7 @@ debug = false
 
 [dependencies]
 bevy = "0.12.1"
+bevy-inspector-egui = "0.22.1"
 bevy_egui = "0.24.0"
 bevy_eventlistener = "0.6.1"
 bevy_mod_picking = { version = "0.17.0", features = ["bevy_picking_raycast"] }
@@ -22,7 +23,6 @@ hashbrown = { version = "0.14.2", features = ["rayon", "ahash"] }
 itertools = "0.12.1"
 nabo = "0.3.0"
 ndarray = { version = "0.15.6", features = ["rayon", "serde", "blas"] }
-ndarray-conv = "0.2.0"
 rand = "0.8.5"
 rayon = "1.8.0"
 strum = "0.25.0"

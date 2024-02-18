@@ -20,4 +20,5 @@ check:
   cargo clippy --all-targets
 
 doc:
-  cargo doc --release --no-deps --open
+  cp -r assets/docs target/doc/assets
+  RUSTDOCFLAGS="--html-in-header katex-header.html" cargo doc --no-deps --open

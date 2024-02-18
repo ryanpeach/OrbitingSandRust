@@ -6,6 +6,7 @@
 
 use crate::entities::celestials::celestial::CelestialData;
 use crate::entities::utils::Radius;
+use crate::physics::fallingsand::util::mesh::GizmoDrawableLoop;
 use crate::physics::util::clock::Clock;
 use crate::physics::util::vectors::{mouse_coord_to_world_coord, RelXyPoint};
 use bevy::app::{App, Plugin, Update};
@@ -21,6 +22,8 @@ use bevy::input::Input;
 use bevy::log::debug;
 use bevy::math::{Vec2, Vec3};
 use bevy::prelude::Window;
+use bevy::render::color::Color;
+
 use bevy::time::Time;
 use bevy::{
     ecs::{component::Component, event::EventReader, query::With, system::Query},
@@ -100,7 +103,7 @@ impl BrushPlugin {
     ) {
         for (transform, brush_radius) in query.iter() {
             let mesh = brush_radius.calc_mesh();
-            mesh.draw_bevy_gizmo_outline(&mut gizmos, transform);
+            GizmoDrawableLoop::new(mesh, Color::WHITE).draw_bevy_gizmo_loop(&mut gizmos, transform);
         }
     }
 
@@ -192,11 +195,7 @@ impl BrushPlugin {
             let coord_dir = element_dir.get_coordinate_dir();
             let conversion = coord_dir.rel_pos_to_cell_idx(pos);
             if let Ok(coords) = conversion {
-                element_dir.set_element(
-                    coords,
-                    element_picker.0.get_element(coord_dir.get_cell_width()),
-                    current_time,
-                );
+                element_dir.set_element(coords, element_picker.0.get_element(), current_time);
             }
         }
     }

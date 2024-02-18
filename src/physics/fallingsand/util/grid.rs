@@ -18,13 +18,16 @@ pub struct Grid<T>(ndarray::Array2<T>);
  * Initialization
  * ================= */
 impl<T> Grid<T> {
-    /// Create a new grid from an ndarray
-    pub fn new(data: ndarray::Array2<T>) -> Self {
-        Self(data)
+    /// Create a new grid filled with one value
+    pub fn new_fill(width: usize, height: usize, value: T) -> Self
+    where
+        T: Clone,
+    {
+        Self(ndarray::Array2::from_elem((width, height), value))
     }
     /// Create a new grid with the given width and height, and fill it with the given data
     pub fn new_from_vec(width: usize, height: usize, data: Vec<T>) -> Self {
-        Self(ndarray::Array2::from_shape_vec((height, width), data).unwrap())
+        Self(ndarray::Array2::from_shape_vec((width, height), data).unwrap())
     }
     /// Create a new grid with the given width and height, and fill it with default values
     pub fn new_empty(width: usize, height: usize) -> Self
@@ -35,7 +38,7 @@ impl<T> Grid<T> {
         for _ in 0..width * height {
             data.push(Default::default());
         }
-        Self(ndarray::Array2::from_shape_vec((height, width), data).unwrap())
+        Self(ndarray::Array2::from_shape_vec((width, height), data).unwrap())
     }
 }
 
@@ -46,11 +49,11 @@ impl<T> Grid<T> {
 impl<T> Grid<T> {
     /// Get the width of the grid
     pub fn get_width(&self) -> usize {
-        self.0.shape()[1]
+        self.0.shape()[0]
     }
     /// Get the height of the grid
     pub fn get_height(&self) -> usize {
-        self.0.shape()[0]
+        self.0.shape()[1]
     }
     /// Get the total size of the grid
     pub fn total_size(&self) -> usize {
@@ -82,46 +85,34 @@ impl fmt::Display for GridOutOfBoundsError {
 /// Access data using JK coordinates, which are height and width respectively
 impl<T> Grid<T> {
     /// Gets the value at the given coordinate
-    pub fn get(&self, coord: JkVector) -> &T {
-        &self.0[[coord.j, coord.k]]
+    pub fn get(&self, idx: JkVector) -> &T {
+        let idx = self.transform_jk_coord_to_ndarray(idx);
+        &self.0[idx]
     }
     /// Gets the value at the given coordinate, or returns an error if the coordinate is out of bounds
-    pub fn checked_get(&self, coord: JkVector) -> Result<&T, GridOutOfBoundsError> {
-        if coord.j >= self.get_width() || coord.k >= self.get_height() {
-            return Err(GridOutOfBoundsError(coord));
+    pub fn checked_get(&self, idx: JkVector) -> Result<&T, GridOutOfBoundsError> {
+        if idx.k >= self.get_width() || idx.j >= self.get_height() {
+            return Err(GridOutOfBoundsError(idx));
         }
-        Ok(self.get(coord))
+        Ok(self.get(idx))
     }
     /// Gets the value at the given coordinate, mutably
-    pub fn get_mut(&mut self, coord: JkVector) -> &mut T {
-        &mut self.0[[coord.j, coord.k]]
+    pub fn get_mut(&mut self, idx: JkVector) -> &mut T {
+        let idx = self.transform_jk_coord_to_ndarray(idx);
+        &mut self.0[idx]
     }
     /// Sets the value at the given coordinate, overwriting the old value
-    pub fn set(&mut self, coord: JkVector, value: T) {
-        self.replace(coord, value);
+    pub fn set(&mut self, idx: JkVector, value: T) {
+        self.replace(idx, value);
     }
     /// Like set, but gives you ownership of the original value
-    pub fn replace(&mut self, coord: JkVector, replacement: T) -> T {
-        std::mem::replace(&mut self.0[[coord.j, coord.k]], replacement)
+    pub fn replace(&mut self, idx: JkVector, replacement: T) -> T {
+        let coord = self.transform_jk_coord_to_ndarray(idx);
+        std::mem::replace(&mut self.0[coord], replacement)
     }
-}
-
-/* ==================================
- * Coordinate Transforms
- * ================================== */
-impl<T> Grid<T> {
-    /// Convert the flat vector coordinate to the grid specific coordinate
-    /// Opposite of jk_coord_to_flat_idx
-    pub fn flat_idx_to_jk_coord(&self, flat_idx: usize) -> JkVector {
-        let j = flat_idx / self.get_width();
-        let k = flat_idx % self.get_height();
-        JkVector { j, k }
-    }
-
-    /// Convert the grid specific coordinate to a flat vector coordinate
-    /// Opposite of flat_idx_to_jk_coord
-    pub fn jk_coord_to_flat_idx(&self, coord: JkVector) -> usize {
-        coord.j * self.get_width() + coord.k
+    /// Transforms the coordinate to the ndarray coordinate system using this grid's width and height
+    fn transform_jk_coord_to_ndarray(&self, idx: JkVector) -> [usize; 2] {
+        [self.get_width() - 1 - idx.k, self.get_height() - 1 - idx.j]
     }
 }
 
@@ -205,95 +196,5 @@ mod tests {
         }
 
         assert_eq!(grid.get_data_slice(), &[2, 4, 6, 8, 10, 12]);
-    }
-
-    #[test]
-    fn test_flat_idx_to_jk_coord() {
-        let grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]);
-
-        assert_eq!(grid.flat_idx_to_jk_coord(0), JkVector { j: 0, k: 0 });
-        assert_eq!(grid.flat_idx_to_jk_coord(1), JkVector { j: 0, k: 1 });
-        assert_eq!(grid.flat_idx_to_jk_coord(2), JkVector { j: 1, k: 0 });
-        assert_eq!(grid.flat_idx_to_jk_coord(4), JkVector { j: 2, k: 0 });
-    }
-
-    #[test]
-    fn test_jk_coord_to_flat_idx() {
-        let grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]);
-
-        assert_eq!(grid.jk_coord_to_flat_idx(JkVector { j: 0, k: 0 }), 0);
-        assert_eq!(grid.jk_coord_to_flat_idx(JkVector { j: 0, k: 1 }), 1);
-        assert_eq!(grid.jk_coord_to_flat_idx(JkVector { j: 1, k: 0 }), 2);
-        assert_eq!(grid.jk_coord_to_flat_idx(JkVector { j: 2, k: 0 }), 4);
-    }
-
-    #[test]
-    fn test_coord_conversion_inverse() {
-        let grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]);
-
-        for flat_idx in 0..grid.total_size() {
-            let coord = grid.flat_idx_to_jk_coord(flat_idx);
-            assert_eq!(grid.jk_coord_to_flat_idx(coord), flat_idx);
-        }
-    }
-
-    #[test]
-    fn test_flat_idx_conversion_inverse() {
-        let grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]);
-
-        let coords = [
-            JkVector { j: 0, k: 0 },
-            JkVector { j: 0, k: 1 },
-            JkVector { j: 1, k: 0 },
-            JkVector { j: 1, k: 1 },
-            JkVector { j: 2, k: 0 },
-            JkVector { j: 2, k: 1 },
-        ];
-
-        for &coord in coords.iter() {
-            let flat_idx = grid.jk_coord_to_flat_idx(coord);
-            assert_eq!(grid.flat_idx_to_jk_coord(flat_idx), coord);
-        }
-    }
-
-    #[test]
-    fn test_coord_flat_idx_consistency() {
-        let grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]);
-
-        for flat_idx in 0..grid.total_size() {
-            let coord = grid.flat_idx_to_jk_coord(flat_idx);
-            let direct_access = &grid.get_data_slice()[flat_idx];
-            let coord_access = grid.get(coord);
-            assert_eq!(
-                direct_access, coord_access,
-                "Mismatch at flat_idx: {}",
-                flat_idx
-            );
-        }
-    }
-
-    #[test]
-    fn test_flat_idx_coord_consistency() {
-        let grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]);
-
-        let coords = [
-            JkVector { j: 0, k: 0 },
-            JkVector { j: 0, k: 1 },
-            JkVector { j: 1, k: 0 },
-            JkVector { j: 1, k: 1 },
-            JkVector { j: 2, k: 0 },
-            JkVector { j: 2, k: 1 },
-        ];
-
-        for &coord in coords.iter() {
-            let flat_idx = grid.jk_coord_to_flat_idx(coord);
-            let direct_access = &grid.get_data_slice()[flat_idx];
-            let coord_access = grid.get(coord);
-            assert_eq!(
-                direct_access, coord_access,
-                "Mismatch at coord: ({}, {})",
-                coord.j, coord.k
-            );
-        }
     }
 }

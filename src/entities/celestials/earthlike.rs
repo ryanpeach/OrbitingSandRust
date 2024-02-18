@@ -7,7 +7,7 @@ use crate::{
             data::element_directory::ElementGridDir, elements::element::ElementType,
             mesh::coordinate_directory::CoordinateDirBuilder, util::vectors::ChunkIjkVector,
         },
-        heat::components::Length,
+        orbits::components::Length,
     },
 };
 
@@ -16,7 +16,7 @@ pub struct EarthLikeBuilder {
     num_layers: usize,
     first_num_radial_lines: usize,
     second_num_concentric_circles: usize,
-    first_num_radial_chunks: usize,
+    first_num_tangential_chunkss: usize,
     max_radial_lines_per_chunk: usize,
     max_concentric_circles_per_chunk: usize,
 }
@@ -34,7 +34,7 @@ impl EarthLikeBuilder {
             num_layers: 8,
             first_num_radial_lines: 12,
             second_num_concentric_circles: 3,
-            first_num_radial_chunks: 3,
+            first_num_tangential_chunkss: 3,
             max_radial_lines_per_chunk: 128,
             max_concentric_circles_per_chunk: 128,
         }
@@ -60,8 +60,8 @@ impl EarthLikeBuilder {
         self
     }
 
-    pub fn first_num_radial_chunks(mut self, first_num_radial_chunks: usize) -> Self {
-        self.first_num_radial_chunks = first_num_radial_chunks;
+    pub fn first_num_tangential_chunkss(mut self, first_num_tangential_chunkss: usize) -> Self {
+        self.first_num_tangential_chunkss = first_num_tangential_chunkss;
         self
     }
 
@@ -84,7 +84,7 @@ impl EarthLikeBuilder {
             .num_layers(self.num_layers)
             .first_num_radial_lines(self.first_num_radial_lines)
             .second_num_concentric_circles(self.second_num_concentric_circles)
-            .first_num_radial_chunks(self.first_num_radial_chunks)
+            .first_num_tangential_chunkss(self.first_num_tangential_chunkss)
             .max_radial_lines_per_chunk(self.max_radial_lines_per_chunk)
             .max_concentric_circles_per_chunk(self.max_concentric_circles_per_chunk)
             .build();
@@ -100,7 +100,7 @@ impl EarthLikeBuilder {
             {
                 for k in 0..element_grid_dir
                     .get_coordinate_dir()
-                    .get_layer_num_radial_chunks(layer_num)
+                    .get_layer_num_tangential_chunkss(layer_num)
                 {
                     let chunk_idx = ChunkIjkVector::new(layer_num, j, k);
                     let element_grid = element_grid_dir.get_chunk_by_chunk_ijk_mut(chunk_idx);

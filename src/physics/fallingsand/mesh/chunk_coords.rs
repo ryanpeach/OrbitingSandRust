@@ -2,12 +2,11 @@ use crate::physics::fallingsand::util::functions::interpolate_points;
 
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
-use crate::physics::heat::components::Length;
+use crate::physics::orbits::components::Length;
 use crate::physics::util::vectors::{RelXyPoint, Vertex};
 use bevy::math::{Rect, Vec2};
 use bevy::render::color::Color;
 
-use std::default;
 use std::f32::consts::PI;
 
 /// The settings for generating the vertexes
@@ -52,7 +51,7 @@ pub enum VertexMode {
 }
 
 /// This is a chunk that represents a "full" layer.
-/// It doesn't split itself in either the radial or concentric directions.
+/// It doesn't split itself in either the tangential or radial directions.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ChunkCoords {
     width: Length,
@@ -181,6 +180,8 @@ impl ChunkCoords {
     pub fn get_positions(&self, settings: VertexSettings) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
+        let start_concentric_circle = self.start_concentric_circle_layer_relative;
+
         let starting_r = self.get_start_radius();
         let ending_r = self.get_end_radius();
         let circle_separation_distance =
@@ -191,8 +192,8 @@ impl ChunkCoords {
         let start_concentric = self.start_concentric_circle_layer_relative;
         let concentric_range: Vec<usize> = match settings.mode {
             VertexMode::Lines => vec![
-                start_concentric,
-                self.get_num_concentric_circles() + start_concentric,
+                start_concentric_circle,
+                self.get_num_concentric_circles() + start_concentric_circle,
             ],
             VertexMode::Grid => (start_concentric
                 ..(self.get_num_concentric_circles() + start_concentric + 1))
@@ -241,8 +242,8 @@ impl ChunkCoords {
     pub fn get_outline(&self) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
-        let start_concentric = self.start_concentric_circle_layer_relative;
-        let start_radial = self.start_radial_line;
+        let start_concentric_circle = self.start_concentric_circle_layer_relative;
+        let start_radial_line = self.start_radial_line;
 
         let starting_r = self.get_start_radius();
         let ending_r = self.get_end_radius();
@@ -251,17 +252,17 @@ impl ChunkCoords {
         let theta = (-2.0 * PI) / self.layer_num_radial_lines as f32;
 
         for j in [
-            start_concentric,
-            self.get_num_concentric_circles() + start_concentric,
+            start_concentric_circle,
+            self.get_num_concentric_circles() + start_concentric_circle,
         ] {
-            let diff = (j - start_concentric) as f32 * circle_separation_distance;
+            let diff = (j - start_concentric_circle) as f32 * circle_separation_distance;
 
             // Reverse if we are on the last element because we are going around the circle
             // This box method was the only way to make Range == Rev<Range> in type, very annoying.
-            let iter: Box<dyn Iterator<Item = _>> = if j != start_concentric {
-                Box::new((start_radial..self.end_radial_line + 1).rev())
+            let iter: Box<dyn Iterator<Item = _>> = if j != start_concentric_circle {
+                Box::new((start_radial_line..self.end_radial_line + 1).rev())
             } else {
-                Box::new(start_radial..self.end_radial_line + 1)
+                Box::new(start_radial_line..self.end_radial_line + 1)
             };
 
             for k in iter {
@@ -389,14 +390,11 @@ impl ChunkCoords {
     pub fn get_num_concentric_circles(&self) -> usize {
         self.num_concentric_circles
     }
-    /// Get the angle of the last radial line in the chunk
-    /// The last radial line is one greater than the last cell index, because it has to enclose the cell
-    pub fn get_end_radial_theta(&self) -> f32 {
+    pub fn get_end_theta(&self) -> f32 {
         let diff = (2.0 * PI) / self.layer_num_radial_lines as f32;
         self.end_radial_line as f32 * diff
     }
-    /// Get the angle of the first radial line in the chunk
-    pub fn get_start_radial_theta(&self) -> f32 {
+    pub fn get_start_theta(&self) -> f32 {
         let diff = (2.0 * PI) / self.layer_num_radial_lines as f32;
         self.start_radial_line as f32 * diff
     }
@@ -496,32 +494,15 @@ impl ChunkCoords {
         for i in 0..vertices.len() {
             indices.push(i as u32);
         }
-        OwnedMeshData {
-            vertices,
-            indices,
-            uv_bounds: Rect::new(
-                self.get_start_radial_line() as f32,
-                self.get_start_concentric_circle_absolute() as f32,
-                self.get_end_radial_line() as f32,
-                self.get_end_concentric_circle_absolute() as f32,
-            ),
-        }
+        OwnedMeshData::new(vertices, indices)
     }
     /// Get the mesh data for the chunk as you would normally draw it
-    pub fn calc_chunk_meshdata(&self) -> OwnedMeshData {
-        let indices = self.get_indices(VertexSettings::default());
-        let vertices: Vec<Vertex> = self.get_vertices(VertexSettings::default());
-        OwnedMeshData {
-            vertices,
-            indices,
-            uv_bounds: Rect::new(
-                self.get_start_radial_line() as f32,
-                self.get_start_concentric_circle_absolute() as f32,
-                self.get_end_radial_line() as f32,
-                self.get_end_concentric_circle_absolute() as f32,
-            ),
-        }
+    pub fn calc_chunk_meshdata(&self, settings: VertexSettings) -> OwnedMeshData {
+        let indices = self.get_indices(settings);
+        let vertices: Vec<Vertex> = self.get_vertices(settings);
+        OwnedMeshData::new(vertices, indices)
     }
+
     /// Get the wireframe mesh data for the chunk
     pub fn calc_chunk_triangle_wireframe(&self, settings: VertexSettings) -> OwnedMeshData {
         let indices = self.get_indices(settings);
@@ -535,18 +516,8 @@ impl ChunkCoords {
             new_indices.push(i1);
             new_indices.push(i2);
             new_indices.push(i3);
-            new_indices.push(i1);
         }
-        OwnedMeshData {
-            vertices,
-            indices: new_indices,
-            uv_bounds: Rect::new(
-                self.get_start_radial_line() as f32,
-                self.get_start_concentric_circle_absolute() as f32,
-                self.get_end_radial_line() as f32,
-                self.get_end_concentric_circle_absolute() as f32,
-            ),
-        }
+        OwnedMeshData::new(vertices, new_indices)
     }
 
     /// Converts a position relative to the origin of the circle to a cell index
@@ -561,8 +532,8 @@ impl ChunkCoords {
         let num_radial_lines = self.get_num_radial_lines();
         let start_radial_line = self.get_start_radial_line();
         let end_radial_line = self.get_end_radial_line();
-        let start_radial_theta = self.get_start_radial_theta();
-        let end_radial_theta = self.get_end_radial_theta();
+        let start_theta = self.get_start_theta();
+        let end_theta = self.get_end_theta();
 
         // Get the concentric circle we are on
         let circle_separation_distance = (ending_r - starting_r) / num_concentric_circles as f32;
@@ -574,7 +545,7 @@ impl ChunkCoords {
 
         // Get the radial line to the left of the vertex
         let angle = (xy_coord.0.y.atan2(xy_coord.0.x) + -2.0 * PI) % (2.0 * PI);
-        let theta = -(end_radial_theta - start_radial_theta) / num_radial_lines as f32;
+        let theta = -(end_theta - start_theta) / num_radial_lines as f32;
 
         // Calculate 'k' directly without the while loop
         let k_rel = (angle / theta).floor() as usize;
@@ -651,7 +622,7 @@ impl ChunkCoords {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::physics;
+
     use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
     use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
     use crate::physics::util::vectors::RelXyPoint;
@@ -661,7 +632,7 @@ mod tests {
     #[test]
     fn test_rel_pos_to_cell_idx() {
         let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(physics::heat::components::Length(1.0))
+            .cell_radius(Length(1.0))
             .num_layers(8)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
@@ -729,7 +700,7 @@ mod tests {
     #[test]
     fn test_cell_idx_to_chunk_idx() {
         let coordinate_dir = CoordinateDirBuilder::new()
-            .cell_radius(physics::heat::components::Length(1.0))
+            .cell_radius(Length(1.0))
             .num_layers(8)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
@@ -761,13 +732,13 @@ mod tests {
         // Test the rest
         for i in 1..coordinate_dir.get_num_layers() {
             let num_concentric_chunks = coordinate_dir.get_layer_num_concentric_chunks(i);
-            let num_radial_chunks = coordinate_dir.get_layer_num_radial_chunks(i);
+            let num_tangential_chunkss = coordinate_dir.get_layer_num_tangential_chunkss(i);
             let mut total_concentric_circles = 0;
             for cj in 0..num_concentric_chunks {
                 let mut total_radial_lines = 0;
                 let chunk_layer_num_concentric_circles = coordinate_dir
                     .get_chunk_num_concentric_circles(ChunkIjkVector { i, j: cj, k: 0 });
-                for ck in 0..num_radial_chunks {
+                for ck in 0..num_tangential_chunkss {
                     let chunk_num_radial_lines = coordinate_dir
                         .get_chunk_num_radial_lines(ChunkIjkVector { i, j: cj, k: ck });
                     for j in total_concentric_circles
@@ -814,7 +785,7 @@ mod tests {
         use super::*;
 
         const FIRST_LAYER: ChunkCoords = ChunkCoords {
-            width: physics::heat::components::Length(1.0),
+            width: Length(1.0),
             num_concentric_circles: 2,
             chunk_idx: ChunkIjkVector { i: 1, j: 0, k: 0 },
             start_concentric_circle_layer_relative: 0,
@@ -1083,7 +1054,7 @@ mod tests {
         use super::*;
 
         const FIRST_LAYER_PARTIAL: ChunkCoords = ChunkCoords {
-            width: physics::heat::components::Length(1.0),
+            width: Length(1.0),
             num_concentric_circles: 1,
             chunk_idx: ChunkIjkVector { i: 1, j: 0, k: 0 },
             start_concentric_circle_layer_relative: 1,

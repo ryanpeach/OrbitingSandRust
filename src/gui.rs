@@ -10,7 +10,6 @@ use self::{brush::BrushPlugin, camera::CameraPlugin};
 
 pub mod brush;
 pub mod camera;
-pub mod camera_window;
 pub mod element_picker;
 
 pub struct GuiUnifiedPlugin;
@@ -34,7 +33,6 @@ impl PluginGroup for GuiPluginGroup {
     fn build(self) -> PluginGroupBuilder {
         PluginGroupBuilder::start::<Self>()
             .add(camera::CameraPlugin)
-            .add(camera_window::CameraWindowPlugin)
             .add(brush::BrushPlugin)
             .add(element_picker::ElementPickerPlugin)
             .add(GuiUnifiedPlugin)
