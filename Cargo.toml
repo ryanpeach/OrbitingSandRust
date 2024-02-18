@@ -18,7 +18,6 @@ bevy_eventlistener = "0.6.1"
 bevy_mod_picking = { version = "0.17.0", features = ["bevy_picking_raycast"] }
 bytemuck = "1.14.0"
 derive_more = "0.99.17"
-embed-doc-image = "0.1.4"
 hashbrown = { version = "0.14.2", features = ["rayon", "ahash"] }
 itertools = "0.12.1"
 nabo = "0.3.0"
