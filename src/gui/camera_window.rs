@@ -35,7 +35,6 @@ pub struct CameraWindowCheckboxes {
     pub outline: bool,
     pub wireframe: bool,
     pub material: bool,
-    pub heat: bool,
 }
 
 impl Default for CameraWindowCheckboxes {
@@ -44,7 +43,6 @@ impl Default for CameraWindowCheckboxes {
             outline: false,
             wireframe: false,
             material: true,
-            heat: false,
         }
     }
 }
@@ -83,7 +81,6 @@ impl CameraWindowPlugin {
             ui.checkbox(&mut checkboxes.outline, "Outline");
             ui.checkbox(&mut checkboxes.wireframe, "Wireframe");
             ui.checkbox(&mut checkboxes.material, "Material");
-            ui.checkbox(&mut checkboxes.heat, "Heat");
             // TODO: Play Step MicroStep Pause
             // ui.separator();
             // ui.horizontal(|ui| {
