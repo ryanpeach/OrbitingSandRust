@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["CoordinateDir","CoordinateDirBuilder"]};
+window.SIDEBAR_ITEMS = {"enum":["MeshDrawMode"],"struct":["CoordinateDir","CoordinateDirBuilder"]};

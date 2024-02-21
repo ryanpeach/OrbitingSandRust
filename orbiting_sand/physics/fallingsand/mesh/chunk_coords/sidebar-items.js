@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["VertexMode"],"struct":["ChunkCoords","PartialLayerChunkCoordsBuilder"]};
+window.SIDEBAR_ITEMS = {"enum":["VertexMode"],"struct":["ChunkCoords","PartialLayerChunkCoordsBuilder","VertexSettings"]};

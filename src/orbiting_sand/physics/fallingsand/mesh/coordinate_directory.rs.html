@@ -1043,6 +1043,18 @@
 <a href="#1042" id="1042">1042</a>
 <a href="#1043" id="1043">1043</a>
 <a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
+<a href="#1052" id="1052">1052</a>
+<a href="#1053" id="1053">1053</a>
+<a href="#1054" id="1054">1054</a>
+<a href="#1055" id="1055">1055</a>
+<a href="#1056" id="1056">1056</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The [CoordinateDir] layouts the chunks in the game.
 //!
 
@@ -1058,6 +1070,17 @@
 
 <span class="kw">use </span><span class="kw">super</span>::chunk_coords::ChunkCoords;
 <span class="kw">use </span><span class="kw">super</span>::chunk_coords::PartialLayerChunkCoordsBuilder;
+
+<span class="doccomment">/// The different ways to draw a mesh
+</span><span class="attr">#[derive(Debug, Copy, Clone, PartialEq)]
+</span><span class="kw">pub enum </span>MeshDrawMode {
+    <span class="doccomment">/// Draw the mesh with the texture
+    </span>TexturedMesh,
+    <span class="doccomment">/// Draw the outline of the chunks only
+    </span>Outline,
+    <span class="doccomment">/// Draw the full wireframe of the chunks
+    </span>TriangleWireframe,
+}
 
 <span class="doccomment">/// A structure that contains all the chunk coordinates for a celestial body
 /// Useful for drawing the total mesh
@@ -1084,7 +1107,8 @@
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>CoordinateDirBuilder {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Start here
+    </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
 }
@@ -1162,8 +1186,8 @@
     /// and dynamically allocating chunks to each layer based on max_cells
     /// and the other parameters of the builder.
     </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; CoordinateDir {
-        <span class="macro">debug_assert_ne!</span>(<span class="self">self</span>.num_layers, <span class="number">0</span>);
-        <span class="macro">debug_assert!</span>(
+        <span class="macro">assert_ne!</span>(<span class="self">self</span>.num_layers, <span class="number">0</span>);
+        <span class="macro">assert!</span>(
             <span class="self">self</span>.max_radial_lines_per_chunk &gt; <span class="self">self</span>.first_num_radial_lines,
             <span class="string">"max_radial_lines_per_chunk must be greater than first_num_radial_lines, got {} and {}"</span>,
             <span class="self">self</span>.max_radial_lines_per_chunk,

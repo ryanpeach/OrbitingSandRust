@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["GizmoDrawableLoop","GizmoDrawableTriangles","MeshBoundingBox","OwnedMeshData"]};
+window.SIDEBAR_ITEMS = {"struct":["GizmoDrawableGrid","GizmoDrawableLoop","MeshBoundingBox","OwnedMeshData"]};

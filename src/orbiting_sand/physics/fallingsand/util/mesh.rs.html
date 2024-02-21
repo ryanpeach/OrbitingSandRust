@@ -208,6 +208,9 @@
 <a href="#207" id="207">207</a>
 <a href="#208" id="208">208</a>
 <a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Mesh utilities
 //! I found it useful to write my own mesh class in ggez and it has been useful in bevy as well
 //! keeps us from having to use specific bevy types in the physics engine
@@ -276,14 +279,14 @@
 /// This version draws the mesh using triangles
 /// This is useful for wireframes
 </span><span class="attr">#[derive(Component)]
-</span><span class="kw">pub struct </span>GizmoDrawableTriangles {
+</span><span class="kw">pub struct </span>GizmoDrawableGrid {
     <span class="doccomment">/// The mesh to draw
     </span><span class="kw">pub </span>mesh: OwnedMeshData,
     <span class="doccomment">/// The color to draw the mesh
     </span><span class="kw">pub </span>color: Color,
 }
 
-<span class="kw">impl </span>GizmoDrawableTriangles {
+<span class="kw">impl </span>GizmoDrawableGrid {
     <span class="doccomment">/// Create a new GizmoDrawableTriangles
     </span><span class="kw">pub fn </span>new(mesh: OwnedMeshData, color: Color) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ mesh, color }
@@ -292,17 +295,20 @@
     <span class="doccomment">/// Draws the mesh using bevy's gizmos, which is an immediate mode renderer
     /// This is useful for wireframes
     /// This draw mode draws each triangle (triple) individually
-    </span><span class="kw">pub fn </span>draw_bevy_gizmo_triangles(<span class="kw-2">&amp;</span><span class="self">self</span>, gizmos: <span class="kw-2">&amp;mut </span>Gizmos, transform: <span class="kw-2">&amp;</span>Transform) {
+    </span><span class="kw">pub fn </span>draw_bevy_gizmo_grid(<span class="kw-2">&amp;</span><span class="self">self</span>, gizmos: <span class="kw-2">&amp;mut </span>Gizmos, transform: <span class="kw-2">&amp;</span>Transform) {
         <span class="kw">for </span>idx <span class="kw">in </span>(<span class="number">0</span>..<span class="self">self</span>.mesh.indices.len()).step_by(<span class="number">3</span>) {
             <span class="kw">let </span>idx0 = <span class="self">self</span>.mesh.indices[idx] <span class="kw">as </span>usize;
             <span class="kw">let </span>idx1 = <span class="self">self</span>.mesh.indices[idx + <span class="number">1</span>] <span class="kw">as </span>usize;
             <span class="kw">let </span>idx2 = <span class="self">self</span>.mesh.indices[idx + <span class="number">2</span>] <span class="kw">as </span>usize;
-            <span class="self">self</span>.mesh
-                .draw_bevy_gizmo_line(idx0, idx1, transform, gizmos, <span class="self">self</span>.color);
-            <span class="self">self</span>.mesh
-                .draw_bevy_gizmo_line(idx1, idx2, transform, gizmos, <span class="self">self</span>.color);
-            <span class="self">self</span>.mesh
-                .draw_bevy_gizmo_line(idx2, idx0, transform, gizmos, <span class="self">self</span>.color);
+            <span class="kw">if </span>idx % <span class="number">2 </span>== <span class="number">0 </span>{
+                <span class="self">self</span>.mesh
+                    .draw_bevy_gizmo_line(idx0, idx1, transform, gizmos, <span class="self">self</span>.color);
+                <span class="self">self</span>.mesh
+                    .draw_bevy_gizmo_line(idx2, idx0, transform, gizmos, <span class="self">self</span>.color);
+            } <span class="kw">else </span>{
+                <span class="self">self</span>.mesh
+                    .draw_bevy_gizmo_line(idx1, idx2, transform, gizmos, <span class="self">self</span>.color);
+            }
         }
     }
 }

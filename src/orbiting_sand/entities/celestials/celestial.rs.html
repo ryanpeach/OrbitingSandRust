@@ -390,6 +390,24 @@
 <a href="#389" id="389">389</a>
 <a href="#390" id="390">390</a>
 <a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Celestial entities and their data
 //! A celestial is a large body in space, such as a planet or star
 </span><span class="attr">#![warn(missing_docs)]
@@ -432,7 +450,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::gui::camera::{CelestialIdx, OverlayLayer2, OverlayLayer3, SelectCelestial};
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
-<span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::mesh::{GizmoDrawableLoop, GizmoDrawableTriangles};
+<span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::mesh::chunk_coords::{VertexMode, VertexSettings};
+<span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::mesh::{GizmoDrawableGrid, GizmoDrawableLoop};
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::vectors::ChunkIjkVector;
 <span class="kw">use </span><span class="kw">crate</span>::physics::orbits::components::{GravitationalField, Mass, Velocity};
 <span class="kw">use </span><span class="kw">crate</span>::physics::util::clock::Clock;
@@ -583,11 +602,23 @@
                     <span class="kw">let </span>celestial_chunk_id = CelestialChunkIdk(chunk_ijk);
                     <span class="kw">let </span>mesh = coordinate_dir
                         .get_chunk_at_idx(chunk_ijk)
-                        .calc_chunk_meshdata();
+                        .calc_chunk_meshdata(VertexSettings::default());
                     <span class="kw">let </span>mesh_handle = mesh.load_bevy_mesh(meshes);
+
+                    <span class="comment">// Wireframes start to look weird unless you are at a certain level of detail at a certain chunk
+                    </span><span class="kw">let </span>lod = <span class="kw">if </span>i &gt; <span class="number">1 </span>{
+                        <span class="number">2
+                    </span>} <span class="kw">else if </span>i &gt; <span class="number">2 </span>{
+                        <span class="number">4
+                    </span>} <span class="kw">else </span>{
+                        <span class="number">1
+                    </span>};
                     <span class="kw">let </span>wireframe = coordinate_dir
                         .get_chunk_at_idx(chunk_ijk)
-                        .calc_chunk_triangle_wireframe();
+                        .calc_chunk_triangle_wireframe(VertexSettings {
+                            lod,
+                            mode: VertexMode::Grid,
+                        });
                     <span class="kw">let </span>outline = coordinate_dir
                         .get_chunk_at_idx(chunk_ijk)
                         .calc_chunk_outline();
@@ -613,7 +644,30 @@
                         .id();
 
                     <span class="comment">// Now create the gizmos
-                    </span><span class="kw">let </span>outline_entity = commands
+                    </span><span class="kw">let </span>wireframe_entity = commands
+                        .spawn((
+                            Name::new(<span class="macro">format!</span>(<span class="string">"Wireframe {:?}"</span>, chunk_ijk)),
+                            GizmoDrawableGrid::new(
+                                wireframe,
+                                Color::Rgba {
+                                    red: <span class="number">0.1</span>,
+                                    green: <span class="number">0.1</span>,
+                                    blue: <span class="number">0.1</span>,
+                                    alpha: <span class="number">0.1</span>,
+                                },
+                            ),
+                            SpatialBundle {
+                                transform: Transform::from_translation(
+                                    <span class="self">self</span>.translation.extend(<span class="number">2.0</span>),
+                                ),
+                                visibility: Visibility::Visible,
+                                ..Default::default()
+                            },
+                            CelestialWireframe,
+                            OverlayLayer2,
+                        ))
+                        .id();
+                    <span class="kw">let </span>outline_entity = commands
                         .spawn((
                             Name::new(<span class="macro">format!</span>(<span class="string">"Outline {:?}"</span>, chunk_ijk)),
                             GizmoDrawableLoop::new(outline, Color::RED),
@@ -628,26 +682,11 @@
                             OverlayLayer3,
                         ))
                         .id();
-                    <span class="kw">let </span>wireframe_entity = commands
-                        .spawn((
-                            Name::new(<span class="macro">format!</span>(<span class="string">"Wireframe {:?}"</span>, chunk_ijk)),
-                            GizmoDrawableTriangles::new(wireframe, Color::WHITE),
-                            SpatialBundle {
-                                transform: Transform::from_translation(
-                                    <span class="self">self</span>.translation.extend(<span class="number">2.0</span>),
-                                ),
-                                visibility: Visibility::Inherited,
-                                ..Default::default()
-                            },
-                            CelestialWireframe,
-                            OverlayLayer2,
-                        ))
-                        .id();
 
                     <span class="comment">// Parent celestial to chunk
                     </span>chunks.push(chunk);
-                    wireframes.push(outline_entity);
-                    outlines.push(wireframe_entity);
+                    wireframes.push(wireframe_entity);
+                    outlines.push(outline_entity);
                 }
             }
         }
@@ -758,14 +797,11 @@
     <span class="doccomment">/// Draw the wireframe of the celestials cells
     </span><span class="kw">pub fn </span>draw_wireframe_system(
         <span class="kw-2">mut </span>gizmos: Gizmos,
-        query: Query&lt;
-            (<span class="kw-2">&amp;</span>GizmoDrawableTriangles, <span class="kw-2">&amp;</span>Transform, <span class="kw-2">&amp;</span>ViewVisibility),
-            With&lt;CelestialWireframe&gt;,
-        &gt;,
+        query: Query&lt;(<span class="kw-2">&amp;</span>GizmoDrawableGrid, <span class="kw-2">&amp;</span>Transform, <span class="kw-2">&amp;</span>ViewVisibility), With&lt;CelestialWireframe&gt;&gt;,
     ) {
         <span class="kw">for </span>(drawable, transform, visibility) <span class="kw">in </span>query.iter() {
             <span class="kw">if </span>visibility.get() {
-                drawable.draw_bevy_gizmo_triangles(<span class="kw-2">&amp;mut </span>gizmos, transform);
+                drawable.draw_bevy_gizmo_grid(<span class="kw-2">&amp;mut </span>gizmos, transform);
             }
         }
     }

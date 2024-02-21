@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["enums","functions","grid","image","mesh","vectors"]};
+window.SIDEBAR_ITEMS = {"mod":["functions","grid","image","mesh","vectors"]};
