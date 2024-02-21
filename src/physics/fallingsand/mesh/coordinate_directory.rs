@@ -129,8 +129,8 @@ impl CoordinateDirBuilder {
     /// and dynamically allocating chunks to each layer based on max_cells
     /// and the other parameters of the builder.
     pub fn build(self) -> CoordinateDir {
-        debug_assert_ne!(self.num_layers, 0);
-        debug_assert!(
+        assert_ne!(self.num_layers, 0);
+        assert!(
             self.max_radial_lines_per_chunk > self.first_num_radial_lines,
             "max_radial_lines_per_chunk must be greater than first_num_radial_lines, got {} and {}",
             self.max_radial_lines_per_chunk,

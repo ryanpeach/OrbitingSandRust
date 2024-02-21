@@ -98,6 +98,12 @@ cargo run --release
 pre-commit install
 ```
 
+# Statement on AI Art
+
+I am not an artist, so I plan to use AI art as both a tutor for myself learning pixel art and
+as a placeholder for in game assets. However, I am committed to replacing these assets before the game
+goes on-sale.
+
 # Statement on Open Source
 
 The code provided is both free as in beer and free as in speech. You may use it for any purpose, including commercial. There are many games that can be created from these core physics components, and many games have had to recreate them. I want this to be a good starting point for any developer wanting these elements in their games.

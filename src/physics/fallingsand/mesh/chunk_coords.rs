@@ -190,7 +190,7 @@ impl ChunkCoords {
 
         // Create the concentric range with the appropriate level of detail and test it has the right bounds
         let start_concentric = self.start_concentric_circle_layer_relative;
-        let concentric_range: Vec<usize> = match settings.mode {
+        let mut concentric_range: Vec<usize> = match settings.mode {
             VertexMode::Lines => vec![
                 start_concentric_circle,
                 self.get_num_concentric_circles() + start_concentric_circle,
@@ -201,16 +201,24 @@ impl ChunkCoords {
                 .collect(),
         };
         debug_assert_eq!(concentric_range[0], start_concentric);
+        if concentric_range[concentric_range.len() - 1]
+            != self.get_num_concentric_circles() + start_concentric
+        {
+            concentric_range.push(self.get_num_concentric_circles() + start_concentric);
+        }
         debug_assert_eq!(
             concentric_range[concentric_range.len() - 1],
             self.get_num_concentric_circles() + start_concentric
         );
 
         // Create the radial range with the appropriate level of detail and test it has the right bounds
-        let radial_range: Vec<usize> = (self.start_radial_line..(self.end_radial_line + 1))
+        let mut radial_range: Vec<usize> = (self.start_radial_line..(self.end_radial_line + 1))
             .step_by(settings.lod)
             .collect();
         debug_assert_eq!(radial_range[0], self.start_radial_line);
+        if radial_range[radial_range.len() - 1] != self.end_radial_line {
+            radial_range.push(self.end_radial_line);
+        }
         debug_assert_eq!(radial_range[radial_range.len() - 1], self.end_radial_line);
 
         // Run our double loop
@@ -305,13 +313,16 @@ impl ChunkCoords {
     pub fn get_uvs(&self, settings: VertexSettings) -> Vec<Vec2> {
         let mut vertexes: Vec<Vec2> = Vec::new();
 
-        let concentric_range: Vec<usize> = match settings.mode {
+        let mut concentric_range: Vec<usize> = match settings.mode {
             VertexMode::Lines => vec![0, self.get_num_concentric_circles()],
             VertexMode::Grid => (0..(self.get_num_concentric_circles() + 1))
                 .step_by(settings.lod)
                 .collect::<Vec<_>>(),
         };
         debug_assert_eq!(concentric_range[0], 0);
+        if concentric_range[concentric_range.len() - 1] != self.get_num_concentric_circles() {
+            concentric_range.push(self.get_num_concentric_circles());
+        }
         debug_assert_eq!(
             concentric_range[concentric_range.len() - 1],
             self.get_num_concentric_circles()
@@ -332,10 +343,11 @@ impl ChunkCoords {
 
     /// Creates the indices for the vertexes
     pub fn get_indices(&self, settings: VertexSettings) -> Vec<u32> {
-        let j_count = match settings.mode {
+        let mut j_count = match settings.mode {
             VertexMode::Lines => 2,
             VertexMode::Grid => self.get_num_concentric_circles() / settings.lod + 1,
         };
+        j_count = j_count.max(2);
         let k_iter = (0..(self.get_num_radial_lines() + 1)).step_by(settings.lod);
         let k_count = k_iter.len();
         let mut indices = Vec::with_capacity(j_count * k_count * 6);
@@ -766,7 +778,7 @@ mod tests {
         }
     }
 
-    fn vec2_approx_eq(a: Vec2, b: Vec2, epsilon: f32) -> bool {
+    pub fn vec2_approx_eq(a: Vec2, b: Vec2, epsilon: f32) -> bool {
         (a.x - b.x).abs() < epsilon && (a.y - b.y).abs() < epsilon
     }
 
@@ -784,7 +796,7 @@ mod tests {
     mod full_layer {
         use super::*;
 
-        const FIRST_LAYER: ChunkCoords = ChunkCoords {
+        pub const FIRST_LAYER: ChunkCoords = ChunkCoords {
             width: Length(1.0),
             num_concentric_circles: 2,
             chunk_idx: ChunkIjkVector { i: 1, j: 0, k: 0 },
@@ -1053,7 +1065,7 @@ mod tests {
     mod partial_layer {
         use super::*;
 
-        const FIRST_LAYER_PARTIAL: ChunkCoords = ChunkCoords {
+        pub const FIRST_LAYER_PARTIAL: ChunkCoords = ChunkCoords {
             width: Length(1.0),
             num_concentric_circles: 1,
             chunk_idx: ChunkIjkVector { i: 1, j: 0, k: 0 },
@@ -1240,6 +1252,201 @@ mod tests {
                 uvs[13],
                 Vec2::new(6.0 / num_radial_lines, 1.0 / num_concentric_circles)
             );
+        }
+    }
+
+    mod grid {
+        mod core {
+
+            use std::f32::consts::PI;
+
+            use bevy::math::Vec2;
+
+            use crate::physics::fallingsand::mesh::chunk_coords::tests::vec2_approx_eq;
+            use crate::physics::fallingsand::mesh::chunk_coords::{
+                ChunkCoords, VertexMode, VertexSettings,
+            };
+            use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
+            use crate::physics::orbits::components::Length;
+
+            pub const CORE: ChunkCoords = ChunkCoords {
+                width: Length(1.0),
+                num_concentric_circles: 1,
+                chunk_idx: ChunkIjkVector { i: 0, j: 0, k: 0 },
+                start_concentric_circle_layer_relative: 0,
+                start_radial_line: 0,
+                end_radial_line: 12,
+                layer_num_radial_lines: 12,
+                start_concentric_circle_absolute: 0,
+            };
+
+            #[test]
+            fn test_lod_1_pos() {
+                let vertices = CORE.get_positions(VertexSettings {
+                    lod: 1,
+                    mode: VertexMode::Grid,
+                });
+                assert_eq!(vertices.len(), 26);
+
+                // The core
+                let radius = CORE.get_end_radius();
+                let diff_theta = 2.0 * PI / CORE.get_num_radial_lines() as f32;
+                assert_approx_eq_v2!(vertices[0], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[1], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[2], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[3], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[4], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[5], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[6], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[7], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[8], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[9], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[10], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[11], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[12], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[13], Vec2::new(radius, 0.0));
+                assert_approx_eq_v2!(
+                    vertices[14],
+                    Vec2::new(radius * diff_theta.cos(), -radius * diff_theta.sin())
+                );
+                assert_approx_eq_v2!(
+                    vertices[15],
+                    Vec2::new(
+                        radius * (diff_theta * 2.0).cos(),
+                        -radius * (diff_theta * 2.0).sin()
+                    )
+                );
+                assert_approx_eq_v2!(
+                    vertices[16],
+                    Vec2::new(
+                        radius * (diff_theta * 3.0).cos(),
+                        -radius * (diff_theta * 3.0).sin()
+                    )
+                );
+                assert_approx_eq_v2!(
+                    vertices[17],
+                    Vec2::new(
+                        radius * (diff_theta * 4.0).cos(),
+                        -radius * (diff_theta * 4.0).sin()
+                    )
+                );
+                assert_approx_eq_v2!(
+                    vertices[18],
+                    Vec2::new(
+                        radius * (diff_theta * 5.0).cos(),
+                        -radius * (diff_theta * 5.0).sin()
+                    )
+                );
+                assert_approx_eq_v2!(
+                    vertices[19],
+                    Vec2::new(
+                        radius * (diff_theta * 6.0).cos(),
+                        -radius * (diff_theta * 6.0).sin()
+                    )
+                );
+                assert_approx_eq_v2!(
+                    vertices[20],
+                    Vec2::new(
+                        radius * (diff_theta * 7.0).cos(),
+                        -radius * (diff_theta * 7.0).sin()
+                    )
+                );
+                assert_approx_eq_v2!(
+                    vertices[21],
+                    Vec2::new(
+                        radius * (diff_theta * 8.0).cos(),
+                        -radius * (diff_theta * 8.0).sin()
+                    )
+                );
+                assert_approx_eq_v2!(
+                    vertices[22],
+                    Vec2::new(
+                        radius * (diff_theta * 9.0).cos(),
+                        -radius * (diff_theta * 9.0).sin()
+                    )
+                );
+                assert_approx_eq_v2!(
+                    vertices[23],
+                    Vec2::new(
+                        radius * (diff_theta * 10.0).cos(),
+                        -radius * (diff_theta * 10.0).sin()
+                    )
+                );
+                assert_approx_eq_v2!(
+                    vertices[24],
+                    Vec2::new(
+                        radius * (diff_theta * 11.0).cos(),
+                        -radius * (diff_theta * 11.0).sin()
+                    )
+                );
+                assert_approx_eq_v2!(
+                    vertices[25],
+                    Vec2::new(
+                        radius * (diff_theta * 12.0).cos(),
+                        -radius * (diff_theta * 12.0).sin()
+                    )
+                );
+            }
+
+            #[test]
+            fn test_lod_2_pos() {
+                let vertices = CORE.get_positions(VertexSettings {
+                    lod: 2,
+                    mode: VertexMode::Grid,
+                });
+                assert_eq!(vertices.len(), 14);
+
+                // The core
+                let radius = CORE.get_end_radius();
+                let diff_theta = 2.0 * PI / CORE.get_num_radial_lines() as f32 * 2.0;
+                assert_approx_eq_v2!(vertices[0], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[1], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[2], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[3], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[4], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[5], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[6], Vec2::new(0.0, 0.0));
+                assert_approx_eq_v2!(vertices[7], Vec2::new(radius, 0.0));
+                assert_approx_eq_v2!(
+                    vertices[8],
+                    Vec2::new(radius * diff_theta.cos(), -radius * diff_theta.sin())
+                );
+                assert_approx_eq_v2!(
+                    vertices[9],
+                    Vec2::new(
+                        radius * (diff_theta * 2.0).cos(),
+                        -radius * (diff_theta * 2.0).sin()
+                    )
+                );
+                assert_approx_eq_v2!(
+                    vertices[10],
+                    Vec2::new(
+                        radius * (diff_theta * 3.0).cos(),
+                        -radius * (diff_theta * 3.0).sin()
+                    )
+                );
+                assert_approx_eq_v2!(
+                    vertices[11],
+                    Vec2::new(
+                        radius * (diff_theta * 4.0).cos(),
+                        -radius * (diff_theta * 4.0).sin()
+                    )
+                );
+                assert_approx_eq_v2!(
+                    vertices[12],
+                    Vec2::new(
+                        radius * (diff_theta * 5.0).cos(),
+                        -radius * (diff_theta * 5.0).sin()
+                    )
+                );
+                assert_approx_eq_v2!(
+                    vertices[13],
+                    Vec2::new(
+                        radius * (diff_theta * 6.0).cos(),
+                        -radius * (diff_theta * 6.0).sin()
+                    )
+                );
+            }
         }
     }
 }

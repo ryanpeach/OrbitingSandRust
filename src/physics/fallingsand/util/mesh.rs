@@ -66,14 +66,14 @@ impl GizmoDrawableLoop {
 /// This version draws the mesh using triangles
 /// This is useful for wireframes
 #[derive(Component)]
-pub struct GizmoDrawableTriangles {
+pub struct GizmoDrawableGrid {
     /// The mesh to draw
     pub mesh: OwnedMeshData,
     /// The color to draw the mesh
     pub color: Color,
 }
 
-impl GizmoDrawableTriangles {
+impl GizmoDrawableGrid {
     /// Create a new GizmoDrawableTriangles
     pub fn new(mesh: OwnedMeshData, color: Color) -> Self {
         Self { mesh, color }
@@ -82,17 +82,20 @@ impl GizmoDrawableTriangles {
     /// Draws the mesh using bevy's gizmos, which is an immediate mode renderer
     /// This is useful for wireframes
     /// This draw mode draws each triangle (triple) individually
-    pub fn draw_bevy_gizmo_triangles(&self, gizmos: &mut Gizmos, transform: &Transform) {
+    pub fn draw_bevy_gizmo_grid(&self, gizmos: &mut Gizmos, transform: &Transform) {
         for idx in (0..self.mesh.indices.len()).step_by(3) {
             let idx0 = self.mesh.indices[idx] as usize;
             let idx1 = self.mesh.indices[idx + 1] as usize;
             let idx2 = self.mesh.indices[idx + 2] as usize;
-            self.mesh
-                .draw_bevy_gizmo_line(idx0, idx1, transform, gizmos, self.color);
-            self.mesh
-                .draw_bevy_gizmo_line(idx1, idx2, transform, gizmos, self.color);
-            self.mesh
-                .draw_bevy_gizmo_line(idx2, idx0, transform, gizmos, self.color);
+            if idx % 2 == 0 {
+                self.mesh
+                    .draw_bevy_gizmo_line(idx0, idx1, transform, gizmos, self.color);
+                self.mesh
+                    .draw_bevy_gizmo_line(idx2, idx0, transform, gizmos, self.color);
+            } else {
+                self.mesh
+                    .draw_bevy_gizmo_line(idx1, idx2, transform, gizmos, self.color);
+            }
         }
     }
 }

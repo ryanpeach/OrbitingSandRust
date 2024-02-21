@@ -40,8 +40,8 @@ use hashbrown::HashMap;
 use crate::gui::camera::{CelestialIdx, OverlayLayer2, OverlayLayer3, SelectCelestial};
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
-use crate::physics::fallingsand::mesh::chunk_coords::VertexSettings;
-use crate::physics::fallingsand::util::mesh::{GizmoDrawableLoop, GizmoDrawableTriangles};
+use crate::physics::fallingsand::mesh::chunk_coords::{VertexMode, VertexSettings};
+use crate::physics::fallingsand::util::mesh::{GizmoDrawableGrid, GizmoDrawableLoop};
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
 use crate::physics::util::clock::Clock;
@@ -194,11 +194,20 @@ impl CelestialBuilder {
                         .get_chunk_at_idx(chunk_ijk)
                         .calc_chunk_meshdata(VertexSettings::default());
                     let mesh_handle = mesh.load_bevy_mesh(meshes);
+
+                    // Wireframes start to look weird unless you are at a certain level of detail at a certain chunk
+                    let lod = if i > 1 {
+                        2
+                    } else if i > 2 {
+                        4
+                    } else {
+                        1
+                    };
                     let wireframe = coordinate_dir
                         .get_chunk_at_idx(chunk_ijk)
                         .calc_chunk_triangle_wireframe(VertexSettings {
-                            lod: 1,
-                            ..Default::default()
+                            lod,
+                            mode: VertexMode::Grid,
                         });
                     let outline = coordinate_dir
                         .get_chunk_at_idx(chunk_ijk)
@@ -225,6 +234,29 @@ impl CelestialBuilder {
                         .id();
 
                     // Now create the gizmos
+                    let wireframe_entity = commands
+                        .spawn((
+                            Name::new(format!("Wireframe {:?}", chunk_ijk)),
+                            GizmoDrawableGrid::new(
+                                wireframe,
+                                Color::Rgba {
+                                    red: 0.1,
+                                    green: 0.1,
+                                    blue: 0.1,
+                                    alpha: 0.1,
+                                },
+                            ),
+                            SpatialBundle {
+                                transform: Transform::from_translation(
+                                    self.translation.extend(2.0),
+                                ),
+                                visibility: Visibility::Visible,
+                                ..Default::default()
+                            },
+                            CelestialWireframe,
+                            OverlayLayer2,
+                        ))
+                        .id();
                     let outline_entity = commands
                         .spawn((
                             Name::new(format!("Outline {:?}", chunk_ijk)),
@@ -238,21 +270,6 @@ impl CelestialBuilder {
                             },
                             CelestialOutline,
                             OverlayLayer3,
-                        ))
-                        .id();
-                    let wireframe_entity = commands
-                        .spawn((
-                            Name::new(format!("Wireframe {:?}", chunk_ijk)),
-                            GizmoDrawableTriangles::new(wireframe, Color::WHITE),
-                            SpatialBundle {
-                                transform: Transform::from_translation(
-                                    self.translation.extend(2.0),
-                                ),
-                                visibility: Visibility::Visible,
-                                ..Default::default()
-                            },
-                            CelestialWireframe,
-                            OverlayLayer2,
                         ))
                         .id();
 
@@ -370,14 +387,11 @@ impl CelestialDataPlugin {
     /// Draw the wireframe of the celestials cells
     pub fn draw_wireframe_system(
         mut gizmos: Gizmos,
-        query: Query<
-            (&GizmoDrawableTriangles, &Transform, &ViewVisibility),
-            With<CelestialWireframe>,
-        >,
+        query: Query<(&GizmoDrawableGrid, &Transform, &ViewVisibility), With<CelestialWireframe>>,
     ) {
         for (drawable, transform, visibility) in query.iter() {
             if visibility.get() {
-                drawable.draw_bevy_gizmo_triangles(&mut gizmos, transform);
+                drawable.draw_bevy_gizmo_grid(&mut gizmos, transform);
             }
         }
     }
