@@ -14,6 +14,17 @@ use crate::physics::util::vectors::RelXyPoint;
 use super::chunk_coords::ChunkCoords;
 use super::chunk_coords::PartialLayerChunkCoordsBuilder;
 
+/// The different ways to draw a mesh
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum MeshDrawMode {
+    /// Draw the mesh with the texture
+    TexturedMesh,
+    /// Draw the outline of the chunks only
+    Outline,
+    /// Draw the full wireframe of the chunks
+    TriangleWireframe,
+}
+
 /// A structure that contains all the chunk coordinates for a celestial body
 /// Useful for drawing the total mesh
 #[derive(Clone)]
@@ -39,6 +50,7 @@ pub struct CoordinateDirBuilder {
 }
 
 impl Default for CoordinateDirBuilder {
+    /// Start here
     fn default() -> Self {
         Self::new()
     }
@@ -117,8 +129,8 @@ impl CoordinateDirBuilder {
     /// and dynamically allocating chunks to each layer based on max_cells
     /// and the other parameters of the builder.
     pub fn build(self) -> CoordinateDir {
-        debug_assert_ne!(self.num_layers, 0);
-        debug_assert!(
+        assert_ne!(self.num_layers, 0);
+        assert!(
             self.max_radial_lines_per_chunk > self.first_num_radial_lines,
             "max_radial_lines_per_chunk must be greater than first_num_radial_lines, got {} and {}",
             self.max_radial_lines_per_chunk,
