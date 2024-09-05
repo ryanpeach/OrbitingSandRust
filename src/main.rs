@@ -2,6 +2,11 @@
 //! For players, we will eventually create a mdbook describing gameplay.
 //! This is the entry point for the game. It installs the plugins and contains
 //! a couple of setup functions for creating different scenes.
+#[warn(
+    clippy::pedantic,
+    clippy::restriction::unwrap_used,
+    clippy::restriction::panic,
+)]
 pub mod entities;
 pub mod gui;
 pub mod physics;
