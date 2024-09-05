@@ -31,8 +31,7 @@ use bevy_eventlistener::callbacks::ListenerInput;
 use bevy_mod_picking::events::{Down, Pointer};
 
 use crate::{
-    entities::celestials::celestial::ChunkIdk,
-    physics::fallingsand::util::mesh::MeshBoundingBox,
+    entities::celestials::celestial::ChunkIdk, physics::fallingsand::util::mesh::MeshBoundingBox,
 };
 
 /// Used to help identify our main camera
