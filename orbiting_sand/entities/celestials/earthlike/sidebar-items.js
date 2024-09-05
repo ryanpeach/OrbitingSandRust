@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["EarthLikeBuilder"]};
+window.SIDEBAR_ITEMS = {"struct":["Builder"]};

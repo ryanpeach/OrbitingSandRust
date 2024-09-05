@@ -381,7 +381,6 @@
 <a href="#381" id="381">381</a>
 <a href="#382" id="382">382</a>
 <a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The bevy camera for the game
 
 </span><span class="attr">#![warn(missing_docs)]
@@ -415,8 +414,7 @@
 <span class="kw">use </span>bevy_mod_picking::events::{Down, Pointer};
 
 <span class="kw">use crate</span>::{
-    entities::celestials::celestial::CelestialChunkIdk,
-    physics::fallingsand::util::mesh::MeshBoundingBox,
+    entities::celestials::celestial::ChunkIdk, physics::fallingsand::util::mesh::MeshBoundingBox,
 };
 
 <span class="doccomment">/// Used to help identify our main camera
@@ -741,7 +739,7 @@
     ///   3. Scale the camera to the celestial's radius
     </span><span class="kw">pub fn </span>select_celestial_focus(
         <span class="kw-2">mut </span>commands: Commands,
-        chunks: Query&lt;(<span class="kw-2">&amp;</span>Parent, Entity), With&lt;CelestialChunkIdk&gt;&gt;,
+        chunks: Query&lt;(<span class="kw-2">&amp;</span>Parent, Entity), With&lt;ChunkIdk&gt;&gt;,
         <span class="kw-2">mut </span>camera: Query&lt;(Entity, <span class="kw-2">&amp;mut </span>Transform), With&lt;MainCamera&gt;&gt;,
         <span class="kw-2">mut </span>click_events: EventReader&lt;SelectCelestial&gt;,
     ) {

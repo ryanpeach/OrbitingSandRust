@@ -26,7 +26,18 @@
 <a href="#26" id="26">26</a>
 <a href="#27" id="27">27</a>
 <a href="#28" id="28">28</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>bevy::{ecs::component::Component, math::Vec2, render::color::Color};
+<a href="#29" id="29">29</a>
+<a href="#30" id="30">30</a>
+<a href="#31" id="31">31</a>
+<a href="#32" id="32">32</a>
+<a href="#33" id="33">33</a>
+<a href="#34" id="34">34</a>
+<a href="#35" id="35">35</a>
+<a href="#36" id="36">36</a>
+</pre></div><pre class="rust"><code><span class="attr">#![allow(missing_docs)] </span><span class="comment">// TODO: Remove this line
+</span><span class="attr">#![allow(clippy::missing_docs_in_private_items)] </span><span class="comment">// TODO: Remove this line
+
+</span><span class="kw">use </span>bevy::{ecs::component::Component, math::Vec2, render::color::Color};
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::{fallingsand::util::mesh::OwnedMeshData, util::vectors::Vertex};
 
@@ -36,12 +47,15 @@
 
 <span class="kw">impl </span>Radius {
     <span class="doccomment">/// Calculate the mesh for the circle described by the radius
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>calc_mesh(<span class="self">self</span>) -&gt; OwnedMeshData {
         <span class="kw">const </span>NB_VERTICES: usize = <span class="number">100</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>vertices: Vec&lt;Vertex&gt; = Vec::with_capacity(NB_VERTICES);
         <span class="kw">let </span><span class="kw-2">mut </span>indices: Vec&lt;u32&gt; = Vec::with_capacity(NB_VERTICES);
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..NB_VERTICES {
-            <span class="kw">let </span>angle = <span class="number">2.0 </span>* std::f32::consts::PI * (i <span class="kw">as </span>f32) / (NB_VERTICES <span class="kw">as </span>f32);
+            <span class="comment">// We are working in f32
+            </span><span class="attr">#[allow(clippy::cast_precision_loss)]
+            </span><span class="kw">let </span>angle = <span class="number">2.0 </span>* std::f32::consts::PI * (i <span class="kw">as </span>f32) / (NB_VERTICES <span class="kw">as </span>f32);
             <span class="kw">let </span>x = <span class="self">self</span>.<span class="number">0 </span>* angle.cos();
             <span class="kw">let </span>y = <span class="self">self</span>.<span class="number">0 </span>* angle.sin();
             vertices.push(Vertex {
@@ -49,7 +63,9 @@
                 uv: Vec2::new(<span class="number">0.0</span>, <span class="number">0.0</span>),
                 color: Color::rgba(<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">1.0</span>),
             });
-            indices.push(i <span class="kw">as </span>u32);
+            <span class="comment">// indices only takes u32s
+            </span><span class="attr">#[allow(clippy::cast_possible_truncation)]
+            </span>indices.push(i <span class="kw">as </span>u32);
         }
         OwnedMeshData::new(vertices, indices)
     }

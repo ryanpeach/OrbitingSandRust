@@ -146,10 +146,19 @@
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! These documents are for game developers to understand the code, rather than for players.
 //! For players, we will eventually create a mdbook describing gameplay.
 //! This is the entry point for the game. It installs the plugins and contains
 //! a couple of setup functions for creating different scenes.
+</span><span class="attr">#[warn(clippy::pedantic, clippy::unwrap_used, clippy::panic)]
+#[deny(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
+#[allow(clippy::too_many_lines)]
+#[warn(missing_docs)]
+#[warn(clippy::missing_docs_in_private_items)]
 </span><span class="kw">pub mod </span>entities;
 <span class="kw">pub mod </span>gui;
 <span class="kw">pub mod </span>physics;
@@ -176,10 +185,9 @@
 <span class="kw">use </span>bevy::sprite::ColorMaterial;
 <span class="kw">use </span>bevy::DefaultPlugins;
 
-<span class="kw">use </span><span class="kw">crate</span>::entities::celestials::celestial::CelestialBuilder;
-<span class="kw">use </span><span class="kw">crate</span>::entities::celestials::earthlike::EarthLikeBuilder;
-<span class="kw">use </span><span class="kw">crate</span>::entities::celestials::sun::SunBuilder;
-<span class="kw">use </span><span class="kw">crate</span>::entities::EntitiesPluginGroup;
+<span class="kw">use </span><span class="kw">crate</span>::entities::celestials::celestial;
+<span class="kw">use </span><span class="kw">crate</span>::entities::celestials::earthlike;
+<span class="kw">use </span><span class="kw">crate</span>::entities::celestials::sun;
 <span class="kw">use </span>bevy::log::LogPlugin;
 <span class="kw">use </span>bevy::sprite::MaterialMesh2dBundle;
 <span class="kw">use </span>bevy_egui::EguiPlugin;
@@ -212,7 +220,7 @@
         ))
         .add_plugins(GuiPluginGroup)
         .add_plugins(PhysicsPluginGroup)
-        .add_plugins(EntitiesPluginGroup)
+        .add_plugins(entities::PluginGroup)
         <span class="comment">// .add_plugins(WorldInspectorPlugin::new())  // TODO: REF: https://github.com/jakobhellermann/bevy-inspector-egui/issues/175
         </span>.add_systems(PostStartup, planet_only_setup)
         .run();
@@ -231,22 +239,22 @@
     </span><span class="kw">let </span><span class="kw-2">mut </span>idx = CelestialIdx(<span class="number">0</span>);
 
     <span class="comment">// Create earth
-    </span><span class="kw">let </span>planet_data = EarthLikeBuilder::new().build();
-    CelestialBuilder::new(<span class="kw-2">&amp;mut </span>idx, <span class="string">"Earth1"</span>.to_string(), planet_data)
+    </span><span class="kw">let </span>planet_data = earthlike::Builder::new().build();
+    celestial::Builder::new(<span class="kw-2">&amp;mut </span>idx, <span class="string">"Earth1"</span>.to_string(), planet_data)
         .translation(Vec2::new(-<span class="number">10000.</span>, <span class="number">0.</span>))
         .velocity(Velocity(Vec2::new(<span class="number">0.</span>, <span class="number">1200.</span>)))
         .build(<span class="kw-2">&amp;mut </span>commands, <span class="kw-2">&amp;mut </span>meshes, <span class="kw-2">&amp;mut </span>materials, <span class="kw-2">&amp;</span>asset_server);
 
     <span class="comment">// Create earth2
-    </span><span class="kw">let </span>planet_data = EarthLikeBuilder::new().build();
-    CelestialBuilder::new(<span class="kw-2">&amp;mut </span>idx, <span class="string">"Earth2"</span>.to_string(), planet_data)
+    </span><span class="kw">let </span>planet_data = earthlike::Builder::new().build();
+    celestial::Builder::new(<span class="kw-2">&amp;mut </span>idx, <span class="string">"Earth2"</span>.to_string(), planet_data)
         .translation(Vec2::new(<span class="number">10000.</span>, <span class="number">0.</span>))
         .velocity(Velocity(Vec2::new(<span class="number">0.</span>, -<span class="number">1200.</span>)))
         .build(<span class="kw-2">&amp;mut </span>commands, <span class="kw-2">&amp;mut </span>meshes, <span class="kw-2">&amp;mut </span>materials, <span class="kw-2">&amp;</span>asset_server);
 
     <span class="comment">// Create a sun
-    </span><span class="kw">let </span>sun_data = SunBuilder::new().build();
-    CelestialBuilder::new(<span class="kw-2">&amp;mut </span>idx, <span class="string">"Sun"</span>.to_string(), sun_data).build(
+    </span><span class="kw">let </span>sun_data = sun::Builder::new().build();
+    celestial::Builder::new(<span class="kw-2">&amp;mut </span>idx, <span class="string">"Sun"</span>.to_string(), sun_data).build(
         <span class="kw-2">&amp;mut </span>commands,
         <span class="kw-2">&amp;mut </span>meshes,
         <span class="kw-2">&amp;mut </span>materials,
@@ -287,8 +295,8 @@
     asset_server: Res&lt;AssetServer&gt;,
 ) {
     <span class="comment">// Create earth
-    </span><span class="kw">let </span>planet_data = EarthLikeBuilder::new().build();
-    <span class="kw">let </span>planet_id = CelestialBuilder::new(<span class="kw-2">&amp;mut </span>CelestialIdx(<span class="number">0</span>), <span class="string">"Earth"</span>.to_string(), planet_data)
+    </span><span class="kw">let </span>planet_data = earthlike::Builder::new().build();
+    <span class="kw">let </span>planet_id = celestial::Builder::new(<span class="kw-2">&amp;mut </span>CelestialIdx(<span class="number">0</span>), <span class="string">"Earth"</span>.to_string(), planet_data)
         .build(<span class="kw-2">&amp;mut </span>commands, <span class="kw-2">&amp;mut </span>meshes, <span class="kw-2">&amp;mut </span>materials, <span class="kw-2">&amp;</span>asset_server);
 
     <span class="comment">// Parent the camera to the sun

@@ -135,10 +135,24 @@
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
 <a href="#137" id="137">137</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>bevy::log::info;
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+</pre></div><pre class="rust"><code><span class="attr">#![allow(missing_docs)] </span><span class="comment">// TODO: Remove this line
+</span><span class="attr">#![allow(clippy::missing_docs_in_private_items)] </span><span class="comment">// TODO: Remove this line
+
+</span><span class="kw">use </span>bevy::log::info;
 
 <span class="kw">use crate</span>::{
-    entities::celestials::celestial::CelestialData,
+    entities::celestials::celestial::Data,
     physics::{
         fallingsand::{
             data::element_directory::ElementGridDir, elements::element::ElementType,
@@ -148,7 +162,7 @@
     },
 };
 
-<span class="kw">pub struct </span>EarthLikeBuilder {
+<span class="kw">pub struct </span>Builder {
     cell_radius: Length,
     num_layers: usize,
     first_num_radial_lines: usize,
@@ -158,14 +172,15 @@
     max_concentric_circles_per_chunk: usize,
 }
 
-<span class="kw">impl </span>Default <span class="kw">for </span>EarthLikeBuilder {
+<span class="kw">impl </span>Default <span class="kw">for </span>Builder {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl </span>EarthLikeBuilder {
-    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>Builder {
+    <span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             cell_radius: Length(<span class="number">1.0</span>),
             num_layers: <span class="number">8</span>,
@@ -177,37 +192,44 @@
         }
     }
 
-    <span class="kw">pub fn </span>cell_radius(<span class="kw-2">mut </span><span class="self">self</span>, cell_radius: Length) -&gt; <span class="self">Self </span>{
+    <span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>cell_radius(<span class="kw-2">mut </span><span class="self">self</span>, cell_radius: Length) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.cell_radius = cell_radius;
         <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>num_layers(<span class="kw-2">mut </span><span class="self">self</span>, num_layers: usize) -&gt; <span class="self">Self </span>{
+    <span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>num_layers(<span class="kw-2">mut </span><span class="self">self</span>, num_layers: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.num_layers = num_layers;
         <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>first_num_radial_lines(<span class="kw-2">mut </span><span class="self">self</span>, first_num_radial_lines: usize) -&gt; <span class="self">Self </span>{
+    <span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>first_num_radial_lines(<span class="kw-2">mut </span><span class="self">self</span>, first_num_radial_lines: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.first_num_radial_lines = first_num_radial_lines;
         <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>second_num_concentric_circles(<span class="kw-2">mut </span><span class="self">self</span>, second_num_concentric_circles: usize) -&gt; <span class="self">Self </span>{
+    <span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>second_num_concentric_circles(<span class="kw-2">mut </span><span class="self">self</span>, second_num_concentric_circles: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.second_num_concentric_circles = second_num_concentric_circles;
         <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>first_num_tangential_chunkss(<span class="kw-2">mut </span><span class="self">self</span>, first_num_tangential_chunkss: usize) -&gt; <span class="self">Self </span>{
+    <span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>first_num_tangential_chunkss(<span class="kw-2">mut </span><span class="self">self</span>, first_num_tangential_chunkss: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.first_num_tangential_chunkss = first_num_tangential_chunkss;
         <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>max_radial_lines_per_chunk(<span class="kw-2">mut </span><span class="self">self</span>, max_radial_lines_per_chunk: usize) -&gt; <span class="self">Self </span>{
+    <span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>max_radial_lines_per_chunk(<span class="kw-2">mut </span><span class="self">self</span>, max_radial_lines_per_chunk: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.max_radial_lines_per_chunk = max_radial_lines_per_chunk;
         <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>max_concentric_circles_per_chunk(
+    <span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>max_concentric_circles_per_chunk(
         <span class="kw-2">mut </span><span class="self">self</span>,
         max_concentric_circles_per_chunk: usize,
     ) -&gt; <span class="self">Self </span>{
@@ -215,7 +237,7 @@
         <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CelestialData {
+    <span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Data {
         <span class="kw">let </span>coordinate_dir = CoordinateDirBuilder::new()
             .cell_radius(<span class="self">self</span>.cell_radius)
             .num_layers(<span class="self">self</span>.num_layers)
@@ -269,7 +291,7 @@
                 total_j += <span class="number">1</span>;
             }
         }
-        CelestialData::new(element_grid_dir)
+        Data::new(element_grid_dir)
     }
 }
 </code></pre></div></section></main></body></html>

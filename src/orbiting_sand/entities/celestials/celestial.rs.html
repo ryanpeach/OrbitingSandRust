@@ -407,6 +407,27 @@
 <a href="#407" id="407">407</a>
 <a href="#408" id="408">408</a>
 <a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Celestial entities and their data
 //! A celestial is a large body in space, such as a planet or star
 </span><span class="attr">#![warn(missing_docs)]
@@ -458,32 +479,32 @@
 
 <span class="doccomment">/// Identifies the mesh which draws the celestials chunk outlines
 </span><span class="attr">#[derive(Component)]
-</span><span class="kw">pub struct </span>CelestialOutline;
+</span><span class="kw">pub struct </span>Outline;
 
 <span class="doccomment">/// Identifies the mesh which draws the celestial cell wireframes
 </span><span class="attr">#[derive(Component)]
-</span><span class="kw">pub struct </span>CelestialWireframe;
+</span><span class="kw">pub struct </span>Wireframe;
 
 <span class="doccomment">/// A component that represents a chunk by its index in the directory
 </span><span class="attr">#[derive(Component, Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>CelestialChunkIdk(ChunkIjkVector);
+</span><span class="kw">pub struct </span>ChunkIdk(ChunkIjkVector);
 
 <span class="doccomment">/// Put this alongside the mesh that represents the falling sand itself
 </span><span class="attr">#[derive(Component, Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>FallingSandMaterial;
 
-<span class="doccomment">/// A plugin that adds the CelestialData system
-</span><span class="kw">pub struct </span>CelestialDataPlugin;
+<span class="doccomment">/// A plugin that adds the `CelestialData` system
+</span><span class="kw">pub struct </span>DataPlugin;
 
-<span class="kw">impl </span>Plugin <span class="kw">for </span>CelestialDataPlugin {
+<span class="kw">impl </span>Plugin <span class="kw">for </span>DataPlugin {
     <span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, app: <span class="kw-2">&amp;mut </span>App) {
         app.add_systems(FixedUpdate, <span class="self">Self</span>::process_system);
         app.insert_resource(Time::&lt;Fixed&gt;::from_seconds(<span class="number">1.0 </span>/ PHYSICS_FRAME_RATE));
         app.add_systems(
             Update,
             (
-                CelestialDataPlugin::draw_wireframe_system,
-                CelestialDataPlugin::draw_outline_system,
+                DataPlugin::draw_wireframe_system,
+                DataPlugin::draw_outline_system,
             ),
         );
         app.add_event::&lt;SelectCelestial&gt;();
@@ -492,13 +513,14 @@
 
 <span class="doccomment">/// Acts as a cache for a polar mesh's meshes and textures
 </span><span class="attr">#[derive(Component)]
-</span><span class="kw">pub struct </span>CelestialData {
+</span><span class="kw">pub struct </span>Data {
     <span class="doccomment">/// The elements in this celestial
     </span><span class="kw">pub </span>element_grid_dir: ElementGridDir,
 }
 
-<span class="kw">impl </span>CelestialData {
-    <span class="doccomment">/// Creates a new CelestialData
+<span class="kw">impl </span>Data {
+    <span class="doccomment">/// Creates a new `CelestialData`
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>new(<span class="kw-2">mut </span>element_grid_dir: ElementGridDir) -&gt; <span class="self">Self </span>{
         element_grid_dir.recalculate_everything();
         <span class="self">Self </span>{ element_grid_dir }
@@ -520,6 +542,7 @@
     }
 
     <span class="doccomment">/// Retrieves the element directory
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>get_element_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ElementGridDir {
         <span class="kw-2">&amp;</span><span class="self">self</span>.element_grid_dir
     }
@@ -531,11 +554,11 @@
 }
 
 <span class="doccomment">/// Create a celestial using a builder pattern
-</span><span class="kw">pub struct </span>CelestialBuilder {
+</span><span class="kw">pub struct </span>Builder {
     <span class="doccomment">/// The name of the celestial
     </span>name: String,
     <span class="doccomment">/// A component that wraps the element directory
-    </span>celestial_data: CelestialData,
+    </span>celestial_data: Data,
     <span class="doccomment">/// The starting velocity of the celestial
     </span>velocity: Velocity,
     <span class="doccomment">/// The starting position of the celestial
@@ -546,9 +569,9 @@
     </span>gravitational: bool,
 }
 
-<span class="kw">impl </span>CelestialBuilder {
+<span class="kw">impl </span>Builder {
     <span class="doccomment">/// Create a new celestial builder
-    </span><span class="kw">pub fn </span>new(idx: <span class="kw-2">&amp;mut </span>CelestialIdx, name: String, data: CelestialData) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(idx: <span class="kw-2">&amp;mut </span>CelestialIdx, name: String, data: Data) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>out = <span class="self">Self </span>{
             name,
             celestial_data: data,
@@ -562,24 +585,31 @@
     }
 
     <span class="doccomment">/// Set the velocity of the celestial
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>velocity(<span class="kw-2">mut </span><span class="self">self</span>, velocity: Velocity) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.velocity = velocity;
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set the translation of the celestial
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>translation(<span class="kw-2">mut </span><span class="self">self</span>, translation: Vec2) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.translation = translation;
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Set the gravitational field of the celestial
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>gravitational(<span class="kw-2">mut </span><span class="self">self</span>, gravitational: bool) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.gravitational = gravitational;
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Build the celestial
+    ///
+    /// # Panics
+    ///
+    /// Should never panic, but uses expect to handle the case where a texture is missing.
     </span><span class="kw">pub fn </span>build(
         <span class="self">self</span>,
         commands: <span class="kw-2">&amp;mut </span>Commands,
@@ -598,7 +628,7 @@
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..coordinate_dir.get_layer_num_concentric_chunks(i) {
                 <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..coordinate_dir.get_layer_num_tangential_chunkss(i) {
                     <span class="kw">let </span>chunk_ijk = ChunkIjkVector::new(i, j, k);
-                    <span class="kw">let </span>celestial_chunk_id = CelestialChunkIdk(chunk_ijk);
+                    <span class="kw">let </span>celestial_chunk_id = ChunkIdk(chunk_ijk);
                     <span class="kw">let </span>mesh = coordinate_dir
                         .get_chunk_at_idx(chunk_ijk)
                         .calc_chunk_meshdata(VertexSettings::default());
@@ -622,13 +652,18 @@
                         .get_chunk_at_idx(chunk_ijk)
                         .calc_chunk_outline();
 
-                    <span class="kw">let </span>textures = textures.remove(<span class="kw-2">&amp;</span>chunk_ijk).unwrap();
-                    <span class="kw">let </span>sand_material = textures.texture.unwrap().to_bevy_image();
+                    <span class="kw">let </span>textures = textures
+                        .remove(<span class="kw-2">&amp;</span>chunk_ijk)
+                        .expect(<span class="string">"There should always be a texture"</span>);
+                    <span class="kw">let </span>sand_material = textures
+                        .texture
+                        .expect(<span class="string">"There should always be a texture"</span>)
+                        .to_bevy_image();
 
                     <span class="comment">// Create the falling sand material
                     </span><span class="kw">let </span>chunk = commands
                         .spawn((
-                            Name::new(<span class="macro">format!</span>(<span class="string">"Chunk {:?}"</span>, chunk_ijk)),
+                            Name::new(<span class="macro">format!</span>(<span class="string">"Chunk {chunk_ijk:?}"</span>)),
                             celestial_chunk_id,
                             MaterialMesh2dBundle {
                                 mesh: mesh_handle.into(),
@@ -645,7 +680,7 @@
                     <span class="comment">// Now create the gizmos
                     </span><span class="kw">let </span>wireframe_entity = commands
                         .spawn((
-                            Name::new(<span class="macro">format!</span>(<span class="string">"Wireframe {:?}"</span>, chunk_ijk)),
+                            Name::new(<span class="macro">format!</span>(<span class="string">"Wireframe {chunk_ijk:?}"</span>)),
                             GizmoDrawableGrid::new(
                                 wireframe,
                                 Color::Rgba {
@@ -662,13 +697,13 @@
                                 visibility: Visibility::Visible,
                                 ..Default::default()
                             },
-                            CelestialWireframe,
+                            Wireframe,
                             OverlayLayer2,
                         ))
                         .id();
                     <span class="kw">let </span>outline_entity = commands
                         .spawn((
-                            Name::new(<span class="macro">format!</span>(<span class="string">"Outline {:?}"</span>, chunk_ijk)),
+                            Name::new(<span class="macro">format!</span>(<span class="string">"Outline {chunk_ijk:?}"</span>)),
                             GizmoDrawableLoop::new(outline, Color::RED),
                             SpatialBundle {
                                 transform: Transform::from_translation(
@@ -677,7 +712,7 @@
                                 visibility: Visibility::Inherited,
                                 ..Default::default()
                             },
-                            CelestialOutline,
+                            Outline,
                             OverlayLayer3,
                         ))
                         .id();
@@ -755,13 +790,16 @@
 }
 
 <span class="doccomment">/// Bevy Systems
-</span><span class="kw">impl </span>CelestialDataPlugin {
+</span><span class="kw">impl </span>DataPlugin {
     <span class="doccomment">/// Run this system every frame to update the celestial
+    /// # Panics
+    /// Should never panic, but uses expect to handle the case where a texture or material is missing.
     </span><span class="attr">#[allow(clippy::type_complexity)]
+    #[allow(clippy::needless_pass_by_value)]
     </span><span class="kw">pub fn </span>process_system(
-        <span class="kw-2">mut </span>celestial: Query&lt;(Entity, <span class="kw-2">&amp;mut </span>CelestialData, <span class="kw-2">&amp;mut </span>Mass)&gt;,
+        <span class="kw-2">mut </span>celestial: Query&lt;(Entity, <span class="kw-2">&amp;mut </span>Data, <span class="kw-2">&amp;mut </span>Mass)&gt;,
         <span class="kw-2">mut </span>falling_sand_materials: Query&lt;
-            (<span class="kw-2">&amp;</span>Parent, <span class="kw-2">&amp;mut </span>Handle&lt;ColorMaterial&gt;, <span class="kw-2">&amp;</span>CelestialChunkIdk),
+            (<span class="kw-2">&amp;</span>Parent, <span class="kw-2">&amp;mut </span>Handle&lt;ColorMaterial&gt;, <span class="kw-2">&amp;</span>ChunkIdk),
             With&lt;FallingSandMaterial&gt;,
         &gt;,
         <span class="kw-2">mut </span>materials: ResMut&lt;Assets&lt;ColorMaterial&gt;&gt;,
@@ -769,7 +807,7 @@
         time: Res&lt;Time&gt;,
         frame: Res&lt;FrameCount&gt;,
     ) {
-        <span class="kw">for </span>(celestial_id, <span class="kw-2">mut </span>celestial, <span class="kw-2">mut </span>mass) <span class="kw">in </span>celestial.iter_mut() {
+        <span class="kw">for </span>(celestial_id, <span class="kw-2">mut </span>celestial, <span class="kw-2">mut </span>mass) <span class="kw">in </span><span class="kw-2">&amp;mut </span>celestial {
             <span class="kw">let </span><span class="kw-2">mut </span>new_textures: HashMap&lt;ChunkIjkVector, Textures&gt; =
                 celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
 
@@ -778,15 +816,17 @@
             </span>mass.<span class="number">0 </span>= celestial.get_element_dir().get_total_mass().<span class="number">0</span>;
 
             <span class="comment">// Update the falling sand materials
-            </span><span class="kw">for </span>(parent, material_handle, chunk_ijk) <span class="kw">in </span>falling_sand_materials.iter_mut() {
+            </span><span class="kw">for </span>(parent, material_handle, chunk_ijk) <span class="kw">in </span><span class="kw-2">&amp;mut </span>falling_sand_materials {
                 <span class="kw">if </span>parent.get() == celestial_id &amp;&amp; new_textures.contains_key(<span class="kw-2">&amp;</span>chunk_ijk.<span class="number">0</span>) {
-                    <span class="kw">let </span>material = materials.get_mut(<span class="kw-2">&amp;*</span>material_handle).unwrap();
+                    <span class="kw">let </span>material = materials
+                        .get_mut(<span class="kw-2">&amp;*</span>material_handle)
+                        .expect(<span class="string">"We definitely have a material"</span>);
                     <span class="kw">let </span>new_texture = new_textures
                         .get_mut(<span class="kw-2">&amp;</span>chunk_ijk.<span class="number">0</span>)
-                        .unwrap()
+                        .expect(<span class="string">"We definitely have a texture"</span>)
                         .texture
                         .take()
-                        .unwrap()
+                        .expect(<span class="string">"We definitely have a texture"</span>)
                         .to_bevy_image();
                     material.texture = <span class="prelude-val">Some</span>(asset_server.add(new_texture));
                 }
@@ -794,9 +834,10 @@
         }
     }
     <span class="doccomment">/// Draw the wireframe of the celestials cells
+    </span><span class="attr">#[allow(clippy::needless_pass_by_value)]
     </span><span class="kw">pub fn </span>draw_wireframe_system(
         <span class="kw-2">mut </span>gizmos: Gizmos,
-        query: Query&lt;(<span class="kw-2">&amp;</span>GizmoDrawableGrid, <span class="kw-2">&amp;</span>Transform, <span class="kw-2">&amp;</span>ViewVisibility), With&lt;CelestialWireframe&gt;&gt;,
+        query: Query&lt;(<span class="kw-2">&amp;</span>GizmoDrawableGrid, <span class="kw-2">&amp;</span>Transform, <span class="kw-2">&amp;</span>ViewVisibility), With&lt;Wireframe&gt;&gt;,
     ) {
         <span class="kw">for </span>(drawable, transform, visibility) <span class="kw">in </span>query.iter() {
             <span class="kw">if </span>visibility.get() {
@@ -805,9 +846,10 @@
         }
     }
     <span class="doccomment">/// Draw the outline of the celestials chunks
+    </span><span class="attr">#[allow(clippy::needless_pass_by_value)]
     </span><span class="kw">pub fn </span>draw_outline_system(
         <span class="kw-2">mut </span>gizmos: Gizmos,
-        query: Query&lt;(<span class="kw-2">&amp;</span>GizmoDrawableLoop, <span class="kw-2">&amp;</span>Transform, <span class="kw-2">&amp;</span>ViewVisibility), With&lt;CelestialOutline&gt;&gt;,
+        query: Query&lt;(<span class="kw-2">&amp;</span>GizmoDrawableLoop, <span class="kw-2">&amp;</span>Transform, <span class="kw-2">&amp;</span>ViewVisibility), With&lt;Outline&gt;&gt;,
     ) {
         <span class="kw">for </span>(drawable, transform, visibility) <span class="kw">in </span>query.iter() {
             <span class="kw">if </span>visibility.get() {

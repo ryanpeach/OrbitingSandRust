@@ -206,7 +206,7 @@
 </span><span class="attr">#![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
-</span><span class="kw">use </span><span class="kw">crate</span>::entities::celestials::celestial::CelestialData;
+</span><span class="kw">use </span><span class="kw">crate</span>::entities::celestials::celestial::Data;
 <span class="kw">use </span><span class="kw">crate</span>::entities::utils::Radius;
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::mesh::GizmoDrawableLoop;
 <span class="kw">use </span><span class="kw">crate</span>::physics::util::clock::Clock;
@@ -336,7 +336,7 @@
             (<span class="kw-2">&amp;</span>Parent, <span class="kw-2">&amp;mut </span>Transform, <span class="kw-2">&amp;mut </span>Camera2d, <span class="kw-2">&amp;</span>MainCamera),
             Without&lt;BrushComponent&gt;,
         &gt;,
-        <span class="kw-2">mut </span>celestial: Query&lt;<span class="kw-2">&amp;mut </span>CelestialData&gt;,
+        <span class="kw-2">mut </span>celestial: Query&lt;<span class="kw-2">&amp;mut </span>Data&gt;,
         element_picker: Res&lt;ElementSelection&gt;,
         current_time: Res&lt;Time&gt;,
         frame_count: Res&lt;FrameCount&gt;,
