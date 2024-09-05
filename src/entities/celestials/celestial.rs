@@ -171,6 +171,10 @@ impl CelestialBuilder {
     }
 
     /// Build the celestial
+    /// 
+    /// # Panics
+    /// 
+    /// Should never panic, but uses expect to handle the case where a texture is missing.
     pub fn build(
         self,
         commands: &mut Commands,
@@ -213,8 +217,8 @@ impl CelestialBuilder {
                         .get_chunk_at_idx(chunk_ijk)
                         .calc_chunk_outline();
 
-                    let textures = textures.remove(&chunk_ijk).unwrap();
-                    let sand_material = textures.texture.unwrap().to_bevy_image();
+                    let textures = textures.remove(&chunk_ijk).expect("There should always be a texture");
+                    let sand_material = textures.texture.expect("There should always be a texture").to_bevy_image();
 
                     // Create the falling sand material
                     let chunk = commands
@@ -348,7 +352,10 @@ impl CelestialBuilder {
 /// Bevy Systems
 impl CelestialDataPlugin {
     /// Run this system every frame to update the celestial
+    /// # Panics
+    /// Should never panic, but uses expect to handle the case where a texture or material is missing.
     #[allow(clippy::type_complexity)]
+    #[allow(clippy::needless_pass_by_value)]
     pub fn process_system(
         mut celestial: Query<(Entity, &mut CelestialData, &mut Mass)>,
         mut falling_sand_materials: Query<
@@ -371,13 +378,13 @@ impl CelestialDataPlugin {
             // Update the falling sand materials
             for (parent, material_handle, chunk_ijk) in &mut falling_sand_materials {
                 if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
-                    let material = materials.get_mut(&*material_handle).unwrap();
+                    let material = materials.get_mut(&*material_handle).expect("We definitely have a material");
                     let new_texture = new_textures
                         .get_mut(&chunk_ijk.0)
-                        .unwrap()
+                        .expect("We definitely have a texture")
                         .texture
                         .take()
-                        .unwrap()
+                        .expect("We definitely have a texture")
                         .to_bevy_image();
                     material.texture = Some(asset_server.add(new_texture));
                 }
@@ -385,6 +392,7 @@ impl CelestialDataPlugin {
         }
     }
     /// Draw the wireframe of the celestials cells
+    #[allow(clippy::needless_pass_by_value)]
     pub fn draw_wireframe_system(
         mut gizmos: Gizmos,
         query: Query<(&GizmoDrawableGrid, &Transform, &ViewVisibility), With<CelestialWireframe>>,
@@ -396,6 +404,7 @@ impl CelestialDataPlugin {
         }
     }
     /// Draw the outline of the celestials chunks
+    #[allow(clippy::needless_pass_by_value)]
     pub fn draw_outline_system(
         mut gizmos: Gizmos,
         query: Query<(&GizmoDrawableLoop, &Transform, &ViewVisibility), With<CelestialOutline>>,
