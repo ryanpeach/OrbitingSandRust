@@ -6,20 +6,41 @@ pub mod entities;
 pub mod gui;
 pub mod physics;
 
+use bevy::app::App;
+use bevy::app::PostStartup;
+use bevy::asset::AssetServer;
+use bevy::asset::Assets;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+use bevy::math::Vec2;
+use bevy::prelude::default;
+use bevy::prelude::BuildChildren;
+use bevy::prelude::Circle;
+use bevy::prelude::Color;
+use bevy::prelude::Commands;
+use bevy::prelude::Entity;
+use bevy::prelude::ImagePlugin;
+use bevy::prelude::Mesh;
+use bevy::prelude::Query;
+use bevy::prelude::Res;
+use bevy::prelude::ResMut;
+use bevy::prelude::Transform;
+use bevy::prelude::With;
+use bevy::sprite::ColorMaterial;
+use bevy::DefaultPlugins;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 use crate::entities::celestials::celestial::CelestialBuilder;
 use crate::entities::celestials::earthlike::EarthLikeBuilder;
 use crate::entities::celestials::sun::SunBuilder;
 use crate::entities::EntitiesPluginGroup;
-use bevy::math::primitives::Circle;
 use bevy::sprite::MaterialMesh2dBundle;
-use bevy::{log::LogPlugin, prelude::*};
+use bevy::log::LogPlugin;
 use bevy_egui::EguiPlugin;
 use bevy_mod_picking::low_latency_window_plugin;
 use bevy_mod_picking::DefaultPickingPlugins;
 use gui::camera::MainCamera;
+
+use bevy::prelude::PluginGroup;
 
 use crate::gui::camera::{BackgroundLayer1, CelestialIdx};
 use crate::gui::GuiPluginGroup;
@@ -45,7 +66,7 @@ fn main() {
         .add_plugins(GuiPluginGroup)
         .add_plugins(PhysicsPluginGroup)
         .add_plugins(EntitiesPluginGroup)
-        .add_plugins(WorldInspectorPlugin::new())
+        // .add_plugins(WorldInspectorPlugin::new())  // TODO: REF: https://github.com/jakobhellermann/bevy-inspector-egui/issues/175
         .add_systems(PostStartup, planet_only_setup)
         .run();
 }
@@ -100,7 +121,7 @@ fn solar_system_setup(
             Mass(1.0),
             BackgroundLayer1,
             MaterialMesh2dBundle {
-                mesh: meshes.add(Circle::new(20.).into()).into(),
+                mesh: meshes.add(Circle::new(20.)).into(),
                 material: materials.add(ColorMaterial::from(Color::PURPLE)),
                 transform: Transform::from_translation(pos.extend(-1.0)),
                 ..default()

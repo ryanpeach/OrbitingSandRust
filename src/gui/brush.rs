@@ -89,7 +89,7 @@ impl BrushPlugin {
         for event in cursor_moved_events.read() {
             let mouse_transform = mouse_coord_to_world_coord(&windows, event);
 
-            query.for_each_mut(|mut brush_transform| {
+            query.iter_mut().for_each(|mut brush_transform| {
                 brush_transform.translation.x = mouse_transform.translation.x;
                 brush_transform.translation.y = mouse_transform.translation.y; // Invert y-axis to match Bevy's coordinate system
             });

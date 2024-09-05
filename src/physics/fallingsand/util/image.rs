@@ -9,6 +9,7 @@ use bevy::{
         texture::Image,
     },
 };
+use bevy::render::render_asset::RenderAssetUsages;
 
 /// Representing a raw RGBA image
 /// Game engine agnostic, full ownership, no lifetimes, not a component
@@ -56,6 +57,7 @@ impl RawImage {
             TextureDimension::D2,
             self.pixels,
             TextureFormat::Rgba8UnormSrgb, // Assuming RGBA format
+            RenderAssetUsages::default()
         )
     }
 }
