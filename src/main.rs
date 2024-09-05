@@ -4,10 +4,10 @@
 //! a couple of setup functions for creating different scenes.
 #[warn(clippy::pedantic, clippy::unwrap_used, clippy::panic)]
 #[deny(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
-#[allow(clippy::module_name_repetitions)] // TODO: Remove
 #[allow(clippy::too_many_lines)]
-// #[warn(missing_docs)]  // TODO: Add back
-// #[warn(clippy::missing_docs_in_private_items)]  // TODO: Add back
+#[warn(missing_docs)]
+#[warn(clippy::missing_docs_in_private_items)]
+#[allow(clippy::module_name_repetitions)]  // TODO: Remove this line
 pub mod entities;
 pub mod gui;
 pub mod physics;

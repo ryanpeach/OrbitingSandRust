@@ -1,3 +1,6 @@
+#![allow(missing_docs)] // TODO: Remove this line
+#![allow(clippy::missing_docs_in_private_items)] // TODO: Remove this line
+
 use bevy::log::info;
 
 use crate::{

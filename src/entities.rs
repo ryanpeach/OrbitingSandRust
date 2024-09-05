@@ -6,6 +6,7 @@ use bevy::app::{PluginGroup, PluginGroupBuilder};
 pub mod celestials;
 pub mod utils;
 
+/// The plugin group for all entities
 pub struct EntitiesPluginGroup;
 
 impl PluginGroup for EntitiesPluginGroup {
