@@ -63,7 +63,7 @@ pub struct CelestialChunkIdk(ChunkIjkVector);
 #[derive(Component, Debug, Clone, Copy)]
 pub struct FallingSandMaterial;
 
-/// A plugin that adds the CelestialData system
+/// A plugin that adds the `CelestialData` system
 pub struct CelestialDataPlugin;
 
 impl Plugin for CelestialDataPlugin {
@@ -89,8 +89,8 @@ pub struct CelestialData {
 }
 
 impl CelestialData {
-    /// Creates a new CelestialData
-    pub fn new(mut element_grid_dir: ElementGridDir) -> Self {
+    /// Creates a new `CelestialData`
+    #[must_use] pub fn new(mut element_grid_dir: ElementGridDir) -> Self {
         element_grid_dir.recalculate_everything();
         Self { element_grid_dir }
     }
@@ -111,7 +111,7 @@ impl CelestialData {
     }
 
     /// Retrieves the element directory
-    pub fn get_element_dir(&self) -> &ElementGridDir {
+    #[must_use] pub fn get_element_dir(&self) -> &ElementGridDir {
         &self.element_grid_dir
     }
 
@@ -153,19 +153,19 @@ impl CelestialBuilder {
     }
 
     /// Set the velocity of the celestial
-    pub fn velocity(mut self, velocity: Velocity) -> Self {
+    #[must_use] pub fn velocity(mut self, velocity: Velocity) -> Self {
         self.velocity = velocity;
         self
     }
 
     /// Set the translation of the celestial
-    pub fn translation(mut self, translation: Vec2) -> Self {
+    #[must_use] pub fn translation(mut self, translation: Vec2) -> Self {
         self.translation = translation;
         self
     }
 
     /// Set the gravitational field of the celestial
-    pub fn gravitational(mut self, gravitational: bool) -> Self {
+    #[must_use] pub fn gravitational(mut self, gravitational: bool) -> Self {
         self.gravitational = gravitational;
         self
     }
@@ -219,7 +219,7 @@ impl CelestialBuilder {
                     // Create the falling sand material
                     let chunk = commands
                         .spawn((
-                            Name::new(format!("Chunk {:?}", chunk_ijk)),
+                            Name::new(format!("Chunk {chunk_ijk:?}")),
                             celestial_chunk_id,
                             MaterialMesh2dBundle {
                                 mesh: mesh_handle.into(),
@@ -236,7 +236,7 @@ impl CelestialBuilder {
                     // Now create the gizmos
                     let wireframe_entity = commands
                         .spawn((
-                            Name::new(format!("Wireframe {:?}", chunk_ijk)),
+                            Name::new(format!("Wireframe {chunk_ijk:?}")),
                             GizmoDrawableGrid::new(
                                 wireframe,
                                 Color::Rgba {
@@ -259,7 +259,7 @@ impl CelestialBuilder {
                         .id();
                     let outline_entity = commands
                         .spawn((
-                            Name::new(format!("Outline {:?}", chunk_ijk)),
+                            Name::new(format!("Outline {chunk_ijk:?}")),
                             GizmoDrawableLoop::new(outline, Color::RED),
                             SpatialBundle {
                                 transform: Transform::from_translation(
@@ -360,7 +360,7 @@ impl CelestialDataPlugin {
         time: Res<Time>,
         frame: Res<FrameCount>,
     ) {
-        for (celestial_id, mut celestial, mut mass) in celestial.iter_mut() {
+        for (celestial_id, mut celestial, mut mass) in &mut celestial {
             let mut new_textures: HashMap<ChunkIjkVector, Textures> =
                 celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
 
@@ -369,7 +369,7 @@ impl CelestialDataPlugin {
             mass.0 = celestial.get_element_dir().get_total_mass().0;
 
             // Update the falling sand materials
-            for (parent, material_handle, chunk_ijk) in falling_sand_materials.iter_mut() {
+            for (parent, material_handle, chunk_ijk) in &mut falling_sand_materials {
                 if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
                     let material = materials.get_mut(&*material_handle).unwrap();
                     let new_texture = new_textures
