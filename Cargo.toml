@@ -12,11 +12,11 @@ opt-level = 3
 debug = false
 
 [dependencies]
-bevy = "0.12.1"
-bevy-inspector-egui = "0.22.1"
-bevy_egui = "0.24.0"
-bevy_eventlistener = "0.6.1"
-bevy_mod_picking = { version = "0.17.0", features = ["bevy_picking_raycast"] }
+bevy = "0.13.2"
+bevy-inspector-egui = "0.23.3"
+bevy_egui = "0.27.1"
+bevy_eventlistener = "0.7.0"
+bevy_mod_picking = { version = "0.18.0", features = ["bevy_picking_raycast"] }
 bytemuck = "1.14.0"
 derive_more = "0.99.17"
 hashbrown = { version = "0.14.2", features = ["rayon", "ahash"] }
