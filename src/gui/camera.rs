@@ -150,7 +150,7 @@ impl CameraPlugin {
         commands
             .spawn((
                 Camera2dBundle {
-                    camera_2d: Camera2d::default(),
+                    camera_2d: Camera2d,
                     transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0) * 100.0),
                     ..Default::default()
                 },
