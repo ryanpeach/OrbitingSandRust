@@ -20,6 +20,8 @@ use bevy::{
     transform::components::Transform,
 };
 
+use bevy::render::render_asset::RenderAssetUsages;
+
 use crate::physics::util::vectors::Vertex;
 
 /// Useful for frustum culling
@@ -154,7 +156,10 @@ impl OwnedMeshData {
 
     /// Loads the mesh into bevy's asset system and returns a handle to it
     pub fn load_bevy_mesh(&self, meshes: &mut ResMut<Assets<Mesh>>) -> Handle<Mesh> {
-        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
+        let mut mesh = Mesh::new(
+            PrimitiveTopology::TriangleList,
+            RenderAssetUsages::default(),
+        );
 
         // Assuming that Vertex struct has position, uv, and color fields
         let positions: Vec<[f32; 3]> = self
@@ -185,7 +190,7 @@ impl OwnedMeshData {
         );
 
         // Set indices
-        mesh.set_indices(Some(Indices::U32(self.indices.clone())));
+        mesh.insert_indices(Indices::U32(self.indices.clone()));
 
         meshes.add(mesh)
     }

@@ -2,6 +2,7 @@
 //! I found it useful to write my own image class in ggez and it has been useful in bevy as well
 //! keeps us from having to use specific bevy types in the physics engine
 
+use bevy::render::render_asset::RenderAssetUsages;
 use bevy::{
     math::Rect,
     render::{
@@ -56,6 +57,7 @@ impl RawImage {
             TextureDimension::D2,
             self.pixels,
             TextureFormat::Rgba8UnormSrgb, // Assuming RGBA format
+            RenderAssetUsages::default(),
         )
     }
 }

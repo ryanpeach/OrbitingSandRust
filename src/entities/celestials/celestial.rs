@@ -223,7 +223,7 @@ impl CelestialBuilder {
                             celestial_chunk_id,
                             MaterialMesh2dBundle {
                                 mesh: mesh_handle.into(),
-                                material: materials.add(asset_server.add(sand_material).into()),
+                                material: materials.add(asset_server.add(sand_material)),
                                 visibility: Visibility::Inherited,
                                 ..Default::default()
                             },

@@ -18,7 +18,7 @@ use bevy::ecs::system::{Commands, Res};
 use bevy::hierarchy::{BuildChildren, Parent};
 use bevy::input::keyboard::KeyCode;
 use bevy::input::mouse::MouseButton;
-use bevy::input::Input;
+use bevy::input::ButtonInput;
 use bevy::log::debug;
 use bevy::math::{Vec2, Vec3};
 use bevy::prelude::Window;
@@ -89,7 +89,7 @@ impl BrushPlugin {
         for event in cursor_moved_events.read() {
             let mouse_transform = mouse_coord_to_world_coord(&windows, event);
 
-            query.for_each_mut(|mut brush_transform| {
+            query.iter_mut().for_each(|mut brush_transform| {
                 brush_transform.translation.x = mouse_transform.translation.x;
                 brush_transform.translation.y = mouse_transform.translation.y; // Invert y-axis to match Bevy's coordinate system
             });
@@ -109,11 +109,11 @@ impl BrushPlugin {
 
     /// Resize the brush with + and -
     pub fn resize_brush_system(
-        keys: Res<Input<KeyCode>>,
+        keys: Res<ButtonInput<KeyCode>>,
         mut query: Query<&mut Radius, With<BrushComponent>>,
     ) {
         for mut brush_radius in query.iter_mut() {
-            if keys.just_pressed(KeyCode::Equals) {
+            if keys.just_pressed(KeyCode::Equal) {
                 brush_radius.0 *= 2.0;
             }
             if keys.just_pressed(KeyCode::Minus) {
@@ -128,7 +128,7 @@ impl BrushPlugin {
     /// Based on the brush radius and the celestial cell size, return a list of
     /// points in relative xy coordinates that the brush will affect.
     pub fn apply_brush_system(
-        mouse: Res<Input<MouseButton>>,
+        mouse: Res<ButtonInput<MouseButton>>,
         mut brush: Query<(&Parent, &mut Transform, &Radius), With<BrushComponent>>,
         mut camera: Query<
             (&Parent, &mut Transform, &mut Camera2d, &MainCamera),
