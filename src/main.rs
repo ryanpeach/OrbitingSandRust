@@ -27,7 +27,6 @@ use bevy::prelude::Transform;
 use bevy::prelude::With;
 use bevy::sprite::ColorMaterial;
 use bevy::DefaultPlugins;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 use crate::entities::celestials::celestial::CelestialBuilder;
 use crate::entities::celestials::earthlike::EarthLikeBuilder;
