@@ -90,7 +90,8 @@ pub struct CelestialData {
 
 impl CelestialData {
     /// Creates a new `CelestialData`
-    #[must_use] pub fn new(mut element_grid_dir: ElementGridDir) -> Self {
+    #[must_use]
+    pub fn new(mut element_grid_dir: ElementGridDir) -> Self {
         element_grid_dir.recalculate_everything();
         Self { element_grid_dir }
     }
@@ -111,7 +112,8 @@ impl CelestialData {
     }
 
     /// Retrieves the element directory
-    #[must_use] pub fn get_element_dir(&self) -> &ElementGridDir {
+    #[must_use]
+    pub fn get_element_dir(&self) -> &ElementGridDir {
         &self.element_grid_dir
     }
 
@@ -153,27 +155,30 @@ impl CelestialBuilder {
     }
 
     /// Set the velocity of the celestial
-    #[must_use] pub fn velocity(mut self, velocity: Velocity) -> Self {
+    #[must_use]
+    pub fn velocity(mut self, velocity: Velocity) -> Self {
         self.velocity = velocity;
         self
     }
 
     /// Set the translation of the celestial
-    #[must_use] pub fn translation(mut self, translation: Vec2) -> Self {
+    #[must_use]
+    pub fn translation(mut self, translation: Vec2) -> Self {
         self.translation = translation;
         self
     }
 
     /// Set the gravitational field of the celestial
-    #[must_use] pub fn gravitational(mut self, gravitational: bool) -> Self {
+    #[must_use]
+    pub fn gravitational(mut self, gravitational: bool) -> Self {
         self.gravitational = gravitational;
         self
     }
 
     /// Build the celestial
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Should never panic, but uses expect to handle the case where a texture is missing.
     pub fn build(
         self,
@@ -217,8 +222,13 @@ impl CelestialBuilder {
                         .get_chunk_at_idx(chunk_ijk)
                         .calc_chunk_outline();
 
-                    let textures = textures.remove(&chunk_ijk).expect("There should always be a texture");
-                    let sand_material = textures.texture.expect("There should always be a texture").to_bevy_image();
+                    let textures = textures
+                        .remove(&chunk_ijk)
+                        .expect("There should always be a texture");
+                    let sand_material = textures
+                        .texture
+                        .expect("There should always be a texture")
+                        .to_bevy_image();
 
                     // Create the falling sand material
                     let chunk = commands
@@ -378,7 +388,9 @@ impl CelestialDataPlugin {
             // Update the falling sand materials
             for (parent, material_handle, chunk_ijk) in &mut falling_sand_materials {
                 if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
-                    let material = materials.get_mut(&*material_handle).expect("We definitely have a material");
+                    let material = materials
+                        .get_mut(&*material_handle)
+                        .expect("We definitely have a material");
                     let new_texture = new_textures
                         .get_mut(&chunk_ijk.0)
                         .expect("We definitely have a texture")

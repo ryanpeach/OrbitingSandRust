@@ -28,7 +28,8 @@ impl Default for EarthLikeBuilder {
 }
 
 impl EarthLikeBuilder {
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub fn new() -> Self {
         Self {
             cell_radius: Length(1.0),
             num_layers: 8,
@@ -40,37 +41,44 @@ impl EarthLikeBuilder {
         }
     }
 
-    #[must_use] pub fn cell_radius(mut self, cell_radius: Length) -> Self {
+    #[must_use]
+    pub fn cell_radius(mut self, cell_radius: Length) -> Self {
         self.cell_radius = cell_radius;
         self
     }
 
-    #[must_use] pub fn num_layers(mut self, num_layers: usize) -> Self {
+    #[must_use]
+    pub fn num_layers(mut self, num_layers: usize) -> Self {
         self.num_layers = num_layers;
         self
     }
 
-    #[must_use] pub fn first_num_radial_lines(mut self, first_num_radial_lines: usize) -> Self {
+    #[must_use]
+    pub fn first_num_radial_lines(mut self, first_num_radial_lines: usize) -> Self {
         self.first_num_radial_lines = first_num_radial_lines;
         self
     }
 
-    #[must_use] pub fn second_num_concentric_circles(mut self, second_num_concentric_circles: usize) -> Self {
+    #[must_use]
+    pub fn second_num_concentric_circles(mut self, second_num_concentric_circles: usize) -> Self {
         self.second_num_concentric_circles = second_num_concentric_circles;
         self
     }
 
-    #[must_use] pub fn first_num_tangential_chunkss(mut self, first_num_tangential_chunkss: usize) -> Self {
+    #[must_use]
+    pub fn first_num_tangential_chunkss(mut self, first_num_tangential_chunkss: usize) -> Self {
         self.first_num_tangential_chunkss = first_num_tangential_chunkss;
         self
     }
 
-    #[must_use] pub fn max_radial_lines_per_chunk(mut self, max_radial_lines_per_chunk: usize) -> Self {
+    #[must_use]
+    pub fn max_radial_lines_per_chunk(mut self, max_radial_lines_per_chunk: usize) -> Self {
         self.max_radial_lines_per_chunk = max_radial_lines_per_chunk;
         self
     }
 
-    #[must_use] pub fn max_concentric_circles_per_chunk(
+    #[must_use]
+    pub fn max_concentric_circles_per_chunk(
         mut self,
         max_concentric_circles_per_chunk: usize,
     ) -> Self {
