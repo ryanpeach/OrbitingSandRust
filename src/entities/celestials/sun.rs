@@ -1,7 +1,10 @@
+#![allow(missing_docs)] // TODO: Remove this line
+#![allow(clippy::missing_docs_in_private_items)] // TODO: Remove this line
+
 use bevy::log::info;
 
 use crate::{
-    entities::celestials::celestial::CelestialData,
+    entities::celestials::celestial::Data,
     physics::{
         fallingsand::{
             data::element_directory::ElementGridDir, elements::element::ElementType,
@@ -11,7 +14,7 @@ use crate::{
     },
 };
 
-pub struct SunBuilder {
+pub struct Builder {
     cell_radius: Length,
     num_layers: usize,
     first_num_radial_lines: usize,
@@ -21,13 +24,14 @@ pub struct SunBuilder {
     max_concentric_circles_per_chunk: usize,
 }
 
-impl Default for SunBuilder {
+impl Default for Builder {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl SunBuilder {
+impl Builder {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             cell_radius: Length(10.0),
@@ -40,36 +44,43 @@ impl SunBuilder {
         }
     }
 
+    #[must_use]
     pub fn cell_radius(mut self, cell_radius: Length) -> Self {
         self.cell_radius = cell_radius;
         self
     }
 
+    #[must_use]
     pub fn num_layers(mut self, num_layers: usize) -> Self {
         self.num_layers = num_layers;
         self
     }
 
+    #[must_use]
     pub fn first_num_radial_lines(mut self, first_num_radial_lines: usize) -> Self {
         self.first_num_radial_lines = first_num_radial_lines;
         self
     }
 
+    #[must_use]
     pub fn second_num_concentric_circles(mut self, second_num_concentric_circles: usize) -> Self {
         self.second_num_concentric_circles = second_num_concentric_circles;
         self
     }
 
+    #[must_use]
     pub fn first_num_tangential_chunkss(mut self, first_num_tangential_chunkss: usize) -> Self {
         self.first_num_tangential_chunkss = first_num_tangential_chunkss;
         self
     }
 
+    #[must_use]
     pub fn max_radial_lines_per_chunk(mut self, max_radial_lines_per_chunk: usize) -> Self {
         self.max_radial_lines_per_chunk = max_radial_lines_per_chunk;
         self
     }
 
+    #[must_use]
     pub fn max_concentric_circles_per_chunk(
         mut self,
         max_concentric_circles_per_chunk: usize,
@@ -78,7 +89,7 @@ impl SunBuilder {
         self
     }
 
-    pub fn build(&self) -> CelestialData {
+    pub fn build(&self) -> Data {
         let coordinate_dir = CoordinateDirBuilder::new()
             .cell_radius(self.cell_radius)
             .num_layers(self.num_layers)
@@ -107,6 +118,6 @@ impl SunBuilder {
                 }
             }
         }
-        CelestialData::new(element_grid_dir)
+        Data::new(element_grid_dir)
     }
 }

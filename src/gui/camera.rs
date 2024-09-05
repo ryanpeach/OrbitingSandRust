@@ -31,8 +31,7 @@ use bevy_eventlistener::callbacks::ListenerInput;
 use bevy_mod_picking::events::{Down, Pointer};
 
 use crate::{
-    entities::celestials::celestial::CelestialChunkIdk,
-    physics::fallingsand::util::mesh::MeshBoundingBox,
+    entities::celestials::celestial::ChunkIdk, physics::fallingsand::util::mesh::MeshBoundingBox,
 };
 
 /// Used to help identify our main camera
@@ -357,7 +356,7 @@ impl CameraPlugin {
     ///   3. Scale the camera to the celestial's radius
     pub fn select_celestial_focus(
         mut commands: Commands,
-        chunks: Query<(&Parent, Entity), With<CelestialChunkIdk>>,
+        chunks: Query<(&Parent, Entity), With<ChunkIdk>>,
         mut camera: Query<(Entity, &mut Transform), With<MainCamera>>,
         mut click_events: EventReader<SelectCelestial>,
     ) {
