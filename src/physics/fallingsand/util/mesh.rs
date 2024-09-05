@@ -156,7 +156,10 @@ impl OwnedMeshData {
 
     /// Loads the mesh into bevy's asset system and returns a handle to it
     pub fn load_bevy_mesh(&self, meshes: &mut ResMut<Assets<Mesh>>) -> Handle<Mesh> {
-        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default());
+        let mut mesh = Mesh::new(
+            PrimitiveTopology::TriangleList,
+            RenderAssetUsages::default(),
+        );
 
         // Assuming that Vertex struct has position, uv, and color fields
         let positions: Vec<[f32; 3]> = self
