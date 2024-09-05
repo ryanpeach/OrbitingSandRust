@@ -49,32 +49,32 @@ use crate::physics::PHYSICS_FRAME_RATE;
 
 /// Identifies the mesh which draws the celestials chunk outlines
 #[derive(Component)]
-pub struct CelestialOutline;
+pub struct Outline;
 
 /// Identifies the mesh which draws the celestial cell wireframes
 #[derive(Component)]
-pub struct CelestialWireframe;
+pub struct Wireframe;
 
 /// A component that represents a chunk by its index in the directory
 #[derive(Component, Debug, Clone, Copy)]
-pub struct CelestialChunkIdk(ChunkIjkVector);
+pub struct ChunkIdk(ChunkIjkVector);
 
 /// Put this alongside the mesh that represents the falling sand itself
 #[derive(Component, Debug, Clone, Copy)]
 pub struct FallingSandMaterial;
 
 /// A plugin that adds the `CelestialData` system
-pub struct CelestialDataPlugin;
+pub struct DataPlugin;
 
-impl Plugin for CelestialDataPlugin {
+impl Plugin for DataPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(FixedUpdate, Self::process_system);
         app.insert_resource(Time::<Fixed>::from_seconds(1.0 / PHYSICS_FRAME_RATE));
         app.add_systems(
             Update,
             (
-                CelestialDataPlugin::draw_wireframe_system,
-                CelestialDataPlugin::draw_outline_system,
+                DataPlugin::draw_wireframe_system,
+                DataPlugin::draw_outline_system,
             ),
         );
         app.add_event::<SelectCelestial>();
@@ -83,12 +83,12 @@ impl Plugin for CelestialDataPlugin {
 
 /// Acts as a cache for a polar mesh's meshes and textures
 #[derive(Component)]
-pub struct CelestialData {
+pub struct Data {
     /// The elements in this celestial
     pub element_grid_dir: ElementGridDir,
 }
 
-impl CelestialData {
+impl Data {
     /// Creates a new `CelestialData`
     #[must_use]
     pub fn new(mut element_grid_dir: ElementGridDir) -> Self {
@@ -124,11 +124,11 @@ impl CelestialData {
 }
 
 /// Create a celestial using a builder pattern
-pub struct CelestialBuilder {
+pub struct Builder {
     /// The name of the celestial
     name: String,
     /// A component that wraps the element directory
-    celestial_data: CelestialData,
+    celestial_data: Data,
     /// The starting velocity of the celestial
     velocity: Velocity,
     /// The starting position of the celestial
@@ -139,9 +139,9 @@ pub struct CelestialBuilder {
     gravitational: bool,
 }
 
-impl CelestialBuilder {
+impl Builder {
     /// Create a new celestial builder
-    pub fn new(idx: &mut CelestialIdx, name: String, data: CelestialData) -> Self {
+    pub fn new(idx: &mut CelestialIdx, name: String, data: Data) -> Self {
         let out = Self {
             name,
             celestial_data: data,
@@ -198,7 +198,7 @@ impl CelestialBuilder {
             for j in 0..coordinate_dir.get_layer_num_concentric_chunks(i) {
                 for k in 0..coordinate_dir.get_layer_num_tangential_chunkss(i) {
                     let chunk_ijk = ChunkIjkVector::new(i, j, k);
-                    let celestial_chunk_id = CelestialChunkIdk(chunk_ijk);
+                    let celestial_chunk_id = ChunkIdk(chunk_ijk);
                     let mesh = coordinate_dir
                         .get_chunk_at_idx(chunk_ijk)
                         .calc_chunk_meshdata(VertexSettings::default());
@@ -267,7 +267,7 @@ impl CelestialBuilder {
                                 visibility: Visibility::Visible,
                                 ..Default::default()
                             },
-                            CelestialWireframe,
+                            Wireframe,
                             OverlayLayer2,
                         ))
                         .id();
@@ -282,7 +282,7 @@ impl CelestialBuilder {
                                 visibility: Visibility::Inherited,
                                 ..Default::default()
                             },
-                            CelestialOutline,
+                            Outline,
                             OverlayLayer3,
                         ))
                         .id();
@@ -360,16 +360,16 @@ impl CelestialBuilder {
 }
 
 /// Bevy Systems
-impl CelestialDataPlugin {
+impl DataPlugin {
     /// Run this system every frame to update the celestial
     /// # Panics
     /// Should never panic, but uses expect to handle the case where a texture or material is missing.
     #[allow(clippy::type_complexity)]
     #[allow(clippy::needless_pass_by_value)]
     pub fn process_system(
-        mut celestial: Query<(Entity, &mut CelestialData, &mut Mass)>,
+        mut celestial: Query<(Entity, &mut Data, &mut Mass)>,
         mut falling_sand_materials: Query<
-            (&Parent, &mut Handle<ColorMaterial>, &CelestialChunkIdk),
+            (&Parent, &mut Handle<ColorMaterial>, &ChunkIdk),
             With<FallingSandMaterial>,
         >,
         mut materials: ResMut<Assets<ColorMaterial>>,
@@ -407,7 +407,7 @@ impl CelestialDataPlugin {
     #[allow(clippy::needless_pass_by_value)]
     pub fn draw_wireframe_system(
         mut gizmos: Gizmos,
-        query: Query<(&GizmoDrawableGrid, &Transform, &ViewVisibility), With<CelestialWireframe>>,
+        query: Query<(&GizmoDrawableGrid, &Transform, &ViewVisibility), With<Wireframe>>,
     ) {
         for (drawable, transform, visibility) in query.iter() {
             if visibility.get() {
@@ -419,7 +419,7 @@ impl CelestialDataPlugin {
     #[allow(clippy::needless_pass_by_value)]
     pub fn draw_outline_system(
         mut gizmos: Gizmos,
-        query: Query<(&GizmoDrawableLoop, &Transform, &ViewVisibility), With<CelestialOutline>>,
+        query: Query<(&GizmoDrawableLoop, &Transform, &ViewVisibility), With<Outline>>,
     ) {
         for (drawable, transform, visibility) in query.iter() {
             if visibility.get() {

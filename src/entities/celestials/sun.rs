@@ -4,7 +4,7 @@
 use bevy::log::info;
 
 use crate::{
-    entities::celestials::celestial::CelestialData,
+    entities::celestials::celestial::Data,
     physics::{
         fallingsand::{
             data::element_directory::ElementGridDir, elements::element::ElementType,
@@ -14,7 +14,7 @@ use crate::{
     },
 };
 
-pub struct SunBuilder {
+pub struct Builder {
     cell_radius: Length,
     num_layers: usize,
     first_num_radial_lines: usize,
@@ -24,13 +24,13 @@ pub struct SunBuilder {
     max_concentric_circles_per_chunk: usize,
 }
 
-impl Default for SunBuilder {
+impl Default for Builder {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl SunBuilder {
+impl Builder {
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -89,7 +89,7 @@ impl SunBuilder {
         self
     }
 
-    pub fn build(&self) -> CelestialData {
+    pub fn build(&self) -> Data {
         let coordinate_dir = CoordinateDirBuilder::new()
             .cell_radius(self.cell_radius)
             .num_layers(self.num_layers)
@@ -118,6 +118,6 @@ impl SunBuilder {
                 }
             }
         }
-        CelestialData::new(element_grid_dir)
+        Data::new(element_grid_dir)
     }
 }

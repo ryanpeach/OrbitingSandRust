@@ -4,7 +4,7 @@
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
-use crate::entities::celestials::celestial::CelestialData;
+use crate::entities::celestials::celestial::Data;
 use crate::entities::utils::Radius;
 use crate::physics::fallingsand::util::mesh::GizmoDrawableLoop;
 use crate::physics::util::clock::Clock;
@@ -134,7 +134,7 @@ impl BrushPlugin {
             (&Parent, &mut Transform, &mut Camera2d, &MainCamera),
             Without<BrushComponent>,
         >,
-        mut celestial: Query<&mut CelestialData>,
+        mut celestial: Query<&mut Data>,
         element_picker: Res<ElementSelection>,
         current_time: Res<Time>,
         frame_count: Res<FrameCount>,

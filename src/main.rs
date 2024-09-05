@@ -7,7 +7,7 @@
 #[allow(clippy::too_many_lines)]
 #[warn(missing_docs)]
 #[warn(clippy::missing_docs_in_private_items)]
-#[allow(clippy::module_name_repetitions)] // TODO: Remove this line
+
 pub mod entities;
 pub mod gui;
 pub mod physics;
@@ -34,10 +34,9 @@ use bevy::prelude::With;
 use bevy::sprite::ColorMaterial;
 use bevy::DefaultPlugins;
 
-use crate::entities::celestials::celestial::CelestialBuilder;
-use crate::entities::celestials::earthlike::EarthLikeBuilder;
-use crate::entities::celestials::sun::SunBuilder;
-use crate::entities::EntitiesPluginGroup;
+use crate::entities::celestials::celestial;
+use crate::entities::celestials::earthlike;
+use crate::entities::celestials::sun;
 use bevy::log::LogPlugin;
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy_egui::EguiPlugin;
@@ -70,7 +69,7 @@ fn main() {
         ))
         .add_plugins(GuiPluginGroup)
         .add_plugins(PhysicsPluginGroup)
-        .add_plugins(EntitiesPluginGroup)
+        .add_plugins(entities::PluginGroup)
         // .add_plugins(WorldInspectorPlugin::new())  // TODO: REF: https://github.com/jakobhellermann/bevy-inspector-egui/issues/175
         .add_systems(PostStartup, planet_only_setup)
         .run();
@@ -89,22 +88,22 @@ fn solar_system_setup(
     let mut idx = CelestialIdx(0);
 
     // Create earth
-    let planet_data = EarthLikeBuilder::new().build();
-    CelestialBuilder::new(&mut idx, "Earth1".to_string(), planet_data)
+    let planet_data = earthlike::Builder::new().build();
+    celestial::Builder::new(&mut idx, "Earth1".to_string(), planet_data)
         .translation(Vec2::new(-10000., 0.))
         .velocity(Velocity(Vec2::new(0., 1200.)))
         .build(&mut commands, &mut meshes, &mut materials, &asset_server);
 
     // Create earth2
-    let planet_data = EarthLikeBuilder::new().build();
-    CelestialBuilder::new(&mut idx, "Earth2".to_string(), planet_data)
+    let planet_data = earthlike::Builder::new().build();
+    celestial::Builder::new(&mut idx, "Earth2".to_string(), planet_data)
         .translation(Vec2::new(10000., 0.))
         .velocity(Velocity(Vec2::new(0., -1200.)))
         .build(&mut commands, &mut meshes, &mut materials, &asset_server);
 
     // Create a sun
-    let sun_data = SunBuilder::new().build();
-    CelestialBuilder::new(&mut idx, "Sun".to_string(), sun_data).build(
+    let sun_data = sun::Builder::new().build();
+    celestial::Builder::new(&mut idx, "Sun".to_string(), sun_data).build(
         &mut commands,
         &mut meshes,
         &mut materials,
@@ -145,8 +144,8 @@ fn planet_only_setup(
     asset_server: Res<AssetServer>,
 ) {
     // Create earth
-    let planet_data = EarthLikeBuilder::new().build();
-    let planet_id = CelestialBuilder::new(&mut CelestialIdx(0), "Earth".to_string(), planet_data)
+    let planet_data = earthlike::Builder::new().build();
+    let planet_id = celestial::Builder::new(&mut CelestialIdx(0), "Earth".to_string(), planet_data)
         .build(&mut commands, &mut meshes, &mut materials, &asset_server);
 
     // Parent the camera to the sun

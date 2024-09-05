@@ -1,16 +1,16 @@
 //! This module contains all the top level bundles.
 //! These are entities that are used in the game.
 
-use bevy::app::{PluginGroup, PluginGroupBuilder};
+use bevy::app::{PluginGroup as PGTrait, PluginGroupBuilder};
 
 pub mod celestials;
 pub mod utils;
 
 /// The plugin group for all entities
-pub struct EntitiesPluginGroup;
+pub struct PluginGroup;
 
-impl PluginGroup for EntitiesPluginGroup {
+impl PGTrait for PluginGroup {
     fn build(self) -> PluginGroupBuilder {
-        PluginGroupBuilder::start::<Self>().add(celestials::celestial::CelestialDataPlugin)
+        PluginGroupBuilder::start::<Self>().add(celestials::celestial::DataPlugin)
     }
 }
