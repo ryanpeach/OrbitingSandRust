@@ -7,7 +7,7 @@
 #[allow(clippy::too_many_lines)]
 #[warn(missing_docs)]
 #[warn(clippy::missing_docs_in_private_items)]
-#[allow(clippy::module_name_repetitions)]  // TODO: Remove this line
+#[allow(clippy::module_name_repetitions)] // TODO: Remove this line
 pub mod entities;
 pub mod gui;
 pub mod physics;
