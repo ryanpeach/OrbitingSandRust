@@ -25,6 +25,7 @@ use bevy::app::App;
 use bevy::app::PostStartup;
 use bevy::asset::AssetServer;
 use bevy::asset::Assets;
+use bevy::color::palettes::css::PURPLE;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::math::Vec2;
 use bevy::prelude::default;
@@ -136,7 +137,7 @@ fn solar_system_setup(
             BackgroundLayer1,
             MaterialMesh2dBundle {
                 mesh: meshes.add(Circle::new(20.)).into(),
-                material: materials.add(ColorMaterial::from(Color::PURPLE)),
+                material: materials.add(ColorMaterial::from(Color::from(PURPLE))),
                 transform: Transform::from_translation(pos.extend(-1.0)),
                 ..default()
             },
