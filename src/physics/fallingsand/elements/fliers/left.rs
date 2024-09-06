@@ -3,7 +3,7 @@ use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::elements::element::{
     Density, Element, ElementTakeOptions, ElementType, StateOfMatter,
 };
-use crate::physics::fallingsand::mesh::coordinate_dir::Directory;
+use crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
 use bevy::render::color::Color;
@@ -36,7 +36,7 @@ impl Element for LeftFlier {
     fn _process(
         &mut self,
         pos: JkVector,
-        _coord_dir: &Directory,
+        _coord_dir: &CoordinateDir,
         target_chunk: &mut ElementGrid,
         element_grid_conv: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,

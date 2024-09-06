@@ -27,16 +27,16 @@ pub enum MeshDrawMode {
 /// A structure that contains all the chunk coordinates for a celestial body
 /// Useful for drawing the total mesh
 #[derive(Clone)]
-pub struct Directory {
+pub struct CoordinateDir {
     /// Layers on top of the core
     /// Every index in the vec represents a layer
     /// The Grid then represents the chunks in that layer
     partial_chunks: Vec<Grid<ChunkCoords>>,
 }
 
-/// A builder for [`Directory`]
-/// Needs more parameters than [`Directory`] because
-/// it assembles the chunks whereas [`Directory`] can re-derive
+/// A builder for [`CoordinateDir`]
+/// Needs more parameters than [`CoordinateDir`] because
+/// it assembles the chunks whereas [`CoordinateDir`] can re-derive
 /// these parameters from the chunks themselves
 pub struct Builder {
     /// The radius of each cell
@@ -71,7 +71,7 @@ impl Default for Builder {
     }
 }
 
-/// Builds a [`Directory`]
+/// Builds a [`CoordinateDir`]
 /// This is where most of the logic is stored for assembling the directory
 impl Builder {
     /// Create a new  [`Builder`]
@@ -130,10 +130,10 @@ impl Builder {
         self
     }
 
-    /// builds a [`Directory`] by iterating over the number of layers
+    /// builds a [`CoordinateDir`] by iterating over the number of layers
     /// and dynamically allocating chunks to each layer based on max_cells
     /// and the other parameters of the builder.
-    pub fn build(self) -> Directory {
+    pub fn build(self) -> CoordinateDir {
         assert_ne!(self.num_layers, 0);
         assert!(
             self.max_radial_lines_per_chunk > self.first_num_radial_lines,
@@ -241,7 +241,7 @@ impl Builder {
 
         debug_assert!(total_concentric_circle_chunks % 3 == 0, "For multithreading purposes, the total number of concentric circle chunks must be a multiple of 3, got {}", total_concentric_circle_chunks);
 
-        let out = Directory { partial_chunks };
+        let out = CoordinateDir { partial_chunks };
         debug_assert!(out.get_total_number_concentric_chunks() % 3 == 0);
         out
     }
@@ -252,7 +252,7 @@ impl Builder {
  * These functions run a getter on a specific
  * chunk index
  * ========================================= */
-impl Directory {
+impl CoordinateDir {
     pub fn get_chunk_at_idx(&self, chunk_idx: ChunkIjkVector) -> ChunkCoords {
         *self.partial_chunks[chunk_idx.i].get(chunk_idx.to_jk_vector())
     }
@@ -296,7 +296,7 @@ impl Directory {
 /* ============================
  * Shape Conversion Functions
  * ============================ */
-impl Directory {
+impl CoordinateDir {
     /// Returns: (layer_num, relative_concentric_circle)
     pub fn convert_absolute_concentric_circle_to_relative(
         &self,
@@ -323,7 +323,7 @@ impl Directory {
  * Layer Getters
  * Get calculated attributes about a layer
  * ================= */
-impl Directory {
+impl CoordinateDir {
     /// The first concentric circle (absolute) index of a given layer
     pub fn get_layer_start_concentric_circle_absolute(&self, layer_num: usize) -> usize {
         self.partial_chunks[layer_num]
@@ -351,7 +351,7 @@ impl Directory {
  * These differ from layer getters in that they are attributes of a "chunk layer"
  * Which is a Grid of chunks in the partial_chunks vector
  * ================== */
-impl Directory {
+impl CoordinateDir {
     /// Get the number of chunks around the circle in a given layer
     pub fn get_layer_num_tangential_chunkss(&self, layer_num: usize) -> usize {
         self.partial_chunks[layer_num].get_width()
@@ -396,7 +396,7 @@ impl Directory {
  * Simple Getters
  * Misc attributes of the directory itself.
  * ======================================== */
-impl Directory {
+impl CoordinateDir {
     /// The total number of cells in the whole directory
     pub fn total_size(&self) -> usize {
         let mut total_size = 0;
@@ -478,7 +478,7 @@ impl Directory {
 /* ===================
  * Inverse Coordinate
  * =================== */
-impl Directory {
+impl CoordinateDir {
     /// Converts a position relative to the origin of the circle to a cell index
     pub fn rel_pos_to_cell_idx(&self, xy_coord: RelXyPoint) -> Result<IjkVector, IjkVector> {
         let norm_vertex_coord = (xy_coord.0.x * xy_coord.0.x + xy_coord.0.y * xy_coord.0.y).sqrt();
@@ -587,7 +587,7 @@ mod tests {
     mod test_concentric_circles_conversions {
         use super::*;
 
-        fn default_coordinate_dir() -> Directory {
+        fn default_coordinate_dir() -> CoordinateDir {
             Builder::new()
                 .cell_radius(Length(1.0))
                 .num_layers(9)
