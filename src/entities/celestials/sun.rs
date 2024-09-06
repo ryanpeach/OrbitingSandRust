@@ -15,19 +15,19 @@ use crate::{
 
 /// Builds a sun celestial body
 pub struct Builder {
-    /// See [CoordinateDirBuilder::cell_radius]
+    /// See [`CoordinateDirBuilder::cell_radius`]
     cell_radius: Length,
-    /// See [CoordinateDirBuilder::num_layers]
+    /// See [`CoordinateDirBuilder::num_layers`]
     num_layers: usize,
-    /// See [CoordinateDirBuilder::first_num_radial_lines]
+    /// See [`CoordinateDirBuilder::first_num_radial_lines`]
     first_num_radial_lines: usize,
-    /// See [CoordinateDirBuilder::second_num_concentric_circles]
+    /// See [`CoordinateDirBuilder::second_num_concentric_circles`]
     second_num_concentric_circles: usize,
-    /// See [CoordinateDirBuilder::first_num_tangential_chunks]
+    /// See [`CoordinateDirBuilder::first_num_tangential_chunks`]
     first_num_tangential_chunkss: usize,
-    /// See [CoordinateDirBuilder::max_radial_lines_per_chunk]
+    /// See [`CoordinateDirBuilder::max_radial_lines_per_chunk`]
     max_radial_lines_per_chunk: usize,
-    /// See [CoordinateDirBuilder::max_concentric_circles_per_chunk]
+    /// See [`CoordinateDirBuilder::max_concentric_circles_per_chunk`]
     max_concentric_circles_per_chunk: usize,
 }
 
