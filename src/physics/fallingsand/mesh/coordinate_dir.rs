@@ -74,7 +74,7 @@ impl Default for Builder {
 /// Builds a [`Directory`]
 /// This is where most of the logic is stored for assembling the directory
 impl Builder {
-    /// Create a new [Builder]
+    /// Create a new  [`Builder`]
     pub fn new() -> Self {
         Self {
             cell_radius: Length(1.0),

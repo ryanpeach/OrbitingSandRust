@@ -8,8 +8,8 @@ use bevy::{math::Vec2, render::color::Color};
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use derive_more::{Add, AddAssign, Sub, SubAssign};
 
-/// A coordinate system for [ndarray]
-/// [ndarray] is row-major, so the jk vector is flipped
+/// A coordinate system for  [`ndarray`]
+///  [`ndarray`] is row-major, so the jk vector is flipped
 /// Top left is (0, 0)
 /// ![ndarray coords](../../../../../assets/docs/wireframe/ndarray_coords.png)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -17,14 +17,14 @@ pub struct NdArrayCoords([usize; 2]);
 
 /// Instantiation
 impl NdArrayCoords {
-    /// Create a new [NdArrayCoords]
+    /// Create a new  [`NdArrayCoords`]
     pub fn new(x: usize, y: usize) -> Self {
         Self([x, y])
     }
 }
 
 impl NdArrayCoords {
-    /// Convert to a [JkVector]
+    /// Convert to a  [`JkVector`]
     /// ndarray is row-major, so the jk vector is flipped
     /// Bottom Right is (0, 0)
     pub fn to_jk_vector(self, coords: &ChunkCoords) -> JkVector {
@@ -71,8 +71,8 @@ impl NdArrayCoords {
 /// Can also be used to describe a grid, like a chunk taken from the circle
 /// In this case j is the height and k is the width
 /// Bottom right is (0, 0)
-/// If you need to also know the layer number, use [IjkVector]
-/// If you need a relative vector, use [RelJkVector]
+/// If you need to also know the layer number, use  [`IjkVector`]
+/// If you need a relative vector, use  [`RelJkVector`]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
 pub struct JkVector {
     /// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
@@ -81,12 +81,12 @@ pub struct JkVector {
     pub k: usize,
 }
 
-/// To [NdArrayCoords]
+/// To  [`NdArrayCoords`]
 /// ndarray is row-major, so the jk vector is flipped
 /// Top left is (0, 0)
 /// Whereas in a Jk Vector, the bottom right is (0, 0)
 impl JkVector {
-    /// Convert to a [NdArrayCoords]
+    /// Convert to a  [`NdArrayCoords`]
     pub fn to_ndarray_coords(self, coords: &ChunkCoords) -> NdArrayCoords {
         NdArrayCoords::new(
             coords.get_num_radial_lines() - 1 - self.k,
@@ -103,14 +103,14 @@ impl JkVector {
 
 /// Instantiation
 impl JkVector {
-    /// Create a new [JkVector]
+    /// Create a new  [`JkVector`]
     pub fn new(j: usize, k: usize) -> Self {
         Self { j, k }
     }
 }
 
 /// This defines a movement or a vector relative to some position on the circular grid
-/// Same as [JkVector], but with isize type fields which can contain negative numbers
+/// Same as  [`JkVector`], but with isize type fields which can contain negative numbers
 /// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct RelJkVector {
@@ -122,13 +122,13 @@ pub struct RelJkVector {
 
 /// Instantiation
 impl RelJkVector {
-    /// Create a new [RelJkVector]
+    /// Create a new  [`RelJkVector`]
     pub fn new(rj: isize, rk: isize) -> Self {
         Self { rj, rk }
     }
 }
 
-/// Sometimes while resolving a relative [JkVector] into a [JkVector] when you
+/// Sometimes while resolving a relative  [`JkVector`] into a  [`JkVector`] when you
 /// need isize type fields
 /// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -141,7 +141,7 @@ pub struct TempJkVector {
 
 /// Instantiation
 impl TempJkVector {
-    /// Add a [RelJkVector] to a [JkVector]
+    /// Add a  [`RelJkVector`]to a  [`JkVector`]
     pub fn add(pos: &JkVector, rel: &RelJkVector) -> Self {
         Self {
             j: pos.j as isize + rel.rj,
@@ -167,7 +167,7 @@ impl FullIdx {
     }
 }
 
-/// Same as [JkVector], but with i indicating the "layer number"
+/// Same as  [`JkVector`] but with i indicating the "layer number"
 /// The core is layer 0
 /// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -209,7 +209,7 @@ pub struct Vertex {
     pub color: Color,
 }
 
-/// The [IjkVector] of a chunk within an [crate::physics::fallingsand::data::element_directory::ElementGridDir]
+/// The  [`IjkVector`]of a chunk within an [crate::physics::fallingsand::data::element_directory::ElementGridDir]
 /// In this case Ijk relate to the index of the chunk itself, not
 /// perportional to the cells within the chunk
 /// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)

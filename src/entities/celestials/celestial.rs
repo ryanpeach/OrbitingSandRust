@@ -140,7 +140,7 @@ pub struct Builder {
 }
 
 impl Builder {
-    /// Create a new [Builder]
+    /// Create a new [`Builder`]
     pub fn new(idx: &mut CelestialIdx, name: String, data: Data) -> Self {
         let out = Self {
             name,

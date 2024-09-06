@@ -55,7 +55,7 @@ use super::{
 /// It does not contain the target chunk itself, as this usually violates several
 /// borrow checker rules
 pub struct ElementGridConvolutionNeighbors {
-    /// The indexes of the neighbors, tells you where they come from in the [crate::physics::fallingsand::data::element_directory::ElementGridDir]
+    /// The indexes of the neighbors, tells you where they come from in the [`crate::physics::fallingsand::data::element_directory::ElementGridDir`]
     pub chunk_idxs: ElementGridConvolutionNeighborIdxs,
     /// The grids of the neighbors, actually stores the data
     pub grids: ElementGridConvolutionNeighborGrids,
@@ -257,7 +257,7 @@ impl ElementGridConvolutionNeighbors {
 #[derive(Debug)]
 pub enum GetChunkErr {
     /// You aren't allowed to get the center chunk.
-    /// As [ElementGridConvolutionNeighbors] describes in its documentation,
+    /// As [`ElementGridConvolutionNeighbors`] describes in its documentation,
     /// it doesn't contain the center chunk.
     CenterChunk,
 }

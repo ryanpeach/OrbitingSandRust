@@ -13,8 +13,8 @@ use super::{neighbor_identifiers::*, neighbor_indexes::*};
 
 /// The main type exported by this module
 /// Contains all the neighbor grids for the convolution
-/// Check out the [super::neighbor_identifiers::ConvolutionIdentifier] and
-/// [super::neighbor_indexes::ElementGridConvolutionNeighborIdxs] documentation for more information
+/// Check out the [`super::neighbor_identifiers::ConvolutionIdentifier`] and
+///  [`super::neighbor_indexes::ElementGridConvolutionNeighborIdxs`] documentation for more information
 pub struct ElementGridConvolutionNeighborGrids {
     /// The top neighbor grids
     pub top: TopNeighborGrids,
@@ -49,8 +49,8 @@ impl fmt::Display for ConvOutOfBoundsError {
 }
 
 /// Left and Right neighbor grids in the convolution
-/// Check out the [super::neighbor_identifiers::LeftRightNeighborIdentifier] and
-/// [super::neighbor_indexes::LeftRightNeighborIdxs] documentation for more information
+/// Check out the  [`super::neighbor_identifiers::LeftRightNeighborIdentifier`] and
+///  [`super::neighbor_indexes::LeftRightNeighborIdxs`] documentation for more information
 /// documentation for more information
 #[allow(clippy::large_enum_variant)]
 pub enum LeftRightNeighborGrids {
@@ -110,8 +110,8 @@ impl LeftRightNeighborGrids {
 }
 
 /// Top neighbor grids in the convolution
-/// Check out the [super::neighbor_identifiers::TopNeighborIdentifier] and
-/// [super::neighbor_indexes::TopNeighborIdxs] documentation for more information
+/// Check out the  [`super::neighbor_identifiers::TopNeighborIdentifier`] and
+///  [`super::neighbor_indexes::TopNeighborIdxs`] documentation for more information
 #[allow(clippy::large_enum_variant)]
 pub enum TopNeighborGrids {
     /// Indicates that there are the same number of chunks above as you have
@@ -415,8 +415,8 @@ impl TopNeighborGrids {
 }
 
 /// Bottom neighbor grids in the convolution
-/// Check out the [super::neighbor_identifiers::BottomNeighborIdentifier] and
-/// [super::neighbor_indexes::BottomNeighborIdxs] documentation for more information
+/// Check out the  [`super::neighbor_identifiers::BottomNeighborIdentifier`] and
+///  [`super::neighbor_indexes::BottomNeighborIdxs`] documentation for more information
 #[allow(clippy::large_enum_variant)]
 pub enum BottomNeighborGrids {
     /// Indicates that there are the same number of chunks below as you have
@@ -434,7 +434,7 @@ pub enum BottomNeighborGrids {
     /// Indicates a **chunk doubling** layer transition
     /// One of these will be directly below you, and be bigger than you off to one direction
     /// Whereas the other will be diagonally below you
-    /// This depends on if your [ChunkIjkVector] has a `k` value which is even or odd
+    /// This depends on if your  [`ChunkIjkVector`] has a `k` value which is even or odd
     /// If it is even, then the `bl` will be directly below you, and you will be straddling its right side
     /// If it is odd, then the `br` will be directly below you, and you will be straddling its left side
     ChunkDoubling {

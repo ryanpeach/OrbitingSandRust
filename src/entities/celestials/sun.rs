@@ -38,7 +38,7 @@ impl Default for Builder {
 }
 
 impl Builder {
-    /// Create a new [Builder]
+    /// Create a new [`Builder`]
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -97,7 +97,7 @@ impl Builder {
         self
     }
 
-    /// Build the [Data]
+    /// Build the [`Data`]
     #[must_use]
     pub fn build(&self) -> Data {
         let coordinate_dir = coordinate_dir::Builder::new()

@@ -38,7 +38,7 @@ impl Default for Builder {
 }
 
 impl Builder {
-    /// Create a new [Builder]
+    /// Create a new [`Builder`]
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -104,7 +104,7 @@ impl Builder {
         self
     }
 
-    /// Build [Data]
+    /// Build [`Data`]
     pub fn build(&self) -> Data {
         let coordinate_dir = coordinate_dir::Builder::new()
             .cell_radius(self.cell_radius)
