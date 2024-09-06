@@ -5,8 +5,8 @@ use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVe
 use crate::physics::orbits::components::Length;
 use crate::physics::util::vectors::{RelXyPoint, Vertex};
 use anyhow::{bail, Result};
+use bevy::color::Color;
 use bevy::math::{Rect, Vec2};
-use bevy::render::color::Color;
 use std::f32::consts::PI;
 
 /// The settings for generating the vertexes
@@ -486,7 +486,7 @@ impl ChunkCoords {
             .map(|(p, uv)| Vertex {
                 position: Vec2::new(p.x, p.y) * self.cell_width().0,
                 uv: Vec2::new(uv.x, uv.y),
-                color: Color::rgba(1.0, 1.0, 1.0, 1.0),
+                color: Color::srgba(1.0, 1.0, 1.0, 1.0),
             })
             .collect();
         vertexes
@@ -499,7 +499,7 @@ impl ChunkCoords {
             vertices.push(Vertex {
                 position: pos * self.cell_width().0,
                 uv: Vec2::new(0.0, 0.0),
-                color: Color::rgba(1.0, 1.0, 1.0, 1.0),
+                color: Color::srgba(1.0, 1.0, 1.0, 1.0),
             });
         }
         let mut indices = Vec::new();

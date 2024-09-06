@@ -1,3 +1,4 @@
+use bevy::color::ColorToPacked;
 use bevy::math::Rect;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
@@ -348,7 +349,7 @@ impl ElementGrid {
         for j in 0..self.coords.num_concentric_circles() {
             for k in 0..self.coords.num_radial_lines() {
                 let element = self.grid.get(JkVector { j, k });
-                let color = element.color().as_rgba_u8();
+                let color = element.color().to_srgba().to_u8_array();
                 out.push(color[0]);
                 out.push(color[1]);
                 out.push(color[2]);

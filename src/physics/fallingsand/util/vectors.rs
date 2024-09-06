@@ -3,7 +3,7 @@
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
-use bevy::{math::Vec2, render::color::Color};
+use bevy::{color::Color, math::Vec2};
 
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use derive_more::{Add, AddAssign, Sub, SubAssign};

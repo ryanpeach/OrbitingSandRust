@@ -4,6 +4,7 @@
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
+use bevy::color::{Color, ColorToComponents};
 use bevy::ecs::component::Component;
 
 use bevy::math::{Rect, Vec2};
@@ -13,7 +14,6 @@ use bevy::{
     ecs::system::ResMut,
     gizmos::gizmos::Gizmos,
     render::{
-        color::Color,
         mesh::{Indices, Mesh, VertexAttributeValues},
         render_resource::PrimitiveTopology,
     },
@@ -175,7 +175,7 @@ impl OwnedMeshData {
         let colors: Vec<[f32; 4]> = self
             .vertices
             .iter()
-            .map(|v| [v.color.r(), v.color.g(), v.color.b(), v.color.a()])
+            .map(|v| v.color.to_srgba().to_f32_array())
             .collect();
 
         // Set vertex positions, UVs, and colors

@@ -42,6 +42,7 @@ use bevy::prelude::Transform;
 use bevy::prelude::With;
 use bevy::sprite::ColorMaterial;
 use bevy::DefaultPlugins;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 use crate::entities::celestials::celestial;
 use crate::entities::celestials::earthlike;
@@ -79,7 +80,7 @@ fn main() {
         .add_plugins(GuiPluginGroup)
         .add_plugins(PhysicsPluginGroup)
         .add_plugins(entities::PluginGroup)
-        // .add_plugins(WorldInspectorPlugin::new())  // TODO: REF: https://github.com/jakobhellermann/bevy-inspector-egui/issues/175
+        .add_plugins(WorldInspectorPlugin::new())
         .add_systems(PostStartup, planet_only_setup)
         .run();
 }

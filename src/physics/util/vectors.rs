@@ -7,11 +7,7 @@ use std::{
 };
 
 use bevy::{
-    ecs::system::Query,
-    math::{Vec2, Vec3},
-    render::color::Color,
-    transform::components::Transform,
-    window::{CursorMoved, Window},
+    color::Color, ecs::system::Query, math::{Vec2, Vec3}, transform::components::Transform, window::{CursorMoved, Window}
 };
 
 /// A world coord vector that is relative to some position in pixel space.

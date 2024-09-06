@@ -1,3 +1,5 @@
+use bevy::color::Color;
+
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::elements::element::{
@@ -6,7 +8,6 @@ use crate::physics::fallingsand::elements::element::{
 use crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
-use bevy::render::color::Color;
 
 /// Literally nothing
 #[derive(Default, Copy, Clone, Debug)]
@@ -31,7 +32,7 @@ impl Element for DownFlier {
         StateOfMatter::Solid
     }
     fn color(&self) -> Color {
-        Color::rgb_u8(255, 255, 255)
+        Color::srgb_u8(255, 255, 255)
     }
     fn _process(
         &mut self,

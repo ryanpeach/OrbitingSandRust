@@ -9,7 +9,7 @@ use crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::orbits::components::{Length, Mass};
 use crate::physics::util::clock::Clock;
-use bevy::render::color::Color;
+use bevy::color::Color;
 use ndarray::Array2;
 use strum_macros::EnumIter;
 
@@ -194,7 +194,7 @@ pub trait Element: Send + Sync {
 
 #[cfg(test)]
 mod tests {
-    use bevy::render::color::Color;
+    use bevy::color::Color;
     use strum::IntoEnumIterator;
 
     use super::ElementType;
