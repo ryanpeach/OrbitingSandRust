@@ -46,11 +46,11 @@ impl<T> Grid<T> {
  * ====================================== */
 impl<T> Grid<T> {
     /// Get the width of the grid
-    pub fn get_width(&self) -> usize {
+    pub fn width(&self) -> usize {
         self.0.shape()[0]
     }
     /// Get the height of the grid
-    pub fn get_height(&self) -> usize {
+    pub fn height(&self) -> usize {
         self.0.shape()[1]
     }
     /// Get the total size of the grid
@@ -58,11 +58,11 @@ impl<T> Grid<T> {
         self.0.len()
     }
     /// Get the data as a slice
-    pub fn get_data_slice(&self) -> &[T] {
+    pub fn data_slice(&self) -> &[T] {
         self.0.as_slice().unwrap()
     }
     /// Get the data as an ndarray
-    pub fn get_data(&self) -> &ndarray::Array2<T> {
+    pub fn data(&self) -> &ndarray::Array2<T> {
         &self.0
     }
 }
@@ -85,7 +85,7 @@ impl<T> Grid<T> {
     }
     /// Gets the value at the given coordinate, or returns an error if the coordinate is out of bounds
     pub fn checked_get(&self, idx: JkVector) -> Result<&T, GridOutOfBoundsError> {
-        if idx.k >= self.get_width() || idx.j >= self.get_height() {
+        if idx.k >= self.width() || idx.j >= self.height() {
             return Err(GridOutOfBoundsError(idx));
         }
         Ok(self.get(idx))
@@ -106,7 +106,7 @@ impl<T> Grid<T> {
     }
     /// Transforms the coordinate to the ndarray coordinate system using this grid's width and height
     fn transform_jk_coord_to_ndarray(&self, idx: JkVector) -> [usize; 2] {
-        [self.get_width() - 1 - idx.k, self.get_height() - 1 - idx.j]
+        [self.width() - 1 - idx.k, self.height() - 1 - idx.j]
     }
 }
 
@@ -148,8 +148,8 @@ where
 {
     let mut out = Vec::new();
     for (i, item) in filter.iter().enumerate() {
-        let j_size = item.get_height();
-        let k_size = item.get_width();
+        let j_size = item.height();
+        let k_size = item.width();
         let mut layer = Grid::new_empty(k_size, j_size);
         for j in 0..j_size {
             for k in 0..k_size {
@@ -189,6 +189,6 @@ mod tests {
             *val *= 2;
         }
 
-        assert_eq!(grid.get_data_slice(), &[2, 4, 6, 8, 10, 12]);
+        assert_eq!(grid.data_slice(), &[2, 4, 6, 8, 10, 12]);
     }
 }

@@ -21,7 +21,7 @@ pub fn fluid_process(
     current_time: Clock,
 ) -> ElementTakeOptions {
     // Go down one cell
-    let below = element_grid_conv.get_below_idx_from_center(target_chunk, coord_dir, &pos, 1);
+    let below = element_grid_conv.idx_below_idx_from_center(target_chunk, coord_dir, &pos, 1);
     let element = {
         match below {
             Ok(below) => element_grid_conv.get(target_chunk, below),
@@ -36,7 +36,7 @@ pub fn fluid_process(
     // If it is, swap with one of them randomly
     match element {
         Ok(element) => {
-            if element.get_state_of_matter() <= StateOfMatter::Gas {
+            if element.state_of_matter() <= StateOfMatter::Gas {
                 self_element.try_swap_me(
                     below.unwrap(),
                     target_chunk,
@@ -45,9 +45,9 @@ pub fn fluid_process(
                 )
             } else {
                 let new_idx_l =
-                    element_grid_conv.get_left_right_idx_from_center(target_chunk, &pos, 1);
+                    element_grid_conv.idx_left_right_idx_from_center(target_chunk, &pos, 1);
                 let new_idx_r =
-                    element_grid_conv.get_left_right_idx_from_center(target_chunk, &pos, -1);
+                    element_grid_conv.idx_left_right_idx_from_center(target_chunk, &pos, -1);
                 let element_l = {
                     match new_idx_l {
                         Ok(new_idx_l) => element_grid_conv.get(target_chunk, new_idx_l),
@@ -66,7 +66,7 @@ pub fn fluid_process(
                 let rand_bool = rng.gen_bool(0.5);
                 match (element_l, element_r, rand_bool) {
                     (Ok(element_l), Ok(_), false) => {
-                        if element_l.get_state_of_matter() <= StateOfMatter::Gas {
+                        if element_l.state_of_matter() <= StateOfMatter::Gas {
                             self_element.try_swap_me(
                                 new_idx_l.unwrap(),
                                 target_chunk,
@@ -78,7 +78,7 @@ pub fn fluid_process(
                         }
                     }
                     (Ok(_), Ok(element_r), true) => {
-                        if element_r.get_state_of_matter() <= StateOfMatter::Gas {
+                        if element_r.state_of_matter() <= StateOfMatter::Gas {
                             self_element.try_swap_me(
                                 new_idx_r.unwrap(),
                                 target_chunk,
@@ -90,7 +90,7 @@ pub fn fluid_process(
                         }
                     }
                     (Ok(element_l), Err(_), _) => {
-                        if element_l.get_state_of_matter() <= StateOfMatter::Gas {
+                        if element_l.state_of_matter() <= StateOfMatter::Gas {
                             self_element.try_swap_me(
                                 new_idx_l.unwrap(),
                                 target_chunk,
@@ -102,7 +102,7 @@ pub fn fluid_process(
                         }
                     }
                     (Err(_), Ok(element_r), _) => {
-                        if element_r.get_state_of_matter() <= StateOfMatter::Gas {
+                        if element_r.state_of_matter() <= StateOfMatter::Gas {
                             self_element.try_swap_me(
                                 new_idx_r.unwrap(),
                                 target_chunk,

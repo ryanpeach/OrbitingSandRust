@@ -15,22 +15,22 @@ pub struct SolarPlasma {
 }
 
 impl Element for SolarPlasma {
-    fn get_type(&self) -> ElementType {
+    fn element_type(&self) -> ElementType {
         ElementType::SolarPlasma
     }
-    fn get_density(&self) -> Density {
+    fn density(&self) -> Density {
         Density(100.0)
     }
-    fn get_last_processed(&self) -> Clock {
+    fn last_processed(&self) -> Clock {
         self.last_processed
     }
     fn _set_last_processed(&mut self, current_time: Clock) {
         self.last_processed = current_time;
     }
-    fn get_state_of_matter(&self) -> StateOfMatter {
+    fn state_of_matter(&self) -> StateOfMatter {
         StateOfMatter::Liquid
     }
-    fn get_color(&self) -> Color {
+    fn color(&self) -> Color {
         Color::ORANGE
     }
     fn _process(
@@ -42,7 +42,7 @@ impl Element for SolarPlasma {
         current_time: Clock,
     ) -> ElementTakeOptions {
         // Go down one cell
-        let below = element_grid_conv.get_below_idx_from_center(target_chunk, coord_dir, &pos, 1);
+        let below = element_grid_conv.idx_below_idx_from_center(target_chunk, coord_dir, &pos, 1);
         let element = {
             match below {
                 Ok(below) => element_grid_conv.get(target_chunk, below),
@@ -57,7 +57,7 @@ impl Element for SolarPlasma {
         // If it is, swap with one of them randomly
         match element {
             Ok(element) => {
-                if element.get_state_of_matter() <= StateOfMatter::Gas {
+                if element.state_of_matter() <= StateOfMatter::Gas {
                     self.try_swap_me(
                         below.unwrap(),
                         target_chunk,
@@ -66,9 +66,9 @@ impl Element for SolarPlasma {
                     )
                 } else {
                     let new_idx_l =
-                        element_grid_conv.get_left_right_idx_from_center(target_chunk, &pos, 1);
+                        element_grid_conv.idx_left_right_idx_from_center(target_chunk, &pos, 1);
                     let new_idx_r =
-                        element_grid_conv.get_left_right_idx_from_center(target_chunk, &pos, -1);
+                        element_grid_conv.idx_left_right_idx_from_center(target_chunk, &pos, -1);
                     let element_l = {
                         match new_idx_l {
                             Ok(new_idx_l) => element_grid_conv.get(target_chunk, new_idx_l),
@@ -87,7 +87,7 @@ impl Element for SolarPlasma {
                     let rand_bool = rng.gen_bool(0.5);
                     match (element_l, element_r, rand_bool) {
                         (Ok(element_l), Ok(_), false) => {
-                            if element_l.get_state_of_matter() <= StateOfMatter::Gas {
+                            if element_l.state_of_matter() <= StateOfMatter::Gas {
                                 self.try_swap_me(
                                     new_idx_l.unwrap(),
                                     target_chunk,
@@ -99,7 +99,7 @@ impl Element for SolarPlasma {
                             }
                         }
                         (Ok(_), Ok(element_r), true) => {
-                            if element_r.get_state_of_matter() <= StateOfMatter::Gas {
+                            if element_r.state_of_matter() <= StateOfMatter::Gas {
                                 self.try_swap_me(
                                     new_idx_r.unwrap(),
                                     target_chunk,
@@ -111,7 +111,7 @@ impl Element for SolarPlasma {
                             }
                         }
                         (Ok(element_l), Err(_), _) => {
-                            if element_l.get_state_of_matter() <= StateOfMatter::Gas {
+                            if element_l.state_of_matter() <= StateOfMatter::Gas {
                                 self.try_swap_me(
                                     new_idx_l.unwrap(),
                                     target_chunk,
@@ -123,7 +123,7 @@ impl Element for SolarPlasma {
                             }
                         }
                         (Err(_), Ok(element_r), _) => {
-                            if element_r.get_state_of_matter() <= StateOfMatter::Gas {
+                            if element_r.state_of_matter() <= StateOfMatter::Gas {
                                 self.try_swap_me(
                                     new_idx_r.unwrap(),
                                     target_chunk,

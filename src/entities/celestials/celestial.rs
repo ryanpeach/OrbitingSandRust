@@ -101,24 +101,24 @@ impl Data {
     /// for maximum performance
     pub fn process(&mut self, current_time: Clock) -> HashMap<ChunkIjkVector, Textures> {
         self.element_grid_dir.process(current_time);
-        self.element_grid_dir.get_updated_target_textures()
+        self.element_grid_dir.updated_target_textures()
     }
 
     /// Something to call every frame
     /// This is the same as process, but it processes the entire grid
     pub fn process_full(&mut self, current_time: Clock) -> HashMap<ChunkIjkVector, Textures> {
         self.element_grid_dir.process_full(current_time);
-        self.element_grid_dir.get_textures()
+        self.element_grid_dir.textures()
     }
 
     /// Retrieves the element directory
     #[must_use]
-    pub fn get_element_dir(&self) -> &ElementGridDir {
+    pub fn element_dir(&self) -> &ElementGridDir {
         &self.element_grid_dir
     }
 
     /// Retrieves the element directory mutably
-    pub fn get_element_dir_mut(&mut self) -> &mut ElementGridDir {
+    pub fn element_dir_mut(&mut self) -> &mut ElementGridDir {
         &mut self.element_grid_dir
     }
 }
@@ -191,16 +191,16 @@ impl Builder {
         let mut chunks = Vec::new();
         let mut wireframes = Vec::new();
         let mut outlines = Vec::new();
-        let element_dir = self.celestial_data.get_element_dir();
-        let coordinate_dir = element_dir.get_coordinate_dir();
-        let mut textures = element_dir.get_textures();
-        for i in 0..coordinate_dir.get_num_layers() {
-            for j in 0..coordinate_dir.get_layer_num_concentric_chunks(i) {
-                for k in 0..coordinate_dir.get_layer_num_tangential_chunkss(i) {
+        let element_dir = self.celestial_data.element_dir();
+        let coordinate_dir = element_dir.coordinate_dir();
+        let mut textures = element_dir.textures();
+        for i in 0..coordinate_dir.num_layers() {
+            for j in 0..coordinate_dir.layer_num_concentric_chunks(i) {
+                for k in 0..coordinate_dir.layer_num_tangential_chunkss(i) {
                     let chunk_ijk = ChunkIjkVector::new(i, j, k);
                     let celestial_chunk_id = ChunkIdk(chunk_ijk);
                     let mesh = coordinate_dir
-                        .get_chunk_at_idx(chunk_ijk)
+                        .chunk_at_idx(chunk_ijk)
                         .calc_chunk_meshdata(VertexSettings::default());
                     let mesh_handle = mesh.load_bevy_mesh(meshes);
 
@@ -213,14 +213,12 @@ impl Builder {
                         1
                     };
                     let wireframe = coordinate_dir
-                        .get_chunk_at_idx(chunk_ijk)
+                        .chunk_at_idx(chunk_ijk)
                         .calc_chunk_triangle_wireframe(VertexSettings {
                             lod,
                             mode: VertexMode::Grid,
                         });
-                    let outline = coordinate_dir
-                        .get_chunk_at_idx(chunk_ijk)
-                        .calc_chunk_outline();
+                    let outline = coordinate_dir.chunk_at_idx(chunk_ijk).calc_chunk_outline();
 
                     let textures = textures
                         .remove(&chunk_ijk)
@@ -301,11 +299,8 @@ impl Builder {
                 .spawn((
                     // Physics
                     Name::new(self.name.clone()),
-                    self.celestial_data
-                        .get_element_dir()
-                        .get_coordinate_dir()
-                        .get_radius(),
-                    self.celestial_data.get_element_dir().get_total_mass(),
+                    self.celestial_data.element_dir().coordinate_dir().radius(),
+                    self.celestial_data.element_dir().total_mass(),
                     self.velocity,
                     self.celestial_data,
                     self.celestial_idx,
@@ -383,7 +378,7 @@ impl DataPlugin {
 
             // Update the mass of the celestial after processing, which
             // can affect its gravitational pull
-            mass.0 = celestial.get_element_dir().get_total_mass().0;
+            mass.0 = celestial.element_dir().total_mass().0;
 
             // Update the falling sand materials
             for (parent, material_handle, chunk_ijk) in &mut falling_sand_materials {

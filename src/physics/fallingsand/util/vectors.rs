@@ -29,18 +29,18 @@ impl NdArrayCoords {
     /// Bottom Right is (0, 0)
     pub fn to_jk_vector(self, coords: &ChunkCoords) -> JkVector {
         JkVector {
-            j: coords.get_num_concentric_circles() - 1 - self.get_y(),
-            k: coords.get_num_radial_lines() - 1 - self.get_x(),
+            j: coords.num_concentric_circles() - 1 - self.y(),
+            k: coords.num_radial_lines() - 1 - self.x(),
         }
     }
 
     /// Get the column index
-    pub fn get_x(&self) -> usize {
+    pub fn x(&self) -> usize {
         self.0[0]
     }
 
     /// Get the row index
-    pub fn get_y(&self) -> usize {
+    pub fn y(&self) -> usize {
         self.0[1]
     }
 }
@@ -89,8 +89,8 @@ impl JkVector {
     /// Convert to a  [`NdArrayCoords`]
     pub fn to_ndarray_coords(self, coords: &ChunkCoords) -> NdArrayCoords {
         NdArrayCoords::new(
-            coords.get_num_radial_lines() - 1 - self.k,
-            coords.get_num_concentric_circles() - 1 - self.j,
+            coords.num_radial_lines() - 1 - self.k,
+            coords.num_concentric_circles() - 1 - self.j,
         )
     }
 }

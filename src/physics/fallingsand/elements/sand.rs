@@ -16,22 +16,22 @@ pub struct Sand {
 }
 
 impl Element for Sand {
-    fn get_type(&self) -> ElementType {
+    fn element_type(&self) -> ElementType {
         ElementType::Sand
     }
-    fn get_density(&self) -> Density {
+    fn density(&self) -> Density {
         Density(1.0)
     }
-    fn get_last_processed(&self) -> Clock {
+    fn last_processed(&self) -> Clock {
         self.last_processed
     }
     fn _set_last_processed(&mut self, current_time: Clock) {
         self.last_processed = current_time;
     }
-    fn get_state_of_matter(&self) -> StateOfMatter {
+    fn state_of_matter(&self) -> StateOfMatter {
         StateOfMatter::Solid
     }
-    fn get_color(&self) -> Color {
+    fn color(&self) -> Color {
         Color::YELLOW
     }
     fn _process(
@@ -67,9 +67,9 @@ mod tests {
     use super::*;
 
     /// The default element grid directory for testing
-    fn get_element_grid_dir() -> ElementGridDir {
+    fn element_grid_dir() -> ElementGridDir {
         let coordinate_dir = Builder::new()
-            .cell_radius(Length(1.0))
+            .cell_width(Length(1.0))
             .num_layers(10)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
@@ -98,7 +98,7 @@ mod tests {
 
             // Set the bottom right to sand
             {
-                let chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc1.0);
+                let chunk = element_grid_dir.chunk_at_chunk_ijk_mut(loc1.0);
                 let sand = Sand::default();
                 chunk.set(loc1.1, Box::new(sand), clock);
             }
@@ -109,15 +109,15 @@ mod tests {
 
             // Now check that this chunk location no longer has sand
             {
-                let chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc1.0);
-                let previous_location_type = chunk.get(loc1.1).get_type();
+                let chunk = element_grid_dir.chunk_at_chunk_ijk_mut(loc1.0);
+                let previous_location_type = chunk.get(loc1.1).element_type();
                 assert_ne!(previous_location_type, ElementType::Sand);
             }
 
             // Now check that the chunk below has sand
             {
-                let below_chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc2.0);
-                let below_location_type = below_chunk.get(loc2.1).get_type();
+                let below_chunk = element_grid_dir.chunk_at_chunk_ijk_mut(loc2.0);
+                let below_location_type = below_chunk.get(loc2.1).element_type();
                 assert_eq!(below_location_type, ElementType::Sand);
             }
         }
@@ -126,12 +126,12 @@ mod tests {
             ($name:ident, $pos1:expr, $pos2:expr) => {
                 #[test]
                 fn $name() {
-                    let element_grid_dir = get_element_grid_dir();
+                    let element_grid_dir = element_grid_dir();
                     let pos1 = element_grid_dir
-                        .get_coordinate_dir()
+                        .coordinate_dir()
                         .cell_idx_to_chunk_idx(IjkVector::new($pos1.0, $pos1.1, $pos1.2));
                     let pos2 = element_grid_dir
-                        .get_coordinate_dir()
+                        .coordinate_dir()
                         .cell_idx_to_chunk_idx(IjkVector::new($pos2.0, $pos2.1, $pos2.2));
                     assert_movement(element_grid_dir, pos1, pos2);
                 }

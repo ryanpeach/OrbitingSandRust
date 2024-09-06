@@ -56,16 +56,15 @@ impl ElementGrid {
     /// Creates a new element grid with the given chunk coords and fills it with the given element
     pub fn new_filled(chunk_coords: ChunkCoords, fill: &dyn Element) -> Self {
         let mut grid: Vec<Box<dyn Element>> = Vec::with_capacity(
-            chunk_coords.get_num_radial_lines() * chunk_coords.get_num_concentric_circles(),
+            chunk_coords.num_radial_lines() * chunk_coords.num_concentric_circles(),
         );
-        for _ in 0..chunk_coords.get_num_radial_lines() * chunk_coords.get_num_concentric_circles()
-        {
+        for _ in 0..chunk_coords.num_radial_lines() * chunk_coords.num_concentric_circles() {
             grid.push(fill.box_clone());
         }
         Self {
             grid: Grid::new_from_vec(
-                chunk_coords.get_num_radial_lines(),
-                chunk_coords.get_num_concentric_circles(),
+                chunk_coords.num_radial_lines(),
+                chunk_coords.num_concentric_circles(),
                 grid,
             ),
             coords: chunk_coords,
@@ -78,7 +77,7 @@ impl ElementGrid {
 
 /* Getters & Setters */
 impl ElementGrid {
-    pub fn get_already_processed(&self) -> bool {
+    pub fn already_processed(&self) -> bool {
         self.already_processed
     }
     pub fn set_already_processed(&mut self, already_processed: bool) {
@@ -92,17 +91,17 @@ impl ElementGrid {
         self.already_processed = already_processed;
         Ok(())
     }
-    pub fn get_last_set(&self) -> Clock {
+    pub fn last_set(&self) -> Clock {
         self.last_set
     }
-    pub fn get_chunk_coords(&self) -> &ChunkCoords {
+    pub fn chunk_coords(&self) -> &ChunkCoords {
         &self.coords
     }
-    pub fn get_grid(&self) -> &Grid<Box<dyn Element>> {
+    pub fn grid(&self) -> &Grid<Box<dyn Element>> {
         &self.grid
     }
     /// Does not calculate the total mass, just gets the set value of it
-    pub fn get_total_mass(&self) -> Mass {
+    pub fn total_mass(&self) -> Mass {
         self.total_mass
     }
 
@@ -155,8 +154,8 @@ impl ElementGrid {
     //     self.total_mass_above
     // }
 
-    pub fn get_process_unneeded(&self, current_time: Clock) -> bool {
-        self.last_set.get_current_frame() < current_time.get_current_frame() - 1
+    pub fn process_unneeded(&self, current_time: Clock) -> bool {
+        self.last_set.current_frame() < current_time.current_frame() - 1
     }
 }
 
@@ -192,10 +191,10 @@ impl ElementGrid {
 impl ElementGrid {
     /// Fill the grid with the given element
     pub fn fill(&mut self, element: ElementType) {
-        for j in 0..self.get_chunk_coords().get_num_concentric_circles() {
-            for k in 0..self.get_chunk_coords().get_num_radial_lines() {
+        for j in 0..self.chunk_coords().num_concentric_circles() {
+            for k in 0..self.chunk_coords().num_radial_lines() {
                 let pos = JkVector { j, k };
-                self.grid.replace(pos, element.get_element());
+                self.grid.replace(pos, element.element());
             }
         }
     }
@@ -224,15 +223,15 @@ impl ElementGrid {
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) {
-        let already_processed = self.get_already_processed();
+        let already_processed = self.already_processed();
         debug_assert!(!already_processed, "Already processed");
 
         // By randomly shuffling the order we process the elements
         // we can avoid creating a "favorite direction" for the elements to move
         let mut rng = thread_rng();
         let mut iter: Vec<(usize, usize)> = iproduct!(
-            0..self.coords.get_num_concentric_circles(),
-            0..self.coords.get_num_radial_lines()
+            0..self.coords.num_concentric_circles(),
+            0..self.coords.num_radial_lines()
         )
         .collect();
         iter.shuffle(&mut rng);
@@ -244,8 +243,7 @@ impl ElementGrid {
             let mut element = self.grid.replace(pos, Box::<Vacuum>::default());
 
             // Check that the element hasn't already been processed this frame
-            if element.get_last_processed().get_current_frame() >= current_time.get_current_frame()
-            {
+            if element.last_processed().current_frame() >= current_time.current_frame() {
                 self.grid.replace(pos, element);
                 continue;
             }
@@ -317,16 +315,16 @@ impl ElementGrid {
         //         TopNeighborGrids::TopOfGrid => Mass(0.0),
         //     }
         // };
-        self.total_mass = (0..self.coords.get_num_concentric_circles())
+        self.total_mass = (0..self.coords.num_concentric_circles())
             .into_par_iter()
             .map(|j| -> Mass {
-                (0..self.coords.get_num_radial_lines())
+                (0..self.coords.num_radial_lines())
                     .into_par_iter()
                     .map(|k| {
                         let pos = JkVector { j, k };
                         let element = self.grid.get(pos);
 
-                        element.get_mass(self.coords.get_cell_width())
+                        element.mass(self.coords.cell_width())
                     })
                     .sum()
             })
@@ -343,14 +341,14 @@ impl ElementGrid {
 /* Drawing */
 impl ElementGrid {
     /// Draw the texture as the color of each element
-    pub fn get_texture(&self) -> RawImage {
+    pub fn texture(&self) -> RawImage {
         let mut out = Vec::with_capacity(
-            self.coords.get_num_radial_lines() * self.coords.get_num_concentric_circles() * 4,
+            self.coords.num_radial_lines() * self.coords.num_concentric_circles() * 4,
         );
-        for j in 0..self.coords.get_num_concentric_circles() {
-            for k in 0..self.coords.get_num_radial_lines() {
+        for j in 0..self.coords.num_concentric_circles() {
+            for k in 0..self.coords.num_radial_lines() {
                 let element = self.grid.get(JkVector { j, k });
-                let color = element.get_color().as_rgba_u8();
+                let color = element.color().as_rgba_u8();
                 out.push(color[0]);
                 out.push(color[1]);
                 out.push(color[2]);
@@ -360,12 +358,11 @@ impl ElementGrid {
         RawImage {
             pixels: out,
             bounds: Rect::new(
-                self.coords.get_start_radial_line() as f32,
-                self.coords.get_start_concentric_circle_absolute() as f32,
-                self.coords.get_start_radial_line() as f32
-                    + self.coords.get_num_radial_lines() as f32,
-                self.coords.get_start_concentric_circle_absolute() as f32
-                    + self.coords.get_num_concentric_circles() as f32,
+                self.coords.start_radial_line() as f32,
+                self.coords.start_concentric_circle_absolute() as f32,
+                self.coords.start_radial_line() as f32 + self.coords.num_radial_lines() as f32,
+                self.coords.start_concentric_circle_absolute() as f32
+                    + self.coords.num_concentric_circles() as f32,
             ),
         }
     }

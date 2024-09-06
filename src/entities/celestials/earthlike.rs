@@ -15,8 +15,8 @@ use crate::{
 
 /// Builds an earthlike celestial body
 pub struct Builder {
-    /// See [`coordinate_dir::Builder::cell_radius`]
-    cell_radius: Length,
+    /// See [`coordinate_dir::Builder::cell_width`]
+    cell_width: Length,
     /// See [`coordinate_dir::Builder::num_layers`]
     num_layers: usize,
     /// See [`coordinate_dir::Builder::first_num_radial_lines`]
@@ -42,7 +42,7 @@ impl Builder {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            cell_radius: Length(1.0),
+            cell_width: Length(1.0),
             num_layers: 8,
             first_num_radial_lines: 12,
             second_num_concentric_circles: 3,
@@ -52,10 +52,10 @@ impl Builder {
         }
     }
 
-    /// Set [`Builder::cell_radius`]
+    /// Set [`Builder::cell_width`]
     #[must_use]
-    pub fn cell_radius(mut self, cell_radius: Length) -> Self {
-        self.cell_radius = cell_radius;
+    pub fn cell_width(mut self, cell_width: Length) -> Self {
+        self.cell_width = cell_width;
         self
     }
 
@@ -107,7 +107,7 @@ impl Builder {
     /// Build [`Data`]
     pub fn build(&self) -> Data {
         let coordinate_dir = coordinate_dir::Builder::new()
-            .cell_radius(self.cell_radius)
+            .cell_width(self.cell_width)
             .num_layers(self.num_layers)
             .first_num_radial_lines(self.first_num_radial_lines)
             .second_num_concentric_circles(self.second_num_concentric_circles)
@@ -116,21 +116,21 @@ impl Builder {
             .max_concentric_circles_per_chunk(self.max_concentric_circles_per_chunk)
             .build();
         let mut element_grid_dir = ElementGridDir::new_empty(coordinate_dir);
-        info!("Num elements: {}", element_grid_dir.get_total_num_cells());
+        info!("Num elements: {}", element_grid_dir.total_num_cells());
 
         // Iterate over each layer of the element grid and fill it with the appropriate element
         let mut total_j = 0;
-        for layer_num in 0..element_grid_dir.get_coordinate_dir().get_num_layers() {
+        for layer_num in 0..element_grid_dir.coordinate_dir().num_layers() {
             for j in 0..element_grid_dir
-                .get_coordinate_dir()
-                .get_layer_num_concentric_chunks(layer_num)
+                .coordinate_dir()
+                .layer_num_concentric_chunks(layer_num)
             {
                 for k in 0..element_grid_dir
-                    .get_coordinate_dir()
-                    .get_layer_num_tangential_chunkss(layer_num)
+                    .coordinate_dir()
+                    .layer_num_tangential_chunkss(layer_num)
                 {
                     let chunk_idx = ChunkIjkVector::new(layer_num, j, k);
-                    let element_grid = element_grid_dir.get_chunk_by_chunk_ijk_mut(chunk_idx);
+                    let element_grid = element_grid_dir.chunk_at_chunk_ijk_mut(chunk_idx);
                     match total_j {
                         0..=3 => {
                             element_grid.fill(ElementType::Lava);
