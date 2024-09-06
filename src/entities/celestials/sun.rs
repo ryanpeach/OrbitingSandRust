@@ -15,8 +15,8 @@ use crate::{
 
 /// Builds a sun celestial body
 pub struct Builder {
-    /// See [`coordinate_dir::Builder::cell_radius`]
-    cell_radius: Length,
+    /// See [`coordinate_dir::Builder::cell_width`]
+    cell_width: Length,
     /// See [`coordinate_dir::Builder::num_layers`]
     num_layers: usize,
     /// See [`coordinate_dir::Builder::first_num_radial_lines`]
@@ -42,7 +42,7 @@ impl Builder {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            cell_radius: Length(10.0),
+            cell_width: Length(10.0),
             num_layers: 4,
             first_num_radial_lines: 12,
             second_num_concentric_circles: 3,
@@ -51,10 +51,10 @@ impl Builder {
             max_concentric_circles_per_chunk: 128,
         }
     }
-    /// Set [`Builder::cell_radius`]
+    /// Set [`Builder::cell_width`]
     #[must_use]
-    pub fn cell_radius(mut self, cell_radius: Length) -> Self {
-        self.cell_radius = cell_radius;
+    pub fn cell_width(mut self, cell_width: Length) -> Self {
+        self.cell_width = cell_width;
         self
     }
     /// Set [`Builder::num_layers`]
@@ -101,7 +101,7 @@ impl Builder {
     #[must_use]
     pub fn build(&self) -> Data {
         let coordinate_dir = coordinate_dir::Builder::new()
-            .cell_radius(self.cell_radius)
+            .cell_width(self.cell_width)
             .num_layers(self.num_layers)
             .first_num_radial_lines(self.first_num_radial_lines)
             .second_num_concentric_circles(self.second_num_concentric_circles)

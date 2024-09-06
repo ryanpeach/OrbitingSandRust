@@ -80,7 +80,7 @@ mod tests {
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {
         let coordinate_dir = Builder::new()
-            .cell_radius(Length(1.0))
+            .cell_width(Length(1.0))
             .num_layers(10)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)

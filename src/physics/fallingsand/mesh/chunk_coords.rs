@@ -97,9 +97,9 @@ impl PartialLayerChunkCoordsBuilder {
     }
 
     /// Set the cell radius
-    pub fn cell_radius(mut self, cell_radius: Length) -> PartialLayerChunkCoordsBuilder {
-        debug_assert!(cell_radius.0 > 0.0);
-        self.cell_width = cell_radius;
+    pub fn cell_width(mut self, cell_width: Length) -> PartialLayerChunkCoordsBuilder {
+        debug_assert!(cell_width.0 > 0.0);
+        self.cell_width = cell_width;
         self
     }
 
@@ -641,7 +641,7 @@ mod tests {
     #[test]
     fn test_rel_pos_to_cell_idx() {
         let coordinate_dir = Builder::new()
-            .cell_radius(Length(1.0))
+            .cell_width(Length(1.0))
             .num_layers(8)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
@@ -709,7 +709,7 @@ mod tests {
     #[test]
     fn test_cell_idx_to_chunk_idx() {
         let coordinate_dir = Builder::new()
-            .cell_radius(Length(1.0))
+            .cell_width(Length(1.0))
             .num_layers(8)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)

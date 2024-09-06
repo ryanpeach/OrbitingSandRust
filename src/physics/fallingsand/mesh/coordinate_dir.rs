@@ -41,7 +41,7 @@ pub struct CoordinateDir {
 /// these parameters from the chunks themselves
 pub struct Builder {
     /// The radius of each cell
-    cell_radius: Length,
+    cell_width: Length,
     /// The number of layers in the celestial body
     num_layers: usize,
     /// The number of radial lines in the first layer, the core
@@ -78,7 +78,7 @@ impl Builder {
     /// Create a new  [`Builder`]
     pub fn new() -> Self {
         Self {
-            cell_radius: Length(1.0),
+            cell_width: Length(1.0),
             num_layers: 1,
             first_num_radial_lines: 6,
             first_num_tangential_chunks: 3,
@@ -87,9 +87,9 @@ impl Builder {
             second_num_concentric_circles: 2,
         }
     }
-    /// Set [`Builder::cell_radius`]
-    pub fn cell_radius(mut self, cell_radius: Length) -> Self {
-        self.cell_radius = cell_radius;
+    /// Set [`Builder::cell_width`]
+    pub fn cell_width(mut self, cell_width: Length) -> Self {
+        self.cell_width = cell_width;
         self
     }
     /// Set [`Builder::num_layers`]
@@ -157,7 +157,7 @@ impl Builder {
         let mut core_chunks = Grid::new_empty(num_tangential_chunkss, num_concentric_chunks);
         for k in 0..num_tangential_chunkss {
             let next_layer = PartialLayerChunkCoordsBuilder::new()
-                .cell_radius(self.cell_radius)
+                .cell_width(self.cell_width)
                 .layer_num_radial_lines(layer_num_radial_lines)
                 .chunk_idx(ChunkIjkVector {
                     i: layer_num,
@@ -193,7 +193,7 @@ impl Builder {
             for j in 0..num_concentric_chunks {
                 for k in 0..num_tangential_chunkss {
                     let next_layer = PartialLayerChunkCoordsBuilder::new()
-                        .cell_radius(self.cell_radius)
+                        .cell_width(self.cell_width)
                         .layer_num_radial_lines(layer_num_radial_lines)
                         .chunk_idx(ChunkIjkVector { i: layer_num, j, k })
                         .num_concentric_circles(num_concentric_circles / num_concentric_chunks)
@@ -590,7 +590,7 @@ mod tests {
 
         fn default_coordinate_dir() -> CoordinateDir {
             Builder::new()
-                .cell_radius(Length(1.0))
+                .cell_width(Length(1.0))
                 .num_layers(9)
                 .first_num_radial_lines(6)
                 .second_num_concentric_circles(3)
@@ -754,7 +754,7 @@ mod tests {
             #[test]
             fn test_rel_pos_to_cell_idx() {
                 let coordinate_dir = Builder::new()
-                    .cell_radius(Length(1.0))
+                    .cell_width(Length(1.0))
                     .num_layers(8)
                     .first_num_radial_lines(6)
                     .second_num_concentric_circles(3)
@@ -839,7 +839,7 @@ mod tests {
             #[test]
             fn test_cell_idx_to_chunk_idx() {
                 let coordinate_dir = Builder::new()
-                    .cell_radius(Length(1.0))
+                    .cell_width(Length(1.0))
                     .num_layers(8)
                     .first_num_radial_lines(6)
                     .second_num_concentric_circles(3)
@@ -916,7 +916,7 @@ mod tests {
     #[test]
     fn test_radial_mesh_chunk_sizes_manual() {
         let coordinate_dir = Builder::new()
-            .cell_radius(Length(1.0))
+            .cell_width(Length(1.0))
             .num_layers(8)
             .first_num_radial_lines(6)
             .second_num_concentric_circles(3)
