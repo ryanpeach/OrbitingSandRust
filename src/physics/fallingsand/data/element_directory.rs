@@ -1,4 +1,5 @@
 use hashbrown::{HashMap, HashSet};
+use itertools::multizip;
 
 use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
@@ -209,10 +210,7 @@ fn pregen_process_targets(coords: &CoordinateDir) -> ProcessTargets {
     let mut has_single_bottom_neighbor: [Sequential<HashSet<ChunkIjkVector>>; 9] =
         Default::default();
     let mut has_multi_bottom_neighbor: [Parallel<HashSet<ChunkIjkVector>>; 9] = Default::default();
-    for (i, ((standard, single), multi)) in standard_convolution
-        .iter_mut()
-        .zip(has_single_bottom_neighbor.iter_mut())
-        .zip(has_multi_bottom_neighbor.iter_mut())
+    for (i, (standard, single, multi)) in multizip((&mut standard_convolution, &mut has_single_bottom_neighbor, &mut has_multi_bottom_neighbor))
         .enumerate()
     {
         *standard = calculate_ith_standard_convolution_targets(coords, i);
