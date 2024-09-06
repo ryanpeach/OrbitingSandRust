@@ -1059,6 +1059,7 @@
 <a href="#1059" id="1059">1059</a>
 <a href="#1060" id="1060">1060</a>
 <a href="#1061" id="1061">1061</a>
+<a href="#1062" id="1062">1062</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The directory contains all the chunks of a celestial.
 
 </span><span class="kw">use </span>std::f32::consts::PI;
@@ -1073,6 +1074,7 @@
 
 <span class="kw">use </span><span class="kw">super</span>::chunk_coords::ChunkCoords;
 <span class="kw">use </span><span class="kw">super</span>::chunk_coords::PartialLayerChunkCoordsBuilder;
+<span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
 
 <span class="doccomment">/// The different ways to draw a mesh
 </span><span class="attr">#[derive(Debug, Copy, Clone, PartialEq)]
@@ -1437,7 +1439,7 @@
     </span><span class="kw">pub fn </span>get_layer_and_chunk_num_from_absolute_concentric_chunk(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         j_chunk: usize,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, usize), String&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, usize)&gt; {
         <span class="kw">if </span>j_chunk == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="number">0</span>, <span class="number">0</span>));
         }
@@ -1449,7 +1451,7 @@
             }
             total_concentric_chunks += layer_num_concentric_chunks;
         }
-        <span class="prelude-val">Err</span>(<span class="string">"j is out of bounds"</span>.to_owned())
+        <span class="macro">bail!</span>(<span class="string">"j is out of bounds"</span>)
     }
 }
 

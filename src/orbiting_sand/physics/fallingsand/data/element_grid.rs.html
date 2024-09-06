@@ -413,8 +413,6 @@
 <a href="#413" id="413">413</a>
 <a href="#414" id="414">414</a>
 <a href="#415" id="415">415</a>
-<a href="#416" id="416">416</a>
-<a href="#417" id="417">417</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>bevy::math::Rect;
 <span class="kw">use </span>rand::seq::SliceRandom;
 <span class="kw">use </span>rand::thread_rng;
@@ -431,6 +429,7 @@
 <span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::mesh::coordinate_dir::CoordinateDir;
 <span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::util::grid::{Grid, GridOutOfBoundsError};
 <span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::util::image::RawImage;
+<span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>itertools::iproduct;
 
 <span class="doccomment">/// An element grid is a 2D grid of elements tied to a chunk
@@ -501,12 +500,9 @@
         <span class="self">self</span>.already_processed = already_processed;
     }
     <span class="doccomment">/// Sets the already processed flag and errors if it is set to the same value twice
-    </span><span class="kw">pub fn </span>set_already_processed_deduplicated(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        already_processed: bool,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
+    </span><span class="kw">pub fn </span>set_already_processed_deduplicated(<span class="kw-2">&amp;mut </span><span class="self">self</span>, already_processed: bool) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">if </span><span class="self">self</span>.already_processed == already_processed {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Tried to set the same value twice"</span>.to_string());
+            <span class="macro">bail!</span>(<span class="string">"Tried to set the same value twice"</span>);
         }
         <span class="self">self</span>.already_processed = already_processed;
         <span class="prelude-val">Ok</span>(())

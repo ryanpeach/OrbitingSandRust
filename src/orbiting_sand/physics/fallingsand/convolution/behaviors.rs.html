@@ -784,6 +784,8 @@
 <a href="#784" id="784">784</a>
 <a href="#785" id="785">785</a>
 <a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! # Element Behavior API
 //!
 //! This module contains the behaviors of the convolution
@@ -805,6 +807,7 @@
 //! All of that is handled automagically by this API.
 
 </span><span class="kw">use </span>hashbrown::HashMap;
+<span class="kw">use </span>thiserror::Error;
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::{
     fallingsand::{
@@ -1040,9 +1043,10 @@
 }
 
 <span class="doccomment">/// Errors for the getter methods
-</span><span class="attr">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug, Error)]
 </span><span class="kw">pub enum </span>GetChunkErr {
-    <span class="doccomment">/// You aren't allowed to get the center chunk.
+    <span class="attr">#[error(<span class="string">"You aren't allowed to get the center chunk"</span>)]
+    </span><span class="doccomment">/// You aren't allowed to get the center chunk.
     /// As [`ElementGridConvolutionNeighbors`] describes in its documentation,
     /// it doesn't contain the center chunk.
     </span>CenterChunk,

@@ -1449,16 +1449,15 @@
 <a href="#1449" id="1449">1449</a>
 <a href="#1450" id="1450">1450</a>
 <a href="#1451" id="1451">1451</a>
-<a href="#1452" id="1452">1452</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::functions::interpolate_points;
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::mesh::OwnedMeshData;
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 <span class="kw">use </span><span class="kw">crate</span>::physics::orbits::components::Length;
 <span class="kw">use </span><span class="kw">crate</span>::physics::util::vectors::{RelXyPoint, Vertex};
+<span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>bevy::math::{Rect, Vec2};
 <span class="kw">use </span>bevy::render::color::Color;
-
 <span class="kw">use </span>std::f32::consts::PI;
 
 <span class="doccomment">/// The settings for generating the vertexes
@@ -1986,7 +1985,7 @@
 
     <span class="doccomment">/// Converts a position relative to the origin of the circle to a cell index
     /// Returns an Err if the position is not on the circle
-    </span><span class="kw">pub fn </span>rel_pos_to_cell_idx(<span class="kw-2">&amp;</span><span class="self">self</span>, xy_coord: RelXyPoint) -&gt; <span class="prelude-ty">Result</span>&lt;IjkVector, String&gt; {
+    </span><span class="kw">pub fn </span>rel_pos_to_cell_idx(<span class="kw-2">&amp;</span><span class="self">self</span>, xy_coord: RelXyPoint) -&gt; <span class="prelude-ty">Result</span>&lt;IjkVector&gt; {
         <span class="kw">let </span>norm_vertex_coord = (xy_coord.<span class="number">0</span>.x * xy_coord.<span class="number">0</span>.x + xy_coord.<span class="number">0</span>.y * xy_coord.<span class="number">0</span>.y).sqrt();
         <span class="kw">let </span>start_concentric_circle = <span class="self">self</span>.get_start_concentric_circle_layer_relative();
         <span class="kw">let </span>end_concentric_circle = <span class="self">self</span>.get_end_concentric_circle_layer_relative();
@@ -2017,22 +2016,22 @@
 
         <span class="comment">// Check to see if the vertex is in the chunk
         </span><span class="kw">if </span>j &lt; start_concentric_circle &amp;&amp; j &gt;= end_concentric_circle {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+            <span class="macro">bail!</span>(
                 <span class="string">"Vertex j {:?} is not in chunk {:?}. start_concentric_circle: {}, end_concentric_circle: {}"</span>,
                 xy_coord,
                 <span class="self">self</span>.get_chunk_idx(),
                 start_concentric_circle,
                 end_concentric_circle,
-            ));
+            );
         }
         <span class="kw">if </span>k &lt; start_radial_line &amp;&amp; k &gt;= end_radial_line {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+            <span class="macro">bail!</span>(
                 <span class="string">"Vertex k {:?} is not in chunk {:?}. start_radial_line: {}, end_radial_line: {}"</span>,
                 xy_coord,
                 <span class="self">self</span>.get_chunk_idx(),
                 start_radial_line,
                 end_radial_line,
-            ));
+            );
         }
         <span class="prelude-val">Ok</span>(IjkVector {
             i: <span class="self">self</span>.get_layer_num(),
@@ -2043,38 +2042,35 @@
 
     <span class="doccomment">/// Convert a cell coordinate "on the circle" to a position "on the chunk"
     /// Return an Err if this is not on the chunk
-    </span><span class="kw">pub fn </span>absolute_cell_idx_to_in_chunk_cell_idx(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        cell_idx: IjkVector,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;JkVector, String&gt; {
+    </span><span class="kw">pub fn </span>absolute_cell_idx_to_in_chunk_cell_idx(<span class="kw-2">&amp;</span><span class="self">self</span>, cell_idx: IjkVector) -&gt; <span class="prelude-ty">Result</span>&lt;JkVector&gt; {
         <span class="kw">if </span>cell_idx.i != <span class="self">self</span>.get_layer_num() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+            <span class="macro">bail!</span>(
                 <span class="string">"Cell index i {:?} is not in chunk {:?}"</span>,
                 cell_idx,
                 <span class="self">self</span>.get_chunk_idx()
-            ));
+            );
         }
         <span class="kw">let </span>start_radial_line = <span class="self">self</span>.get_start_radial_line();
         <span class="kw">let </span>end_radial_line = <span class="self">self</span>.get_end_radial_line();
         <span class="kw">let </span>start_concentric_circle = <span class="self">self</span>.get_start_concentric_circle_layer_relative();
         <span class="kw">let </span>end_concentric_circle = <span class="self">self</span>.get_end_concentric_circle_layer_relative();
         <span class="kw">if </span>cell_idx.j &lt; start_concentric_circle || cell_idx.j &gt;= end_concentric_circle {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+            <span class="macro">bail!</span>(
                 <span class="string">"Cell index j {:?} is not in chunk {:?}. start_concentric_circle: {}, end_concentric_circle: {}"</span>,
                 cell_idx,
                 <span class="self">self</span>.get_chunk_idx(),
                 start_concentric_circle,
                 end_concentric_circle,
-            ));
+            );
         }
         <span class="kw">if </span>cell_idx.k &lt; start_radial_line || cell_idx.k &gt;= end_radial_line {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+            <span class="macro">bail!</span>(
                 <span class="string">"Cell index k {:?} is not in chunk {:?}. start_radial_line: {}, end_radial_line: {}"</span>,
                 cell_idx,
                 <span class="self">self</span>.get_chunk_idx(),
                 start_radial_line,
                 end_radial_line,
-            ));
+            );
         }
         <span class="prelude-val">Ok</span>(JkVector {
             j: cell_idx.j - start_concentric_circle,
@@ -2188,8 +2184,8 @@
             <span class="kw">let </span>chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
             <span class="kw">let </span>chunk = coordinate_dir.get_chunk_at_idx(chunk_idx.<span class="number">0</span>);
             <span class="macro">assert_eq!</span>(
-                chunk.absolute_cell_idx_to_in_chunk_cell_idx(coord),
-                <span class="prelude-val">Ok</span>(coord.to_jk_vector())
+                chunk.absolute_cell_idx_to_in_chunk_cell_idx(coord).unwrap(),
+                coord.to_jk_vector()
             );
         }
 
@@ -2218,8 +2214,10 @@
                             <span class="comment">// assert_eq!(chunk_idx, ChunkIjkVector { i, j: cj, k: ck });
                             </span><span class="kw">let </span>chunk = coordinate_dir.get_chunk_at_idx(chunk_idx.<span class="number">0</span>);
                             <span class="macro">assert_eq!</span>(
-                                chunk.absolute_cell_idx_to_in_chunk_cell_idx(absolute_coord),
-                                <span class="prelude-val">Ok</span>(in_chunk_coord)
+                                chunk
+                                    .absolute_cell_idx_to_in_chunk_cell_idx(absolute_coord)
+                                    .unwrap(),
+                                in_chunk_coord
                             );
                         }
                     }

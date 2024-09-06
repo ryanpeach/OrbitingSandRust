@@ -192,21 +192,13 @@
 <a href="#192" id="192">192</a>
 <a href="#193" id="193">193</a>
 <a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
-<a href="#197" id="197">197</a>
-<a href="#198" id="198">198</a>
-<a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A simple 2d grid type
 //! This was originally created seperate from the ndarray crate, but it was later decided to
 //! use the ndarray crate as the backend for this type. This is because the ndarray crate
 //! has a convolution function that is helpful for the physics simulation.
 //! So some of this code is now redundant, but is maintained for legacy reasons
-</span><span class="attr">#![warn(missing_docs)]
-#![warn(clippy::missing_docs_in_private_items)]
 
-</span><span class="kw">use </span>std::fmt;
+</span><span class="kw">use </span>thiserror::Error;
 
 <span class="kw">use </span><span class="kw">super</span>::vectors::JkVector;
 
@@ -270,13 +262,9 @@
 }
 
 <span class="doccomment">/// Defines when the user has simply exceeded the bounds of the convolution
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[derive(Debug, Clone, Error)]
+#[error(<span class="string">"{:?} went outside the constraints of grid"</span>, .<span class="number">0</span>)]
 </span><span class="kw">pub struct </span>GridOutOfBoundsError(<span class="kw">pub </span>JkVector);
-<span class="kw">impl </span>fmt::Display <span class="kw">for </span>GridOutOfBoundsError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">"{:?} went outside the constraints of grid"</span>, <span class="self">self</span>.<span class="number">0</span>)
-    }
-}
 
 <span class="comment">/* ======================================
  * Position Based Getters
