@@ -14,6 +14,7 @@ use super::super::elements::vacuum::Vacuum;
 use super::super::mesh::coordinate_dir::CoordinateDir;
 use super::super::util::grid::{Grid, GridOutOfBoundsError};
 use super::super::util::image::RawImage;
+use anyhow::{bail, Result};
 use itertools::iproduct;
 
 /// An element grid is a 2D grid of elements tied to a chunk
@@ -84,12 +85,9 @@ impl ElementGrid {
         self.already_processed = already_processed;
     }
     /// Sets the already processed flag and errors if it is set to the same value twice
-    pub fn set_already_processed_deduplicated(
-        &mut self,
-        already_processed: bool,
-    ) -> Result<(), String> {
+    pub fn set_already_processed_deduplicated(&mut self, already_processed: bool) -> Result<()> {
         if self.already_processed == already_processed {
-            return Err("Tried to set the same value twice".to_string());
+            bail!("Tried to set the same value twice");
         }
         self.already_processed = already_processed;
         Ok(())
