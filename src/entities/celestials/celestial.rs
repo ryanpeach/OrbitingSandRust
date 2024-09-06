@@ -140,7 +140,7 @@ pub struct Builder {
 }
 
 impl Builder {
-    /// Create a new celestial builder
+    /// Create a new [Builder]
     pub fn new(idx: &mut CelestialIdx, name: String, data: Data) -> Self {
         let out = Self {
             name,
@@ -154,28 +154,28 @@ impl Builder {
         out
     }
 
-    /// Set the velocity of the celestial
+    /// Set [`Builder::velocity`]
     #[must_use]
     pub fn velocity(mut self, velocity: Velocity) -> Self {
         self.velocity = velocity;
         self
     }
 
-    /// Set the translation of the celestial
+    /// Set [`Builder::translation`]
     #[must_use]
     pub fn translation(mut self, translation: Vec2) -> Self {
         self.translation = translation;
         self
     }
 
-    /// Set the gravitational field of the celestial
+    /// Set [`Builder::gravitational`]
     #[must_use]
     pub fn gravitational(mut self, gravitational: bool) -> Self {
         self.gravitational = gravitational;
         self
     }
 
-    /// Build the celestial
+    /// Build [`Entity`]
     ///
     /// # Panics
     ///

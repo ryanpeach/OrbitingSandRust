@@ -10,6 +10,7 @@ impl Radius {
     /// Calculate the mesh for the circle described by the radius
     #[must_use]
     pub fn calc_mesh(self) -> OwnedMeshData {
+        /// Number of vertices in the circle
         const NB_VERTICES: usize = 100;
         let mut vertices: Vec<Vertex> = Vec::with_capacity(NB_VERTICES);
         let mut indices: Vec<u32> = Vec::with_capacity(NB_VERTICES);

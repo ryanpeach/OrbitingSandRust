@@ -1,4 +1,4 @@
-//! The [CoordinateDir] layouts the chunks in the game.
+//! The [`Directory`] layouts the chunks in the game.
 
 use std::f32::consts::PI;
 
@@ -27,33 +27,40 @@ pub enum MeshDrawMode {
 /// A structure that contains all the chunk coordinates for a celestial body
 /// Useful for drawing the total mesh
 #[derive(Clone)]
-pub struct CoordinateDir {
+pub struct Directory {
     /// Layers on top of the core
     /// Every index in the vec represents a layer
     /// The Grid then represents the chunks in that layer
     partial_chunks: Vec<Grid<ChunkCoords>>,
 }
 
-/// A builder for CoordinateDir
-/// Needs more parameters than CoordinateDir because
-/// it assembles the chunks whereas CoordinateDir can re-derive
+/// A builder for [`Directory`]
+/// Needs more parameters than [`Directory`] because
+/// it assembles the chunks whereas [`Directory`] can re-derive
 /// these parameters from the chunks themselves
 pub struct Builder {
     /// The radius of each cell
     cell_radius: Length,
     /// The number of layers in the celestial body
     num_layers: usize,
-    /// The number of radial lines in the first layer
+    /// The number of radial lines in the first layer, the core
+    /// Each future layer has 2x the number of radial lines as the previous layer.
     first_num_radial_lines: usize,
     /// The number of concentric circles in the second layer
+    /// Each future layer has 2x the number of concentric circles as the previous layer.
+    /// The reason we define the second layer separately is because the core always has 1
     second_num_concentric_circles: usize,
-    /// The number of tangential chunks in the first layer
+    /// The number of tangential chunks in the first layer, the core
+    /// The core doesn't really have chunks, but you can imagine them as
+    /// starting in the core. The second layer has the same number of chunks as the first layer.
     first_num_tangential_chunks: usize,
     /// The maximum number of radial lines in a chunk
     /// This determines the splitting of chunks once they reach this number of radial lines
+    /// If the number of radial lines in a chunk exceeds this number, the chunks radially will double in the next layer
     max_radial_lines_per_chunk: usize,
     /// The maximum number of concentric circles in a chunk
     /// This determines the splitting of chunks once they reach this number of concentric circles
+    /// If the number of concentric circles in a chunk exceeds this number, the chunks concentrically will double in the next layer
     max_concentric_circles_per_chunk: usize,
 }
 
@@ -64,10 +71,10 @@ impl Default for Builder {
     }
 }
 
-/// Builds a CoordinateDir
+/// Builds a [`Directory`]
 /// This is where most of the logic is stored for assembling the directory
 impl Builder {
-    /// Start here
+    /// Create a new [Builder]
     pub fn new() -> Self {
         Self {
             cell_radius: Length(1.0),
@@ -79,52 +86,42 @@ impl Builder {
             second_num_concentric_circles: 2,
         }
     }
-    /// The radius of each cell in the circle
+    /// Set [`Builder::cell_radius`]
     pub fn cell_radius(mut self, cell_radius: Length) -> Self {
         self.cell_radius = cell_radius;
         self
     }
-    /// The number of layers in the circle
+    /// Set [`Builder::num_layers`]
     pub fn num_layers(mut self, num_layers: usize) -> Self {
         self.num_layers = num_layers;
         self
     }
 
-    /// The number of radial lines in the core.
-    /// Each future layer has 2x the number of radial lines as the previous layer.
+    /// Set [`Builder::first_num_radial_lines`]
     pub fn first_num_radial_lines(mut self, first_num_radial_lines: usize) -> Self {
         self.first_num_radial_lines = first_num_radial_lines;
         self
     }
 
-    /// The number of tangential chunkss in the core.
-    /// The core doesn't really have chunks, but you can imagine them as
-    /// starting in the core. The second layer has the same number of chunks as the first layer.
+    /// Set [`Builder::first_num_tangential_chunks`]
     pub fn first_num_tangential_chunkss(mut self, first_num_tangential_chunkss: usize) -> Self {
         self.first_num_tangential_chunks = first_num_tangential_chunkss;
         self
     }
 
-    /// The number of concentric circles in the second layer.
-    /// Each future layer has 2x the number of concentric circles as the previous layer.
-    /// The reason we define the second layer separately is because the core always has 1
+    /// Set [`Builder::second_num_concentric_circles`]
     pub fn second_num_concentric_circles(mut self, second_num_concentric_circles: usize) -> Self {
-        // debug_assert!(
-        //     second_num_concentric_circles % 3 == 0,
-        //     "second_num_concentric_circles must be a multiple of 3, got {}",
-        //     second_num_concentric_circles
-        // );
         self.second_num_concentric_circles = second_num_concentric_circles;
         self
     }
 
-    /// If the number of radial lines in a chunk exceeds this number, the chunks radially will double in the next layer
+    /// Set [`Builder::max_radial_lines_per_chunk`]
     pub fn max_radial_lines_per_chunk(mut self, max_radial_lines_per_chunk: usize) -> Self {
         self.max_radial_lines_per_chunk = max_radial_lines_per_chunk;
         self
     }
 
-    /// If the number of concentric circles in a chunk exceeds this number, the chunks concentrically will double in the next layer
+    /// Set [`Builder::max_concentric_circles_per_chunk`]
     pub fn max_concentric_circles_per_chunk(
         mut self,
         max_concentric_circles_per_chunk: usize,
@@ -133,10 +130,10 @@ impl Builder {
         self
     }
 
-    /// builds a CoordinateDir by iterating over the number of layers
+    /// builds a [`Directory`] by iterating over the number of layers
     /// and dynamically allocating chunks to each layer based on max_cells
     /// and the other parameters of the builder.
-    pub fn build(self) -> CoordinateDir {
+    pub fn build(self) -> Directory {
         assert_ne!(self.num_layers, 0);
         assert!(
             self.max_radial_lines_per_chunk > self.first_num_radial_lines,
@@ -244,7 +241,7 @@ impl Builder {
 
         debug_assert!(total_concentric_circle_chunks % 3 == 0, "For multithreading purposes, the total number of concentric circle chunks must be a multiple of 3, got {}", total_concentric_circle_chunks);
 
-        let out = CoordinateDir { partial_chunks };
+        let out = Directory { partial_chunks };
         debug_assert!(out.get_total_number_concentric_chunks() % 3 == 0);
         out
     }
@@ -255,7 +252,7 @@ impl Builder {
  * These functions run a getter on a specific
  * chunk index
  * ========================================= */
-impl CoordinateDir {
+impl Directory {
     pub fn get_chunk_at_idx(&self, chunk_idx: ChunkIjkVector) -> ChunkCoords {
         *self.partial_chunks[chunk_idx.i].get(chunk_idx.to_jk_vector())
     }
@@ -299,7 +296,7 @@ impl CoordinateDir {
 /* ============================
  * Shape Conversion Functions
  * ============================ */
-impl CoordinateDir {
+impl Directory {
     /// Returns: (layer_num, relative_concentric_circle)
     pub fn convert_absolute_concentric_circle_to_relative(
         &self,
@@ -326,7 +323,7 @@ impl CoordinateDir {
  * Layer Getters
  * Get calculated attributes about a layer
  * ================= */
-impl CoordinateDir {
+impl Directory {
     /// The first concentric circle (absolute) index of a given layer
     pub fn get_layer_start_concentric_circle_absolute(&self, layer_num: usize) -> usize {
         self.partial_chunks[layer_num]
@@ -354,7 +351,7 @@ impl CoordinateDir {
  * These differ from layer getters in that they are attributes of a "chunk layer"
  * Which is a Grid of chunks in the partial_chunks vector
  * ================== */
-impl CoordinateDir {
+impl Directory {
     /// Get the number of chunks around the circle in a given layer
     pub fn get_layer_num_tangential_chunkss(&self, layer_num: usize) -> usize {
         self.partial_chunks[layer_num].get_width()
@@ -399,7 +396,7 @@ impl CoordinateDir {
  * Simple Getters
  * Misc attributes of the directory itself.
  * ======================================== */
-impl CoordinateDir {
+impl Directory {
     /// The total number of cells in the whole directory
     pub fn total_size(&self) -> usize {
         let mut total_size = 0;
@@ -481,7 +478,7 @@ impl CoordinateDir {
 /* ===================
  * Inverse Coordinate
  * =================== */
-impl CoordinateDir {
+impl Directory {
     /// Converts a position relative to the origin of the circle to a cell index
     pub fn rel_pos_to_cell_idx(&self, xy_coord: RelXyPoint) -> Result<IjkVector, IjkVector> {
         let norm_vertex_coord = (xy_coord.0.x * xy_coord.0.x + xy_coord.0.y * xy_coord.0.y).sqrt();
@@ -590,7 +587,7 @@ mod tests {
     mod test_concentric_circles_conversions {
         use super::*;
 
-        fn default_coordinate_dir() -> CoordinateDir {
+        fn default_coordinate_dir() -> Directory {
             Builder::new()
                 .cell_radius(Length(1.0))
                 .num_layers(9)

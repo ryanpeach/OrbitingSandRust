@@ -15,19 +15,19 @@ use crate::{
 
 /// Builds a sun celestial body
 pub struct Builder {
-    /// See [`CoordinateDirBuilder::cell_radius`]
+    /// See [`coordinate_dir::Builder::cell_radius`]
     cell_radius: Length,
-    /// See [`CoordinateDirBuilder::num_layers`]
+    /// See [`coordinate_dir::Builder::num_layers`]
     num_layers: usize,
-    /// See [`CoordinateDirBuilder::first_num_radial_lines`]
+    /// See [`coordinate_dir::Builder::first_num_radial_lines`]
     first_num_radial_lines: usize,
-    /// See [`CoordinateDirBuilder::second_num_concentric_circles`]
+    /// See [`coordinate_dir::Builder::second_num_concentric_circles`]
     second_num_concentric_circles: usize,
-    /// See [`CoordinateDirBuilder::first_num_tangential_chunks`]
+    /// See [`coordinate_dir::Builder::first_num_tangential_chunks`]
     first_num_tangential_chunkss: usize,
-    /// See [`CoordinateDirBuilder::max_radial_lines_per_chunk`]
+    /// See [`coordinate_dir::Builder::max_radial_lines_per_chunk`]
     max_radial_lines_per_chunk: usize,
-    /// See [`CoordinateDirBuilder::max_concentric_circles_per_chunk`]
+    /// See [`coordinate_dir::Builder::max_concentric_circles_per_chunk`]
     max_concentric_circles_per_chunk: usize,
 }
 
@@ -38,7 +38,7 @@ impl Default for Builder {
 }
 
 impl Builder {
-    #[expect(missing_docs)]
+    /// Create a new [Builder]
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -51,43 +51,43 @@ impl Builder {
             max_concentric_circles_per_chunk: 128,
         }
     }
-    #[expect(missing_docs)]
+    /// Set [`Builder::cell_radius`]
     #[must_use]
     pub fn cell_radius(mut self, cell_radius: Length) -> Self {
         self.cell_radius = cell_radius;
         self
     }
-    #[expect(missing_docs)]
+    /// Set [`Builder::num_layers`]
     #[must_use]
     pub fn num_layers(mut self, num_layers: usize) -> Self {
         self.num_layers = num_layers;
         self
     }
-    #[expect(missing_docs)]
+    /// Set [`Builder::first_num_radial_lines`]
     #[must_use]
     pub fn first_num_radial_lines(mut self, first_num_radial_lines: usize) -> Self {
         self.first_num_radial_lines = first_num_radial_lines;
         self
     }
-    #[expect(missing_docs)]
+    /// Set [`Builder::second_num_concentric_circles`]
     #[must_use]
     pub fn second_num_concentric_circles(mut self, second_num_concentric_circles: usize) -> Self {
         self.second_num_concentric_circles = second_num_concentric_circles;
         self
     }
-    #[expect(missing_docs)]
+    /// Set [`Builder::first_num_tangential_chunks`]
     #[must_use]
     pub fn first_num_tangential_chunkss(mut self, first_num_tangential_chunkss: usize) -> Self {
         self.first_num_tangential_chunkss = first_num_tangential_chunkss;
         self
     }
-    #[expect(missing_docs)]
+    /// Set [`Builder::max_radial_lines_per_chunk`]
     #[must_use]
     pub fn max_radial_lines_per_chunk(mut self, max_radial_lines_per_chunk: usize) -> Self {
         self.max_radial_lines_per_chunk = max_radial_lines_per_chunk;
         self
     }
-    #[expect(missing_docs)]
+    /// Set [`Builder::max_concentric_circles_per_chunk`]
     #[must_use]
     pub fn max_concentric_circles_per_chunk(
         mut self,
@@ -97,7 +97,7 @@ impl Builder {
         self
     }
 
-    #[expect(missing_docs)]
+    /// Build the [Data]
     #[must_use]
     pub fn build(&self) -> Data {
         let coordinate_dir = coordinate_dir::Builder::new()

@@ -11,7 +11,7 @@ use crate::physics::util::clock::Clock;
 
 use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
 use super::super::elements::vacuum::Vacuum;
-use super::super::mesh::coordinate_dir::CoordinateDir;
+use super::super::mesh::coordinate_dir::Directory;
 use super::super::util::grid::{Grid, GridOutOfBoundsError};
 use super::super::util::image::RawImage;
 use itertools::iproduct;
@@ -209,7 +209,7 @@ impl ElementGrid {
     #[allow(clippy::mem_replace_with_default)]
     pub fn process(
         &mut self,
-        coord_dir: &CoordinateDir,
+        coord_dir: &Directory,
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) {
@@ -222,7 +222,7 @@ impl ElementGrid {
     #[allow(clippy::mem_replace_with_default)]
     fn process_elements(
         &mut self,
-        coord_dir: &CoordinateDir,
+        coord_dir: &Directory,
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) {

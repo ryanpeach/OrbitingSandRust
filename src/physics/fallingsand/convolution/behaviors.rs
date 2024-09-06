@@ -24,7 +24,7 @@ use crate::physics::{
     fallingsand::{
         data::element_grid::ElementGrid,
         elements::element::Element,
-        mesh::coordinate_dir::CoordinateDir,
+        mesh::coordinate_dir::Directory,
         util::{
             functions::modulo,
             vectors::{ChunkIjkVector, JkVector},
@@ -136,7 +136,7 @@ impl ElementGridConvolutionNeighbors {
     pub fn get_below_idx_from_center(
         &self,
         target_chunk: &ElementGrid,
-        _coord_dir: &CoordinateDir,
+        _coord_dir: &Directory,
         pos: &JkVector,
         n: usize,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {

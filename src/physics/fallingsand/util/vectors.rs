@@ -1,5 +1,5 @@
 //! A collection of coordinate types and their conversions
-//! Mostly for the [ChunkCoords] [crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir]
+//! Mostly for the [ChunkCoords] [crate::physics::fallingsand::mesh::coordinate_directory::Directory]
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 

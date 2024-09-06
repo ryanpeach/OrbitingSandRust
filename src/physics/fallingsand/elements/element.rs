@@ -5,7 +5,7 @@
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::convolution::neighbor_identifiers::ConvolutionIdx;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
-use crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
+use crate::physics::fallingsand::mesh::coordinate_dir::Directory;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::orbits::components::{Length, Mass};
 use crate::physics::util::clock::Clock;
@@ -128,7 +128,7 @@ pub trait Element: Send + Sync {
     fn process(
         &mut self,
         pos: JkVector,
-        coord_dir: &CoordinateDir,
+        coord_dir: &Directory,
         target_chunk: &mut ElementGrid,
         element_grid_conv: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,
@@ -181,7 +181,7 @@ pub trait Element: Send + Sync {
     fn _process(
         &mut self,
         pos: JkVector,
-        coord_dir: &CoordinateDir,
+        coord_dir: &Directory,
         target_chunk: &mut ElementGrid,
         element_grid_conv: &mut ElementGridConvolutionNeighbors,
         current_time: Clock,

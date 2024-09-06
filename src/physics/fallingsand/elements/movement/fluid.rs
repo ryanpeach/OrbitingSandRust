@@ -5,7 +5,7 @@ use crate::physics::{
         convolution::behaviors::ElementGridConvolutionNeighbors,
         data::element_grid::ElementGrid,
         elements::element::{Element, ElementTakeOptions, StateOfMatter},
-        mesh::coordinate_dir::CoordinateDir,
+        mesh::coordinate_dir::Directory,
         util::vectors::JkVector,
     },
     util::clock::Clock,
@@ -15,7 +15,7 @@ use crate::physics::{
 pub fn fluid_process(
     self_element: &mut dyn Element,
     pos: JkVector,
-    coord_dir: &CoordinateDir,
+    coord_dir: &Directory,
     target_chunk: &mut ElementGrid,
     element_grid_conv: &mut ElementGridConvolutionNeighbors,
     current_time: Clock,
