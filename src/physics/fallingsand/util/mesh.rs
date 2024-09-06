@@ -130,7 +130,7 @@ impl OwnedMeshData {
     }
 
     /// Get the uv bounds of a list of vertices
-    pub fn calc_bounds(&self) -> MeshBoundingBox {
+    pub fn bounds(&self) -> MeshBoundingBox {
         let width: f32 = self
             .vertices
             .iter()

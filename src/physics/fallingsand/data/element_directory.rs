@@ -718,6 +718,7 @@ impl ElementGridDir {
     }
 
     /// Get the total mass of the directory
+    /// TODO: Cleanup memoization
     pub fn total_mass(&self) -> Mass {
         self.total_mass
     }
