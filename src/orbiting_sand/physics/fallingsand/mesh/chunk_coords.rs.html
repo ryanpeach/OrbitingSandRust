@@ -2087,7 +2087,7 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
+    <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::mesh::coordinate_dir::Builder;
     <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::vectors::{IjkVector, JkVector};
     <span class="kw">use </span><span class="kw">crate</span>::physics::util::vectors::RelXyPoint;
 
@@ -2095,7 +2095,7 @@
     /// the cell index is correct returned by rel_pos_to_cell_idx
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>test_rel_pos_to_cell_idx() {
-        <span class="kw">let </span>coordinate_dir = CoordinateDirBuilder::new()
+        <span class="kw">let </span>coordinate_dir = Builder::new()
             .cell_radius(Length(<span class="number">1.0</span>))
             .num_layers(<span class="number">8</span>)
             .first_num_radial_lines(<span class="number">6</span>)
@@ -2163,7 +2163,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_cell_idx_to_chunk_idx() {
-        <span class="kw">let </span>coordinate_dir = CoordinateDirBuilder::new()
+        <span class="kw">let </span>coordinate_dir = Builder::new()
             .cell_radius(Length(<span class="number">1.0</span>))
             .num_layers(<span class="number">8</span>)
             .first_num_radial_lines(<span class="number">6</span>)

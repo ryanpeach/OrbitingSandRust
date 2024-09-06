@@ -570,7 +570,7 @@
 }
 
 <span class="kw">impl </span>Builder {
-    <span class="doccomment">/// Create a new celestial builder
+    <span class="doccomment">/// Create a new [`Builder`]
     </span><span class="kw">pub fn </span>new(idx: <span class="kw-2">&amp;mut </span>CelestialIdx, name: String, data: Data) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>out = <span class="self">Self </span>{
             name,
@@ -584,28 +584,28 @@
         out
     }
 
-    <span class="doccomment">/// Set the velocity of the celestial
+    <span class="doccomment">/// Set [`Builder::velocity`]
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>velocity(<span class="kw-2">mut </span><span class="self">self</span>, velocity: Velocity) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.velocity = velocity;
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Set the translation of the celestial
+    <span class="doccomment">/// Set [`Builder::translation`]
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>translation(<span class="kw-2">mut </span><span class="self">self</span>, translation: Vec2) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.translation = translation;
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Set the gravitational field of the celestial
+    <span class="doccomment">/// Set [`Builder::gravitational`]
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>gravitational(<span class="kw-2">mut </span><span class="self">self</span>, gravitational: bool) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.gravitational = gravitational;
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Build the celestial
+    <span class="doccomment">/// Build [`Entity`]
     ///
     /// # Panics
     ///

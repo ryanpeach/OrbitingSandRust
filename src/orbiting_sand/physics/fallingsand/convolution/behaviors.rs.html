@@ -787,7 +787,7 @@
 </pre></div><pre class="rust"><code><span class="doccomment">//! # Element Behavior API
 //!
 //! This module contains the behaviors of the convolution
-//! It exports the [ElementGridConvolutionNeighbors] struct which contains
+//! It exports the [`ElementGridConvolutionNeighbors`] struct which contains
 //! both the indexes and the grids of the neighbors
 //! It contains getters for the chunks based on index or identifier
 //! and both getters and setters by element
@@ -810,7 +810,7 @@
     fallingsand::{
         data::element_grid::ElementGrid,
         elements::element::Element,
-        mesh::coordinate_directory::CoordinateDir,
+        mesh::coordinate_dir::CoordinateDir,
         util::{
             functions::modulo,
             vectors::{ChunkIjkVector, JkVector},
@@ -841,7 +841,7 @@
 /// It does not contain the target chunk itself, as this usually violates several
 /// borrow checker rules
 </span><span class="kw">pub struct </span>ElementGridConvolutionNeighbors {
-    <span class="doccomment">/// The indexes of the neighbors, tells you where they come from in the [crate::physics::fallingsand::data::element_directory::ElementGridDir]
+    <span class="doccomment">/// The indexes of the neighbors, tells you where they come from in the [`crate::physics::fallingsand::data::element_directory::ElementGridDir`]
     </span><span class="kw">pub </span>chunk_idxs: ElementGridConvolutionNeighborIdxs,
     <span class="doccomment">/// The grids of the neighbors, actually stores the data
     </span><span class="kw">pub </span>grids: ElementGridConvolutionNeighborGrids,
@@ -1043,7 +1043,7 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>GetChunkErr {
     <span class="doccomment">/// You aren't allowed to get the center chunk.
-    /// As [ElementGridConvolutionNeighbors] describes in its documentation,
+    /// As [`ElementGridConvolutionNeighbors`] describes in its documentation,
     /// it doesn't contain the center chunk.
     </span>CenterChunk,
 }
@@ -1355,7 +1355,7 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::{
-        data::element_directory::ElementGridDir, mesh::coordinate_directory::CoordinateDirBuilder,
+        data::element_directory::ElementGridDir, mesh::coordinate_dir::Builder,
     };
 
     <span class="kw">mod </span>get_below_idx_from_center {
@@ -1364,7 +1364,7 @@
 
         <span class="doccomment">/// The default element grid directory for testing
         </span><span class="kw">fn </span>get_element_grid_dir() -&gt; ElementGridDir {
-            <span class="kw">let </span>coordinate_dir = CoordinateDirBuilder::new()
+            <span class="kw">let </span>coordinate_dir = Builder::new()
                 .cell_radius(Length(<span class="number">1.0</span>))
                 .num_layers(<span class="number">10</span>)
                 .first_num_radial_lines(<span class="number">6</span>)
@@ -1465,7 +1465,7 @@
 
         <span class="doccomment">/// The default element grid directory for testing
         </span><span class="kw">fn </span>get_element_grid_dir() -&gt; ElementGridDir {
-            <span class="kw">let </span>coordinate_dir = CoordinateDirBuilder::new()
+            <span class="kw">let </span>coordinate_dir = Builder::new()
                 .cell_radius(Length(<span class="number">1.0</span>))
                 .num_layers(<span class="number">7</span>)
                 .first_num_radial_lines(<span class="number">12</span>)

@@ -239,7 +239,7 @@
 <a href="#239" id="239">239</a>
 <a href="#240" id="240">240</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A collection of coordinate types and their conversions
-//! Mostly for the [ChunkCoords] [crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir]
+//! Mostly for the [`ChunkCoords`] [`crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir`]
 </span><span class="attr">#![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
@@ -248,8 +248,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 <span class="kw">use </span>derive_more::{Add, AddAssign, Sub, SubAssign};
 
-<span class="doccomment">/// A coordinate system for [ndarray]
-/// [ndarray] is row-major, so the jk vector is flipped
+<span class="doccomment">/// A coordinate system for  [`ndarray`]
+///  [`ndarray`] is row-major, so the jk vector is flipped
 /// Top left is (0, 0)
 /// ![ndarray coords](../../../../../assets/docs/wireframe/ndarray_coords.png)
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -257,14 +257,14 @@
 
 <span class="doccomment">/// Instantiation
 </span><span class="kw">impl </span>NdArrayCoords {
-    <span class="doccomment">/// Create a new [NdArrayCoords]
+    <span class="doccomment">/// Create a new  [`NdArrayCoords`]
     </span><span class="kw">pub fn </span>new(x: usize, y: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>([x, y])
     }
 }
 
 <span class="kw">impl </span>NdArrayCoords {
-    <span class="doccomment">/// Convert to a [JkVector]
+    <span class="doccomment">/// Convert to a  [`JkVector`]
     /// ndarray is row-major, so the jk vector is flipped
     /// Bottom Right is (0, 0)
     </span><span class="kw">pub fn </span>to_jk_vector(<span class="self">self</span>, coords: <span class="kw-2">&amp;</span>ChunkCoords) -&gt; JkVector {
@@ -311,8 +311,8 @@
 /// Can also be used to describe a grid, like a chunk taken from the circle
 /// In this case j is the height and k is the width
 /// Bottom right is (0, 0)
-/// If you need to also know the layer number, use [IjkVector]
-/// If you need a relative vector, use [RelJkVector]
+/// If you need to also know the layer number, use  [`IjkVector`]
+/// If you need a relative vector, use  [`RelJkVector`]
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
 </span><span class="kw">pub struct </span>JkVector {
     <span class="doccomment">/// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
@@ -321,12 +321,12 @@
     </span><span class="kw">pub </span>k: usize,
 }
 
-<span class="doccomment">/// To [NdArrayCoords]
+<span class="doccomment">/// To  [`NdArrayCoords`]
 /// ndarray is row-major, so the jk vector is flipped
 /// Top left is (0, 0)
 /// Whereas in a Jk Vector, the bottom right is (0, 0)
 </span><span class="kw">impl </span>JkVector {
-    <span class="doccomment">/// Convert to a [NdArrayCoords]
+    <span class="doccomment">/// Convert to a  [`NdArrayCoords`]
     </span><span class="kw">pub fn </span>to_ndarray_coords(<span class="self">self</span>, coords: <span class="kw-2">&amp;</span>ChunkCoords) -&gt; NdArrayCoords {
         NdArrayCoords::new(
             coords.get_num_radial_lines() - <span class="number">1 </span>- <span class="self">self</span>.k,
@@ -343,14 +343,14 @@
 
 <span class="doccomment">/// Instantiation
 </span><span class="kw">impl </span>JkVector {
-    <span class="doccomment">/// Create a new [JkVector]
+    <span class="doccomment">/// Create a new  [`JkVector`]
     </span><span class="kw">pub fn </span>new(j: usize, k: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ j, k }
     }
 }
 
 <span class="doccomment">/// This defines a movement or a vector relative to some position on the circular grid
-/// Same as [JkVector], but with isize type fields which can contain negative numbers
+/// Same as  [`JkVector`], but with isize type fields which can contain negative numbers
 /// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>RelJkVector {
@@ -362,13 +362,13 @@
 
 <span class="doccomment">/// Instantiation
 </span><span class="kw">impl </span>RelJkVector {
-    <span class="doccomment">/// Create a new [RelJkVector]
+    <span class="doccomment">/// Create a new  [`RelJkVector`]
     </span><span class="kw">pub fn </span>new(rj: isize, rk: isize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ rj, rk }
     }
 }
 
-<span class="doccomment">/// Sometimes while resolving a relative [JkVector] into a [JkVector] when you
+<span class="doccomment">/// Sometimes while resolving a relative  [`JkVector`] into a  [`JkVector`] when you
 /// need isize type fields
 /// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -381,7 +381,7 @@
 
 <span class="doccomment">/// Instantiation
 </span><span class="kw">impl </span>TempJkVector {
-    <span class="doccomment">/// Add a [RelJkVector] to a [JkVector]
+    <span class="doccomment">/// Add a  [`RelJkVector`]to a  [`JkVector`]
     </span><span class="kw">pub fn </span>add(pos: <span class="kw-2">&amp;</span>JkVector, rel: <span class="kw-2">&amp;</span>RelJkVector) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             j: pos.j <span class="kw">as </span>isize + rel.rj,
@@ -401,13 +401,13 @@
 
 <span class="doccomment">/// Instantiation
 </span><span class="kw">impl </span>FullIdx {
-    <span class="doccomment">/// Create a new [FullIdx]
+    <span class="doccomment">/// Create a new [`FullIdx`]
     </span><span class="kw">pub fn </span>new(chunk_idx: ChunkIjkVector, pos: JkVector) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ chunk_idx, pos }
     }
 }
 
-<span class="doccomment">/// Same as [JkVector], but with i indicating the "layer number"
+<span class="doccomment">/// Same as  [`JkVector`] but with i indicating the "layer number"
 /// The core is layer 0
 /// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -427,7 +427,7 @@
     </span><span class="kw">pub fn </span>new(i: usize, j: usize, k: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ i, j, k }
     }
-    <span class="doccomment">/// Convert to a [JkVector]
+    <span class="doccomment">/// Convert to a [`JkVector`]
     </span><span class="kw">pub fn </span>to_jk_vector(<span class="self">self</span>) -&gt; JkVector {
         JkVector {
             j: <span class="self">self</span>.j,
@@ -449,7 +449,7 @@
     </span><span class="kw">pub </span>color: Color,
 }
 
-<span class="doccomment">/// The [IjkVector] of a chunk within an [crate::physics::fallingsand::data::element_directory::ElementGridDir]
+<span class="doccomment">/// The  [`IjkVector`]of a chunk within an [`crate::physics::fallingsand::data::element_directory::ElementGridDir`]
 /// In this case Ijk relate to the index of the chunk itself, not
 /// perportional to the cells within the chunk
 /// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
@@ -470,7 +470,7 @@
     }
     <span class="doccomment">/// The zero vector
     </span><span class="kw">pub const </span>ZERO: <span class="self">Self </span>= <span class="self">Self </span>{ i: <span class="number">0</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>};
-    <span class="doccomment">/// Convert to a [JkVector]
+    <span class="doccomment">/// Convert to a [`JkVector`]
     </span><span class="kw">pub fn </span>to_jk_vector(<span class="self">self</span>) -&gt; JkVector {
         JkVector {
             j: <span class="self">self</span>.j,

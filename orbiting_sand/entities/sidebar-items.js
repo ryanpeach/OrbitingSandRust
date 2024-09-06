@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["celestials","utils"],"struct":["PluginGroup"]};
+window.SIDEBAR_ITEMS = {"mod":["celestials","components"],"struct":["PluginGroup"]};

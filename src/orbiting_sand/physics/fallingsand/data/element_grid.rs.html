@@ -415,7 +415,6 @@
 <a href="#415" id="415">415</a>
 <a href="#416" id="416">416</a>
 <a href="#417" id="417">417</a>
-<a href="#418" id="418">418</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>bevy::math::Rect;
 <span class="kw">use </span>rand::seq::SliceRandom;
 <span class="kw">use </span>rand::thread_rng;
@@ -429,7 +428,7 @@
 
 <span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::convolution::behaviors::ElementGridConvolutionNeighbors;
 <span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::elements::vacuum::Vacuum;
-<span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::mesh::coordinate_directory::CoordinateDir;
+<span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::mesh::coordinate_dir::CoordinateDir;
 <span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::util::grid::{Grid, GridOutOfBoundsError};
 <span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::util::image::RawImage;
 <span class="kw">use </span>itertools::iproduct;
@@ -697,8 +696,7 @@
 
     <span class="doccomment">/// Process the heat of the grid
     /// Currently disabled as it is broken
-    </span><span class="comment">// #[allow(dead_code)]
-    // fn process_heat(
+    </span><span class="comment">// fn process_heat(
     //     &amp;mut self,
     //     element_grid_conv_neigh: &amp;mut ElementGridConvolutionNeighbors,
     //     current_time: Clock,

@@ -141,15 +141,12 @@
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
 <a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::element::{Density, Element, ElementTakeOptions, ElementType, StateOfMatter};
 <span class="kw">use </span><span class="kw">super</span>::movement::solid::solid_process;
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::data::element_grid::ElementGrid;
-<span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
+<span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
 <span class="kw">use </span><span class="kw">crate</span>::physics::fallingsand::util::vectors::JkVector;
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::util::clock::Clock;
@@ -206,10 +203,7 @@
 </span><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span><span class="kw">crate</span>::physics::{
-        fallingsand::{
-            data::element_directory::ElementGridDir,
-            mesh::coordinate_directory::CoordinateDirBuilder,
-        },
+        fallingsand::{data::element_directory::ElementGridDir, mesh::coordinate_dir::Builder},
         orbits::components::Length,
     };
 
@@ -217,7 +211,7 @@
 
     <span class="doccomment">/// The default element grid directory for testing
     </span><span class="kw">fn </span>get_element_grid_dir() -&gt; ElementGridDir {
-        <span class="kw">let </span>coordinate_dir = CoordinateDirBuilder::new()
+        <span class="kw">let </span>coordinate_dir = Builder::new()
             .cell_radius(Length(<span class="number">1.0</span>))
             .num_layers(<span class="number">10</span>)
             .first_num_radial_lines(<span class="number">6</span>)

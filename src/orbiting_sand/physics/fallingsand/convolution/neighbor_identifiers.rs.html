@@ -120,8 +120,8 @@
 
 <span class="doccomment">/// The main type exported by this module
 /// An enum that identifies the location in the structure of the convolution
-/// Check out the [super::neighbor_grids::ElementGridConvolutionNeighborGrids] and
-/// [super::neighbor_indexes::ElementGridConvolutionNeighborIdxs] documentation for more information
+/// Check out the  [`super::neighbor_grids::ElementGridConvolutionNeighborGrids`] and
+///  [`super::neighbor_indexes::ElementGridConvolutionNeighborIdxs`] documentation for more information
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub enum </span>ConvolutionIdentifier {
     <span class="doccomment">/// The left and right neighbors
@@ -139,8 +139,8 @@
 </span><span class="kw">pub struct </span>ConvolutionIdx(<span class="kw">pub </span>JkVector, <span class="kw">pub </span>ConvolutionIdentifier);
 
 <span class="doccomment">/// Identifies a chunk is the left or right neighbor in the convolution
-/// Check out the [super::neighbor_grids::LeftRightNeighborGrids] and
-/// [super::neighbor_indexes::LeftRightNeighborIdxs] documentation for more information
+/// Check out the  [`super::neighbor_grids::LeftRightNeighborGrids`] and
+///  [`super::neighbor_indexes::LeftRightNeighborIdxs`] documentation for more information
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub enum </span>LeftRightNeighborIdentifier {
     <span class="doccomment">/// The left neighbor
@@ -150,8 +150,8 @@
 }
 
 <span class="doccomment">/// Identifies a chunk is one of the top neighbors in the convolution
-/// Check out the [super::neighbor_grids::TopNeighborGrids] and
-/// [super::neighbor_indexes::TopNeighborIdxs] documentation for more information
+/// Check out the  [`super::neighbor_grids::TopNeighborGrids`] and
+///  [`super::neighbor_indexes::TopNeighborIdxs`] documentation for more information
 </span><span class="attr">#[derive(Debug, Clone, Copy, EnumIter)]
 </span><span class="kw">pub enum </span>TopNeighborIdentifier {
     <span class="doccomment">/// Indicates the top neighbors are not part of a chunk doubling layer transition
@@ -188,8 +188,8 @@
 }
 
 <span class="doccomment">/// Identifies a chunk is one of the bottom neighbors in the convolution
-/// Check out the [super::neighbor_grids::BottomNeighborGrids] and
-/// [super::neighbor_indexes::BottomNeighborIdxs] documentation for more information
+/// Check out the  [`super::neighbor_grids::BottomNeighborGrids`] and
+///  [`super::neighbor_indexes::BottomNeighborIdxs`] documentation for more information
 </span><span class="attr">#[derive(Debug, Clone, Copy, EnumIter)]
 </span><span class="kw">pub enum </span>BottomNeighborIdentifier {
     <span class="doccomment">/// Indicates the bottom neighbors are not part of a chunk doubling layer transition
@@ -217,7 +217,7 @@
 /// (or halfing in this case because you are going down)
 /// One of these will be directly below you, and be bigger than you off to one direction
 /// Whereas the other will be diagonally below you
-/// This depends on if your [crate::physics::fallingsand::util::vectors::ChunkIjkVector] has a `k` value which is even or odd
+/// This depends on if your  [`crate::physics::fallingsand::util::vectors::ChunkIjkVector`] has a `k` value which is even or odd
 /// If it is even, then the `bl` will be directly below you, and you will be straddling its right side
 /// If it is odd, then the `br` will be directly below you, and you will be straddling its left side
 </span><span class="attr">#[derive(Debug, Clone, Copy, Default, EnumIter)]

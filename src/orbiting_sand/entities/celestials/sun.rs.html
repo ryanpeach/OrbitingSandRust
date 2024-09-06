@@ -121,8 +121,17 @@
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
-</pre></div><pre class="rust"><code><span class="attr">#![allow(missing_docs)] </span><span class="comment">// TODO: Remove this line
-</span><span class="attr">#![allow(clippy::missing_docs_in_private_items)] </span><span class="comment">// TODO: Remove this line
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! A simple sun celestial body
 
 </span><span class="kw">use </span>bevy::log::info;
 
@@ -131,20 +140,28 @@
     physics::{
         fallingsand::{
             data::element_directory::ElementGridDir, elements::element::ElementType,
-            mesh::coordinate_directory::CoordinateDirBuilder, util::vectors::ChunkIjkVector,
+            mesh::coordinate_dir, util::vectors::ChunkIjkVector,
         },
         orbits::components::Length,
     },
 };
 
-<span class="kw">pub struct </span>Builder {
-    cell_radius: Length,
-    num_layers: usize,
-    first_num_radial_lines: usize,
-    second_num_concentric_circles: usize,
-    first_num_tangential_chunkss: usize,
-    max_radial_lines_per_chunk: usize,
-    max_concentric_circles_per_chunk: usize,
+<span class="doccomment">/// Builds a sun celestial body
+</span><span class="kw">pub struct </span>Builder {
+    <span class="doccomment">/// See [`coordinate_dir::Builder::cell_radius`]
+    </span>cell_radius: Length,
+    <span class="doccomment">/// See [`coordinate_dir::Builder::num_layers`]
+    </span>num_layers: usize,
+    <span class="doccomment">/// See [`coordinate_dir::Builder::first_num_radial_lines`]
+    </span>first_num_radial_lines: usize,
+    <span class="doccomment">/// See [`coordinate_dir::Builder::second_num_concentric_circles`]
+    </span>second_num_concentric_circles: usize,
+    <span class="doccomment">/// See [`coordinate_dir::Builder::first_num_tangential_chunks`]
+    </span>first_num_tangential_chunks: usize,
+    <span class="doccomment">/// See [`coordinate_dir::Builder::max_radial_lines_per_chunk`]
+    </span>max_radial_lines_per_chunk: usize,
+    <span class="doccomment">/// See [`coordinate_dir::Builder::max_concentric_circles_per_chunk`]
+    </span>max_concentric_circles_per_chunk: usize,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>Builder {
@@ -154,56 +171,57 @@
 }
 
 <span class="kw">impl </span>Builder {
-    <span class="attr">#[must_use]
+    <span class="doccomment">/// Create a new [`Builder`]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             cell_radius: Length(<span class="number">10.0</span>),
             num_layers: <span class="number">4</span>,
             first_num_radial_lines: <span class="number">12</span>,
             second_num_concentric_circles: <span class="number">3</span>,
-            first_num_tangential_chunkss: <span class="number">3</span>,
+            first_num_tangential_chunks: <span class="number">3</span>,
             max_radial_lines_per_chunk: <span class="number">128</span>,
             max_concentric_circles_per_chunk: <span class="number">128</span>,
         }
     }
-
-    <span class="attr">#[must_use]
+    <span class="doccomment">/// Set [`Builder::cell_radius`]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>cell_radius(<span class="kw-2">mut </span><span class="self">self</span>, cell_radius: Length) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.cell_radius = cell_radius;
         <span class="self">self
     </span>}
-
-    <span class="attr">#[must_use]
+    <span class="doccomment">/// Set [`Builder::num_layers`]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>num_layers(<span class="kw-2">mut </span><span class="self">self</span>, num_layers: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.num_layers = num_layers;
         <span class="self">self
     </span>}
-
-    <span class="attr">#[must_use]
+    <span class="doccomment">/// Set [`Builder::first_num_radial_lines`]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>first_num_radial_lines(<span class="kw-2">mut </span><span class="self">self</span>, first_num_radial_lines: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.first_num_radial_lines = first_num_radial_lines;
         <span class="self">self
     </span>}
-
-    <span class="attr">#[must_use]
+    <span class="doccomment">/// Set [`Builder::second_num_concentric_circles`]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>second_num_concentric_circles(<span class="kw-2">mut </span><span class="self">self</span>, second_num_concentric_circles: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.second_num_concentric_circles = second_num_concentric_circles;
         <span class="self">self
     </span>}
-
-    <span class="attr">#[must_use]
+    <span class="doccomment">/// Set [`Builder::first_num_tangential_chunks`]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>first_num_tangential_chunkss(<span class="kw-2">mut </span><span class="self">self</span>, first_num_tangential_chunkss: usize) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.first_num_tangential_chunkss = first_num_tangential_chunkss;
+        <span class="self">self</span>.first_num_tangential_chunks = first_num_tangential_chunkss;
         <span class="self">self
     </span>}
-
-    <span class="attr">#[must_use]
+    <span class="doccomment">/// Set [`Builder::max_radial_lines_per_chunk`]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>max_radial_lines_per_chunk(<span class="kw-2">mut </span><span class="self">self</span>, max_radial_lines_per_chunk: usize) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.max_radial_lines_per_chunk = max_radial_lines_per_chunk;
         <span class="self">self
     </span>}
-
-    <span class="attr">#[must_use]
+    <span class="doccomment">/// Set [`Builder::max_concentric_circles_per_chunk`]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>max_concentric_circles_per_chunk(
         <span class="kw-2">mut </span><span class="self">self</span>,
         max_concentric_circles_per_chunk: usize,
@@ -212,13 +230,15 @@
         <span class="self">self
     </span>}
 
-    <span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Data {
-        <span class="kw">let </span>coordinate_dir = CoordinateDirBuilder::new()
+    <span class="doccomment">/// Build the [`Data`]
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Data {
+        <span class="kw">let </span>coordinate_dir = coordinate_dir::Builder::new()
             .cell_radius(<span class="self">self</span>.cell_radius)
             .num_layers(<span class="self">self</span>.num_layers)
             .first_num_radial_lines(<span class="self">self</span>.first_num_radial_lines)
             .second_num_concentric_circles(<span class="self">self</span>.second_num_concentric_circles)
-            .first_num_tangential_chunkss(<span class="self">self</span>.first_num_tangential_chunkss)
+            .first_num_tangential_chunkss(<span class="self">self</span>.first_num_tangential_chunks)
             .max_radial_lines_per_chunk(<span class="self">self</span>.max_radial_lines_per_chunk)
             .max_concentric_circles_per_chunk(<span class="self">self</span>.max_concentric_circles_per_chunk)
             .build();

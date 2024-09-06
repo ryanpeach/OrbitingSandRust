@@ -1288,7 +1288,7 @@
     BottomNeighborIdxs, ElementGridConvolutionNeighborIdxs, LeftRightNeighborIdxs, TopNeighborIdxs,
 };
 <span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::elements::element::Element;
-<span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::mesh::coordinate_directory::CoordinateDir;
+<span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::mesh::coordinate_dir::CoordinateDir;
 <span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::util::functions::modulo;
 <span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::util::grid::Grid;
 <span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::util::image::RawImage;
@@ -1330,7 +1330,7 @@
 /// 3x3 convolution kernels. It excludes known edge cases, like the bottom of a layer where there is a reduction in tangential chunkss.
 /// Run this over 0..9 frame_nb to get the targets for each frame
 </span><span class="kw">fn </span>calculate_ith_standard_convolution_targets(
-    coords: CoordinateDir,
+    coords: <span class="kw-2">&amp;</span>CoordinateDir,
     frame_nb: usize,
 ) -&gt; Parallel&lt;HashSet&lt;ChunkIjkVector&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>out = HashSet::new();
@@ -1398,7 +1398,7 @@
 <span class="doccomment">/// This really only calculates the core now
 /// TODO: Maybe consider removing this
 </span><span class="kw">fn </span>calculate_ith_has_single_bottom_neighbor_targets(
-    coords: CoordinateDir,
+    coords: <span class="kw-2">&amp;</span>CoordinateDir,
     frame_nb: usize,
 ) -&gt; Sequential&lt;HashSet&lt;ChunkIjkVector&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>out = HashSet::new();
@@ -1440,7 +1440,7 @@
 /// In this case we still need to maintain a j step of 3, but we need to
 /// process all k's sequentially.
 </span><span class="kw">fn </span>calculate_ith_has_different_k_bottom_neighbor_targets(
-    coords: CoordinateDir,
+    coords: <span class="kw-2">&amp;</span>CoordinateDir,
     frame_nb: usize,
 ) -&gt; Parallel&lt;HashSet&lt;ChunkIjkVector&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>out = HashSet::new();
@@ -1482,18 +1482,20 @@
 
 <span class="doccomment">/// Pre calculate all the chunk idx's we need to process each frame.
 /// We pregenerate these so that we can test them and so that we don't waste time recalculating them
-</span><span class="attr">#[allow(clippy::needless_range_loop)]
 </span><span class="kw">fn </span>pregen_process_targets(coords: <span class="kw-2">&amp;</span>CoordinateDir) -&gt; ProcessTargets {
     <span class="kw">let </span><span class="kw-2">mut </span>standard_convolution: [Parallel&lt;HashSet&lt;ChunkIjkVector&gt;&gt;; <span class="number">9</span>] = Default::default();
     <span class="kw">let </span><span class="kw-2">mut </span>has_single_bottom_neighbor: [Sequential&lt;HashSet&lt;ChunkIjkVector&gt;&gt;; <span class="number">9</span>] =
         Default::default();
     <span class="kw">let </span><span class="kw-2">mut </span>has_multi_bottom_neighbor: [Parallel&lt;HashSet&lt;ChunkIjkVector&gt;&gt;; <span class="number">9</span>] = Default::default();
-    <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">9 </span>{
-        standard_convolution[i] = calculate_ith_standard_convolution_targets(coords.clone(), i);
-        has_single_bottom_neighbor[i] =
-            calculate_ith_has_single_bottom_neighbor_targets(coords.clone(), i);
-        has_multi_bottom_neighbor[i] =
-            calculate_ith_has_different_k_bottom_neighbor_targets(coords.clone(), i);
+    <span class="kw">for </span>(i, ((standard, single), multi)) <span class="kw">in </span>standard_convolution
+        .iter_mut()
+        .zip(has_single_bottom_neighbor.iter_mut())
+        .zip(has_multi_bottom_neighbor.iter_mut())
+        .enumerate()
+    {
+        <span class="kw-2">*</span>standard = calculate_ith_standard_convolution_targets(coords, i);
+        <span class="kw-2">*</span>single = calculate_ith_has_single_bottom_neighbor_targets(coords, i);
+        <span class="kw-2">*</span>multi = calculate_ith_has_different_k_bottom_neighbor_targets(coords, i);
     }
     ProcessTargets {
         standard_convolution,
@@ -2140,15 +2142,13 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use </span><span class="kw">crate</span>::physics::{
-        fallingsand::mesh::coordinate_directory::CoordinateDirBuilder, orbits::components::Length,
-    };
+    <span class="kw">use </span><span class="kw">crate</span>::physics::{fallingsand::mesh::coordinate_dir::Builder, orbits::components::Length};
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="doccomment">/// The default element grid directory for testing
     </span><span class="kw">fn </span>get_element_grid_dir() -&gt; ElementGridDir {
-        <span class="kw">let </span>coordinate_dir = CoordinateDirBuilder::new()
+        <span class="kw">let </span>coordinate_dir = Builder::new()
             .cell_radius(Length(<span class="number">1.0</span>))
             .num_layers(<span class="number">9</span>)
             .first_num_radial_lines(<span class="number">6</span>)
