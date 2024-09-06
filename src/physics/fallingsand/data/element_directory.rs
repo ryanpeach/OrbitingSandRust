@@ -796,8 +796,7 @@ impl ElementGridDir {
             .unwrap()
     }
 
-    #[allow(clippy::borrowed_box)]
-    pub fn get_element(&self, coord: IjkVector) -> &Box<dyn Element> {
+    pub fn get_element(&self, coord: IjkVector) -> &dyn Element {
         let chunk_idx = self.get_coordinate_dir().cell_idx_to_chunk_idx(coord);
         let chunk = self.get_chunk_by_chunk_ijk(chunk_idx.0);
         chunk.get(chunk_idx.1)

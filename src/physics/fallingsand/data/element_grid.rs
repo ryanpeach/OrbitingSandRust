@@ -164,17 +164,17 @@ impl ElementGrid {
 
 /// Public modifiers for the element grid
 impl ElementGrid {
-    #[allow(clippy::borrowed_box)]
-    pub fn get(&self, jk: JkVector) -> &Box<dyn Element> {
-        self.grid.get(jk)
+    pub fn get(&self, jk: JkVector) -> &dyn Element {
+        self.grid.get(jk).as_ref()
     }
-    #[allow(clippy::borrowed_box)]
-    pub fn checked_get(&self, jk: JkVector) -> Result<&Box<dyn Element>, GridOutOfBoundsError> {
-        self.grid.checked_get(jk)
+    pub fn checked_get(&self, jk: JkVector) -> Result<&dyn Element, GridOutOfBoundsError> {
+        match self.grid.checked_get(jk) {
+            Ok(e) => Ok(e.as_ref()),
+            Err(e) => Err(e),
+        }
     }
-    #[allow(clippy::borrowed_box)]
-    pub fn get_mut(&mut self, jk: JkVector) -> &mut Box<dyn Element> {
-        self.grid.get_mut(jk)
+    pub fn get_mut(&mut self, jk: JkVector) -> &mut dyn Element {
+        self.grid.get_mut(jk).as_mut()
     }
     pub fn set(&mut self, jk: JkVector, element: Box<dyn Element>, time: Clock) {
         self.replace(jk, element, time);

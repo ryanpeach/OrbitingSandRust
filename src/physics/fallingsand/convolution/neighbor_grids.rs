@@ -187,12 +187,11 @@ impl TopNeighborGrids {
 
     /// Gets the element at the given index
     /// Returns an error if the given index is not in the convolution
-    #[allow(clippy::borrowed_box)]
     pub fn get(
         &self,
         idx: JkVector,
         top_neighbor_id: TopNeighborIdentifier,
-    ) -> Result<&Box<dyn Element>, ConvOutOfBoundsError> {
+    ) -> Result<&dyn Element, ConvOutOfBoundsError> {
         match top_neighbor_id {
             TopNeighborIdentifier::Normal(normal_id) => match normal_id {
                 TopNeighborIdentifierNormal::Top => {
