@@ -1276,7 +1276,6 @@
 <a href="#1276" id="1276">1276</a>
 <a href="#1277" id="1277">1277</a>
 <a href="#1278" id="1278">1278</a>
-<a href="#1279" id="1279">1279</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>hashbrown::{HashMap, HashSet};
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::orbits::components::Mass;
@@ -2075,8 +2074,7 @@
             .unwrap()
     }
 
-    <span class="attr">#[allow(clippy::borrowed_box)]
-    </span><span class="kw">pub fn </span>get_element(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: IjkVector) -&gt; <span class="kw-2">&amp;</span>Box&lt;<span class="kw">dyn </span>Element&gt; {
+    <span class="kw">pub fn </span>get_element(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: IjkVector) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Element {
         <span class="kw">let </span>chunk_idx = <span class="self">self</span>.get_coordinate_dir().cell_idx_to_chunk_idx(coord);
         <span class="kw">let </span>chunk = <span class="self">self</span>.get_chunk_by_chunk_ijk(chunk_idx.<span class="number">0</span>);
         chunk.get(chunk_idx.<span class="number">1</span>)
