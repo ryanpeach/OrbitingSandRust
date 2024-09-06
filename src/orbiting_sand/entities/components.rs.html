@@ -47,7 +47,7 @@
 <span class="kw">impl </span>Radius {
     <span class="doccomment">/// Calculate the mesh for the circle described by the radius
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>calc_mesh(<span class="self">self</span>) -&gt; OwnedMeshData {
+    </span><span class="kw">pub fn </span>mesh(<span class="self">self</span>) -&gt; OwnedMeshData {
         <span class="doccomment">/// Number of vertices in the circle
         </span><span class="kw">const </span>NB_VERTICES: usize = <span class="number">100</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>vertices: Vec&lt;Vertex&gt; = Vec::with_capacity(NB_VERTICES);

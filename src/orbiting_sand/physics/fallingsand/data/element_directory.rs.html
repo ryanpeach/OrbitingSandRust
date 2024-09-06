@@ -1271,6 +1271,7 @@
 <a href="#1271" id="1271">1271</a>
 <a href="#1272" id="1272">1272</a>
 <a href="#1273" id="1273">1273</a>
+<a href="#1274" id="1274">1274</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>hashbrown::{HashMap, HashSet};
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::orbits::components::Mass;
@@ -1793,7 +1794,7 @@
             .set_already_processed_deduplicated(<span class="bool-val">true</span>)
             .expect(<span class="string">"should not have already been set"</span>);
         {
-            <span class="kw">let </span>target_idx = target.chunk_coords().chunk_idx();
+            <span class="kw">let </span>target_idx = target.coords().chunk_idx();
             <span class="kw">let </span>prev = <span class="self">self</span>.chunks[target_idx.i].replace(target_idx.to_jk_vector(), <span class="prelude-val">Some</span>(target));
             <span class="macro">debug_assert!</span>(prev.is_none(), <span class="string">"Somehow this chunk was already replaced."</span>);
         }
@@ -1983,7 +1984,7 @@
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
                 <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..k_size {
                     <span class="kw">let </span>coord = ChunkIjkVector { i, j, k };
-                    out += <span class="self">self</span>.chunk_at_chunk_ijk(coord).chunk_coords().total_size();
+                    out += <span class="self">self</span>.chunk_at_chunk_ijk(coord).coords().total_size();
                 }
             }
         }
@@ -1991,6 +1992,7 @@
     }
 
     <span class="doccomment">/// Get the total mass of the directory
+    /// TODO: Cleanup memoization
     </span><span class="kw">pub fn </span>total_mass(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Mass {
         <span class="self">self</span>.total_mass
     }

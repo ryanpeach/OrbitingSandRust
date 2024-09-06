@@ -546,12 +546,6 @@
 <a href="#546" id="546">546</a>
 <a href="#547" id="547">547</a>
 <a href="#548" id="548">548</a>
-<a href="#549" id="549">549</a>
-<a href="#550" id="550">550</a>
-<a href="#551" id="551">551</a>
-<a href="#552" id="552">552</a>
-<a href="#553" id="553">553</a>
-<a href="#554" id="554">554</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Actual data storage types for the convolution
 </span><span class="kw">use </span>hashbrown::HashMap;
 <span class="kw">use </span>thiserror::Error;
@@ -615,8 +609,8 @@
         <span class="kw">match </span><span class="self">self </span>{
             LeftRightNeighborGrids::LR { l, r } =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>map = HashMap::new();
-                map.insert(l.chunk_coords().chunk_idx(), l);
-                map.insert(r.chunk_coords().chunk_idx(), r);
+                map.insert(l.coords().chunk_idx(), l);
+                map.insert(r.coords().chunk_idx(), r);
                 map
             }
         }
@@ -642,9 +636,9 @@
     ) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>ElementGrid, LeftRightNeighborIdentifier)&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             LeftRightNeighborGrids::LR { l, r } =&gt; {
-                <span class="kw">if </span>l.chunk_coords().chunk_idx() == idx {
+                <span class="kw">if </span>l.coords().chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((l, LeftRightNeighborIdentifier::Left))
-                } <span class="kw">else if </span>r.chunk_coords().chunk_idx() == idx {
+                } <span class="kw">else if </span>r.coords().chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((r, LeftRightNeighborIdentifier::Right))
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
@@ -692,17 +686,17 @@
         <span class="kw">match </span><span class="self">self </span>{
             TopNeighborGrids::Normal { tl, t, tr } =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>map = HashMap::new();
-                map.insert(tl.chunk_coords().chunk_idx(), tl);
-                map.insert(t.chunk_coords().chunk_idx(), t);
-                map.insert(tr.chunk_coords().chunk_idx(), tr);
+                map.insert(tl.coords().chunk_idx(), tl);
+                map.insert(t.coords().chunk_idx(), t);
+                map.insert(tr.coords().chunk_idx(), tr);
                 map
             }
             TopNeighborGrids::ChunkDoubling { tl, t1, t0, tr } =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>map = HashMap::new();
-                map.insert(tl.chunk_coords().chunk_idx(), tl);
-                map.insert(t1.chunk_coords().chunk_idx(), t1);
-                map.insert(t0.chunk_coords().chunk_idx(), t0);
-                map.insert(tr.chunk_coords().chunk_idx(), tr);
+                map.insert(tl.coords().chunk_idx(), tl);
+                map.insert(t1.coords().chunk_idx(), t1);
+                map.insert(t0.coords().chunk_idx(), t0);
+                map.insert(tr.coords().chunk_idx(), tr);
                 map
             }
             TopNeighborGrids::TopOfGrid =&gt; HashMap::new(),
@@ -869,17 +863,17 @@
     ) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>ElementGrid, TopNeighborIdentifier)&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             TopNeighborGrids::Normal { tl, t, tr } =&gt; {
-                <span class="kw">if </span>tl.chunk_coords().chunk_idx() == idx {
+                <span class="kw">if </span>tl.coords().chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         tl,
                         TopNeighborIdentifier::Normal(TopNeighborIdentifierNormal::TopLeft),
                     ))
-                } <span class="kw">else if </span>t.chunk_coords().chunk_idx() == idx {
+                } <span class="kw">else if </span>t.coords().chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         t,
                         TopNeighborIdentifier::Normal(TopNeighborIdentifierNormal::Top),
                     ))
-                } <span class="kw">else if </span>tr.chunk_coords().chunk_idx() == idx {
+                } <span class="kw">else if </span>tr.coords().chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         tr,
                         TopNeighborIdentifier::Normal(TopNeighborIdentifierNormal::TopRight),
@@ -889,28 +883,28 @@
                 </span>}
             }
             TopNeighborGrids::ChunkDoubling { tl, t1, t0, tr } =&gt; {
-                <span class="kw">if </span>tl.chunk_coords().chunk_idx() == idx {
+                <span class="kw">if </span>tl.coords().chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         tl,
                         TopNeighborIdentifier::ChunkDoubling(
                             TopNeighborIdentifierChunkDoubling::TopLeft,
                         ),
                     ))
-                } <span class="kw">else if </span>t1.chunk_coords().chunk_idx() == idx {
+                } <span class="kw">else if </span>t1.coords().chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         t1,
                         TopNeighborIdentifier::ChunkDoubling(
                             TopNeighborIdentifierChunkDoubling::Top1,
                         ),
                     ))
-                } <span class="kw">else if </span>t0.chunk_coords().chunk_idx() == idx {
+                } <span class="kw">else if </span>t0.coords().chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         t0,
                         TopNeighborIdentifier::ChunkDoubling(
                             TopNeighborIdentifierChunkDoubling::Top0,
                         ),
                     ))
-                } <span class="kw">else if </span>tr.chunk_coords().chunk_idx() == idx {
+                } <span class="kw">else if </span>tr.coords().chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         tr,
                         TopNeighborIdentifier::ChunkDoubling(
@@ -928,15 +922,13 @@
     <span class="doccomment">/// Gets the number of concentric circles in the top layer of the convolution
     </span><span class="kw">pub fn </span>num_concentric_circles(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="kw">match </span><span class="self">self </span>{
-            TopNeighborGrids::Normal { tl: <span class="kw">_</span>, t, tr: <span class="kw">_ </span>} =&gt; {
-                t.chunk_coords().num_concentric_circles()
-            }
+            TopNeighborGrids::Normal { tl: <span class="kw">_</span>, t, tr: <span class="kw">_ </span>} =&gt; t.coords().num_concentric_circles(),
             TopNeighborGrids::ChunkDoubling {
                 tl,
                 t1: <span class="kw">_</span>,
                 t0: <span class="kw">_</span>,
                 tr: <span class="kw">_</span>,
-            } =&gt; tl.chunk_coords().num_concentric_circles(),
+            } =&gt; tl.coords().num_concentric_circles(),
             TopNeighborGrids::TopOfGrid =&gt; <span class="number">0</span>,
         }
     }
@@ -944,13 +936,13 @@
     <span class="doccomment">/// Gets the number of radial lines in the top layer of the convolution
     </span><span class="kw">pub fn </span>num_radial_lines(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="kw">match </span><span class="self">self </span>{
-            TopNeighborGrids::Normal { tl: <span class="kw">_</span>, t, tr: <span class="kw">_ </span>} =&gt; t.chunk_coords().num_radial_lines(),
+            TopNeighborGrids::Normal { tl: <span class="kw">_</span>, t, tr: <span class="kw">_ </span>} =&gt; t.coords().num_radial_lines(),
             TopNeighborGrids::ChunkDoubling {
                 tl,
                 t1: <span class="kw">_</span>,
                 t0: <span class="kw">_</span>,
                 tr: <span class="kw">_</span>,
-            } =&gt; tl.chunk_coords().num_radial_lines(),
+            } =&gt; tl.coords().num_radial_lines(),
             TopNeighborGrids::TopOfGrid =&gt; <span class="number">0</span>,
         }
     }
@@ -995,15 +987,15 @@
         <span class="kw">match </span><span class="self">self </span>{
             BottomNeighborGrids::Normal { bl, b, br } =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>map = HashMap::new();
-                map.insert(bl.chunk_coords().chunk_idx(), bl);
-                map.insert(b.chunk_coords().chunk_idx(), b);
-                map.insert(br.chunk_coords().chunk_idx(), br);
+                map.insert(bl.coords().chunk_idx(), bl);
+                map.insert(b.coords().chunk_idx(), b);
+                map.insert(br.coords().chunk_idx(), br);
                 map
             }
             BottomNeighborGrids::ChunkDoubling { bl, br } =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>map = HashMap::new();
-                map.insert(bl.chunk_coords().chunk_idx(), bl);
-                map.insert(br.chunk_coords().chunk_idx(), br);
+                map.insert(bl.coords().chunk_idx(), bl);
+                map.insert(br.coords().chunk_idx(), br);
                 map
             }
             BottomNeighborGrids::BottomOfGrid =&gt; HashMap::new(),
@@ -1036,19 +1028,19 @@
     ) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>ElementGrid, BottomNeighborIdentifier)&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             BottomNeighborGrids::Normal { bl, b, br } =&gt; {
-                <span class="kw">if </span>bl.chunk_coords().chunk_idx() == idx {
+                <span class="kw">if </span>bl.coords().chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         bl,
                         BottomNeighborIdentifier::Normal(
                             BottomNeighborIdentifierNormal::BottomLeft,
                         ),
                     ))
-                } <span class="kw">else if </span>b.chunk_coords().chunk_idx() == idx {
+                } <span class="kw">else if </span>b.coords().chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         b,
                         BottomNeighborIdentifier::Normal(BottomNeighborIdentifierNormal::Bottom),
                     ))
-                } <span class="kw">else if </span>br.chunk_coords().chunk_idx() == idx {
+                } <span class="kw">else if </span>br.coords().chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         br,
                         BottomNeighborIdentifier::Normal(
@@ -1060,14 +1052,14 @@
                 </span>}
             }
             BottomNeighborGrids::ChunkDoubling { bl, br } =&gt; {
-                <span class="kw">if </span>bl.chunk_coords().chunk_idx() == idx {
+                <span class="kw">if </span>bl.coords().chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         bl,
                         BottomNeighborIdentifier::ChunkDoubling(
                             BottomNeighborIdentifierChunkDoubling::BottomLeft,
                         ),
                     ))
-                } <span class="kw">else if </span>br.chunk_coords().chunk_idx() == idx {
+                } <span class="kw">else if </span>br.coords().chunk_idx() == idx {
                     <span class="prelude-val">Some</span>((
                         br,
                         BottomNeighborIdentifier::ChunkDoubling(
@@ -1085,10 +1077,8 @@
     <span class="doccomment">/// Gets the number of radial lines in the bottom layer of the convolution
     </span><span class="kw">pub fn </span>num_radial_lines(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="kw">match </span><span class="self">self </span>{
-            BottomNeighborGrids::Normal { bl: <span class="kw">_</span>, b, br: <span class="kw">_ </span>} =&gt; b.chunk_coords().num_radial_lines(),
-            BottomNeighborGrids::ChunkDoubling { bl, br: <span class="kw">_ </span>} =&gt; {
-                bl.chunk_coords().num_radial_lines()
-            }
+            BottomNeighborGrids::Normal { bl: <span class="kw">_</span>, b, br: <span class="kw">_ </span>} =&gt; b.coords().num_radial_lines(),
+            BottomNeighborGrids::ChunkDoubling { bl, br: <span class="kw">_ </span>} =&gt; bl.coords().num_radial_lines(),
             BottomNeighborGrids::BottomOfGrid =&gt; <span class="number">0</span>,
         }
     }
@@ -1096,11 +1086,9 @@
     <span class="doccomment">/// Gets the number of concentric circles in the bottom layer of the convolution
     </span><span class="kw">pub fn </span>num_concentric_circles(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="kw">match </span><span class="self">self </span>{
-            BottomNeighborGrids::Normal { bl: <span class="kw">_</span>, b, br: <span class="kw">_ </span>} =&gt; {
-                b.chunk_coords().num_concentric_circles()
-            }
+            BottomNeighborGrids::Normal { bl: <span class="kw">_</span>, b, br: <span class="kw">_ </span>} =&gt; b.coords().num_concentric_circles(),
             BottomNeighborGrids::ChunkDoubling { bl, br: <span class="kw">_ </span>} =&gt; {
-                bl.chunk_coords().num_concentric_circles()
+                bl.coords().num_concentric_circles()
             }
             BottomNeighborGrids::BottomOfGrid =&gt; <span class="number">0</span>,
         }

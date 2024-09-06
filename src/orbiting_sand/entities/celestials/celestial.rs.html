@@ -626,7 +626,7 @@
                     <span class="kw">let </span>celestial_chunk_id = ChunkIdk(chunk_ijk);
                     <span class="kw">let </span>mesh = coordinate_dir
                         .chunk_at_idx(chunk_ijk)
-                        .calc_chunk_meshdata(VertexSettings::default());
+                        .chunk_meshdata(VertexSettings::default());
                     <span class="kw">let </span>mesh_handle = mesh.load_bevy_mesh(meshes);
 
                     <span class="comment">// Wireframes start to look weird unless you are at a certain level of detail at a certain chunk
@@ -639,11 +639,11 @@
                     </span>};
                     <span class="kw">let </span>wireframe = coordinate_dir
                         .chunk_at_idx(chunk_ijk)
-                        .calc_chunk_triangle_wireframe(VertexSettings {
+                        .chunk_triangle_wireframe(VertexSettings {
                             lod,
                             mode: VertexMode::Grid,
                         });
-                    <span class="kw">let </span>outline = coordinate_dir.chunk_at_idx(chunk_ijk).calc_chunk_outline();
+                    <span class="kw">let </span>outline = coordinate_dir.chunk_at_idx(chunk_ijk).chunk_outline();
 
                     <span class="kw">let </span>textures = textures
                         .remove(<span class="kw-2">&amp;</span>chunk_ijk)

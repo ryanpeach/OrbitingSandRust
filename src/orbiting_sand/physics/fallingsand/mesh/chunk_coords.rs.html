@@ -1943,7 +1943,7 @@
         vertexes
     }
     <span class="doccomment">/// Get the outline mesh for the chunk
-    </span><span class="kw">pub fn </span>calc_chunk_outline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; OwnedMeshData {
+    </span><span class="kw">pub fn </span>chunk_outline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; OwnedMeshData {
         <span class="kw">let </span>positions = <span class="self">self</span>.outline();
         <span class="kw">let </span><span class="kw-2">mut </span>vertices = Vec::with_capacity(positions.len());
         <span class="kw">for </span>pos <span class="kw">in </span>positions {
@@ -1960,14 +1960,14 @@
         OwnedMeshData::new(vertices, indices)
     }
     <span class="doccomment">/// Get the mesh data for the chunk as you would normally draw it
-    </span><span class="kw">pub fn </span>calc_chunk_meshdata(<span class="kw-2">&amp;</span><span class="self">self</span>, settings: VertexSettings) -&gt; OwnedMeshData {
+    </span><span class="kw">pub fn </span>chunk_meshdata(<span class="kw-2">&amp;</span><span class="self">self</span>, settings: VertexSettings) -&gt; OwnedMeshData {
         <span class="kw">let </span>indices = <span class="self">self</span>.indices(settings);
         <span class="kw">let </span>vertices: Vec&lt;Vertex&gt; = <span class="self">self</span>.vertices(settings);
         OwnedMeshData::new(vertices, indices)
     }
 
     <span class="doccomment">/// Get the wireframe mesh data for the chunk
-    </span><span class="kw">pub fn </span>calc_chunk_triangle_wireframe(<span class="kw-2">&amp;</span><span class="self">self</span>, settings: VertexSettings) -&gt; OwnedMeshData {
+    </span><span class="kw">pub fn </span>chunk_triangle_wireframe(<span class="kw-2">&amp;</span><span class="self">self</span>, settings: VertexSettings) -&gt; OwnedMeshData {
         <span class="kw">let </span>indices = <span class="self">self</span>.indices(settings);
         <span class="kw">let </span>vertices: Vec&lt;Vertex&gt; = <span class="self">self</span>.vertices(settings);
         <span class="kw">let </span><span class="kw-2">mut </span>new_indices = Vec::new();

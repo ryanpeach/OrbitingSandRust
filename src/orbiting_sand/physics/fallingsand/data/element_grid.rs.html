@@ -506,7 +506,7 @@
     <span class="kw">pub fn </span>last_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Clock {
         <span class="self">self</span>.last_set
     }
-    <span class="kw">pub fn </span>chunk_coords(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ChunkCoords {
+    <span class="kw">pub fn </span>coords(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ChunkCoords {
         <span class="kw-2">&amp;</span><span class="self">self</span>.coords
     }
     <span class="kw">pub fn </span>grid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Grid&lt;Box&lt;<span class="kw">dyn </span>Element&gt;&gt; {
@@ -603,8 +603,8 @@
 </span><span class="kw">impl </span>ElementGrid {
     <span class="doccomment">/// Fill the grid with the given element
     </span><span class="kw">pub fn </span>fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, element: ElementType) {
-        <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.chunk_coords().num_concentric_circles() {
-            <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.chunk_coords().num_radial_lines() {
+        <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords().num_concentric_circles() {
+            <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords().num_radial_lines() {
                 <span class="kw">let </span>pos = JkVector { j, k };
                 <span class="self">self</span>.grid.replace(pos, element.element());
             }

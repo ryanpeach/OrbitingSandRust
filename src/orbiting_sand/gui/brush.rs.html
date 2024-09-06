@@ -285,7 +285,7 @@
         <span class="kw-2">mut </span>gizmos: Gizmos,
     ) {
         <span class="kw">for </span>(transform, brush_radius) <span class="kw">in </span>query.iter() {
-            <span class="kw">let </span>mesh = brush_radius.calc_mesh();
+            <span class="kw">let </span>mesh = brush_radius.mesh();
             GizmoDrawableLoop::new(mesh, Color::WHITE).draw_bevy_gizmo_loop(<span class="kw-2">&amp;mut </span>gizmos, transform);
         }
     }

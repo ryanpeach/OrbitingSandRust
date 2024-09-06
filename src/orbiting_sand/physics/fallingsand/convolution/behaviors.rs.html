@@ -954,7 +954,7 @@
                 // If you are on odd index chunk, the left half of br is the same as b
                 // TODO: document this with pictures
                 // TODO: Unit test
-                </span><span class="kw">let </span>transition = <span class="kw">if </span>target_chunk.chunk_coords().chunk_idx().k % <span class="number">2 </span>== <span class="number">0 </span>{
+                </span><span class="kw">let </span>transition = <span class="kw">if </span>target_chunk.coords().chunk_idx().k % <span class="number">2 </span>== <span class="number">0 </span>{
                     BottomNeighborIdentifierChunkDoubling::BottomLeft
                 } <span class="kw">else </span>{
                     new_coords.k += <span class="self">self</span>.grids.bottom.num_radial_lines() / <span class="number">2</span>;
@@ -976,7 +976,7 @@
                 // just with the same number of tangential chunkss
                 // If there are the same number of radial lines (not a layer transition) we dont
                 // need to divide k by 2
-                </span><span class="kw">let </span>this_radial_lines = target_chunk.chunk_coords().num_radial_lines();
+                </span><span class="kw">let </span>this_radial_lines = target_chunk.coords().num_radial_lines();
                 <span class="kw">let </span>b_radial_lines = <span class="self">self</span>.grids.bottom.num_radial_lines();
                 <span class="kw">if </span>this_radial_lines != b_radial_lines {
                     new_coords.k = pos.k / <span class="number">2</span>;
@@ -1000,7 +1000,7 @@
         rk: isize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ConvolutionIdx, ConvOutOfBoundsError&gt; {
         <span class="comment">// In the left right direction, unlike up down, every chunk has the same number of radial lines
-        </span><span class="kw">let </span>radial_lines = target_chunk.chunk_coords().num_radial_lines();
+        </span><span class="kw">let </span>radial_lines = target_chunk.coords().num_radial_lines();
 
         <span class="comment">// You should not be doing any loops that might make you re-target yourself
         </span><span class="kw">if </span>rk.abs() &gt;= radial_lines <span class="kw">as </span>isize {
@@ -1383,12 +1383,12 @@
 
             <span class="comment">// Check that the get_chunk method also works
             </span><span class="kw">let </span>should_eq_chunk2 = <span class="kw">match </span>package.chunk(should_eq_pos2.<span class="number">1</span>) {
-                <span class="prelude-val">Ok</span>(chunk) =&gt; chunk.chunk_coords().chunk_idx(),
+                <span class="prelude-val">Ok</span>(chunk) =&gt; chunk.coords().chunk_idx(),
                 <span class="prelude-val">Err</span>(GetChunkErr::CenterChunk) =&gt; chunk_pos2.<span class="number">0</span>,
             };
             <span class="comment">// Test the mut version too
             </span><span class="kw">let </span>should_eq_chunk2_mut = <span class="kw">match </span>package.chunk_mut(should_eq_pos2.<span class="number">1</span>) {
-                <span class="prelude-val">Ok</span>(chunk) =&gt; chunk.chunk_coords().chunk_idx(),
+                <span class="prelude-val">Ok</span>(chunk) =&gt; chunk.coords().chunk_idx(),
                 <span class="prelude-val">Err</span>(GetChunkErr::CenterChunk) =&gt; chunk_pos2.<span class="number">0</span>,
             };
             <span class="macro">assert_eq!</span>(chunk_pos2.<span class="number">0</span>, should_eq_chunk2, <span class="string">"get_chunk is not working"</span>);
@@ -1480,12 +1480,12 @@
 
             <span class="comment">// Check that the get_chunk method also works
             </span><span class="kw">let </span>should_eq_chunk2 = <span class="kw">match </span>package.chunk(should_eq_pos2.<span class="number">1</span>) {
-                <span class="prelude-val">Ok</span>(chunk) =&gt; chunk.chunk_coords().chunk_idx(),
+                <span class="prelude-val">Ok</span>(chunk) =&gt; chunk.coords().chunk_idx(),
                 <span class="prelude-val">Err</span>(GetChunkErr::CenterChunk) =&gt; chunk_pos2.<span class="number">0</span>,
             };
             <span class="comment">// Test the mut version too
             </span><span class="kw">let </span>should_eq_chunk2_mut = <span class="kw">match </span>package.chunk_mut(should_eq_pos2.<span class="number">1</span>) {
-                <span class="prelude-val">Ok</span>(chunk) =&gt; chunk.chunk_coords().chunk_idx(),
+                <span class="prelude-val">Ok</span>(chunk) =&gt; chunk.coords().chunk_idx(),
                 <span class="prelude-val">Err</span>(GetChunkErr::CenterChunk) =&gt; chunk_pos2.<span class="number">0</span>,
             };
             <span class="macro">assert_eq!</span>(chunk_pos2.<span class="number">0</span>, should_eq_chunk2, <span class="string">"get_chunk is not working"</span>);
