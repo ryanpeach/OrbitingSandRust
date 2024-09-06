@@ -174,7 +174,7 @@ impl ElementGridConvolutionNeighbors {
                 // If you are on odd index chunk, the left half of br is the same as b
                 // TODO: document this with pictures
                 // TODO: Unit test
-                let transition = if target_chunk.chunk_coords().chunk_idx().k % 2 == 0 {
+                let transition = if target_chunk.coords().chunk_idx().k % 2 == 0 {
                     BottomNeighborIdentifierChunkDoubling::BottomLeft
                 } else {
                     new_coords.k += self.grids.bottom.num_radial_lines() / 2;
@@ -196,7 +196,7 @@ impl ElementGridConvolutionNeighbors {
                 // just with the same number of tangential chunkss
                 // If there are the same number of radial lines (not a layer transition) we dont
                 // need to divide k by 2
-                let this_radial_lines = target_chunk.chunk_coords().num_radial_lines();
+                let this_radial_lines = target_chunk.coords().num_radial_lines();
                 let b_radial_lines = self.grids.bottom.num_radial_lines();
                 if this_radial_lines != b_radial_lines {
                     new_coords.k = pos.k / 2;
@@ -220,7 +220,7 @@ impl ElementGridConvolutionNeighbors {
         rk: isize,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
         // In the left right direction, unlike up down, every chunk has the same number of radial lines
-        let radial_lines = target_chunk.chunk_coords().num_radial_lines();
+        let radial_lines = target_chunk.coords().num_radial_lines();
 
         // You should not be doing any loops that might make you re-target yourself
         if rk.abs() >= radial_lines as isize {
@@ -603,12 +603,12 @@ mod tests {
 
             // Check that the get_chunk method also works
             let should_eq_chunk2 = match package.chunk(should_eq_pos2.1) {
-                Ok(chunk) => chunk.chunk_coords().chunk_idx(),
+                Ok(chunk) => chunk.coords().chunk_idx(),
                 Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
             };
             // Test the mut version too
             let should_eq_chunk2_mut = match package.chunk_mut(should_eq_pos2.1) {
-                Ok(chunk) => chunk.chunk_coords().chunk_idx(),
+                Ok(chunk) => chunk.coords().chunk_idx(),
                 Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
             };
             assert_eq!(chunk_pos2.0, should_eq_chunk2, "get_chunk is not working");
@@ -700,12 +700,12 @@ mod tests {
 
             // Check that the get_chunk method also works
             let should_eq_chunk2 = match package.chunk(should_eq_pos2.1) {
-                Ok(chunk) => chunk.chunk_coords().chunk_idx(),
+                Ok(chunk) => chunk.coords().chunk_idx(),
                 Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
             };
             // Test the mut version too
             let should_eq_chunk2_mut = match package.chunk_mut(should_eq_pos2.1) {
-                Ok(chunk) => chunk.chunk_coords().chunk_idx(),
+                Ok(chunk) => chunk.coords().chunk_idx(),
                 Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
             };
             assert_eq!(chunk_pos2.0, should_eq_chunk2, "get_chunk is not working");
