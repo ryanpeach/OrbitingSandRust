@@ -269,18 +269,18 @@
     /// Bottom Right is (0, 0)
     </span><span class="kw">pub fn </span>to_jk_vector(<span class="self">self</span>, coords: <span class="kw-2">&amp;</span>ChunkCoords) -&gt; JkVector {
         JkVector {
-            j: coords.get_num_concentric_circles() - <span class="number">1 </span>- <span class="self">self</span>.get_y(),
-            k: coords.get_num_radial_lines() - <span class="number">1 </span>- <span class="self">self</span>.get_x(),
+            j: coords.num_concentric_circles() - <span class="number">1 </span>- <span class="self">self</span>.y(),
+            k: coords.num_radial_lines() - <span class="number">1 </span>- <span class="self">self</span>.x(),
         }
     }
 
     <span class="doccomment">/// Get the column index
-    </span><span class="kw">pub fn </span>get_x(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub fn </span>x(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>]
     }
 
     <span class="doccomment">/// Get the row index
-    </span><span class="kw">pub fn </span>get_y(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub fn </span>y(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.<span class="number">0</span>[<span class="number">1</span>]
     }
 }
@@ -329,8 +329,8 @@
     <span class="doccomment">/// Convert to a  [`NdArrayCoords`]
     </span><span class="kw">pub fn </span>to_ndarray_coords(<span class="self">self</span>, coords: <span class="kw-2">&amp;</span>ChunkCoords) -&gt; NdArrayCoords {
         NdArrayCoords::new(
-            coords.get_num_radial_lines() - <span class="number">1 </span>- <span class="self">self</span>.k,
-            coords.get_num_concentric_circles() - <span class="number">1 </span>- <span class="self">self</span>.j,
+            coords.num_radial_lines() - <span class="number">1 </span>- <span class="self">self</span>.k,
+            coords.num_concentric_circles() - <span class="number">1 </span>- <span class="self">self</span>.j,
         )
     }
 }

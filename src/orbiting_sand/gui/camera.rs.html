@@ -451,7 +451,7 @@
 
 <span class="kw">impl </span>CelestialIdx {
     <span class="doccomment">/// Returns the selected celestials index
-    </span><span class="kw">pub fn </span>get_selected_celestial(
+    </span><span class="kw">pub fn </span>selected_celestial(
         celestials: <span class="kw-2">&amp;</span>[(Entity, <span class="kw-2">&amp;</span>CelestialIdx)],
         camera: (<span class="kw-2">&amp;</span>Parent, Entity),
     ) -&gt; CelestialIdx {
@@ -664,7 +664,7 @@
     ) {
         <span class="kw">if let </span><span class="prelude-val">Ok</span>((parent, camera, <span class="kw-2">mut </span>transform)) = camera.get_single_mut() {
             <span class="kw">let </span>celestials_vec = celestials.iter().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-            <span class="kw">let </span>idx = CelestialIdx::get_selected_celestial(<span class="kw-2">&amp;</span>celestials_vec, (parent, camera));
+            <span class="kw">let </span>idx = CelestialIdx::selected_celestial(<span class="kw-2">&amp;</span>celestials_vec, (parent, camera));
             <span class="kw">let </span>next_idx = {
                 <span class="kw">if </span>input.just_pressed(KeyCode::BracketLeft) {
                     input.reset(KeyCode::BracketLeft);

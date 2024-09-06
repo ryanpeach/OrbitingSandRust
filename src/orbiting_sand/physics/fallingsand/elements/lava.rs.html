@@ -67,23 +67,23 @@
     last_processed: Clock,
 }
 <span class="kw">impl </span>Element <span class="kw">for </span>Lava {
-    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ElementType {
+    <span class="kw">fn </span>element_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ElementType {
         ElementType::Lava
     }
-    <span class="kw">fn </span>get_density(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Density {
+    <span class="kw">fn </span>density(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Density {
         Density(<span class="number">1.0</span>)
     }
-    <span class="kw">fn </span>get_last_processed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Clock {
+    <span class="kw">fn </span>last_processed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Clock {
         <span class="self">self</span>.last_processed
     }
     <span class="kw">fn </span>_set_last_processed(<span class="kw-2">&amp;mut </span><span class="self">self</span>, current_time: Clock) {
         <span class="self">self</span>.last_processed = current_time;
     }
-    <span class="kw">fn </span>get_state_of_matter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StateOfMatter {
+    <span class="kw">fn </span>state_of_matter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StateOfMatter {
         StateOfMatter::Liquid
     }
     <span class="comment">// Gray
-    </span><span class="kw">fn </span>get_color(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Color {
+    </span><span class="kw">fn </span>color(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Color {
         Color::RED
     }
     <span class="comment">// Stone does nothing

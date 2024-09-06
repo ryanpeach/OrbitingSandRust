@@ -240,11 +240,11 @@
  * ====================================== */
 </span><span class="kw">impl</span>&lt;T&gt; Grid&lt;T&gt; {
     <span class="doccomment">/// Get the width of the grid
-    </span><span class="kw">pub fn </span>get_width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.<span class="number">0</span>.shape()[<span class="number">0</span>]
     }
     <span class="doccomment">/// Get the height of the grid
-    </span><span class="kw">pub fn </span>get_height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.<span class="number">0</span>.shape()[<span class="number">1</span>]
     }
     <span class="doccomment">/// Get the total size of the grid
@@ -252,11 +252,11 @@
         <span class="self">self</span>.<span class="number">0</span>.len()
     }
     <span class="doccomment">/// Get the data as a slice
-    </span><span class="kw">pub fn </span>get_data_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[T] {
+    </span><span class="kw">pub fn </span>data_slice(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[T] {
         <span class="self">self</span>.<span class="number">0</span>.as_slice().unwrap()
     }
     <span class="doccomment">/// Get the data as an ndarray
-    </span><span class="kw">pub fn </span>get_data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ndarray::Array2&lt;T&gt; {
+    </span><span class="kw">pub fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ndarray::Array2&lt;T&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 }
@@ -279,7 +279,7 @@
     }
     <span class="doccomment">/// Gets the value at the given coordinate, or returns an error if the coordinate is out of bounds
     </span><span class="kw">pub fn </span>checked_get(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: JkVector) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>T, GridOutOfBoundsError&gt; {
-        <span class="kw">if </span>idx.k &gt;= <span class="self">self</span>.get_width() || idx.j &gt;= <span class="self">self</span>.get_height() {
+        <span class="kw">if </span>idx.k &gt;= <span class="self">self</span>.width() || idx.j &gt;= <span class="self">self</span>.height() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(GridOutOfBoundsError(idx));
         }
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.get(idx))
@@ -300,7 +300,7 @@
     }
     <span class="doccomment">/// Transforms the coordinate to the ndarray coordinate system using this grid's width and height
     </span><span class="kw">fn </span>transform_jk_coord_to_ndarray(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: JkVector) -&gt; [usize; <span class="number">2</span>] {
-        [<span class="self">self</span>.get_width() - <span class="number">1 </span>- idx.k, <span class="self">self</span>.get_height() - <span class="number">1 </span>- idx.j]
+        [<span class="self">self</span>.width() - <span class="number">1 </span>- idx.k, <span class="self">self</span>.height() - <span class="number">1 </span>- idx.j]
     }
 }
 
@@ -342,8 +342,8 @@
 {
     <span class="kw">let </span><span class="kw-2">mut </span>out = Vec::new();
     <span class="kw">for </span>(i, item) <span class="kw">in </span>filter.iter().enumerate() {
-        <span class="kw">let </span>j_size = item.get_height();
-        <span class="kw">let </span>k_size = item.get_width();
+        <span class="kw">let </span>j_size = item.height();
+        <span class="kw">let </span>k_size = item.width();
         <span class="kw">let </span><span class="kw-2">mut </span>layer = Grid::new_empty(k_size, j_size);
         <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
             <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..k_size {
@@ -383,7 +383,7 @@
             <span class="kw-2">*</span>val <span class="kw-2">*</span>= <span class="number">2</span>;
         }
 
-        <span class="macro">assert_eq!</span>(grid.get_data_slice(), <span class="kw-2">&amp;</span>[<span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>, <span class="number">8</span>, <span class="number">10</span>, <span class="number">12</span>]);
+        <span class="macro">assert_eq!</span>(grid.data_slice(), <span class="kw-2">&amp;</span>[<span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>, <span class="number">8</span>, <span class="number">10</span>, <span class="number">12</span>]);
     }
 }
 </code></pre></div></section></main></body></html>

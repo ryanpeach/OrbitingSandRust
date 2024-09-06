@@ -72,13 +72,13 @@
     <span class="kw">pub fn </span>new(time: Time, frame: FrameCount) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ time, frame }
     }
-    <span class="kw">pub fn </span>get_current_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration {
+    <span class="kw">pub fn </span>current_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration {
         <span class="self">self</span>.time.elapsed()
     }
-    <span class="kw">pub fn </span>get_last_delta(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration {
+    <span class="kw">pub fn </span>last_delta(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration {
         <span class="self">self</span>.time.delta()
     }
-    <span class="kw">pub fn </span>get_current_frame(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+    <span class="kw">pub fn </span>current_frame(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
         <span class="self">self</span>.frame.<span class="number">0
     </span>}
     <span class="doccomment">/// Advances the clock by the given delta and one frame.

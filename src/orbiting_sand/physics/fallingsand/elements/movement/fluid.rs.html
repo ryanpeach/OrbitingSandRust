@@ -143,7 +143,7 @@
     current_time: Clock,
 ) -&gt; ElementTakeOptions {
     <span class="comment">// Go down one cell
-    </span><span class="kw">let </span>below = element_grid_conv.get_below_idx_from_center(target_chunk, coord_dir, <span class="kw-2">&amp;</span>pos, <span class="number">1</span>);
+    </span><span class="kw">let </span>below = element_grid_conv.idx_below_idx_from_center(target_chunk, coord_dir, <span class="kw-2">&amp;</span>pos, <span class="number">1</span>);
     <span class="kw">let </span>element = {
         <span class="kw">match </span>below {
             <span class="prelude-val">Ok</span>(below) =&gt; element_grid_conv.get(target_chunk, below),
@@ -158,7 +158,7 @@
     // If it is, swap with one of them randomly
     </span><span class="kw">match </span>element {
         <span class="prelude-val">Ok</span>(element) =&gt; {
-            <span class="kw">if </span>element.get_state_of_matter() &lt;= StateOfMatter::Gas {
+            <span class="kw">if </span>element.state_of_matter() &lt;= StateOfMatter::Gas {
                 self_element.try_swap_me(
                     below.unwrap(),
                     target_chunk,
@@ -167,9 +167,9 @@
                 )
             } <span class="kw">else </span>{
                 <span class="kw">let </span>new_idx_l =
-                    element_grid_conv.get_left_right_idx_from_center(target_chunk, <span class="kw-2">&amp;</span>pos, <span class="number">1</span>);
+                    element_grid_conv.idx_left_right_idx_from_center(target_chunk, <span class="kw-2">&amp;</span>pos, <span class="number">1</span>);
                 <span class="kw">let </span>new_idx_r =
-                    element_grid_conv.get_left_right_idx_from_center(target_chunk, <span class="kw-2">&amp;</span>pos, -<span class="number">1</span>);
+                    element_grid_conv.idx_left_right_idx_from_center(target_chunk, <span class="kw-2">&amp;</span>pos, -<span class="number">1</span>);
                 <span class="kw">let </span>element_l = {
                     <span class="kw">match </span>new_idx_l {
                         <span class="prelude-val">Ok</span>(new_idx_l) =&gt; element_grid_conv.get(target_chunk, new_idx_l),
@@ -188,7 +188,7 @@
                 <span class="kw">let </span>rand_bool = rng.gen_bool(<span class="number">0.5</span>);
                 <span class="kw">match </span>(element_l, element_r, rand_bool) {
                     (<span class="prelude-val">Ok</span>(element_l), <span class="prelude-val">Ok</span>(<span class="kw">_</span>), <span class="bool-val">false</span>) =&gt; {
-                        <span class="kw">if </span>element_l.get_state_of_matter() &lt;= StateOfMatter::Gas {
+                        <span class="kw">if </span>element_l.state_of_matter() &lt;= StateOfMatter::Gas {
                             self_element.try_swap_me(
                                 new_idx_l.unwrap(),
                                 target_chunk,
@@ -200,7 +200,7 @@
                         }
                     }
                     (<span class="prelude-val">Ok</span>(<span class="kw">_</span>), <span class="prelude-val">Ok</span>(element_r), <span class="bool-val">true</span>) =&gt; {
-                        <span class="kw">if </span>element_r.get_state_of_matter() &lt;= StateOfMatter::Gas {
+                        <span class="kw">if </span>element_r.state_of_matter() &lt;= StateOfMatter::Gas {
                             self_element.try_swap_me(
                                 new_idx_r.unwrap(),
                                 target_chunk,
@@ -212,7 +212,7 @@
                         }
                     }
                     (<span class="prelude-val">Ok</span>(element_l), <span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; {
-                        <span class="kw">if </span>element_l.get_state_of_matter() &lt;= StateOfMatter::Gas {
+                        <span class="kw">if </span>element_l.state_of_matter() &lt;= StateOfMatter::Gas {
                             self_element.try_swap_me(
                                 new_idx_l.unwrap(),
                                 target_chunk,
@@ -224,7 +224,7 @@
                         }
                     }
                     (<span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="prelude-val">Ok</span>(element_r), <span class="kw">_</span>) =&gt; {
-                        <span class="kw">if </span>element_r.get_state_of_matter() &lt;= StateOfMatter::Gas {
+                        <span class="kw">if </span>element_r.state_of_matter() &lt;= StateOfMatter::Gas {
                             self_element.try_swap_me(
                                 new_idx_r.unwrap(),
                                 target_chunk,

@@ -778,14 +778,6 @@
 <a href="#778" id="778">778</a>
 <a href="#779" id="779">779</a>
 <a href="#780" id="780">780</a>
-<a href="#781" id="781">781</a>
-<a href="#782" id="782">782</a>
-<a href="#783" id="783">783</a>
-<a href="#784" id="784">784</a>
-<a href="#785" id="785">785</a>
-<a href="#786" id="786">786</a>
-<a href="#787" id="787">787</a>
-<a href="#788" id="788">788</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! # Element Behavior API
 //!
 //! This module contains the behaviors of the convolution
@@ -922,7 +914,7 @@
     <span class="doccomment">/// Gets the element n cells below the position in the target chunk
     /// the target chunk is the chunk in the center of the convolution
     /// the pos is the position in the target chunk
-    </span><span class="kw">pub fn </span>get_below_idx_from_center(
+    </span><span class="kw">pub fn </span>idx_below_idx_from_center(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         target_chunk: <span class="kw-2">&amp;</span>ElementGrid,
         _coord_dir: <span class="kw-2">&amp;</span>CoordinateDir,
@@ -938,7 +930,7 @@
         }
 
         <span class="comment">// Handle error cases where you go beyond the chunk below you
-        </span><span class="kw">let </span>b_concentric_circles = <span class="self">self</span>.grids.bottom.get_num_concentric_circles();
+        </span><span class="kw">let </span>b_concentric_circles = <span class="self">self</span>.grids.bottom.num_concentric_circles();
         <span class="kw">if </span>(pos.j <span class="kw">as </span>isize - n <span class="kw">as </span>isize + b_concentric_circles <span class="kw">as </span>isize) &lt; <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(ConvOutOfBoundsError(ConvolutionIdx(
                 JkVector { j: pos.j, k: pos.k },
@@ -962,10 +954,10 @@
                 // If you are on odd index chunk, the left half of br is the same as b
                 // TODO: document this with pictures
                 // TODO: Unit test
-                </span><span class="kw">let </span>transition = <span class="kw">if </span>target_chunk.get_chunk_coords().get_chunk_idx().k % <span class="number">2 </span>== <span class="number">0 </span>{
+                </span><span class="kw">let </span>transition = <span class="kw">if </span>target_chunk.chunk_coords().chunk_idx().k % <span class="number">2 </span>== <span class="number">0 </span>{
                     BottomNeighborIdentifierChunkDoubling::BottomLeft
                 } <span class="kw">else </span>{
-                    new_coords.k += <span class="self">self</span>.grids.bottom.get_num_radial_lines() / <span class="number">2</span>;
+                    new_coords.k += <span class="self">self</span>.grids.bottom.num_radial_lines() / <span class="number">2</span>;
                     BottomNeighborIdentifierChunkDoubling::BottomRight
                 };
                 <span class="prelude-val">Ok</span>(ConvolutionIdx(
@@ -984,8 +976,8 @@
                 // just with the same number of tangential chunkss
                 // If there are the same number of radial lines (not a layer transition) we dont
                 // need to divide k by 2
-                </span><span class="kw">let </span>this_radial_lines = target_chunk.get_chunk_coords().get_num_radial_lines();
-                <span class="kw">let </span>b_radial_lines = <span class="self">self</span>.grids.bottom.get_num_radial_lines();
+                </span><span class="kw">let </span>this_radial_lines = target_chunk.chunk_coords().num_radial_lines();
+                <span class="kw">let </span>b_radial_lines = <span class="self">self</span>.grids.bottom.num_radial_lines();
                 <span class="kw">if </span>this_radial_lines != b_radial_lines {
                     new_coords.k = pos.k / <span class="number">2</span>;
                 }
@@ -1001,14 +993,14 @@
 
     <span class="doccomment">/// Positive k is left, counter clockwise
     /// Negative k is right, clockwise
-    </span><span class="kw">pub fn </span>get_left_right_idx_from_center(
+    </span><span class="kw">pub fn </span>idx_left_right_idx_from_center(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         target_chunk: <span class="kw-2">&amp;</span>ElementGrid,
         pos: <span class="kw-2">&amp;</span>JkVector,
         rk: isize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ConvolutionIdx, ConvOutOfBoundsError&gt; {
         <span class="comment">// In the left right direction, unlike up down, every chunk has the same number of radial lines
-        </span><span class="kw">let </span>radial_lines = target_chunk.get_chunk_coords().get_num_radial_lines();
+        </span><span class="kw">let </span>radial_lines = target_chunk.chunk_coords().num_radial_lines();
 
         <span class="comment">// You should not be doing any loops that might make you re-target yourself
         </span><span class="kw">if </span>rk.abs() &gt;= radial_lines <span class="kw">as </span>isize {
@@ -1055,10 +1047,7 @@
 <span class="doccomment">/// Getter and setter methods
 </span><span class="kw">impl </span>ElementGridConvolutionNeighbors {
     <span class="doccomment">/// TODO, use macros to get rid of redundancy
-    </span><span class="kw">fn </span>get_chunk_mut(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        id: ConvolutionIdentifier,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;mut </span>ElementGrid, GetChunkErr&gt; {
+    </span><span class="kw">fn </span>chunk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: ConvolutionIdentifier) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;mut </span>ElementGrid, GetChunkErr&gt; {
         <span class="kw">match </span>id {
             ConvolutionIdentifier::Top(top_id) =&gt; <span class="kw">match </span>top_id {
                 TopNeighborIdentifier::Normal(normal_id) =&gt; <span class="kw">match </span>normal_id {
@@ -1183,7 +1172,7 @@
     }
 
     <span class="doccomment">/// Get the chunk identified by the given identifier
-    </span><span class="kw">fn </span>get_chunk(<span class="kw-2">&amp;</span><span class="self">self</span>, id: ConvolutionIdentifier) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>ElementGrid, GetChunkErr&gt; {
+    </span><span class="kw">fn </span>chunk(<span class="kw-2">&amp;</span><span class="self">self</span>, id: ConvolutionIdentifier) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>ElementGrid, GetChunkErr&gt; {
         <span class="kw">match </span>id {
             ConvolutionIdentifier::Top(top_id) =&gt; <span class="kw">match </span>top_id {
                 TopNeighborIdentifier::Normal(normal_id) =&gt; <span class="kw">match </span>normal_id {
@@ -1314,7 +1303,7 @@
                 <span class="prelude-val">Ok</span>(element) =&gt; <span class="prelude-val">Ok</span>(element.box_clone()),
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(ConvOutOfBoundsError(idx)),
             },
-            <span class="kw">_ </span>=&gt; <span class="kw">match </span><span class="self">self</span>.get_chunk(idx.<span class="number">1</span>) {
+            <span class="kw">_ </span>=&gt; <span class="kw">match </span><span class="self">self</span>.chunk(idx.<span class="number">1</span>) {
                 <span class="prelude-val">Ok</span>(chunk) =&gt; <span class="kw">match </span>chunk.checked_get(idx.<span class="number">0</span>) {
                     <span class="prelude-val">Ok</span>(element) =&gt; <span class="prelude-val">Ok</span>(element.box_clone()),
                     <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(ConvOutOfBoundsError(idx)),
@@ -1342,7 +1331,7 @@
                 <span class="kw">let </span>out = target_grid.replace(idx.<span class="number">0</span>, element, current_time);
                 <span class="prelude-val">Ok</span>(out)
             }
-            <span class="kw">_ </span>=&gt; <span class="kw">match </span><span class="self">self</span>.get_chunk_mut(idx.<span class="number">1</span>) {
+            <span class="kw">_ </span>=&gt; <span class="kw">match </span><span class="self">self</span>.chunk_mut(idx.<span class="number">1</span>) {
                 <span class="prelude-val">Ok</span>(chunk) =&gt; {
                     <span class="kw">let </span>out = chunk.replace(idx.<span class="number">0</span>, element, current_time);
                     <span class="prelude-val">Ok</span>(out)
@@ -1367,9 +1356,9 @@
         <span class="kw">use </span><span class="kw">crate</span>::physics::{fallingsand::util::vectors::IjkVector, orbits::components::Length};
 
         <span class="doccomment">/// The default element grid directory for testing
-        </span><span class="kw">fn </span>get_element_grid_dir() -&gt; ElementGridDir {
+        </span><span class="kw">fn </span>element_grid_dir() -&gt; ElementGridDir {
             <span class="kw">let </span>coordinate_dir = Builder::new()
-                .cell_radius(Length(<span class="number">1.0</span>))
+                .cell_width(Length(<span class="number">1.0</span>))
                 .num_layers(<span class="number">10</span>)
                 .first_num_radial_lines(<span class="number">6</span>)
                 .second_num_concentric_circles(<span class="number">3</span>)
@@ -1380,31 +1369,26 @@
         }
 
         <span class="kw">fn </span>_test_get_below_idx_from_center(pos1: IjkVector, pos2: IjkVector) {
-            <span class="kw">let </span><span class="kw-2">mut </span>element_dir = get_element_grid_dir();
-            <span class="kw">let </span>chunk_pos1 = element_dir.get_coordinate_dir().cell_idx_to_chunk_idx(pos1);
-            <span class="kw">let </span>chunk_pos2 = element_dir.get_coordinate_dir().cell_idx_to_chunk_idx(pos2);
+            <span class="kw">let </span><span class="kw-2">mut </span>element_dir = element_grid_dir();
+            <span class="kw">let </span>chunk_pos1 = element_dir.coordinate_dir().cell_idx_to_chunk_idx(pos1);
+            <span class="kw">let </span>chunk_pos2 = element_dir.coordinate_dir().cell_idx_to_chunk_idx(pos2);
             <span class="kw">let </span><span class="kw-2">mut </span>package = element_dir
                 .package_coordinate_neighbors(chunk_pos1.<span class="number">0</span>)
                 .unwrap();
-            <span class="kw">let </span>chunk = element_dir.get_chunk_by_chunk_ijk(chunk_pos1.<span class="number">0</span>);
+            <span class="kw">let </span>chunk = element_dir.chunk_at_chunk_ijk(chunk_pos1.<span class="number">0</span>);
             <span class="kw">let </span>should_eq_pos2 = package
-                .get_below_idx_from_center(
-                    chunk,
-                    element_dir.get_coordinate_dir(),
-                    <span class="kw-2">&amp;</span>chunk_pos1.<span class="number">1</span>,
-                    <span class="number">1</span>,
-                )
+                .idx_below_idx_from_center(chunk, element_dir.coordinate_dir(), <span class="kw-2">&amp;</span>chunk_pos1.<span class="number">1</span>, <span class="number">1</span>)
                 .unwrap();
             <span class="macro">assert_eq!</span>(chunk_pos2.<span class="number">1</span>, should_eq_pos2.<span class="number">0</span>, <span class="string">"The position is incorrect"</span>);
 
             <span class="comment">// Check that the get_chunk method also works
-            </span><span class="kw">let </span>should_eq_chunk2 = <span class="kw">match </span>package.get_chunk(should_eq_pos2.<span class="number">1</span>) {
-                <span class="prelude-val">Ok</span>(chunk) =&gt; chunk.get_chunk_coords().get_chunk_idx(),
+            </span><span class="kw">let </span>should_eq_chunk2 = <span class="kw">match </span>package.chunk(should_eq_pos2.<span class="number">1</span>) {
+                <span class="prelude-val">Ok</span>(chunk) =&gt; chunk.chunk_coords().chunk_idx(),
                 <span class="prelude-val">Err</span>(GetChunkErr::CenterChunk) =&gt; chunk_pos2.<span class="number">0</span>,
             };
             <span class="comment">// Test the mut version too
-            </span><span class="kw">let </span>should_eq_chunk2_mut = <span class="kw">match </span>package.get_chunk_mut(should_eq_pos2.<span class="number">1</span>) {
-                <span class="prelude-val">Ok</span>(chunk) =&gt; chunk.get_chunk_coords().get_chunk_idx(),
+            </span><span class="kw">let </span>should_eq_chunk2_mut = <span class="kw">match </span>package.chunk_mut(should_eq_pos2.<span class="number">1</span>) {
+                <span class="prelude-val">Ok</span>(chunk) =&gt; chunk.chunk_coords().chunk_idx(),
                 <span class="prelude-val">Err</span>(GetChunkErr::CenterChunk) =&gt; chunk_pos2.<span class="number">0</span>,
             };
             <span class="macro">assert_eq!</span>(chunk_pos2.<span class="number">0</span>, should_eq_chunk2, <span class="string">"get_chunk is not working"</span>);
@@ -1468,9 +1452,9 @@
         <span class="kw">use </span><span class="kw">crate</span>::physics::{fallingsand::util::vectors::IjkVector, orbits::components::Length};
 
         <span class="doccomment">/// The default element grid directory for testing
-        </span><span class="kw">fn </span>get_element_grid_dir() -&gt; ElementGridDir {
+        </span><span class="kw">fn </span>element_grid_dir() -&gt; ElementGridDir {
             <span class="kw">let </span>coordinate_dir = Builder::new()
-                .cell_radius(Length(<span class="number">1.0</span>))
+                .cell_width(Length(<span class="number">1.0</span>))
                 .num_layers(<span class="number">7</span>)
                 .first_num_radial_lines(<span class="number">12</span>)
                 .second_num_concentric_circles(<span class="number">3</span>)
@@ -1482,26 +1466,26 @@
         }
 
         <span class="kw">fn </span>_test_get_left_right_idx_from_center(pos1: IjkVector, n: isize, pos2: IjkVector) {
-            <span class="kw">let </span><span class="kw-2">mut </span>element_dir = get_element_grid_dir();
-            <span class="kw">let </span>chunk_pos1 = element_dir.get_coordinate_dir().cell_idx_to_chunk_idx(pos1);
-            <span class="kw">let </span>chunk_pos2 = element_dir.get_coordinate_dir().cell_idx_to_chunk_idx(pos2);
+            <span class="kw">let </span><span class="kw-2">mut </span>element_dir = element_grid_dir();
+            <span class="kw">let </span>chunk_pos1 = element_dir.coordinate_dir().cell_idx_to_chunk_idx(pos1);
+            <span class="kw">let </span>chunk_pos2 = element_dir.coordinate_dir().cell_idx_to_chunk_idx(pos2);
             <span class="kw">let </span><span class="kw-2">mut </span>package = element_dir
                 .package_coordinate_neighbors(chunk_pos1.<span class="number">0</span>)
                 .unwrap();
-            <span class="kw">let </span>chunk = element_dir.get_chunk_by_chunk_ijk(chunk_pos1.<span class="number">0</span>);
+            <span class="kw">let </span>chunk = element_dir.chunk_at_chunk_ijk(chunk_pos1.<span class="number">0</span>);
             <span class="kw">let </span>should_eq_pos2 = package
-                .get_left_right_idx_from_center(chunk, <span class="kw-2">&amp;</span>chunk_pos1.<span class="number">1</span>, n)
+                .idx_left_right_idx_from_center(chunk, <span class="kw-2">&amp;</span>chunk_pos1.<span class="number">1</span>, n)
                 .unwrap();
             <span class="macro">assert_eq!</span>(chunk_pos2.<span class="number">1</span>, should_eq_pos2.<span class="number">0</span>, <span class="string">"The position is incorrect"</span>);
 
             <span class="comment">// Check that the get_chunk method also works
-            </span><span class="kw">let </span>should_eq_chunk2 = <span class="kw">match </span>package.get_chunk(should_eq_pos2.<span class="number">1</span>) {
-                <span class="prelude-val">Ok</span>(chunk) =&gt; chunk.get_chunk_coords().get_chunk_idx(),
+            </span><span class="kw">let </span>should_eq_chunk2 = <span class="kw">match </span>package.chunk(should_eq_pos2.<span class="number">1</span>) {
+                <span class="prelude-val">Ok</span>(chunk) =&gt; chunk.chunk_coords().chunk_idx(),
                 <span class="prelude-val">Err</span>(GetChunkErr::CenterChunk) =&gt; chunk_pos2.<span class="number">0</span>,
             };
             <span class="comment">// Test the mut version too
-            </span><span class="kw">let </span>should_eq_chunk2_mut = <span class="kw">match </span>package.get_chunk_mut(should_eq_pos2.<span class="number">1</span>) {
-                <span class="prelude-val">Ok</span>(chunk) =&gt; chunk.get_chunk_coords().get_chunk_idx(),
+            </span><span class="kw">let </span>should_eq_chunk2_mut = <span class="kw">match </span>package.chunk_mut(should_eq_pos2.<span class="number">1</span>) {
+                <span class="prelude-val">Ok</span>(chunk) =&gt; chunk.chunk_coords().chunk_idx(),
                 <span class="prelude-val">Err</span>(GetChunkErr::CenterChunk) =&gt; chunk_pos2.<span class="number">0</span>,
             };
             <span class="macro">assert_eq!</span>(chunk_pos2.<span class="number">0</span>, should_eq_chunk2, <span class="string">"get_chunk is not working"</span>);

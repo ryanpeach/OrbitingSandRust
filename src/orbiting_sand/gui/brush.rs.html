@@ -181,25 +181,6 @@
 <a href="#181" id="181">181</a>
 <a href="#182" id="182">182</a>
 <a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
-<a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
-<a href="#197" id="197">197</a>
-<a href="#198" id="198">198</a>
-<a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The brush is a circle that can be resized and moved around the screen.
 //! It can be used to apply elements to a celestial.
 
@@ -357,47 +338,28 @@
             radius.<span class="number">0 </span>+ brush_transform.translation.y + camera_transform.translation.y,
         );
         <span class="kw">let </span><span class="kw-2">mut </span>positions = Vec::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>x = begin_at.<span class="number">0</span>.x
-            + celestial
-                .element_grid_dir
-                .get_coordinate_dir()
-                .get_cell_width()
-                .<span class="number">0
-                </span>/ <span class="number">2.0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>x = begin_at.<span class="number">0</span>.x + celestial.element_grid_dir.coordinate_dir().cell_width().<span class="number">0 </span>/ <span class="number">2.0</span>;
         <span class="kw">while </span>x &lt; end_at.<span class="number">0</span>.x {
-            <span class="kw">let </span><span class="kw-2">mut </span>y = begin_at.<span class="number">0</span>.y
-                + celestial
-                    .element_grid_dir
-                    .get_coordinate_dir()
-                    .get_cell_width()
-                    .<span class="number">0
-                    </span>/ <span class="number">2.0</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>y =
+                begin_at.<span class="number">0</span>.y + celestial.element_grid_dir.coordinate_dir().cell_width().<span class="number">0 </span>/ <span class="number">2.0</span>;
             <span class="kw">while </span>y &lt; end_at.<span class="number">0</span>.y {
                 <span class="kw">let </span>pos = RelXyPoint::new(x, y);
                 <span class="kw">if </span>pos.<span class="number">0</span>.distance(Vec2::new(<span class="number">0.</span>, <span class="number">0.</span>)) &lt; radius.<span class="number">0 </span>{
                     positions.push(pos);
                 }
-                y += celestial
-                    .element_grid_dir
-                    .get_coordinate_dir()
-                    .get_cell_width()
-                    .<span class="number">0</span>;
+                y += celestial.element_grid_dir.coordinate_dir().cell_width().<span class="number">0</span>;
             }
-            x += celestial
-                .element_grid_dir
-                .get_coordinate_dir()
-                .get_cell_width()
-                .<span class="number">0</span>;
+            x += celestial.element_grid_dir.coordinate_dir().cell_width().<span class="number">0</span>;
         }
 
         <span class="comment">// Now apply the brush to the celestial
         </span><span class="kw">let </span>current_time = Clock::new(current_time.as_generic(), frame_count.as_ref().to_owned());
         <span class="kw">for </span>pos <span class="kw">in </span>positions {
             <span class="kw">let </span>element_dir = <span class="kw-2">&amp;mut </span>celestial.element_grid_dir;
-            <span class="kw">let </span>coord_dir = element_dir.get_coordinate_dir();
+            <span class="kw">let </span>coord_dir = element_dir.coordinate_dir();
             <span class="kw">let </span>conversion = coord_dir.rel_pos_to_cell_idx(pos);
             <span class="kw">if let </span><span class="prelude-val">Ok</span>(coords) = conversion {
-                element_dir.set_element(coords, element_picker.<span class="number">0</span>.get_element(), current_time);
+                element_dir.set_element(coords, element_picker.<span class="number">0</span>.element(), current_time);
             }
         }
     }

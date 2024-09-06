@@ -183,22 +183,22 @@
 }
 
 <span class="kw">impl </span>Element <span class="kw">for </span>LeftFlier {
-    <span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ElementType {
+    <span class="kw">fn </span>element_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ElementType {
         ElementType::LeftFlier
     }
-    <span class="kw">fn </span>get_density(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Density {
+    <span class="kw">fn </span>density(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Density {
         Density(<span class="number">0.0</span>)
     }
-    <span class="kw">fn </span>get_last_processed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Clock {
+    <span class="kw">fn </span>last_processed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Clock {
         <span class="self">self</span>.last_processed
     }
     <span class="kw">fn </span>_set_last_processed(<span class="kw-2">&amp;mut </span><span class="self">self</span>, current_time: Clock) {
         <span class="self">self</span>.last_processed = current_time;
     }
-    <span class="kw">fn </span>get_state_of_matter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StateOfMatter {
+    <span class="kw">fn </span>state_of_matter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StateOfMatter {
         StateOfMatter::Solid
     }
-    <span class="kw">fn </span>get_color(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Color {
+    <span class="kw">fn </span>color(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Color {
         Color::rgb_u8(<span class="number">254</span>, <span class="number">254</span>, <span class="number">254</span>)
     }
     <span class="kw">fn </span>_process(
@@ -211,11 +211,11 @@
     ) -&gt; ElementTakeOptions {
         <span class="comment">// Doing this as a way to make sure I set last_processed AFTER I've done all the processing
         </span><span class="kw">let </span>out: ElementTakeOptions = {
-            <span class="kw">let </span>left = element_grid_conv.get_left_right_idx_from_center(target_chunk, <span class="kw-2">&amp;</span>pos, <span class="number">1</span>);
+            <span class="kw">let </span>left = element_grid_conv.idx_left_right_idx_from_center(target_chunk, <span class="kw-2">&amp;</span>pos, <span class="number">1</span>);
             <span class="kw">match </span>left {
                 <span class="prelude-val">Ok</span>(idx) =&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Ok</span>(element) = element_grid_conv.get(target_chunk, idx) {
-                        <span class="kw">match </span>element.get_state_of_matter() {
+                        <span class="kw">match </span>element.state_of_matter() {
                             StateOfMatter::Empty =&gt; {
                                 <span class="self">self</span>.try_swap_me(idx, target_chunk, element_grid_conv, current_time)
                             }
@@ -245,9 +245,9 @@
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="doccomment">/// The default element grid directory for testing
-    </span><span class="kw">fn </span>get_element_grid_dir() -&gt; ElementGridDir {
+    </span><span class="kw">fn </span>element_grid_dir() -&gt; ElementGridDir {
         <span class="kw">let </span>coordinate_dir = Builder::new()
-            .cell_radius(Length(<span class="number">1.0</span>))
+            .cell_width(Length(<span class="number">1.0</span>))
             .num_layers(<span class="number">7</span>)
             .first_num_radial_lines(<span class="number">12</span>)
             .second_num_concentric_circles(<span class="number">3</span>)
@@ -277,7 +277,7 @@
 
             <span class="comment">// Set the bottom right to sand
             </span>{
-                <span class="kw">let </span>chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc1.<span class="number">0</span>);
+                <span class="kw">let </span>chunk = element_grid_dir.chunk_at_chunk_ijk_mut(loc1.<span class="number">0</span>);
                 <span class="kw">let </span>sand = LeftFlier::default();
                 chunk.set(loc1.<span class="number">1</span>, Box::new(sand), clock);
             }
@@ -288,8 +288,8 @@
 
             <span class="comment">// Now check that this chunk location no longer has sand
             </span>{
-                <span class="kw">let </span>chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc1.<span class="number">0</span>);
-                <span class="kw">let </span>previous_location_type = chunk.get(loc1.<span class="number">1</span>).get_type();
+                <span class="kw">let </span>chunk = element_grid_dir.chunk_at_chunk_ijk_mut(loc1.<span class="number">0</span>);
+                <span class="kw">let </span>previous_location_type = chunk.get(loc1.<span class="number">1</span>).element_type();
                 <span class="macro">assert_ne!</span>(
                     previous_location_type,
                     ElementType::LeftFlier,
@@ -300,8 +300,8 @@
 
             <span class="comment">// Now check that the chunk below has sand
             </span>{
-                <span class="kw">let </span>left_chunk = element_grid_dir.get_chunk_by_chunk_ijk_mut(loc2.<span class="number">0</span>);
-                <span class="kw">let </span>left_location_type = left_chunk.get(loc2.<span class="number">1</span>).get_type();
+                <span class="kw">let </span>left_chunk = element_grid_dir.chunk_at_chunk_ijk_mut(loc2.<span class="number">0</span>);
+                <span class="kw">let </span>left_location_type = left_chunk.get(loc2.<span class="number">1</span>).element_type();
                 <span class="macro">assert_eq!</span>(
                     left_location_type,
                     ElementType::LeftFlier,
@@ -315,12 +315,12 @@
             (<span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$pos1</span>:expr, <span class="macro-nonterminal">$pos2</span>:expr) =&gt; {
                 <span class="attr">#[test]
                 </span><span class="kw">fn </span><span class="macro-nonterminal">$name</span>() {
-                    <span class="kw">let </span>element_grid_dir = get_element_grid_dir();
+                    <span class="kw">let </span>element_grid_dir = element_grid_dir();
                     <span class="kw">let </span>pos1 = element_grid_dir
-                        .get_coordinate_dir()
+                        .coordinate_dir()
                         .cell_idx_to_chunk_idx(IjkVector::new(<span class="macro-nonterminal">$pos1</span>.<span class="number">0</span>, <span class="macro-nonterminal">$pos1</span>.<span class="number">1</span>, <span class="macro-nonterminal">$pos1</span>.<span class="number">2</span>));
                     <span class="kw">let </span>pos2 = element_grid_dir
-                        .get_coordinate_dir()
+                        .coordinate_dir()
                         .cell_idx_to_chunk_idx(IjkVector::new(<span class="macro-nonterminal">$pos2</span>.<span class="number">0</span>, <span class="macro-nonterminal">$pos2</span>.<span class="number">1</span>, <span class="macro-nonterminal">$pos2</span>.<span class="number">2</span>));
                     assert_movement(element_grid_dir, pos1, pos2);
                 }

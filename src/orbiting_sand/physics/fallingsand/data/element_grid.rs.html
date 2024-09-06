@@ -410,9 +410,6 @@
 <a href="#410" id="410">410</a>
 <a href="#411" id="411">411</a>
 <a href="#412" id="412">412</a>
-<a href="#413" id="413">413</a>
-<a href="#414" id="414">414</a>
-<a href="#415" id="415">415</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>bevy::math::Rect;
 <span class="kw">use </span>rand::seq::SliceRandom;
 <span class="kw">use </span>rand::thread_rng;
@@ -471,16 +468,15 @@
     <span class="doccomment">/// Creates a new element grid with the given chunk coords and fills it with the given element
     </span><span class="kw">pub fn </span>new_filled(chunk_coords: ChunkCoords, fill: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Element) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>grid: Vec&lt;Box&lt;<span class="kw">dyn </span>Element&gt;&gt; = Vec::with_capacity(
-            chunk_coords.get_num_radial_lines() * chunk_coords.get_num_concentric_circles(),
+            chunk_coords.num_radial_lines() * chunk_coords.num_concentric_circles(),
         );
-        <span class="kw">for _ in </span><span class="number">0</span>..chunk_coords.get_num_radial_lines() * chunk_coords.get_num_concentric_circles()
-        {
+        <span class="kw">for _ in </span><span class="number">0</span>..chunk_coords.num_radial_lines() * chunk_coords.num_concentric_circles() {
             grid.push(fill.box_clone());
         }
         <span class="self">Self </span>{
             grid: Grid::new_from_vec(
-                chunk_coords.get_num_radial_lines(),
-                chunk_coords.get_num_concentric_circles(),
+                chunk_coords.num_radial_lines(),
+                chunk_coords.num_concentric_circles(),
                 grid,
             ),
             coords: chunk_coords,
@@ -493,7 +489,7 @@
 
 <span class="comment">/* Getters &amp; Setters */
 </span><span class="kw">impl </span>ElementGrid {
-    <span class="kw">pub fn </span>get_already_processed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">pub fn </span>already_processed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.already_processed
     }
     <span class="kw">pub fn </span>set_already_processed(<span class="kw-2">&amp;mut </span><span class="self">self</span>, already_processed: bool) {
@@ -507,17 +503,17 @@
         <span class="self">self</span>.already_processed = already_processed;
         <span class="prelude-val">Ok</span>(())
     }
-    <span class="kw">pub fn </span>get_last_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Clock {
+    <span class="kw">pub fn </span>last_set(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Clock {
         <span class="self">self</span>.last_set
     }
-    <span class="kw">pub fn </span>get_chunk_coords(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ChunkCoords {
+    <span class="kw">pub fn </span>chunk_coords(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ChunkCoords {
         <span class="kw-2">&amp;</span><span class="self">self</span>.coords
     }
-    <span class="kw">pub fn </span>get_grid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Grid&lt;Box&lt;<span class="kw">dyn </span>Element&gt;&gt; {
+    <span class="kw">pub fn </span>grid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Grid&lt;Box&lt;<span class="kw">dyn </span>Element&gt;&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.grid
     }
     <span class="doccomment">/// Does not calculate the total mass, just gets the set value of it
-    </span><span class="kw">pub fn </span>get_total_mass(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Mass {
+    </span><span class="kw">pub fn </span>total_mass(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Mass {
         <span class="self">self</span>.total_mass
     }
 
@@ -570,8 +566,8 @@
     //     self.total_mass_above
     // }
 
-    </span><span class="kw">pub fn </span>get_process_unneeded(<span class="kw-2">&amp;</span><span class="self">self</span>, current_time: Clock) -&gt; bool {
-        <span class="self">self</span>.last_set.get_current_frame() &lt; current_time.get_current_frame() - <span class="number">1
+    </span><span class="kw">pub fn </span>process_unneeded(<span class="kw-2">&amp;</span><span class="self">self</span>, current_time: Clock) -&gt; bool {
+        <span class="self">self</span>.last_set.current_frame() &lt; current_time.current_frame() - <span class="number">1
     </span>}
 }
 
@@ -607,10 +603,10 @@
 </span><span class="kw">impl </span>ElementGrid {
     <span class="doccomment">/// Fill the grid with the given element
     </span><span class="kw">pub fn </span>fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, element: ElementType) {
-        <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.get_chunk_coords().get_num_concentric_circles() {
-            <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.get_chunk_coords().get_num_radial_lines() {
+        <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.chunk_coords().num_concentric_circles() {
+            <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.chunk_coords().num_radial_lines() {
                 <span class="kw">let </span>pos = JkVector { j, k };
-                <span class="self">self</span>.grid.replace(pos, element.get_element());
+                <span class="self">self</span>.grid.replace(pos, element.element());
             }
         }
     }
@@ -639,15 +635,15 @@
         element_grid_conv_neigh: <span class="kw-2">&amp;mut </span>ElementGridConvolutionNeighbors,
         current_time: Clock,
     ) {
-        <span class="kw">let </span>already_processed = <span class="self">self</span>.get_already_processed();
+        <span class="kw">let </span>already_processed = <span class="self">self</span>.already_processed();
         <span class="macro">debug_assert!</span>(!already_processed, <span class="string">"Already processed"</span>);
 
         <span class="comment">// By randomly shuffling the order we process the elements
         // we can avoid creating a "favorite direction" for the elements to move
         </span><span class="kw">let </span><span class="kw-2">mut </span>rng = thread_rng();
         <span class="kw">let </span><span class="kw-2">mut </span>iter: Vec&lt;(usize, usize)&gt; = <span class="macro">iproduct!</span>(
-            <span class="number">0</span>..<span class="self">self</span>.coords.get_num_concentric_circles(),
-            <span class="number">0</span>..<span class="self">self</span>.coords.get_num_radial_lines()
+            <span class="number">0</span>..<span class="self">self</span>.coords.num_concentric_circles(),
+            <span class="number">0</span>..<span class="self">self</span>.coords.num_radial_lines()
         )
         .collect();
         iter.shuffle(<span class="kw-2">&amp;mut </span>rng);
@@ -659,8 +655,7 @@
             </span><span class="kw">let </span><span class="kw-2">mut </span>element = <span class="self">self</span>.grid.replace(pos, Box::&lt;Vacuum&gt;::default());
 
             <span class="comment">// Check that the element hasn't already been processed this frame
-            </span><span class="kw">if </span>element.get_last_processed().get_current_frame() &gt;= current_time.get_current_frame()
-            {
+            </span><span class="kw">if </span>element.last_processed().current_frame() &gt;= current_time.current_frame() {
                 <span class="self">self</span>.grid.replace(pos, element);
                 <span class="kw">continue</span>;
             }
@@ -732,16 +727,16 @@
         //         TopNeighborGrids::TopOfGrid =&gt; Mass(0.0),
         //     }
         // };
-        </span><span class="self">self</span>.total_mass = (<span class="number">0</span>..<span class="self">self</span>.coords.get_num_concentric_circles())
+        </span><span class="self">self</span>.total_mass = (<span class="number">0</span>..<span class="self">self</span>.coords.num_concentric_circles())
             .into_par_iter()
             .map(|j| -&gt; Mass {
-                (<span class="number">0</span>..<span class="self">self</span>.coords.get_num_radial_lines())
+                (<span class="number">0</span>..<span class="self">self</span>.coords.num_radial_lines())
                     .into_par_iter()
                     .map(|k| {
                         <span class="kw">let </span>pos = JkVector { j, k };
                         <span class="kw">let </span>element = <span class="self">self</span>.grid.get(pos);
 
-                        element.get_mass(<span class="self">self</span>.coords.get_cell_width())
+                        element.mass(<span class="self">self</span>.coords.cell_width())
                     })
                     .sum()
             })
@@ -758,14 +753,14 @@
 <span class="comment">/* Drawing */
 </span><span class="kw">impl </span>ElementGrid {
     <span class="doccomment">/// Draw the texture as the color of each element
-    </span><span class="kw">pub fn </span>get_texture(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawImage {
+    </span><span class="kw">pub fn </span>texture(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawImage {
         <span class="kw">let </span><span class="kw-2">mut </span>out = Vec::with_capacity(
-            <span class="self">self</span>.coords.get_num_radial_lines() * <span class="self">self</span>.coords.get_num_concentric_circles() * <span class="number">4</span>,
+            <span class="self">self</span>.coords.num_radial_lines() * <span class="self">self</span>.coords.num_concentric_circles() * <span class="number">4</span>,
         );
-        <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_concentric_circles() {
-            <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_radial_lines() {
+        <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.num_concentric_circles() {
+            <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.num_radial_lines() {
                 <span class="kw">let </span>element = <span class="self">self</span>.grid.get(JkVector { j, k });
-                <span class="kw">let </span>color = element.get_color().as_rgba_u8();
+                <span class="kw">let </span>color = element.color().as_rgba_u8();
                 out.push(color[<span class="number">0</span>]);
                 out.push(color[<span class="number">1</span>]);
                 out.push(color[<span class="number">2</span>]);
@@ -775,12 +770,11 @@
         RawImage {
             pixels: out,
             bounds: Rect::new(
-                <span class="self">self</span>.coords.get_start_radial_line() <span class="kw">as </span>f32,
-                <span class="self">self</span>.coords.get_start_concentric_circle_absolute() <span class="kw">as </span>f32,
-                <span class="self">self</span>.coords.get_start_radial_line() <span class="kw">as </span>f32
-                    + <span class="self">self</span>.coords.get_num_radial_lines() <span class="kw">as </span>f32,
-                <span class="self">self</span>.coords.get_start_concentric_circle_absolute() <span class="kw">as </span>f32
-                    + <span class="self">self</span>.coords.get_num_concentric_circles() <span class="kw">as </span>f32,
+                <span class="self">self</span>.coords.start_radial_line() <span class="kw">as </span>f32,
+                <span class="self">self</span>.coords.start_concentric_circle_absolute() <span class="kw">as </span>f32,
+                <span class="self">self</span>.coords.start_radial_line() <span class="kw">as </span>f32 + <span class="self">self</span>.coords.num_radial_lines() <span class="kw">as </span>f32,
+                <span class="self">self</span>.coords.start_concentric_circle_absolute() <span class="kw">as </span>f32
+                    + <span class="self">self</span>.coords.num_concentric_circles() <span class="kw">as </span>f32,
             ),
         }
     }

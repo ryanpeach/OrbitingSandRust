@@ -1271,12 +1271,6 @@
 <a href="#1271" id="1271">1271</a>
 <a href="#1272" id="1272">1272</a>
 <a href="#1273" id="1273">1273</a>
-<a href="#1274" id="1274">1274</a>
-<a href="#1275" id="1275">1275</a>
-<a href="#1276" id="1276">1276</a>
-<a href="#1277" id="1277">1277</a>
-<a href="#1278" id="1278">1278</a>
-<a href="#1279" id="1279">1279</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>hashbrown::{HashMap, HashSet};
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::orbits::components::Mass;
@@ -1337,7 +1331,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>out = HashSet::new();
 
     <span class="comment">// We are going to iterate up every j chunk ignoring the layer they are on, so we need the total number of them
-    </span><span class="kw">let </span>j_size = coords.get_total_number_concentric_chunks();
+    </span><span class="kw">let </span>j_size = coords.total_number_concentric_chunks();
     <span class="macro">debug_assert!</span>(
         j_size % <span class="number">3 </span>== <span class="number">0</span>,
         <span class="string">"Number of chunks in radial dimension must be divisible by 3, but it is {}"</span>,
@@ -1354,14 +1348,14 @@
     </span><span class="kw">for </span>j <span class="kw">in </span>(start_j..j_size).step_by(<span class="number">3</span>) {
         <span class="comment">// Get our layer shape
         </span><span class="kw">let </span>(layer_num, chunk_layer_concentric_circle) = coords
-            .get_layer_and_chunk_num_from_absolute_concentric_chunk(j)
+            .layer_and_chunk_num_from_absolute_concentric_chunk(j)
             .expect(<span class="string">"We are iterating in a well defined range"</span>);
-        <span class="kw">let </span>chunk_layer_tangential_chunkss = coords.get_layer_num_tangential_chunkss(layer_num);
+        <span class="kw">let </span>chunk_layer_tangential_chunkss = coords.layer_num_tangential_chunkss(layer_num);
         <span class="kw">let </span>prev_chunk_layer_tangential_chunkss = {
             <span class="kw">if </span>j == <span class="number">0 </span>{
                 <span class="number">1usize
             </span>} <span class="kw">else </span>{
-                coords.get_layer_num_tangential_chunkss(layer_num - <span class="number">1</span>)
+                coords.layer_num_tangential_chunkss(layer_num - <span class="number">1</span>)
             }
         };
         <span class="macro">debug_assert!</span>(
@@ -1403,7 +1397,7 @@
     frame_nb: usize,
 ) -&gt; Sequential&lt;HashSet&lt;ChunkIjkVector&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>out = HashSet::new();
-    <span class="kw">let </span>i_size = coords.get_num_layers();
+    <span class="kw">let </span>i_size = coords.num_layers();
     <span class="comment">// For this we actually only need 3 frames
     </span><span class="kw">if </span>frame_nb &gt;= <span class="number">3 </span>{
         <span class="kw">return </span>Sequential(out);
@@ -1416,7 +1410,7 @@
             <span class="kw">if </span>layer_num == <span class="number">0 </span>{
                 <span class="number">1usize </span><span class="comment">// Include the bottom layer
             </span>} <span class="kw">else </span>{
-                coords.get_layer_num_tangential_chunkss(layer_num - <span class="number">1</span>)
+                coords.layer_num_tangential_chunkss(layer_num - <span class="number">1</span>)
             }
         };
         <span class="kw">if </span>prev_chunk_layer_tangential_chunkss != <span class="number">1 </span>{
@@ -1424,7 +1418,7 @@
         }
 
         <span class="comment">// Now add all the k's in this layer
-        </span><span class="kw">let </span>chunk_layer_tangential_chunkss = coords.get_layer_num_tangential_chunkss(layer_num);
+        </span><span class="kw">let </span>chunk_layer_tangential_chunkss = coords.layer_num_tangential_chunkss(layer_num);
         <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..chunk_layer_tangential_chunkss {
             out.insert(ChunkIjkVector {
                 i: layer_num,
@@ -1445,7 +1439,7 @@
     frame_nb: usize,
 ) -&gt; Parallel&lt;HashSet&lt;ChunkIjkVector&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>out = HashSet::new();
-    <span class="kw">let </span>i_size = coords.get_num_layers();
+    <span class="kw">let </span>i_size = coords.num_layers();
     <span class="comment">// The calculate_ith_has_single_bottom_neighbor_targets stops at the third frame
     // we are going to start at the 4th frame and go to the 9th frame
     </span><span class="kw">if </span>frame_nb &lt; <span class="number">3 </span>{
@@ -1458,9 +1452,9 @@
     // and we will always be on the bottom chunk of the layer
     </span><span class="kw">for </span>layer_num <span class="kw">in </span><span class="number">1</span>..i_size {
         <span class="comment">// Skip any layers whos previous layer doesn't only have one chunk
-        </span><span class="kw">let </span>chunk_layer_tangential_chunkss = coords.get_layer_num_tangential_chunkss(layer_num);
+        </span><span class="kw">let </span>chunk_layer_tangential_chunkss = coords.layer_num_tangential_chunkss(layer_num);
         <span class="kw">let </span>prev_chunk_layer_tangential_chunkss =
-            coords.get_layer_num_tangential_chunkss(layer_num - <span class="number">1</span>);
+            coords.layer_num_tangential_chunkss(layer_num - <span class="number">1</span>);
         <span class="kw">if </span>prev_chunk_layer_tangential_chunkss == <span class="number">1
             </span>|| prev_chunk_layer_tangential_chunkss == chunk_layer_tangential_chunkss
         {
@@ -1468,7 +1462,7 @@
         }
 
         <span class="comment">// Now add all the k's in this layer but skip by 6 to prevent overlap
-        </span><span class="kw">let </span>chunk_layer_tangential_chunkss = coords.get_layer_num_tangential_chunkss(layer_num);
+        </span><span class="kw">let </span>chunk_layer_tangential_chunkss = coords.layer_num_tangential_chunkss(layer_num);
         <span class="kw">for </span>k <span class="kw">in </span>(k_start..chunk_layer_tangential_chunkss).step_by(<span class="number">6</span>) {
             out.insert(ChunkIjkVector {
                 i: layer_num,
@@ -1522,16 +1516,15 @@
 
 <span class="kw">impl </span>ElementGridDir {
     <span class="kw">pub fn </span>new_empty(coords: CoordinateDir) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>chunks: Vec&lt;Grid&lt;<span class="prelude-ty">Option</span>&lt;ElementGrid&gt;&gt;&gt; =
-            Vec::with_capacity(coords.get_num_layers());
-        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..coords.get_num_layers() {
-            <span class="kw">let </span>j_size = coords.get_layer_num_concentric_chunks(i);
-            <span class="kw">let </span>k_size = coords.get_layer_num_tangential_chunkss(i);
+        <span class="kw">let </span><span class="kw-2">mut </span>chunks: Vec&lt;Grid&lt;<span class="prelude-ty">Option</span>&lt;ElementGrid&gt;&gt;&gt; = Vec::with_capacity(coords.num_layers());
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..coords.num_layers() {
+            <span class="kw">let </span>j_size = coords.layer_num_concentric_chunks(i);
+            <span class="kw">let </span>k_size = coords.layer_num_tangential_chunkss(i);
             <span class="kw">let </span><span class="kw-2">mut </span>layer = Grid::new_empty(k_size, j_size);
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
                 <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..k_size {
                     <span class="kw">let </span>element_grid =
-                        ElementGrid::new_empty(coords.get_chunk_at_idx(ChunkIjkVector { i, j, k }));
+                        ElementGrid::new_empty(coords.chunk_at_idx(ChunkIjkVector { i, j, k }));
                     layer.replace(JkVector { j, k }, <span class="prelude-val">Some</span>(element_grid));
                 }
             }
@@ -1555,17 +1548,16 @@
         fill0: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Element,
         fill1: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Element,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>chunks: Vec&lt;Grid&lt;<span class="prelude-ty">Option</span>&lt;ElementGrid&gt;&gt;&gt; =
-            Vec::with_capacity(coords.get_num_layers());
-        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..coords.get_num_layers() {
-            <span class="kw">let </span>j_size = coords.get_layer_num_concentric_chunks(i);
-            <span class="kw">let </span>k_size = coords.get_layer_num_tangential_chunkss(i);
+        <span class="kw">let </span><span class="kw-2">mut </span>chunks: Vec&lt;Grid&lt;<span class="prelude-ty">Option</span>&lt;ElementGrid&gt;&gt;&gt; = Vec::with_capacity(coords.num_layers());
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..coords.num_layers() {
+            <span class="kw">let </span>j_size = coords.layer_num_concentric_chunks(i);
+            <span class="kw">let </span>k_size = coords.layer_num_tangential_chunkss(i);
             <span class="kw">let </span><span class="kw-2">mut </span>layer = Grid::new_empty(k_size, j_size);
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
                 <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..k_size {
                     <span class="kw">let </span>fill: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Element = <span class="kw">if </span>(j + k) % <span class="number">2 </span>== <span class="number">0 </span>{ fill0 } <span class="kw">else </span>{ fill1 };
                     <span class="kw">let </span>element_grid = ElementGrid::new_filled(
-                        coords.get_chunk_at_idx(ChunkIjkVector { i, j, k }),
+                        coords.chunk_at_idx(ChunkIjkVector { i, j, k }),
                         fill,
                     );
                     layer.replace(JkVector { j, k }, <span class="prelude-val">Some</span>(element_grid));
@@ -1587,15 +1579,15 @@
     }
 
     <span class="attr">#[cfg(test)]
-    </span><span class="kw">fn </span>get_process_targets(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ProcessTargets {
+    </span><span class="kw">fn </span>process_targets(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ProcessTargets {
         <span class="self">self</span>.process_targets.clone()
     }
 
     <span class="comment">// TODO: This needs testing
-    </span><span class="kw">fn </span>get_chunk_top_neighbors(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: ChunkIjkVector) -&gt; TopNeighborIdxs {
-        <span class="kw">let </span>top_chunk_in_layer = <span class="self">self</span>.coords.get_layer_num_concentric_chunks(coord.i) - <span class="number">1</span>;
-        <span class="kw">let </span>top_layer = <span class="self">self</span>.coords.get_num_layers() - <span class="number">1</span>;
-        <span class="kw">let </span>radial_lines = |i: usize| <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(i);
+    </span><span class="kw">fn </span>chunk_top_neighbors(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: ChunkIjkVector) -&gt; TopNeighborIdxs {
+        <span class="kw">let </span>top_chunk_in_layer = <span class="self">self</span>.coords.layer_num_concentric_chunks(coord.i) - <span class="number">1</span>;
+        <span class="kw">let </span>top_layer = <span class="self">self</span>.coords.num_layers() - <span class="number">1</span>;
+        <span class="kw">let </span>radial_lines = |i: usize| <span class="self">self</span>.coords.layer_num_tangential_chunkss(i);
         <span class="kw">let </span>k_isize = coord.k <span class="kw">as </span>isize;
 
         <span class="comment">// A convenience function for making a vector and adding it to the out set
@@ -1639,8 +1631,8 @@
     }
 
     <span class="comment">// TODO: This needs testing
-    </span><span class="kw">fn </span>get_chunk_left_right_neighbors(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: ChunkIjkVector) -&gt; LeftRightNeighborIdxs {
-        <span class="kw">let </span>num_tangential_chunkss = <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(coord.i);
+    </span><span class="kw">fn </span>chunk_left_right_neighbors(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: ChunkIjkVector) -&gt; LeftRightNeighborIdxs {
+        <span class="kw">let </span>num_tangential_chunkss = <span class="self">self</span>.coords.layer_num_tangential_chunkss(coord.i);
         <span class="macro">debug_assert!</span>(
             num_tangential_chunkss &gt; <span class="number">0</span>,
             <span class="string">"Number of tangential chunkss must be greater than 0"
@@ -1662,12 +1654,11 @@
     }
 
     <span class="comment">// TODO: This needs testing
-    </span><span class="kw">fn </span>get_chunk_bottom_neighbors(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: ChunkIjkVector) -&gt; BottomNeighborIdxs {
+    </span><span class="kw">fn </span>chunk_bottom_neighbors(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: ChunkIjkVector) -&gt; BottomNeighborIdxs {
         <span class="kw">let </span>bottom_chunk_in_layer = <span class="number">0usize</span>;
         <span class="kw">let </span>bottom_layer = <span class="number">0usize</span>;
-        <span class="kw">let </span>tangential_chunkss = |i: usize| <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(i);
-        <span class="kw">let </span>top_chunk_in_prev_layer =
-            |i: usize| <span class="self">self</span>.coords.get_layer_num_concentric_chunks(i - <span class="number">1</span>) - <span class="number">1</span>;
+        <span class="kw">let </span>tangential_chunkss = |i: usize| <span class="self">self</span>.coords.layer_num_tangential_chunkss(i);
+        <span class="kw">let </span>top_chunk_in_prev_layer = |i: usize| <span class="self">self</span>.coords.layer_num_concentric_chunks(i - <span class="number">1</span>) - <span class="number">1</span>;
         <span class="kw">let </span>k_isize = coord.k <span class="kw">as </span>isize;
 
         <span class="kw">let </span>make_vector = |i: usize, j: usize, k: isize| -&gt; ChunkIjkVector {
@@ -1721,10 +1712,10 @@
         }
     }
 
-    <span class="kw">fn </span>get_chunk_neighbors(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: ChunkIjkVector) -&gt; ElementGridConvolutionNeighborIdxs {
-        <span class="kw">let </span>top = <span class="self">self</span>.get_chunk_top_neighbors(coord);
-        <span class="kw">let </span>left_right = <span class="self">self</span>.get_chunk_left_right_neighbors(coord);
-        <span class="kw">let </span>bottom = <span class="self">self</span>.get_chunk_bottom_neighbors(coord);
+    <span class="kw">fn </span>chunk_neighbors(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: ChunkIjkVector) -&gt; ElementGridConvolutionNeighborIdxs {
+        <span class="kw">let </span>top = <span class="self">self</span>.chunk_top_neighbors(coord);
+        <span class="kw">let </span>left_right = <span class="self">self</span>.chunk_left_right_neighbors(coord);
+        <span class="kw">let </span>bottom = <span class="self">self</span>.chunk_bottom_neighbors(coord);
         ElementGridConvolutionNeighborIdxs {
             top,
             left_right,
@@ -1736,7 +1727,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         coord: ChunkIjkVector,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ElementGridConvolutionNeighbors&gt; {
-        <span class="kw">let </span>neighbors = <span class="self">self</span>.get_chunk_neighbors(coord);
+        <span class="kw">let </span>neighbors = <span class="self">self</span>.chunk_neighbors(coord);
         <span class="kw">let </span><span class="kw-2">mut </span>out = HashMap::new();
         <span class="kw">for </span>neighbor <span class="kw">in </span>neighbors.iter() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(chunk) = <span class="self">self</span>.chunks[neighbor.i].replace(neighbor.to_jk_vector(), <span class="prelude-val">None</span>) {
@@ -1802,7 +1793,7 @@
             .set_already_processed_deduplicated(<span class="bool-val">true</span>)
             .expect(<span class="string">"should not have already been set"</span>);
         {
-            <span class="kw">let </span>target_idx = target.get_chunk_coords().get_chunk_idx();
+            <span class="kw">let </span>target_idx = target.chunk_coords().chunk_idx();
             <span class="kw">let </span>prev = <span class="self">self</span>.chunks[target_idx.i].replace(target_idx.to_jk_vector(), <span class="prelude-val">Some</span>(target));
             <span class="macro">debug_assert!</span>(prev.is_none(), <span class="string">"Somehow this chunk was already replaced."</span>);
         }
@@ -1825,15 +1816,15 @@
     }
 
     <span class="doccomment">/// Using the already_processed flag, get all the chunks that have not been processed yet
-    </span><span class="kw">fn </span>get_unprocessed_chunk_idxs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;ChunkIjkVector&gt; {
+    </span><span class="kw">fn </span>unprocessed_chunk_idxs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;ChunkIjkVector&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>out = Vec::new();
-        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_layers() {
-            <span class="kw">let </span>j_size = <span class="self">self</span>.coords.get_layer_num_concentric_chunks(i);
-            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(i);
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.num_layers() {
+            <span class="kw">let </span>j_size = <span class="self">self</span>.coords.layer_num_concentric_chunks(i);
+            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.layer_num_tangential_chunkss(i);
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
                 <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..k_size {
                     <span class="kw">let </span>coord = ChunkIjkVector { i, j, k };
-                    <span class="kw">if </span>!<span class="self">self</span>.get_chunk_by_chunk_ijk(coord).get_already_processed() {
+                    <span class="kw">if </span>!<span class="self">self</span>.chunk_at_chunk_ijk(coord).already_processed() {
                         out.push(coord);
                     }
                 }
@@ -1844,14 +1835,14 @@
 
     <span class="doccomment">/// Sets the already_processed flag to false for all chunks
     </span><span class="kw">fn </span>unlock_all_chunks(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_layers() {
-            <span class="kw">let </span>j_size = <span class="self">self</span>.coords.get_layer_num_concentric_chunks(i);
-            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(i);
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.num_layers() {
+            <span class="kw">let </span>j_size = <span class="self">self</span>.coords.layer_num_concentric_chunks(i);
+            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.layer_num_tangential_chunkss(i);
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
                 <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..k_size {
                     <span class="kw">let </span>coord = ChunkIjkVector { i, j, k };
                     <span class="comment">// Doesn't even matter if this fails
-                    </span><span class="self">self</span>.get_chunk_by_chunk_ijk_mut(coord)
+                    </span><span class="self">self</span>.chunk_at_chunk_ijk_mut(coord)
                         .set_already_processed(<span class="bool-val">false</span>);
                 }
             }
@@ -1881,10 +1872,10 @@
         <span class="comment">// Check for errors and unlock all chunks every 9 iterations
         </span><span class="kw">if </span><span class="self">self</span>.process_count % FRAMES_PER_FULL_PROCESS == <span class="number">0 </span>{
             <span class="macro">debug_assert_eq!</span>(
-                <span class="self">self</span>.get_unprocessed_chunk_idxs().len(),
+                <span class="self">self</span>.unprocessed_chunk_idxs().len(),
                 <span class="number">0</span>,
                 <span class="string">"After 9 iterations not all chunks are processed. Missing {:?}"</span>,
-                <span class="self">self</span>.get_unprocessed_chunk_idxs()
+                <span class="self">self</span>.unprocessed_chunk_idxs()
             );
             <span class="self">self</span>.unlock_all_chunks();
             <span class="self">self</span>.recalculate_everything();
@@ -1913,13 +1904,13 @@
         <span class="kw">let </span><span class="kw-2">mut </span>chunk = <span class="self">self</span>.chunks[coord.i]
             .replace(coord.to_jk_vector(), <span class="prelude-val">None</span>)
             .expect(<span class="string">"Should not have been replaced already."</span>);
-        chunk.process(<span class="self">self</span>.get_coordinate_dir(), <span class="kw-2">&amp;mut </span>conv, current_time);
+        chunk.process(<span class="self">self</span>.coordinate_dir(), <span class="kw-2">&amp;mut </span>conv, current_time);
         <span class="comment">// Unpackage the convolution
         </span><span class="self">self</span>.unpackage_convolution(chunk, conv);
     }
 
     <span class="doccomment">/// Gets the textures of the targets updated in the last call to process
-    </span><span class="kw">pub fn </span>get_updated_target_textures(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HashMap&lt;ChunkIjkVector, Textures&gt; {
+    </span><span class="kw">pub fn </span>updated_target_textures(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HashMap&lt;ChunkIjkVector, Textures&gt; {
         <span class="comment">// You should call this function only AFTER calling process
         </span><span class="kw">let </span>process_count = <span class="self">self</span>.process_count - <span class="number">1</span>;
         <span class="kw">let </span>targets1 = <span class="self">self</span>.process_targets.standard_convolution[process_count % <span class="number">9</span>].clone();
@@ -1935,11 +1926,11 @@
         </span>all_targets
             .into_par_iter()
             .map(|target| {
-                <span class="kw">let </span>chunk = <span class="self">self</span>.get_chunk_by_chunk_ijk(target);
+                <span class="kw">let </span>chunk = <span class="self">self</span>.chunk_at_chunk_ijk(target);
                 (
                     target,
                     Textures {
-                        texture: <span class="prelude-val">Some</span>(chunk.get_texture()),
+                        texture: <span class="prelude-val">Some</span>(chunk.texture()),
                     },
                 )
             })
@@ -1958,7 +1949,7 @@
             <span class="kw">let </span><span class="kw-2">mut </span>chunk = <span class="self">self</span>.chunks[target.i]
                 .replace(target.to_jk_vector(), <span class="prelude-val">None</span>)
                 .expect(<span class="string">"Should not have been replaced already."</span>);
-            chunk.process(<span class="self">self</span>.get_coordinate_dir(), <span class="kw-2">&amp;mut </span>conv, current_time);
+            chunk.process(<span class="self">self</span>.coordinate_dir(), <span class="kw-2">&amp;mut </span>conv, current_time);
             <span class="comment">// Unpackage the convolution
             </span><span class="self">self</span>.unpackage_convolution(chunk, conv);
         }
@@ -1975,27 +1966,24 @@
             .par_iter_mut()
             .zip(target_chunks.par_iter_mut())
             .for_each(|(convolution, target_chunk)| {
-                target_chunk.process(<span class="self">self</span>.get_coordinate_dir(), convolution, current_time);
+                target_chunk.process(<span class="self">self</span>.coordinate_dir(), convolution, current_time);
             });
         <span class="self">self</span>.unpackage_convolutions(convolutions, target_chunks);
     }
 
     <span class="doccomment">/// Get the number of chunks from the coordinate directory
-    </span><span class="kw">pub fn </span>get_num_chunks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="self">self</span>.coords.get_num_chunks()
+    </span><span class="kw">pub fn </span>num_chunks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.coords.num_chunks()
     }
-    <span class="kw">pub fn </span>get_total_num_cells(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    <span class="kw">pub fn </span>total_num_cells(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="kw">let </span><span class="kw-2">mut </span>out = <span class="number">0</span>;
-        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_layers() {
-            <span class="kw">let </span>j_size = <span class="self">self</span>.coords.get_layer_num_concentric_chunks(i);
-            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(i);
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.num_layers() {
+            <span class="kw">let </span>j_size = <span class="self">self</span>.coords.layer_num_concentric_chunks(i);
+            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.layer_num_tangential_chunkss(i);
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
                 <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..k_size {
                     <span class="kw">let </span>coord = ChunkIjkVector { i, j, k };
-                    out += <span class="self">self
-                        </span>.get_chunk_by_chunk_ijk(coord)
-                        .get_chunk_coords()
-                        .total_size();
+                    out += <span class="self">self</span>.chunk_at_chunk_ijk(coord).chunk_coords().total_size();
                 }
             }
         }
@@ -2003,7 +1991,7 @@
     }
 
     <span class="doccomment">/// Get the total mass of the directory
-    </span><span class="kw">pub fn </span>get_total_mass(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Mass {
+    </span><span class="kw">pub fn </span>total_mass(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Mass {
         <span class="self">self</span>.total_mass
     }
 
@@ -2017,7 +2005,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>out = Mass(<span class="number">0.0</span>);
         <span class="kw">for </span>layer <span class="kw">in </span>chunks {
             <span class="kw">for </span>chunk <span class="kw">in </span>layer.into_iter().flatten() {
-                out += chunk.get_total_mass();
+                out += chunk.total_mass();
             }
         }
         out
@@ -2061,7 +2049,7 @@
 
     </span><span class="doccomment">/// Gets the chunk at the given index
     /// Errors if it is currently borrowed
-    </span><span class="kw">pub fn </span>get_chunk_by_chunk_ijk(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: ChunkIjkVector) -&gt; <span class="kw-2">&amp;</span>ElementGrid {
+    </span><span class="kw">pub fn </span>chunk_at_chunk_ijk(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: ChunkIjkVector) -&gt; <span class="kw-2">&amp;</span>ElementGrid {
         <span class="self">self</span>.chunks[coord.i]
             .get(coord.to_jk_vector())
             .as_ref()
@@ -2069,16 +2057,16 @@
     }
     <span class="doccomment">/// Gets the chunk at the given index mutably
     /// Errors if it is currently borrowed
-    </span><span class="kw">pub fn </span>get_chunk_by_chunk_ijk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, coord: ChunkIjkVector) -&gt; <span class="kw-2">&amp;mut </span>ElementGrid {
+    </span><span class="kw">pub fn </span>chunk_at_chunk_ijk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, coord: ChunkIjkVector) -&gt; <span class="kw-2">&amp;mut </span>ElementGrid {
         <span class="self">self</span>.chunks[coord.i]
             .get_mut(coord.to_jk_vector())
             .as_mut()
             .unwrap()
     }
 
-    <span class="kw">pub fn </span>get_element(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: IjkVector) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Element {
-        <span class="kw">let </span>chunk_idx = <span class="self">self</span>.get_coordinate_dir().cell_idx_to_chunk_idx(coord);
-        <span class="kw">let </span>chunk = <span class="self">self</span>.get_chunk_by_chunk_ijk(chunk_idx.<span class="number">0</span>);
+    <span class="kw">pub fn </span>element(<span class="kw-2">&amp;</span><span class="self">self</span>, coord: IjkVector) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Element {
+        <span class="kw">let </span>chunk_idx = <span class="self">self</span>.coordinate_dir().cell_idx_to_chunk_idx(coord);
+        <span class="kw">let </span>chunk = <span class="self">self</span>.chunk_at_chunk_ijk(chunk_idx.<span class="number">0</span>);
         chunk.get(chunk_idx.<span class="number">1</span>)
     }
 
@@ -2088,12 +2076,12 @@
         element: Box&lt;<span class="kw">dyn </span>Element&gt;,
         current_time: Clock,
     ) {
-        <span class="kw">let </span>chunk_idx = <span class="self">self</span>.get_coordinate_dir().cell_idx_to_chunk_idx(coord);
-        <span class="kw">let </span>chunk = <span class="self">self</span>.get_chunk_by_chunk_ijk_mut(chunk_idx.<span class="number">0</span>);
+        <span class="kw">let </span>chunk_idx = <span class="self">self</span>.coordinate_dir().cell_idx_to_chunk_idx(coord);
+        <span class="kw">let </span>chunk = <span class="self">self</span>.chunk_at_chunk_ijk_mut(chunk_idx.<span class="number">0</span>);
         chunk.set(chunk_idx.<span class="number">1</span>, element, current_time);
     }
 
-    <span class="kw">pub fn </span>get_coordinate_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CoordinateDir {
+    <span class="kw">pub fn </span>coordinate_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CoordinateDir {
         <span class="kw-2">&amp;</span><span class="self">self</span>.coords
     }
     <span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
@@ -2104,34 +2092,34 @@
     }
 
     <span class="doccomment">/// Get all textures
-    </span><span class="kw">pub fn </span>get_textures(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HashMap&lt;ChunkIjkVector, Textures&gt; {
+    </span><span class="kw">pub fn </span>textures(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HashMap&lt;ChunkIjkVector, Textures&gt; {
         <span class="comment">// Create a filter with all true
-        </span><span class="kw">let </span><span class="kw-2">mut </span>filter: Vec&lt;Grid&lt;bool&gt;&gt; = Vec::with_capacity(<span class="self">self</span>.coords.get_num_layers());
-        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.get_num_layers() {
-            <span class="kw">let </span>j_size = <span class="self">self</span>.coords.get_layer_num_concentric_chunks(i);
-            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(i);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>filter: Vec&lt;Grid&lt;bool&gt;&gt; = Vec::with_capacity(<span class="self">self</span>.coords.num_layers());
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.coords.num_layers() {
+            <span class="kw">let </span>j_size = <span class="self">self</span>.coords.layer_num_concentric_chunks(i);
+            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.layer_num_tangential_chunkss(i);
             <span class="kw">let </span>layer = Grid::new_fill(k_size, j_size, <span class="bool-val">true</span>);
             filter.push(layer);
         }
 
         <span class="comment">// Call the filtered version
-        </span><span class="self">self</span>.get_textures_filtered(<span class="kw-2">&amp;</span>filter)
+        </span><span class="self">self</span>.textures_filtered(<span class="kw-2">&amp;</span>filter)
     }
 
     <span class="doccomment">/// Where filter is true, get the textures
-    </span><span class="kw">fn </span>get_textures_filtered(<span class="kw-2">&amp;</span><span class="self">self</span>, filter: <span class="kw-2">&amp;</span>[Grid&lt;bool&gt;]) -&gt; HashMap&lt;ChunkIjkVector, Textures&gt; {
+    </span><span class="kw">fn </span>textures_filtered(<span class="kw-2">&amp;</span><span class="self">self</span>, filter: <span class="kw-2">&amp;</span>[Grid&lt;bool&gt;]) -&gt; HashMap&lt;ChunkIjkVector, Textures&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>out = HashMap::new();
         <span class="comment">// let (max_temp, min_temp) = self.get_max_min_temp();
         </span><span class="kw">for </span>(i, item) <span class="kw">in </span>filter.iter().enumerate() {
-            <span class="kw">let </span>j_size = <span class="self">self</span>.coords.get_layer_num_concentric_chunks(i);
-            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.get_layer_num_tangential_chunkss(i);
+            <span class="kw">let </span>j_size = <span class="self">self</span>.coords.layer_num_concentric_chunks(i);
+            <span class="kw">let </span>k_size = <span class="self">self</span>.coords.layer_num_tangential_chunkss(i);
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
                 <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..k_size {
                     <span class="kw">if </span>!item.get(JkVector { j, k }) {
                         <span class="kw">continue</span>;
                     }
                     <span class="kw">let </span>coord = ChunkIjkVector { i, j, k };
-                    <span class="kw">let </span>tex = <span class="self">self</span>.get_chunk_by_chunk_ijk(coord).get_texture();
+                    <span class="kw">let </span>tex = <span class="self">self</span>.chunk_at_chunk_ijk(coord).texture();
                     out.insert(coord, Textures { texture: <span class="prelude-val">Some</span>(tex) });
                 }
             }
@@ -2147,9 +2135,9 @@
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="doccomment">/// The default element grid directory for testing
-    </span><span class="kw">fn </span>get_element_grid_dir() -&gt; ElementGridDir {
+    </span><span class="kw">fn </span>element_grid_dir() -&gt; ElementGridDir {
         <span class="kw">let </span>coordinate_dir = Builder::new()
-            .cell_radius(Length(<span class="number">1.0</span>))
+            .cell_width(Length(<span class="number">1.0</span>))
             .num_layers(<span class="number">9</span>)
             .first_num_radial_lines(<span class="number">6</span>)
             .second_num_concentric_circles(<span class="number">3</span>)
@@ -2166,55 +2154,55 @@
         <span class="doccomment">/// Going to verify the chunk grid sizes before we start testing, and so we can know if they change
         </span><span class="attr">#[test]
         </span><span class="kw">fn </span>test_grid_sizes() {
-            <span class="kw">let </span>element_grid_dir = get_element_grid_dir();
+            <span class="kw">let </span>element_grid_dir = element_grid_dir();
             <span class="macro">assert_eq!</span>(element_grid_dir.len(), <span class="number">9</span>);
 
             <span class="comment">// Core
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">0</span>].get_height(), <span class="number">1</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">0</span>].get_width(), <span class="number">3</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">0</span>].height(), <span class="number">1</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">0</span>].width(), <span class="number">3</span>);
 
             <span class="comment">// Layer 1
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">1</span>].get_height(), <span class="number">1</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">1</span>].get_width(), <span class="number">3</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">1</span>].height(), <span class="number">1</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">1</span>].width(), <span class="number">3</span>);
 
             <span class="comment">// Layer 2
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">2</span>].get_height(), <span class="number">1</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">2</span>].get_width(), <span class="number">3</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">2</span>].height(), <span class="number">1</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">2</span>].width(), <span class="number">3</span>);
 
             <span class="comment">// Layer 3
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">3</span>].get_height(), <span class="number">3</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">3</span>].get_width(), <span class="number">3</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">3</span>].height(), <span class="number">3</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">3</span>].width(), <span class="number">3</span>);
 
             <span class="comment">// Layer 4
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">4</span>].get_height(), <span class="number">3</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">4</span>].get_width(), <span class="number">6</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">4</span>].height(), <span class="number">3</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">4</span>].width(), <span class="number">6</span>);
 
             <span class="comment">// Layer 5
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">5</span>].get_height(), <span class="number">3</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">5</span>].get_width(), <span class="number">12</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">5</span>].height(), <span class="number">3</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">5</span>].width(), <span class="number">12</span>);
 
             <span class="comment">// Layer 6
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">6</span>].get_height(), <span class="number">6</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">6</span>].get_width(), <span class="number">24</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">6</span>].height(), <span class="number">6</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">6</span>].width(), <span class="number">24</span>);
 
             <span class="comment">// Layer 7
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">7</span>].get_height(), <span class="number">12</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">7</span>].get_width(), <span class="number">48</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">7</span>].height(), <span class="number">12</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">7</span>].width(), <span class="number">48</span>);
 
             <span class="comment">// Layer 8
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">8</span>].get_height(), <span class="number">24</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">8</span>].get_width(), <span class="number">96</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">8</span>].height(), <span class="number">24</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">8</span>].width(), <span class="number">96</span>);
         }
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>test_get_chunk_neighbors() {
-            <span class="kw">let </span>element_grid_dir = get_element_grid_dir();
+            <span class="kw">let </span>element_grid_dir = element_grid_dir();
 
             <span class="comment">// Core
             // Has no chunks below it
             </span>{
                 <span class="kw">let </span>coord = ChunkIjkVector { i: <span class="number">0</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>};
-                <span class="kw">let </span>neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                <span class="kw">let </span>neighbors = element_grid_dir.chunk_neighbors(coord);
                 <span class="macro">assert_eq!</span>(neighbors.iter().count(), <span class="number">5</span>, <span class="string">"{:?}"</span>, neighbors);
                 <span class="macro">assert!</span>(neighbors.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">1</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>}));
                 <span class="macro">assert!</span>(neighbors.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">1</span>, j: <span class="number">0</span>, k: <span class="number">1 </span>}));
@@ -2226,7 +2214,7 @@
             <span class="comment">// Layer 1
             </span>{
                 <span class="kw">let </span>coord = ChunkIjkVector { i: <span class="number">1</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>};
-                <span class="kw">let </span>neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                <span class="kw">let </span>neighbors = element_grid_dir.chunk_neighbors(coord);
                 <span class="macro">assert_eq!</span>(neighbors.iter().count(), <span class="number">8</span>, <span class="string">"{:?}"</span>, neighbors);
                 <span class="macro">assert!</span>(neighbors.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">2</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>}));
                 <span class="macro">assert!</span>(neighbors.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">2</span>, j: <span class="number">0</span>, k: <span class="number">1 </span>}));
@@ -2241,7 +2229,7 @@
             <span class="comment">// Layer 2
             </span>{
                 <span class="kw">let </span>coord = ChunkIjkVector { i: <span class="number">2</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>};
-                <span class="kw">let </span>neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                <span class="kw">let </span>neighbors = element_grid_dir.chunk_neighbors(coord);
                 <span class="macro">assert_eq!</span>(neighbors.iter().count(), <span class="number">8</span>, <span class="string">"{:?}"</span>, neighbors);
                 <span class="macro">assert!</span>(neighbors.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">3</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>}));
                 <span class="macro">assert!</span>(neighbors.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">3</span>, j: <span class="number">0</span>, k: <span class="number">1 </span>}));
@@ -2256,7 +2244,7 @@
             <span class="comment">// Layer 3
             </span>{
                 <span class="kw">let </span>coord = ChunkIjkVector { i: <span class="number">3</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>};
-                <span class="kw">let </span>neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                <span class="kw">let </span>neighbors = element_grid_dir.chunk_neighbors(coord);
                 <span class="macro">assert_eq!</span>(neighbors.iter().count(), <span class="number">8</span>, <span class="string">"{:?}"</span>, neighbors);
                 <span class="macro">assert!</span>(neighbors.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">3</span>, j: <span class="number">1</span>, k: <span class="number">0 </span>}));
                 <span class="macro">assert!</span>(neighbors.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">3</span>, j: <span class="number">1</span>, k: <span class="number">1 </span>}));
@@ -2272,7 +2260,7 @@
             // This is the first special one, because it is the first layer with fewer chunks below it
             </span>{
                 <span class="kw">let </span>coord = ChunkIjkVector { i: <span class="number">4</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>};
-                <span class="kw">let </span>neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                <span class="kw">let </span>neighbors = element_grid_dir.chunk_neighbors(coord);
                 <span class="macro">assert_eq!</span>(neighbors.iter().count(), <span class="number">7</span>, <span class="string">"{:?}"</span>, neighbors);
                 <span class="macro">assert!</span>(neighbors.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">4</span>, j: <span class="number">1</span>, k: <span class="number">1 </span>}));
                 <span class="macro">assert!</span>(neighbors.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">4</span>, j: <span class="number">1</span>, k: <span class="number">0 </span>}));
@@ -2286,7 +2274,7 @@
             <span class="comment">// Layer 5,
             </span>{
                 <span class="kw">let </span>coord = ChunkIjkVector { i: <span class="number">5</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>};
-                <span class="kw">let </span>neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                <span class="kw">let </span>neighbors = element_grid_dir.chunk_neighbors(coord);
                 <span class="macro">assert_eq!</span>(neighbors.iter().count(), <span class="number">7</span>, <span class="string">"{:?}"</span>, neighbors);
                 <span class="macro">assert!</span>(neighbors.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">4</span>, j: <span class="number">2</span>, k: <span class="number">5 </span>}));
                 <span class="macro">assert!</span>(neighbors.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">4</span>, j: <span class="number">2</span>, k: <span class="number">0 </span>}));
@@ -2300,7 +2288,7 @@
             <span class="comment">// Layer 6
             </span>{
                 <span class="kw">let </span>coord = ChunkIjkVector { i: <span class="number">6</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>};
-                <span class="kw">let </span>neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                <span class="kw">let </span>neighbors = element_grid_dir.chunk_neighbors(coord);
                 <span class="macro">assert_eq!</span>(neighbors.iter().count(), <span class="number">7</span>, <span class="string">"{:?}"</span>, neighbors);
                 <span class="macro">assert!</span>(neighbors.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">5</span>, j: <span class="number">2</span>, k: <span class="number">11 </span>}));
                 <span class="macro">assert!</span>(neighbors.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">5</span>, j: <span class="number">2</span>, k: <span class="number">0 </span>}));
@@ -2319,47 +2307,47 @@
         <span class="doccomment">/// Going to verify the chunk grid sizes before we start testing, and so we can know if they change
         </span><span class="attr">#[test]
         </span><span class="kw">fn </span>test_grid_sizes() {
-            <span class="kw">let </span>element_grid_dir = get_element_grid_dir();
+            <span class="kw">let </span>element_grid_dir = element_grid_dir();
             <span class="macro">assert_eq!</span>(element_grid_dir.len(), <span class="number">9</span>);
 
             <span class="comment">// Core
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">0</span>].get_height(), <span class="number">1</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">0</span>].get_width(), <span class="number">3</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">0</span>].height(), <span class="number">1</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">0</span>].width(), <span class="number">3</span>);
 
             <span class="comment">// Layer 1
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">1</span>].get_height(), <span class="number">1</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">1</span>].get_width(), <span class="number">3</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">1</span>].height(), <span class="number">1</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">1</span>].width(), <span class="number">3</span>);
 
             <span class="comment">// Layer 2
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">2</span>].get_height(), <span class="number">1</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">2</span>].get_width(), <span class="number">3</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">2</span>].height(), <span class="number">1</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">2</span>].width(), <span class="number">3</span>);
 
             <span class="comment">// Layer 3
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">3</span>].get_height(), <span class="number">3</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">3</span>].get_width(), <span class="number">3</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">3</span>].height(), <span class="number">3</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">3</span>].width(), <span class="number">3</span>);
 
             <span class="comment">// Layer 4
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">4</span>].get_height(), <span class="number">3</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">4</span>].get_width(), <span class="number">6</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">4</span>].height(), <span class="number">3</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">4</span>].width(), <span class="number">6</span>);
 
             <span class="comment">// Layer 5
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">5</span>].get_height(), <span class="number">3</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">5</span>].get_width(), <span class="number">12</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">5</span>].height(), <span class="number">3</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">5</span>].width(), <span class="number">12</span>);
 
             <span class="comment">// Layer 6
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">6</span>].get_height(), <span class="number">6</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">6</span>].get_width(), <span class="number">24</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">6</span>].height(), <span class="number">6</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">6</span>].width(), <span class="number">24</span>);
 
             <span class="comment">// Layer 7
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">7</span>].get_height(), <span class="number">12</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">7</span>].get_width(), <span class="number">48</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">7</span>].height(), <span class="number">12</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">7</span>].width(), <span class="number">48</span>);
 
             <span class="comment">// Layer 8
-            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">8</span>].get_height(), <span class="number">24</span>);
-            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">8</span>].get_width(), <span class="number">96</span>);
+            </span><span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">8</span>].height(), <span class="number">24</span>);
+            <span class="macro">assert_eq!</span>(element_grid_dir.chunks[<span class="number">8</span>].width(), <span class="number">96</span>);
         }
 
-        <span class="kw">fn </span>get_next_targets(this: <span class="kw-2">&amp;mut </span>ElementGridDir) -&gt; HashSet&lt;ChunkIjkVector&gt; {
+        <span class="kw">fn </span>next_targets(this: <span class="kw-2">&amp;mut </span>ElementGridDir) -&gt; HashSet&lt;ChunkIjkVector&gt; {
             <span class="kw">let </span>out1 = this.process_targets.standard_convolution[this.process_count % <span class="number">9</span>].clone();
             <span class="kw">let </span>out2 =
                 this.process_targets.has_single_bottom_neighbor[this.process_count % <span class="number">9</span>].clone();
@@ -2372,17 +2360,17 @@
         <span class="doccomment">/// Test that every chunk is targetted exactly once in 9 iterations
         </span><span class="attr">#[test]
         </span><span class="kw">fn </span>test_get_next_targets_full_coverage() {
-            <span class="kw">let </span><span class="kw-2">mut </span>element_grid_dir = get_element_grid_dir();
+            <span class="kw">let </span><span class="kw-2">mut </span>element_grid_dir = element_grid_dir();
             <span class="kw">let </span><span class="kw-2">mut </span>all_targets = HashSet::new();
             <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">9 </span>{
-                <span class="kw">let </span>targets = get_next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
+                <span class="kw">let </span>targets = next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
                 all_targets.extend(targets);
             }
             <span class="comment">// Just to display what is missing
             </span><span class="kw">let </span><span class="kw-2">mut </span>full_coverage = HashSet::new();
-            <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..element_grid_dir.coords.get_num_layers() {
-                <span class="kw">let </span>j_size = element_grid_dir.coords.get_layer_num_concentric_chunks(i);
-                <span class="kw">let </span>k_size = element_grid_dir.coords.get_layer_num_tangential_chunkss(i);
+            <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..element_grid_dir.coords.num_layers() {
+                <span class="kw">let </span>j_size = element_grid_dir.coords.layer_num_concentric_chunks(i);
+                <span class="kw">let </span>k_size = element_grid_dir.coords.layer_num_tangential_chunkss(i);
                 <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_size {
                     <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..k_size {
                         full_coverage.insert(ChunkIjkVector { i, j, k });
@@ -2391,7 +2379,7 @@
             }
             <span class="macro">assert_eq!</span>(
                 all_targets.len(),
-                element_grid_dir.coords.get_num_chunks(),
+                element_grid_dir.coords.num_chunks(),
                 <span class="string">"{:?}"</span>,
                 full_coverage.difference(<span class="kw-2">&amp;</span>all_targets)
             );
@@ -2400,10 +2388,10 @@
         <span class="doccomment">/// Test that no chunk is targetted twice in 9 iterations
         </span><span class="attr">#[test]
         </span><span class="kw">fn </span>test_get_next_targets_no_duplicates() {
-            <span class="kw">let </span><span class="kw-2">mut </span>element_grid_dir = get_element_grid_dir();
+            <span class="kw">let </span><span class="kw-2">mut </span>element_grid_dir = element_grid_dir();
             <span class="kw">let </span><span class="kw-2">mut </span>all_targets = HashSet::new();
             <span class="kw">for </span>process_count <span class="kw">in </span><span class="number">0</span>..<span class="number">9 </span>{
-                <span class="kw">let </span>targets = get_next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
+                <span class="kw">let </span>targets = next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
                 <span class="kw">for </span>t <span class="kw">in </span><span class="kw-2">&amp;</span>targets {
                     <span class="macro">assert!</span>(
                         !all_targets.contains(t),
@@ -2418,8 +2406,8 @@
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>test_standard_convolution_packaging() {
-            <span class="kw">let </span><span class="kw-2">mut </span>element_grid_dir = get_element_grid_dir();
-            <span class="kw">let </span>process_targets = element_grid_dir.get_process_targets();
+            <span class="kw">let </span><span class="kw-2">mut </span>element_grid_dir = element_grid_dir();
+            <span class="kw">let </span>process_targets = element_grid_dir.process_targets();
             <span class="kw">for </span>frame_nb <span class="kw">in </span><span class="number">0</span>..<span class="number">9 </span>{
                 <span class="kw">let </span>res = element_grid_dir
                     .package_convolutions(process_targets.standard_convolution[frame_nb].<span class="number">0</span>.clone());
@@ -2440,8 +2428,8 @@
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>test_has_multi_bottom_neighbor_packaging() {
-            <span class="kw">let </span><span class="kw-2">mut </span>element_grid_dir = get_element_grid_dir();
-            <span class="kw">let </span>process_targets = element_grid_dir.get_process_targets();
+            <span class="kw">let </span><span class="kw-2">mut </span>element_grid_dir = element_grid_dir();
+            <span class="kw">let </span>process_targets = element_grid_dir.process_targets();
             <span class="kw">for </span>frame_nb <span class="kw">in </span><span class="number">0</span>..<span class="number">9 </span>{
                 <span class="kw">let </span>res = element_grid_dir.package_convolutions(
                     process_targets.has_multi_bottom_neighbor[frame_nb]
@@ -2466,8 +2454,8 @@
         <span class="doccomment">/// Not really necessary since this is done in sequence but good to have a test anyway
         </span><span class="attr">#[test]
         </span><span class="kw">fn </span>test_has_single_bottom_neighbor_packaging() {
-            <span class="kw">let </span><span class="kw-2">mut </span>element_grid_dir = get_element_grid_dir();
-            <span class="kw">let </span>process_targets = element_grid_dir.get_process_targets();
+            <span class="kw">let </span><span class="kw-2">mut </span>element_grid_dir = element_grid_dir();
+            <span class="kw">let </span>process_targets = element_grid_dir.process_targets();
             <span class="kw">for </span>frame_nb <span class="kw">in </span><span class="number">0</span>..<span class="number">9 </span>{
                 <span class="kw">for </span>chunk_coord <span class="kw">in </span>process_targets.has_single_bottom_neighbor[frame_nb]
                     .<span class="number">0
@@ -2487,8 +2475,8 @@
         <span class="attr">#[test]
         #[warn(unused_variables)]
         </span><span class="kw">fn </span>test_get_next_targets_manual_j_dim() {
-            <span class="kw">let </span><span class="kw-2">mut </span>element_grid_dir = get_element_grid_dir();
-            <span class="kw">let </span>all_targets_1 = get_next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
+            <span class="kw">let </span><span class="kw-2">mut </span>element_grid_dir = element_grid_dir();
+            <span class="kw">let </span>all_targets_1 = next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
 
             <span class="comment">// For every j step by 3 we should
             </span><span class="macro">assert!</span>(all_targets_1.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">0</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>}));
@@ -2501,9 +2489,9 @@
             <span class="macro">assert!</span>(all_targets_1.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">8</span>, j: <span class="number">6</span>, k: <span class="number">0 </span>}));
             <span class="macro">assert!</span>(all_targets_1.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">8</span>, j: <span class="number">9</span>, k: <span class="number">0 </span>}));
 
-            get_next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
-            get_next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
-            <span class="kw">let </span>all_targets_2 = get_next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
+            next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
+            next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
+            <span class="kw">let </span>all_targets_2 = next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
 
             <span class="comment">// assert!(all_targets_2.contains(&amp;ChunkIjkVector { i: 1, j: 0, k: 0 }));
             // assert!(all_targets_2.contains(&amp;ChunkIjkVector { i: 4, j: 0, k: 0 }));
@@ -2515,9 +2503,9 @@
             <span class="macro">assert!</span>(all_targets_2.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">8</span>, j: <span class="number">7</span>, k: <span class="number">0 </span>}));
             <span class="macro">assert!</span>(all_targets_2.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">8</span>, j: <span class="number">10</span>, k: <span class="number">0 </span>}));
 
-            get_next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
-            get_next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
-            <span class="kw">let </span>all_targets_3 = get_next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
+            next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
+            next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
+            <span class="kw">let </span>all_targets_3 = next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
 
             <span class="comment">// assert!(all_targets_3.contains(&amp;ChunkIjkVector { i: 2, j: 0, k: 0 }));
             // assert!(all_targets_3.contains(&amp;ChunkIjkVector { i: 5, j: 0, k: 0 }));
@@ -2532,8 +2520,8 @@
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>test_get_next_targets_manual_k_dim() {
-            <span class="kw">let </span><span class="kw-2">mut </span>element_grid_dir = get_element_grid_dir();
-            <span class="kw">let </span>all_targets_1 = get_next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
+            <span class="kw">let </span><span class="kw-2">mut </span>element_grid_dir = element_grid_dir();
+            <span class="kw">let </span>all_targets_1 = next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
 
             <span class="comment">// Same as first test
             </span><span class="macro">assert!</span>(all_targets_1.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">0</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>}));
@@ -2541,7 +2529,7 @@
             <span class="macro">assert!</span>(all_targets_1.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">6</span>, j: <span class="number">3</span>, k: <span class="number">0 </span>}));
             <span class="macro">assert!</span>(all_targets_1.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">6</span>, j: <span class="number">3</span>, k: <span class="number">3 </span>}));
 
-            <span class="kw">let </span>all_targets_2 = get_next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
+            <span class="kw">let </span>all_targets_2 = next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
 
             <span class="comment">// Layers that only have one chunk should not repeat
             </span><span class="macro">assert!</span>(!all_targets_2.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">0</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>}));
@@ -2549,7 +2537,7 @@
             <span class="macro">assert!</span>(all_targets_2.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">6</span>, j: <span class="number">3</span>, k: <span class="number">1 </span>}));
             <span class="macro">assert!</span>(all_targets_2.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">6</span>, j: <span class="number">3</span>, k: <span class="number">4 </span>}));
 
-            <span class="kw">let </span>all_targets_3 = get_next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
+            <span class="kw">let </span>all_targets_3 = next_targets(<span class="kw-2">&amp;mut </span>element_grid_dir);
 
             <span class="macro">assert!</span>(all_targets_3.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">6</span>, j: <span class="number">3</span>, k: <span class="number">2 </span>}));
             <span class="macro">assert!</span>(all_targets_3.contains(<span class="kw-2">&amp;</span>ChunkIjkVector { i: <span class="number">6</span>, j: <span class="number">3</span>, k: <span class="number">5 </span>}));

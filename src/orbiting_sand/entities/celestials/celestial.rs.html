@@ -423,11 +423,6 @@
 <a href="#423" id="423">423</a>
 <a href="#424" id="424">424</a>
 <a href="#425" id="425">425</a>
-<a href="#426" id="426">426</a>
-<a href="#427" id="427">427</a>
-<a href="#428" id="428">428</a>
-<a href="#429" id="429">429</a>
-<a href="#430" id="430">430</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Celestial entities and their data
 //! A celestial is a large body in space, such as a planet or star
 </span><span class="attr">#![warn(missing_docs)]
@@ -531,24 +526,24 @@
     /// for maximum performance
     </span><span class="kw">pub fn </span>process(<span class="kw-2">&amp;mut </span><span class="self">self</span>, current_time: Clock) -&gt; HashMap&lt;ChunkIjkVector, Textures&gt; {
         <span class="self">self</span>.element_grid_dir.process(current_time);
-        <span class="self">self</span>.element_grid_dir.get_updated_target_textures()
+        <span class="self">self</span>.element_grid_dir.updated_target_textures()
     }
 
     <span class="doccomment">/// Something to call every frame
     /// This is the same as process, but it processes the entire grid
     </span><span class="kw">pub fn </span>process_full(<span class="kw-2">&amp;mut </span><span class="self">self</span>, current_time: Clock) -&gt; HashMap&lt;ChunkIjkVector, Textures&gt; {
         <span class="self">self</span>.element_grid_dir.process_full(current_time);
-        <span class="self">self</span>.element_grid_dir.get_textures()
+        <span class="self">self</span>.element_grid_dir.textures()
     }
 
     <span class="doccomment">/// Retrieves the element directory
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>get_element_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ElementGridDir {
+    </span><span class="kw">pub fn </span>element_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ElementGridDir {
         <span class="kw-2">&amp;</span><span class="self">self</span>.element_grid_dir
     }
 
     <span class="doccomment">/// Retrieves the element directory mutably
-    </span><span class="kw">pub fn </span>get_element_dir_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ElementGridDir {
+    </span><span class="kw">pub fn </span>element_dir_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ElementGridDir {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.element_grid_dir
     }
 }
@@ -621,16 +616,16 @@
         </span><span class="kw">let </span><span class="kw-2">mut </span>chunks = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>wireframes = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>outlines = Vec::new();
-        <span class="kw">let </span>element_dir = <span class="self">self</span>.celestial_data.get_element_dir();
-        <span class="kw">let </span>coordinate_dir = element_dir.get_coordinate_dir();
-        <span class="kw">let </span><span class="kw-2">mut </span>textures = element_dir.get_textures();
-        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..coordinate_dir.get_num_layers() {
-            <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..coordinate_dir.get_layer_num_concentric_chunks(i) {
-                <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..coordinate_dir.get_layer_num_tangential_chunkss(i) {
+        <span class="kw">let </span>element_dir = <span class="self">self</span>.celestial_data.element_dir();
+        <span class="kw">let </span>coordinate_dir = element_dir.coordinate_dir();
+        <span class="kw">let </span><span class="kw-2">mut </span>textures = element_dir.textures();
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..coordinate_dir.num_layers() {
+            <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..coordinate_dir.layer_num_concentric_chunks(i) {
+                <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..coordinate_dir.layer_num_tangential_chunkss(i) {
                     <span class="kw">let </span>chunk_ijk = ChunkIjkVector::new(i, j, k);
                     <span class="kw">let </span>celestial_chunk_id = ChunkIdk(chunk_ijk);
                     <span class="kw">let </span>mesh = coordinate_dir
-                        .get_chunk_at_idx(chunk_ijk)
+                        .chunk_at_idx(chunk_ijk)
                         .calc_chunk_meshdata(VertexSettings::default());
                     <span class="kw">let </span>mesh_handle = mesh.load_bevy_mesh(meshes);
 
@@ -643,14 +638,12 @@
                         <span class="number">1
                     </span>};
                     <span class="kw">let </span>wireframe = coordinate_dir
-                        .get_chunk_at_idx(chunk_ijk)
+                        .chunk_at_idx(chunk_ijk)
                         .calc_chunk_triangle_wireframe(VertexSettings {
                             lod,
                             mode: VertexMode::Grid,
                         });
-                    <span class="kw">let </span>outline = coordinate_dir
-                        .get_chunk_at_idx(chunk_ijk)
-                        .calc_chunk_outline();
+                    <span class="kw">let </span>outline = coordinate_dir.chunk_at_idx(chunk_ijk).calc_chunk_outline();
 
                     <span class="kw">let </span>textures = textures
                         .remove(<span class="kw-2">&amp;</span>chunk_ijk)
@@ -731,11 +724,8 @@
                 .spawn((
                     <span class="comment">// Physics
                     </span>Name::new(<span class="self">self</span>.name.clone()),
-                    <span class="self">self</span>.celestial_data
-                        .get_element_dir()
-                        .get_coordinate_dir()
-                        .get_radius(),
-                    <span class="self">self</span>.celestial_data.get_element_dir().get_total_mass(),
+                    <span class="self">self</span>.celestial_data.element_dir().coordinate_dir().radius(),
+                    <span class="self">self</span>.celestial_data.element_dir().total_mass(),
                     <span class="self">self</span>.velocity,
                     <span class="self">self</span>.celestial_data,
                     <span class="self">self</span>.celestial_idx,
@@ -813,7 +803,7 @@
 
             <span class="comment">// Update the mass of the celestial after processing, which
             // can affect its gravitational pull
-            </span>mass.<span class="number">0 </span>= celestial.get_element_dir().get_total_mass().<span class="number">0</span>;
+            </span>mass.<span class="number">0 </span>= celestial.element_dir().total_mass().<span class="number">0</span>;
 
             <span class="comment">// Update the falling sand materials
             </span><span class="kw">for </span>(parent, material_handle, chunk_ijk) <span class="kw">in </span><span class="kw-2">&amp;mut </span>falling_sand_materials {

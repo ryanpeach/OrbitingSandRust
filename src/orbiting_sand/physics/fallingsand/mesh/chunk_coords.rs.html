@@ -1505,7 +1505,7 @@
 /// It doesn't split itself in either the tangential or radial directions.
 </span><span class="attr">#[derive(Debug, Clone, Copy, Default)]
 </span><span class="kw">pub struct </span>ChunkCoords {
-    width: Length,
+    cell_width: Length,
     chunk_idx: ChunkIjkVector,
     start_concentric_circle_layer_relative: usize,
     start_concentric_circle_absolute: usize,
@@ -1548,9 +1548,9 @@
     }
 
     <span class="doccomment">/// Set the cell radius
-    </span><span class="kw">pub fn </span>cell_radius(<span class="kw-2">mut </span><span class="self">self</span>, cell_radius: Length) -&gt; PartialLayerChunkCoordsBuilder {
-        <span class="macro">debug_assert!</span>(cell_radius.<span class="number">0 </span>&gt; <span class="number">0.0</span>);
-        <span class="self">self</span>.cell_width = cell_radius;
+    </span><span class="kw">pub fn </span>cell_width(<span class="kw-2">mut </span><span class="self">self</span>, cell_width: Length) -&gt; PartialLayerChunkCoordsBuilder {
+        <span class="macro">debug_assert!</span>(cell_width.<span class="number">0 </span>&gt; <span class="number">0.0</span>);
+        <span class="self">self</span>.cell_width = cell_width;
         <span class="self">self
     </span>}
 
@@ -1614,7 +1614,7 @@
         <span class="macro">debug_assert_ne!</span>(<span class="self">self</span>.layer_num_radial_lines, <span class="number">0</span>);
         <span class="macro">debug_assert_ne!</span>(<span class="self">self</span>.end_radial_line, <span class="number">0</span>);
         ChunkCoords {
-            width: <span class="self">self</span>.cell_width,
+            cell_width: <span class="self">self</span>.cell_width,
             start_concentric_circle_layer_relative: <span class="self">self</span>.start_concentric_circle_layer_relative,
             start_concentric_circle_absolute: <span class="self">self</span>.start_concentric_circle_absolute,
             start_radial_line: <span class="self">self</span>.start_radial_line,
@@ -1628,15 +1628,15 @@
 
 <span class="kw">impl </span>ChunkCoords {
     <span class="doccomment">/// Get the vertex positions for the chunk
-    </span><span class="kw">pub fn </span>get_positions(<span class="kw-2">&amp;</span><span class="self">self</span>, settings: VertexSettings) -&gt; Vec&lt;Vec2&gt; {
+    </span><span class="kw">pub fn </span>positions(<span class="kw-2">&amp;</span><span class="self">self</span>, settings: VertexSettings) -&gt; Vec&lt;Vec2&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>vertexes: Vec&lt;Vec2&gt; = Vec::new();
 
         <span class="kw">let </span>start_concentric_circle = <span class="self">self</span>.start_concentric_circle_layer_relative;
 
-        <span class="kw">let </span>starting_r = <span class="self">self</span>.get_start_radius();
-        <span class="kw">let </span>ending_r = <span class="self">self</span>.get_end_radius();
+        <span class="kw">let </span>starting_r = <span class="self">self</span>.start_radius();
+        <span class="kw">let </span>ending_r = <span class="self">self</span>.end_radius();
         <span class="kw">let </span>circle_separation_distance =
-            (ending_r - starting_r) / <span class="self">self</span>.get_num_concentric_circles() <span class="kw">as </span>f32;
+            (ending_r - starting_r) / <span class="self">self</span>.num_concentric_circles() <span class="kw">as </span>f32;
         <span class="kw">let </span>theta = (-<span class="number">2.0 </span>* PI) / <span class="self">self</span>.layer_num_radial_lines <span class="kw">as </span>f32;
 
         <span class="comment">// Create the concentric range with the appropriate level of detail and test it has the right bounds
@@ -1644,22 +1644,22 @@
         <span class="kw">let </span><span class="kw-2">mut </span>concentric_range: Vec&lt;usize&gt; = <span class="kw">match </span>settings.mode {
             VertexMode::Lines =&gt; <span class="macro">vec!</span>[
                 start_concentric_circle,
-                <span class="self">self</span>.get_num_concentric_circles() + start_concentric_circle,
+                <span class="self">self</span>.num_concentric_circles() + start_concentric_circle,
             ],
             VertexMode::Grid =&gt; (start_concentric
-                ..(<span class="self">self</span>.get_num_concentric_circles() + start_concentric + <span class="number">1</span>))
+                ..(<span class="self">self</span>.num_concentric_circles() + start_concentric + <span class="number">1</span>))
                 .step_by(settings.lod)
                 .collect(),
         };
         <span class="macro">debug_assert_eq!</span>(concentric_range[<span class="number">0</span>], start_concentric);
         <span class="kw">if </span>concentric_range[concentric_range.len() - <span class="number">1</span>]
-            != <span class="self">self</span>.get_num_concentric_circles() + start_concentric
+            != <span class="self">self</span>.num_concentric_circles() + start_concentric
         {
-            concentric_range.push(<span class="self">self</span>.get_num_concentric_circles() + start_concentric);
+            concentric_range.push(<span class="self">self</span>.num_concentric_circles() + start_concentric);
         }
         <span class="macro">debug_assert_eq!</span>(
             concentric_range[concentric_range.len() - <span class="number">1</span>],
-            <span class="self">self</span>.get_num_concentric_circles() + start_concentric
+            <span class="self">self</span>.num_concentric_circles() + start_concentric
         );
 
         <span class="comment">// Create the radial range with the appropriate level of detail and test it has the right bounds
@@ -1698,21 +1698,21 @@
     }
 
     <span class="doccomment">/// Similar to get_circle_vertexes, but the j index just iterates on the 0th and last element
-    </span><span class="kw">pub fn </span>get_outline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Vec2&gt; {
+    </span><span class="kw">pub fn </span>outline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Vec2&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>vertexes: Vec&lt;Vec2&gt; = Vec::new();
 
         <span class="kw">let </span>start_concentric_circle = <span class="self">self</span>.start_concentric_circle_layer_relative;
         <span class="kw">let </span>start_radial_line = <span class="self">self</span>.start_radial_line;
 
-        <span class="kw">let </span>starting_r = <span class="self">self</span>.get_start_radius();
-        <span class="kw">let </span>ending_r = <span class="self">self</span>.get_end_radius();
+        <span class="kw">let </span>starting_r = <span class="self">self</span>.start_radius();
+        <span class="kw">let </span>ending_r = <span class="self">self</span>.end_radius();
         <span class="kw">let </span>circle_separation_distance =
-            (ending_r - starting_r) / <span class="self">self</span>.get_num_concentric_circles() <span class="kw">as </span>f32;
+            (ending_r - starting_r) / <span class="self">self</span>.num_concentric_circles() <span class="kw">as </span>f32;
         <span class="kw">let </span>theta = (-<span class="number">2.0 </span>* PI) / <span class="self">self</span>.layer_num_radial_lines <span class="kw">as </span>f32;
 
         <span class="kw">for </span>j <span class="kw">in </span>[
             start_concentric_circle,
-            <span class="self">self</span>.get_num_concentric_circles() + start_concentric_circle,
+            <span class="self">self</span>.num_concentric_circles() + start_concentric_circle,
         ] {
             <span class="kw">let </span>diff = (j - start_concentric_circle) <span class="kw">as </span>f32 * circle_separation_distance;
 
@@ -1745,8 +1745,8 @@
     }
 
     <span class="doccomment">/// Gets the min and max positions in raw x, y of the chunk
-    </span><span class="kw">pub fn </span>get_bounding_box(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rect {
-        <span class="kw">let </span>outline = <span class="self">self</span>.get_outline();
+    </span><span class="kw">pub fn </span>bounding_box(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rect {
+        <span class="kw">let </span>outline = <span class="self">self</span>.outline();
         <span class="kw">let </span>all_x = outline.iter().map(|v| v.x);
         <span class="kw">let </span>all_y = outline.iter().map(|v| v.y);
         <span class="kw">let </span>min_x = all_x.clone().fold(f32::INFINITY, f32::min);
@@ -1761,29 +1761,29 @@
     /// If you set skip to 1, you will get the full resolution
     /// If you set skip to 2, you will get half the resolution
     /// ...
-    </span><span class="kw">pub fn </span>get_uvs(<span class="kw-2">&amp;</span><span class="self">self</span>, settings: VertexSettings) -&gt; Vec&lt;Vec2&gt; {
+    </span><span class="kw">pub fn </span>uvs(<span class="kw-2">&amp;</span><span class="self">self</span>, settings: VertexSettings) -&gt; Vec&lt;Vec2&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>vertexes: Vec&lt;Vec2&gt; = Vec::new();
 
         <span class="kw">let </span><span class="kw-2">mut </span>concentric_range: Vec&lt;usize&gt; = <span class="kw">match </span>settings.mode {
-            VertexMode::Lines =&gt; <span class="macro">vec!</span>[<span class="number">0</span>, <span class="self">self</span>.get_num_concentric_circles()],
-            VertexMode::Grid =&gt; (<span class="number">0</span>..(<span class="self">self</span>.get_num_concentric_circles() + <span class="number">1</span>))
+            VertexMode::Lines =&gt; <span class="macro">vec!</span>[<span class="number">0</span>, <span class="self">self</span>.num_concentric_circles()],
+            VertexMode::Grid =&gt; (<span class="number">0</span>..(<span class="self">self</span>.num_concentric_circles() + <span class="number">1</span>))
                 .step_by(settings.lod)
                 .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
         };
         <span class="macro">debug_assert_eq!</span>(concentric_range[<span class="number">0</span>], <span class="number">0</span>);
-        <span class="kw">if </span>concentric_range[concentric_range.len() - <span class="number">1</span>] != <span class="self">self</span>.get_num_concentric_circles() {
-            concentric_range.push(<span class="self">self</span>.get_num_concentric_circles());
+        <span class="kw">if </span>concentric_range[concentric_range.len() - <span class="number">1</span>] != <span class="self">self</span>.num_concentric_circles() {
+            concentric_range.push(<span class="self">self</span>.num_concentric_circles());
         }
         <span class="macro">debug_assert_eq!</span>(
             concentric_range[concentric_range.len() - <span class="number">1</span>],
-            <span class="self">self</span>.get_num_concentric_circles()
+            <span class="self">self</span>.num_concentric_circles()
         );
 
         <span class="kw">for </span>j <span class="kw">in </span>concentric_range {
-            <span class="kw">for </span>k <span class="kw">in </span>(<span class="number">0</span>..(<span class="self">self</span>.get_num_radial_lines() + <span class="number">1</span>)).step_by(settings.lod) {
+            <span class="kw">for </span>k <span class="kw">in </span>(<span class="number">0</span>..(<span class="self">self</span>.num_radial_lines() + <span class="number">1</span>)).step_by(settings.lod) {
                 <span class="kw">let </span>new_vec = Vec2::new(
-                    k <span class="kw">as </span>f32 / <span class="self">self</span>.get_num_radial_lines() <span class="kw">as </span>f32,
-                    j <span class="kw">as </span>f32 / <span class="self">self</span>.get_num_concentric_circles() <span class="kw">as </span>f32,
+                    k <span class="kw">as </span>f32 / <span class="self">self</span>.num_radial_lines() <span class="kw">as </span>f32,
+                    j <span class="kw">as </span>f32 / <span class="self">self</span>.num_concentric_circles() <span class="kw">as </span>f32,
                 );
                 vertexes.push(new_vec);
             }
@@ -1793,13 +1793,13 @@
     }
 
     <span class="doccomment">/// Creates the indices for the vertexes
-    </span><span class="kw">pub fn </span>get_indices(<span class="kw-2">&amp;</span><span class="self">self</span>, settings: VertexSettings) -&gt; Vec&lt;u32&gt; {
+    </span><span class="kw">pub fn </span>indices(<span class="kw-2">&amp;</span><span class="self">self</span>, settings: VertexSettings) -&gt; Vec&lt;u32&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>j_count = <span class="kw">match </span>settings.mode {
             VertexMode::Lines =&gt; <span class="number">2</span>,
-            VertexMode::Grid =&gt; <span class="self">self</span>.get_num_concentric_circles() / settings.lod + <span class="number">1</span>,
+            VertexMode::Grid =&gt; <span class="self">self</span>.num_concentric_circles() / settings.lod + <span class="number">1</span>,
         };
         j_count = j_count.max(<span class="number">2</span>);
-        <span class="kw">let </span>k_iter = (<span class="number">0</span>..(<span class="self">self</span>.get_num_radial_lines() + <span class="number">1</span>)).step_by(settings.lod);
+        <span class="kw">let </span>k_iter = (<span class="number">0</span>..(<span class="self">self</span>.num_radial_lines() + <span class="number">1</span>)).step_by(settings.lod);
         <span class="kw">let </span>k_count = k_iter.len();
         <span class="kw">let </span><span class="kw-2">mut </span>indices = Vec::with_capacity(j_count * k_count * <span class="number">6</span>);
         <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..j_count - <span class="number">1 </span>{
@@ -1829,113 +1829,113 @@
 <span class="kw">impl </span>ChunkCoords {
     <span class="doccomment">/// Get the total number of cells in the chunk
     </span><span class="kw">pub fn </span>total_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="self">self</span>.get_num_radial_lines() * <span class="self">self</span>.get_num_concentric_circles()
+        <span class="self">self</span>.num_radial_lines() * <span class="self">self</span>.num_concentric_circles()
     }
     <span class="doccomment">/// Get the width of a cell (which is a square in this case)
-    </span><span class="kw">pub fn </span>get_cell_width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        <span class="self">self</span>.width
+    </span><span class="kw">pub fn </span>cell_width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="self">self</span>.cell_width
     }
     <span class="doccomment">/// Get the radius of the smallest concentric circle
-    </span><span class="kw">pub fn </span>get_start_radius(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
-        <span class="self">self</span>.start_concentric_circle_absolute <span class="kw">as </span>f32 * <span class="self">self</span>.width.<span class="number">0
+    </span><span class="kw">pub fn </span>start_radius(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
+        <span class="self">self</span>.start_concentric_circle_absolute <span class="kw">as </span>f32 * <span class="self">self</span>.cell_width.<span class="number">0
     </span>}
     <span class="doccomment">/// Get the radius of the largest concentric circle
-    </span><span class="kw">pub fn </span>get_end_radius(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
-        <span class="self">self</span>.get_start_radius() + <span class="self">self</span>.width.<span class="number">0 </span>* (<span class="self">self</span>.num_concentric_circles <span class="kw">as </span>f32)
+    </span><span class="kw">pub fn </span>end_radius(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
+        <span class="self">self</span>.start_radius() + <span class="self">self</span>.cell_width.<span class="number">0 </span>* (<span class="self">self</span>.num_concentric_circles <span class="kw">as </span>f32)
     }
     <span class="doccomment">/// Get the number of radial lines in the chunk
     /// These go around the circle counter clockwise
-    </span><span class="kw">pub fn </span>get_num_radial_lines(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub fn </span>num_radial_lines(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.end_radial_line - <span class="self">self</span>.start_radial_line
     }
     <span class="doccomment">/// Get the number of concentric circles in the chunk
     /// These go from the center of the circle to the edge
-    </span><span class="kw">pub fn </span>get_num_concentric_circles(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub fn </span>num_concentric_circles(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.num_concentric_circles
     }
-    <span class="kw">pub fn </span>get_end_theta(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
+    <span class="kw">pub fn </span>end_theta(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
         <span class="kw">let </span>diff = (<span class="number">2.0 </span>* PI) / <span class="self">self</span>.layer_num_radial_lines <span class="kw">as </span>f32;
         <span class="self">self</span>.end_radial_line <span class="kw">as </span>f32 * diff
     }
-    <span class="kw">pub fn </span>get_start_theta(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
+    <span class="kw">pub fn </span>start_theta(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
         <span class="kw">let </span>diff = (<span class="number">2.0 </span>* PI) / <span class="self">self</span>.layer_num_radial_lines <span class="kw">as </span>f32;
         <span class="self">self</span>.start_radial_line <span class="kw">as </span>f32 * diff
     }
     <span class="doccomment">/// Get the index of the first concentric circle starting from the beginning of the layer
-    </span><span class="kw">pub fn </span>get_start_concentric_circle_layer_relative(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub fn </span>start_concentric_circle_layer_relative(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.start_concentric_circle_layer_relative
     }
     <span class="doccomment">/// Get the index of the first concentric circle starting from the center of the circle
-    </span><span class="kw">pub fn </span>get_start_concentric_circle_absolute(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub fn </span>start_concentric_circle_absolute(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.start_concentric_circle_absolute
     }
     <span class="doccomment">/// Get the index of the last concentric circle starting from the center of the circle
     /// This will be one greater than the last cell index, because it has to enclose the cell
-    </span><span class="kw">pub fn </span>get_end_concentric_circle_absolute(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub fn </span>end_concentric_circle_absolute(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.start_concentric_circle_absolute + <span class="self">self</span>.num_concentric_circles
     }
     <span class="doccomment">/// Get the index of the last concentric circle starting from the beginning of the layer
     /// This will be one greater than the last cell index, because it has to enclose the cell
-    </span><span class="kw">pub fn </span>get_end_concentric_circle_layer_relative(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub fn </span>end_concentric_circle_layer_relative(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.start_concentric_circle_layer_relative + <span class="self">self</span>.num_concentric_circles
     }
     <span class="doccomment">/// Get the index of the last radial line in the chunk
     /// This will be one greater than the last cell index, because it has to enclose the cell
-    </span><span class="kw">pub fn </span>get_end_radial_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub fn </span>end_radial_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.end_radial_line
     }
     <span class="doccomment">/// Get the index of the first radial line in the chunk
-    </span><span class="kw">pub fn </span>get_start_radial_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub fn </span>start_radial_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.start_radial_line
     }
     <span class="doccomment">/// Get the layer number this chunk is a part of
-    </span><span class="kw">pub fn </span>get_layer_num(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="kw">pub fn </span>layer_num(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.chunk_idx.i
     }
     <span class="doccomment">/// Get the chunk index
-    </span><span class="kw">pub fn </span>get_chunk_idx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ChunkIjkVector {
+    </span><span class="kw">pub fn </span>chunk_idx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ChunkIjkVector {
         <span class="self">self</span>.chunk_idx
     }
 
     <span class="comment">/* Positions in the chunk */
     </span><span class="doccomment">/// Checks to see if an absolute position around the circle is in the chunk
     </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: IjkVector) -&gt; bool {
-        idx.i == <span class="self">self</span>.get_layer_num()
-            &amp;&amp; idx.j &gt;= <span class="self">self</span>.get_start_radial_line()
-            &amp;&amp; idx.j &lt; <span class="self">self</span>.get_end_radial_line()
-            &amp;&amp; idx.k &gt;= <span class="self">self</span>.get_start_concentric_circle_absolute()
-            &amp;&amp; idx.k &lt; <span class="self">self</span>.get_end_concentric_circle_absolute()
+        idx.i == <span class="self">self</span>.layer_num()
+            &amp;&amp; idx.j &gt;= <span class="self">self</span>.start_radial_line()
+            &amp;&amp; idx.j &lt; <span class="self">self</span>.end_radial_line()
+            &amp;&amp; idx.k &gt;= <span class="self">self</span>.start_concentric_circle_absolute()
+            &amp;&amp; idx.k &lt; <span class="self">self</span>.end_concentric_circle_absolute()
     }
     <span class="doccomment">/// Converts a coordinate from anywhere on the circle, assuming it is in the chunk
     /// to a coordinate inside the grid of this chunk
-    </span><span class="kw">pub fn </span>get_internal_coord_from_external_coord(<span class="kw-2">&amp;</span><span class="self">self</span>, external_coord: IjkVector) -&gt; JkVector {
+    </span><span class="kw">pub fn </span>internal_coord_from_external_coord(<span class="kw-2">&amp;</span><span class="self">self</span>, external_coord: IjkVector) -&gt; JkVector {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.contains(external_coord));
         JkVector {
-            j: external_coord.j - <span class="self">self</span>.get_start_radial_line(),
-            k: external_coord.k - <span class="self">self</span>.get_start_concentric_circle_absolute(),
+            j: external_coord.j - <span class="self">self</span>.start_radial_line(),
+            k: external_coord.k - <span class="self">self</span>.start_concentric_circle_absolute(),
         }
     }
     <span class="doccomment">/// Converts a coordinate from inside this chunk to a coordinate on the circle
-    </span><span class="kw">pub fn </span>get_external_coord_from_internal_coord(<span class="kw-2">&amp;</span><span class="self">self</span>, internal_coord: JkVector) -&gt; IjkVector {
-        <span class="macro">debug_assert!</span>(internal_coord.j &lt; <span class="self">self</span>.get_num_radial_lines());
-        <span class="macro">debug_assert!</span>(internal_coord.k &lt; <span class="self">self</span>.get_num_concentric_circles());
+    </span><span class="kw">pub fn </span>external_coord_from_internal_coord(<span class="kw-2">&amp;</span><span class="self">self</span>, internal_coord: JkVector) -&gt; IjkVector {
+        <span class="macro">debug_assert!</span>(internal_coord.j &lt; <span class="self">self</span>.num_radial_lines());
+        <span class="macro">debug_assert!</span>(internal_coord.k &lt; <span class="self">self</span>.num_concentric_circles());
         IjkVector {
-            i: <span class="self">self</span>.get_layer_num(),
-            j: internal_coord.j + <span class="self">self</span>.get_start_radial_line(),
-            k: internal_coord.k + <span class="self">self</span>.get_start_concentric_circle_absolute(),
+            i: <span class="self">self</span>.layer_num(),
+            j: internal_coord.j + <span class="self">self</span>.start_radial_line(),
+            k: internal_coord.k + <span class="self">self</span>.start_concentric_circle_absolute(),
         }
     }
 
     <span class="comment">/* Convienience Functions */
     </span><span class="doccomment">/// Get all the vertexes for the chunk
-    </span><span class="kw">pub fn </span>get_vertices(<span class="kw-2">&amp;</span><span class="self">self</span>, settings: VertexSettings) -&gt; Vec&lt;Vertex&gt; {
-        <span class="kw">let </span>positions = <span class="self">self</span>.get_positions(settings);
-        <span class="kw">let </span>uvs = <span class="self">self</span>.get_uvs(settings);
+    </span><span class="kw">pub fn </span>vertices(<span class="kw-2">&amp;</span><span class="self">self</span>, settings: VertexSettings) -&gt; Vec&lt;Vertex&gt; {
+        <span class="kw">let </span>positions = <span class="self">self</span>.positions(settings);
+        <span class="kw">let </span>uvs = <span class="self">self</span>.uvs(settings);
         <span class="kw">let </span>vertexes: Vec&lt;Vertex&gt; = positions
             .iter()
             .zip(uvs.iter())
             .map(|(p, uv)| Vertex {
-                position: Vec2::new(p.x, p.y) * <span class="self">self</span>.get_cell_width().<span class="number">0</span>,
+                position: Vec2::new(p.x, p.y) * <span class="self">self</span>.cell_width().<span class="number">0</span>,
                 uv: Vec2::new(uv.x, uv.y),
                 color: Color::rgba(<span class="number">1.0</span>, <span class="number">1.0</span>, <span class="number">1.0</span>, <span class="number">1.0</span>),
             })
@@ -1944,11 +1944,11 @@
     }
     <span class="doccomment">/// Get the outline mesh for the chunk
     </span><span class="kw">pub fn </span>calc_chunk_outline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; OwnedMeshData {
-        <span class="kw">let </span>positions = <span class="self">self</span>.get_outline();
+        <span class="kw">let </span>positions = <span class="self">self</span>.outline();
         <span class="kw">let </span><span class="kw-2">mut </span>vertices = Vec::with_capacity(positions.len());
         <span class="kw">for </span>pos <span class="kw">in </span>positions {
             vertices.push(Vertex {
-                position: pos * <span class="self">self</span>.get_cell_width().<span class="number">0</span>,
+                position: pos * <span class="self">self</span>.cell_width().<span class="number">0</span>,
                 uv: Vec2::new(<span class="number">0.0</span>, <span class="number">0.0</span>),
                 color: Color::rgba(<span class="number">1.0</span>, <span class="number">1.0</span>, <span class="number">1.0</span>, <span class="number">1.0</span>),
             });
@@ -1961,15 +1961,15 @@
     }
     <span class="doccomment">/// Get the mesh data for the chunk as you would normally draw it
     </span><span class="kw">pub fn </span>calc_chunk_meshdata(<span class="kw-2">&amp;</span><span class="self">self</span>, settings: VertexSettings) -&gt; OwnedMeshData {
-        <span class="kw">let </span>indices = <span class="self">self</span>.get_indices(settings);
-        <span class="kw">let </span>vertices: Vec&lt;Vertex&gt; = <span class="self">self</span>.get_vertices(settings);
+        <span class="kw">let </span>indices = <span class="self">self</span>.indices(settings);
+        <span class="kw">let </span>vertices: Vec&lt;Vertex&gt; = <span class="self">self</span>.vertices(settings);
         OwnedMeshData::new(vertices, indices)
     }
 
     <span class="doccomment">/// Get the wireframe mesh data for the chunk
     </span><span class="kw">pub fn </span>calc_chunk_triangle_wireframe(<span class="kw-2">&amp;</span><span class="self">self</span>, settings: VertexSettings) -&gt; OwnedMeshData {
-        <span class="kw">let </span>indices = <span class="self">self</span>.get_indices(settings);
-        <span class="kw">let </span>vertices: Vec&lt;Vertex&gt; = <span class="self">self</span>.get_vertices(settings);
+        <span class="kw">let </span>indices = <span class="self">self</span>.indices(settings);
+        <span class="kw">let </span>vertices: Vec&lt;Vertex&gt; = <span class="self">self</span>.vertices(settings);
         <span class="kw">let </span><span class="kw-2">mut </span>new_indices = Vec::new();
         <span class="kw">for </span>i <span class="kw">in </span>(<span class="number">0</span>..indices.len()).step_by(<span class="number">3</span>) {
             <span class="kw">let </span>i1 = indices[i];
@@ -1987,16 +1987,16 @@
     /// Returns an Err if the position is not on the circle
     </span><span class="kw">pub fn </span>rel_pos_to_cell_idx(<span class="kw-2">&amp;</span><span class="self">self</span>, xy_coord: RelXyPoint) -&gt; <span class="prelude-ty">Result</span>&lt;IjkVector&gt; {
         <span class="kw">let </span>norm_vertex_coord = (xy_coord.<span class="number">0</span>.x * xy_coord.<span class="number">0</span>.x + xy_coord.<span class="number">0</span>.y * xy_coord.<span class="number">0</span>.y).sqrt();
-        <span class="kw">let </span>start_concentric_circle = <span class="self">self</span>.get_start_concentric_circle_layer_relative();
-        <span class="kw">let </span>end_concentric_circle = <span class="self">self</span>.get_end_concentric_circle_layer_relative();
-        <span class="kw">let </span>starting_r = <span class="self">self</span>.get_start_radius();
-        <span class="kw">let </span>ending_r = <span class="self">self</span>.get_end_radius();
-        <span class="kw">let </span>num_concentric_circles = <span class="self">self</span>.get_num_concentric_circles();
-        <span class="kw">let </span>num_radial_lines = <span class="self">self</span>.get_num_radial_lines();
-        <span class="kw">let </span>start_radial_line = <span class="self">self</span>.get_start_radial_line();
-        <span class="kw">let </span>end_radial_line = <span class="self">self</span>.get_end_radial_line();
-        <span class="kw">let </span>start_theta = <span class="self">self</span>.get_start_theta();
-        <span class="kw">let </span>end_theta = <span class="self">self</span>.get_end_theta();
+        <span class="kw">let </span>start_concentric_circle = <span class="self">self</span>.start_concentric_circle_layer_relative();
+        <span class="kw">let </span>end_concentric_circle = <span class="self">self</span>.end_concentric_circle_layer_relative();
+        <span class="kw">let </span>starting_r = <span class="self">self</span>.start_radius();
+        <span class="kw">let </span>ending_r = <span class="self">self</span>.end_radius();
+        <span class="kw">let </span>num_concentric_circles = <span class="self">self</span>.num_concentric_circles();
+        <span class="kw">let </span>num_radial_lines = <span class="self">self</span>.num_radial_lines();
+        <span class="kw">let </span>start_radial_line = <span class="self">self</span>.start_radial_line();
+        <span class="kw">let </span>end_radial_line = <span class="self">self</span>.end_radial_line();
+        <span class="kw">let </span>start_theta = <span class="self">self</span>.start_theta();
+        <span class="kw">let </span>end_theta = <span class="self">self</span>.end_theta();
 
         <span class="comment">// Get the concentric circle we are on
         </span><span class="kw">let </span>circle_separation_distance = (ending_r - starting_r) / num_concentric_circles <span class="kw">as </span>f32;
@@ -2019,7 +2019,7 @@
             <span class="macro">bail!</span>(
                 <span class="string">"Vertex j {:?} is not in chunk {:?}. start_concentric_circle: {}, end_concentric_circle: {}"</span>,
                 xy_coord,
-                <span class="self">self</span>.get_chunk_idx(),
+                <span class="self">self</span>.chunk_idx(),
                 start_concentric_circle,
                 end_concentric_circle,
             );
@@ -2028,13 +2028,13 @@
             <span class="macro">bail!</span>(
                 <span class="string">"Vertex k {:?} is not in chunk {:?}. start_radial_line: {}, end_radial_line: {}"</span>,
                 xy_coord,
-                <span class="self">self</span>.get_chunk_idx(),
+                <span class="self">self</span>.chunk_idx(),
                 start_radial_line,
                 end_radial_line,
             );
         }
         <span class="prelude-val">Ok</span>(IjkVector {
-            i: <span class="self">self</span>.get_layer_num(),
+            i: <span class="self">self</span>.layer_num(),
             j,
             k,
         })
@@ -2043,22 +2043,22 @@
     <span class="doccomment">/// Convert a cell coordinate "on the circle" to a position "on the chunk"
     /// Return an Err if this is not on the chunk
     </span><span class="kw">pub fn </span>absolute_cell_idx_to_in_chunk_cell_idx(<span class="kw-2">&amp;</span><span class="self">self</span>, cell_idx: IjkVector) -&gt; <span class="prelude-ty">Result</span>&lt;JkVector&gt; {
-        <span class="kw">if </span>cell_idx.i != <span class="self">self</span>.get_layer_num() {
+        <span class="kw">if </span>cell_idx.i != <span class="self">self</span>.layer_num() {
             <span class="macro">bail!</span>(
                 <span class="string">"Cell index i {:?} is not in chunk {:?}"</span>,
                 cell_idx,
-                <span class="self">self</span>.get_chunk_idx()
+                <span class="self">self</span>.chunk_idx()
             );
         }
-        <span class="kw">let </span>start_radial_line = <span class="self">self</span>.get_start_radial_line();
-        <span class="kw">let </span>end_radial_line = <span class="self">self</span>.get_end_radial_line();
-        <span class="kw">let </span>start_concentric_circle = <span class="self">self</span>.get_start_concentric_circle_layer_relative();
-        <span class="kw">let </span>end_concentric_circle = <span class="self">self</span>.get_end_concentric_circle_layer_relative();
+        <span class="kw">let </span>start_radial_line = <span class="self">self</span>.start_radial_line();
+        <span class="kw">let </span>end_radial_line = <span class="self">self</span>.end_radial_line();
+        <span class="kw">let </span>start_concentric_circle = <span class="self">self</span>.start_concentric_circle_layer_relative();
+        <span class="kw">let </span>end_concentric_circle = <span class="self">self</span>.end_concentric_circle_layer_relative();
         <span class="kw">if </span>cell_idx.j &lt; start_concentric_circle || cell_idx.j &gt;= end_concentric_circle {
             <span class="macro">bail!</span>(
                 <span class="string">"Cell index j {:?} is not in chunk {:?}. start_concentric_circle: {}, end_concentric_circle: {}"</span>,
                 cell_idx,
-                <span class="self">self</span>.get_chunk_idx(),
+                <span class="self">self</span>.chunk_idx(),
                 start_concentric_circle,
                 end_concentric_circle,
             );
@@ -2067,7 +2067,7 @@
             <span class="macro">bail!</span>(
                 <span class="string">"Cell index k {:?} is not in chunk {:?}. start_radial_line: {}, end_radial_line: {}"</span>,
                 cell_idx,
-                <span class="self">self</span>.get_chunk_idx(),
+                <span class="self">self</span>.chunk_idx(),
                 start_radial_line,
                 end_radial_line,
             );
@@ -2092,7 +2092,7 @@
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>test_rel_pos_to_cell_idx() {
         <span class="kw">let </span>coordinate_dir = Builder::new()
-            .cell_radius(Length(<span class="number">1.0</span>))
+            .cell_width(Length(<span class="number">1.0</span>))
             .num_layers(<span class="number">8</span>)
             .first_num_radial_lines(<span class="number">6</span>)
             .second_num_concentric_circles(<span class="number">3</span>)
@@ -2103,12 +2103,12 @@
         <span class="comment">// Test the core
         </span><span class="kw">let </span>i = <span class="number">0</span>;
         <span class="kw">let </span>j = <span class="number">0</span>;
-        <span class="kw">let </span>core_chunks = coordinate_dir.get_core_chunks();
+        <span class="kw">let </span>core_chunks = coordinate_dir.core_chunks();
         <span class="kw">let </span>num_radial_lines =
-            core_chunks.get_width() * core_chunks.get(JkVector::ZERO).get_num_radial_lines();
+            core_chunks.width() * core_chunks.get(JkVector::ZERO).num_radial_lines();
         <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..num_radial_lines {
             <span class="comment">// This radius and theta should define the midpoint of each cell
-            </span><span class="kw">let </span>radius = coordinate_dir.get_cell_width().<span class="number">0 </span>/ <span class="number">2.0</span>;
+            </span><span class="kw">let </span>radius = coordinate_dir.cell_width().<span class="number">0 </span>/ <span class="number">2.0</span>;
             <span class="kw">let </span>theta = -<span class="number">2.0 </span>* PI / num_radial_lines <span class="kw">as </span>f32 * (k <span class="kw">as </span>f32 + <span class="number">0.5</span>);
             <span class="kw">let </span>xycoord = RelXyPoint(Vec2 {
                 x: radius * theta.cos(),
@@ -2116,7 +2116,7 @@
             });
             <span class="kw">let </span>cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
             <span class="kw">let </span>chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(cell_idx);
-            <span class="kw">let </span>chunk = coordinate_dir.get_chunk_at_idx(chunk_idx.<span class="number">0</span>);
+            <span class="kw">let </span>chunk = coordinate_dir.chunk_at_idx(chunk_idx.<span class="number">0</span>);
             <span class="macro">assert_eq!</span>(
                 chunk.rel_pos_to_cell_idx(xycoord).unwrap(),
                 IjkVector { i, j, k },
@@ -2129,15 +2129,15 @@
         }
 
         <span class="comment">// Test the rest
-        </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..coordinate_dir.get_num_layers() {
-            <span class="kw">let </span>num_concentric_circles = coordinate_dir.get_layer_num_concentric_circles(i);
-            <span class="kw">let </span>num_radial_lines = coordinate_dir.get_layer_num_radial_lines(i);
+        </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..coordinate_dir.num_layers() {
+            <span class="kw">let </span>num_concentric_circles = coordinate_dir.layer_num_concentric_circles(i);
+            <span class="kw">let </span>num_radial_lines = coordinate_dir.layer_num_radial_lines(i);
             <span class="kw">for </span>j <span class="kw">in </span><span class="number">0</span>..num_concentric_circles {
                 <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..num_radial_lines {
                     <span class="comment">// This radius and theta should define the midpoint of each cell
-                    </span><span class="kw">let </span>radius = coordinate_dir.get_layer_start_radius(i)
-                        + (coordinate_dir.get_layer_end_radius(i)
-                            - coordinate_dir.get_layer_start_radius(i))
+                    </span><span class="kw">let </span>radius = coordinate_dir.layer_start_radius(i)
+                        + (coordinate_dir.layer_end_radius(i)
+                            - coordinate_dir.layer_start_radius(i))
                             / num_concentric_circles <span class="kw">as </span>f32
                             * (j <span class="kw">as </span>f32 + <span class="number">0.5</span>);
                     <span class="kw">let </span>theta = -<span class="number">2.0 </span>* PI / num_radial_lines <span class="kw">as </span>f32 * (k <span class="kw">as </span>f32 + <span class="number">0.5</span>);
@@ -2147,7 +2147,7 @@
                     });
                     <span class="kw">let </span>cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
                     <span class="kw">let </span>chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(cell_idx);
-                    <span class="kw">let </span>chunk = coordinate_dir.get_chunk_at_idx(chunk_idx.<span class="number">0</span>);
+                    <span class="kw">let </span>chunk = coordinate_dir.chunk_at_idx(chunk_idx.<span class="number">0</span>);
                     <span class="macro">assert_eq!</span>(
                         chunk.rel_pos_to_cell_idx(xycoord).unwrap(),
                         IjkVector { i, j, k }
@@ -2160,7 +2160,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_cell_idx_to_chunk_idx() {
         <span class="kw">let </span>coordinate_dir = Builder::new()
-            .cell_radius(Length(<span class="number">1.0</span>))
+            .cell_width(Length(<span class="number">1.0</span>))
             .num_layers(<span class="number">8</span>)
             .first_num_radial_lines(<span class="number">6</span>)
             .second_num_concentric_circles(<span class="number">3</span>)
@@ -2171,18 +2171,18 @@
         <span class="comment">// Test the core
         </span><span class="kw">let </span>i = <span class="number">0</span>;
         <span class="kw">let </span>j = <span class="number">0</span>;
-        <span class="kw">let </span>core_chunks = coordinate_dir.get_core_chunks();
+        <span class="kw">let </span>core_chunks = coordinate_dir.core_chunks();
         <span class="kw">let </span>num_radial_lines =
-            core_chunks.get_width() * core_chunks.get(JkVector::ZERO).get_num_radial_lines();
+            core_chunks.width() * core_chunks.get(JkVector::ZERO).num_radial_lines();
         <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..num_radial_lines {
             <span class="comment">// This radius and theta should define the midpoint of each cell
             </span><span class="kw">let </span>coord = IjkVector {
                 i,
                 j,
-                k: k % core_chunks.get(JkVector::ZERO).get_num_radial_lines(),
+                k: k % core_chunks.get(JkVector::ZERO).num_radial_lines(),
             };
             <span class="kw">let </span>chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
-            <span class="kw">let </span>chunk = coordinate_dir.get_chunk_at_idx(chunk_idx.<span class="number">0</span>);
+            <span class="kw">let </span>chunk = coordinate_dir.chunk_at_idx(chunk_idx.<span class="number">0</span>);
             <span class="macro">assert_eq!</span>(
                 chunk.absolute_cell_idx_to_in_chunk_cell_idx(coord).unwrap(),
                 coord.to_jk_vector()
@@ -2190,17 +2190,17 @@
         }
 
         <span class="comment">// Test the rest
-        </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..coordinate_dir.get_num_layers() {
-            <span class="kw">let </span>num_concentric_chunks = coordinate_dir.get_layer_num_concentric_chunks(i);
-            <span class="kw">let </span>num_tangential_chunkss = coordinate_dir.get_layer_num_tangential_chunkss(i);
+        </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..coordinate_dir.num_layers() {
+            <span class="kw">let </span>num_concentric_chunks = coordinate_dir.layer_num_concentric_chunks(i);
+            <span class="kw">let </span>num_tangential_chunkss = coordinate_dir.layer_num_tangential_chunkss(i);
             <span class="kw">let </span><span class="kw-2">mut </span>total_concentric_circles = <span class="number">0</span>;
             <span class="kw">for </span>cj <span class="kw">in </span><span class="number">0</span>..num_concentric_chunks {
                 <span class="kw">let </span><span class="kw-2">mut </span>total_radial_lines = <span class="number">0</span>;
-                <span class="kw">let </span>chunk_layer_num_concentric_circles = coordinate_dir
-                    .get_chunk_num_concentric_circles(ChunkIjkVector { i, j: cj, k: <span class="number">0 </span>});
+                <span class="kw">let </span>chunk_layer_num_concentric_circles =
+                    coordinate_dir.chunk_num_concentric_circles(ChunkIjkVector { i, j: cj, k: <span class="number">0 </span>});
                 <span class="kw">for </span>ck <span class="kw">in </span><span class="number">0</span>..num_tangential_chunkss {
-                    <span class="kw">let </span>chunk_num_radial_lines = coordinate_dir
-                        .get_chunk_num_radial_lines(ChunkIjkVector { i, j: cj, k: ck });
+                    <span class="kw">let </span>chunk_num_radial_lines =
+                        coordinate_dir.chunk_num_radial_lines(ChunkIjkVector { i, j: cj, k: ck });
                     <span class="kw">for </span>j <span class="kw">in </span>total_concentric_circles
                         ..total_concentric_circles + chunk_layer_num_concentric_circles
                     {
@@ -2212,7 +2212,7 @@
                             };
                             <span class="kw">let </span>chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(absolute_coord);
                             <span class="comment">// assert_eq!(chunk_idx, ChunkIjkVector { i, j: cj, k: ck });
-                            </span><span class="kw">let </span>chunk = coordinate_dir.get_chunk_at_idx(chunk_idx.<span class="number">0</span>);
+                            </span><span class="kw">let </span>chunk = coordinate_dir.chunk_at_idx(chunk_idx.<span class="number">0</span>);
                             <span class="macro">assert_eq!</span>(
                                 chunk
                                     .absolute_cell_idx_to_in_chunk_cell_idx(absolute_coord)
@@ -2247,7 +2247,7 @@
         <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
         <span class="kw">pub const </span>FIRST_LAYER: ChunkCoords = ChunkCoords {
-            width: Length(<span class="number">1.0</span>),
+            cell_width: Length(<span class="number">1.0</span>),
             num_concentric_circles: <span class="number">2</span>,
             chunk_idx: ChunkIjkVector { i: <span class="number">1</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>},
             start_concentric_circle_layer_relative: <span class="number">0</span>,
@@ -2259,7 +2259,7 @@
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>test_first_layer_circle() {
-            <span class="kw">let </span>vertices = FIRST_LAYER.get_positions(VertexSettings::default());
+            <span class="kw">let </span>vertices = FIRST_LAYER.positions(VertexSettings::default());
             <span class="macro">assert_eq!</span>(vertices.len(), <span class="number">13 </span>* <span class="number">2</span>);
 
             <span class="comment">// The inner circle
@@ -2411,7 +2411,7 @@
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>test_first_layer_uv() {
-            <span class="kw">let </span>uvs = FIRST_LAYER.get_uvs(VertexSettings::default());
+            <span class="kw">let </span>uvs = FIRST_LAYER.uvs(VertexSettings::default());
             <span class="macro">assert_eq!</span>(uvs.len(), <span class="number">13 </span>* <span class="number">2</span>);
 
             <span class="comment">// Test first layer
@@ -2486,7 +2486,7 @@
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>test_first_layer_indices() {
-            <span class="kw">let </span>indices = FIRST_LAYER.get_indices(VertexSettings::default());
+            <span class="kw">let </span>indices = FIRST_LAYER.indices(VertexSettings::default());
             <span class="macro">assert_eq!</span>(indices.len(), <span class="number">12 </span>* <span class="number">6</span>);
 
             <span class="comment">// The first concentric circle
@@ -2504,7 +2504,7 @@
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>test_first_layer_bounding_box() {
-            <span class="kw">let </span>bb = FIRST_LAYER.get_bounding_box();
+            <span class="kw">let </span>bb = FIRST_LAYER.bounding_box();
             <span class="macro">assert_eq!</span>(bb.min.x, -<span class="number">3.0</span>);
             <span class="macro">assert_eq!</span>(bb.min.y, -<span class="number">3.0</span>);
             <span class="macro">assert_eq!</span>(bb.width(), <span class="number">6.0</span>);
@@ -2516,7 +2516,7 @@
         <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
         <span class="kw">pub const </span>FIRST_LAYER_PARTIAL: ChunkCoords = ChunkCoords {
-            width: Length(<span class="number">1.0</span>),
+            cell_width: Length(<span class="number">1.0</span>),
             num_concentric_circles: <span class="number">1</span>,
             chunk_idx: ChunkIjkVector { i: <span class="number">1</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>},
             start_concentric_circle_layer_relative: <span class="number">1</span>,
@@ -2528,7 +2528,7 @@
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>test_first_layer_circle_partial() {
-            <span class="kw">let </span>vertices = FIRST_LAYER_PARTIAL.get_positions(VertexSettings::default());
+            <span class="kw">let </span>vertices = FIRST_LAYER_PARTIAL.positions(VertexSettings::default());
             <span class="macro">assert_eq!</span>(vertices.len(), <span class="number">14</span>);
 
             <span class="kw">let </span>radius = <span class="number">3.0</span>;
@@ -2639,7 +2639,7 @@
 
         <span class="attr">#[test]
         </span><span class="kw">fn </span>test_first_layer_uv_partial() {
-            <span class="kw">let </span>uvs = FIRST_LAYER_PARTIAL.get_uvs(VertexSettings::default());
+            <span class="kw">let </span>uvs = FIRST_LAYER_PARTIAL.uvs(VertexSettings::default());
             <span class="macro">assert_eq!</span>(uvs.len(), <span class="number">14</span>);
 
             <span class="comment">// Middle layer
@@ -2720,7 +2720,7 @@
             <span class="kw">use </span><span class="kw">crate</span>::physics::orbits::components::Length;
 
             <span class="kw">pub const </span>CORE: ChunkCoords = ChunkCoords {
-                width: Length(<span class="number">1.0</span>),
+                cell_width: Length(<span class="number">1.0</span>),
                 num_concentric_circles: <span class="number">1</span>,
                 chunk_idx: ChunkIjkVector { i: <span class="number">0</span>, j: <span class="number">0</span>, k: <span class="number">0 </span>},
                 start_concentric_circle_layer_relative: <span class="number">0</span>,
@@ -2732,15 +2732,15 @@
 
             <span class="attr">#[test]
             </span><span class="kw">fn </span>test_lod_1_pos() {
-                <span class="kw">let </span>vertices = CORE.get_positions(VertexSettings {
+                <span class="kw">let </span>vertices = CORE.positions(VertexSettings {
                     lod: <span class="number">1</span>,
                     mode: VertexMode::Grid,
                 });
                 <span class="macro">assert_eq!</span>(vertices.len(), <span class="number">26</span>);
 
                 <span class="comment">// The core
-                </span><span class="kw">let </span>radius = CORE.get_end_radius();
-                <span class="kw">let </span>diff_theta = <span class="number">2.0 </span>* PI / CORE.get_num_radial_lines() <span class="kw">as </span>f32;
+                </span><span class="kw">let </span>radius = CORE.end_radius();
+                <span class="kw">let </span>diff_theta = <span class="number">2.0 </span>* PI / CORE.num_radial_lines() <span class="kw">as </span>f32;
                 <span class="macro">assert_approx_eq_v2!</span>(vertices[<span class="number">0</span>], Vec2::new(<span class="number">0.0</span>, <span class="number">0.0</span>));
                 <span class="macro">assert_approx_eq_v2!</span>(vertices[<span class="number">1</span>], Vec2::new(<span class="number">0.0</span>, <span class="number">0.0</span>));
                 <span class="macro">assert_approx_eq_v2!</span>(vertices[<span class="number">2</span>], Vec2::new(<span class="number">0.0</span>, <span class="number">0.0</span>));
@@ -2840,15 +2840,15 @@
 
             <span class="attr">#[test]
             </span><span class="kw">fn </span>test_lod_2_pos() {
-                <span class="kw">let </span>vertices = CORE.get_positions(VertexSettings {
+                <span class="kw">let </span>vertices = CORE.positions(VertexSettings {
                     lod: <span class="number">2</span>,
                     mode: VertexMode::Grid,
                 });
                 <span class="macro">assert_eq!</span>(vertices.len(), <span class="number">14</span>);
 
                 <span class="comment">// The core
-                </span><span class="kw">let </span>radius = CORE.get_end_radius();
-                <span class="kw">let </span>diff_theta = <span class="number">2.0 </span>* PI / CORE.get_num_radial_lines() <span class="kw">as </span>f32 * <span class="number">2.0</span>;
+                </span><span class="kw">let </span>radius = CORE.end_radius();
+                <span class="kw">let </span>diff_theta = <span class="number">2.0 </span>* PI / CORE.num_radial_lines() <span class="kw">as </span>f32 * <span class="number">2.0</span>;
                 <span class="macro">assert_approx_eq_v2!</span>(vertices[<span class="number">0</span>], Vec2::new(<span class="number">0.0</span>, <span class="number">0.0</span>));
                 <span class="macro">assert_approx_eq_v2!</span>(vertices[<span class="number">1</span>], Vec2::new(<span class="number">0.0</span>, <span class="number">0.0</span>));
                 <span class="macro">assert_approx_eq_v2!</span>(vertices[<span class="number">2</span>], Vec2::new(<span class="number">0.0</span>, <span class="number">0.0</span>));

@@ -327,7 +327,7 @@
 
 <span class="kw">impl </span>ElementType {
     <span class="doccomment">/// This gets the default element of the type
-    </span><span class="kw">pub fn </span>get_element(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>Element&gt; {
+    </span><span class="kw">pub fn </span>element(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>Element&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             ElementType::Vacuum =&gt; Box::&lt;Vacuum&gt;::default(),
             ElementType::DownFlier =&gt; Box::&lt;DownFlier&gt;::default(),
@@ -350,25 +350,25 @@
 </span><span class="kw">pub trait </span>Element: Send + Sync {
     <span class="doccomment">/// This gets the type of the element
     /// Converts between the trait and the enum
-    </span><span class="kw">fn </span>get_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ElementType;
+    </span><span class="kw">fn </span>element_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ElementType;
     <span class="doccomment">/// This gets the last time the element was processed
     /// Useful for physics calculations by getting the dt between now and then
-    </span><span class="kw">fn </span>get_last_processed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Clock;
+    </span><span class="kw">fn </span>last_processed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Clock;
     <span class="doccomment">/// This gets the color of the element
     /// Always constant and unique for each element, so that we can process them
     /// in fragment shaders knowing their type just by their color
     /// You can map them to other colors and add effects using the fragment shader
-    </span><span class="kw">fn </span>get_color(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Color;
+    </span><span class="kw">fn </span>color(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Color;
     <span class="doccomment">/// This gets the density of the element relative to the cell_width
     /// This is so bigger cells have more mass, so we don't have to have as many cells
     /// for simpler bodies, like gas giants or the sun
-    </span><span class="kw">fn </span>get_density(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Density;
+    </span><span class="kw">fn </span>density(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Density;
     <span class="doccomment">/// This gets the mass of the element based on the density and the cell_width
-    </span><span class="kw">fn </span>get_mass(<span class="kw-2">&amp;</span><span class="self">self</span>, cell_width: Length) -&gt; Mass {
-        <span class="self">self</span>.get_density().mass(cell_width)
+    </span><span class="kw">fn </span>mass(<span class="kw-2">&amp;</span><span class="self">self</span>, cell_width: Length) -&gt; Mass {
+        <span class="self">self</span>.density().mass(cell_width)
     }
     <span class="doccomment">/// This gets the state of matter of the element
-    </span><span class="kw">fn </span>get_state_of_matter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StateOfMatter;
+    </span><span class="kw">fn </span>state_of_matter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StateOfMatter;
     <span class="doccomment">/// This is the "public" process method, that calls the private _process method
     /// makes sure that _set_last_processed is called
     </span><span class="kw">fn </span>process(
@@ -451,7 +451,7 @@
     </span><span class="kw">fn </span>test_all_elements_have_different_color() {
         <span class="kw">let </span><span class="kw-2">mut </span>colors = Vec::&lt;Color&gt;::new();
         <span class="kw">for </span>element_type <span class="kw">in </span>ElementType::iter() {
-            <span class="kw">let </span>color = element_type.get_element().get_color();
+            <span class="kw">let </span>color = element_type.element().color();
             <span class="macro">assert!</span>(
                 !colors.contains(<span class="kw-2">&amp;</span>color),
                 <span class="string">"Color {:?} of element {:?} is not unique"</span>,
@@ -480,10 +480,10 @@
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>test_all_types_and_elements_correspond() {
         <span class="kw">for </span>element_type <span class="kw">in </span>ElementType::iter() {
-            <span class="kw">let </span>element = element_type.get_element();
+            <span class="kw">let </span>element = element_type.element();
             <span class="macro">assert_eq!</span>(
                 element_type,
-                element.get_type(),
+                element.element_type(),
                 <span class="string">"Element type {:?} does not match the type of the element"</span>,
                 element_type
             );
