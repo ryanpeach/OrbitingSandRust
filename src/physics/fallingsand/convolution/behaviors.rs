@@ -24,7 +24,7 @@ use crate::physics::{
     fallingsand::{
         data::element_grid::ElementGrid,
         elements::element::Element,
-        mesh::coordinate_directory::CoordinateDir,
+        mesh::coordinate_dir::CoordinateDir,
         util::{
             functions::modulo,
             vectors::{ChunkIjkVector, JkVector},
@@ -569,7 +569,7 @@ impl ElementGridConvolutionNeighbors {
 mod tests {
     use super::*;
     use crate::physics::fallingsand::{
-        data::element_directory::ElementGridDir, mesh::coordinate_directory::CoordinateDirBuilder,
+        data::element_directory::ElementGridDir, mesh::coordinate_dir::Builder,
     };
 
     mod get_below_idx_from_center {
@@ -578,7 +578,7 @@ mod tests {
 
         /// The default element grid directory for testing
         fn get_element_grid_dir() -> ElementGridDir {
-            let coordinate_dir = CoordinateDirBuilder::new()
+            let coordinate_dir = Builder::new()
                 .cell_radius(Length(1.0))
                 .num_layers(10)
                 .first_num_radial_lines(6)
@@ -679,7 +679,7 @@ mod tests {
 
         /// The default element grid directory for testing
         fn get_element_grid_dir() -> ElementGridDir {
-            let coordinate_dir = CoordinateDirBuilder::new()
+            let coordinate_dir = Builder::new()
                 .cell_radius(Length(1.0))
                 .num_layers(7)
                 .first_num_radial_lines(12)

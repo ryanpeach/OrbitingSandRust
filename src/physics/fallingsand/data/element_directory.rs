@@ -9,7 +9,7 @@ use super::super::convolution::neighbor_indexes::{
     BottomNeighborIdxs, ElementGridConvolutionNeighborIdxs, LeftRightNeighborIdxs, TopNeighborIdxs,
 };
 use super::super::elements::element::Element;
-use super::super::mesh::coordinate_directory::CoordinateDir;
+use super::super::mesh::coordinate_dir::CoordinateDir;
 use super::super::util::functions::modulo;
 use super::super::util::grid::Grid;
 use super::super::util::image::RawImage;
@@ -863,15 +863,13 @@ impl ElementGridDir {
 
 #[cfg(test)]
 mod tests {
-    use crate::physics::{
-        fallingsand::mesh::coordinate_directory::CoordinateDirBuilder, orbits::components::Length,
-    };
+    use crate::physics::{fallingsand::mesh::coordinate_dir::Builder, orbits::components::Length};
 
     use super::*;
 
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {
-        let coordinate_dir = CoordinateDirBuilder::new()
+        let coordinate_dir = Builder::new()
             .cell_radius(Length(1.0))
             .num_layers(9)
             .first_num_radial_lines(6)

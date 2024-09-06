@@ -635,7 +635,7 @@ impl ChunkCoords {
 mod tests {
     use super::*;
 
-    use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDirBuilder;
+    use crate::physics::fallingsand::mesh::coordinate_dir::Builder;
     use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
     use crate::physics::util::vectors::RelXyPoint;
 
@@ -643,7 +643,7 @@ mod tests {
     /// the cell index is correct returned by rel_pos_to_cell_idx
     #[test]
     fn test_rel_pos_to_cell_idx() {
-        let coordinate_dir = CoordinateDirBuilder::new()
+        let coordinate_dir = Builder::new()
             .cell_radius(Length(1.0))
             .num_layers(8)
             .first_num_radial_lines(6)
@@ -711,7 +711,7 @@ mod tests {
 
     #[test]
     fn test_cell_idx_to_chunk_idx() {
-        let coordinate_dir = CoordinateDirBuilder::new()
+        let coordinate_dir = Builder::new()
             .cell_radius(Length(1.0))
             .num_layers(8)
             .first_num_radial_lines(6)

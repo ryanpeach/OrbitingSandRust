@@ -1,5 +1,4 @@
 //! The [CoordinateDir] layouts the chunks in the game.
-//!
 
 use std::f32::consts::PI;
 
@@ -39,17 +38,26 @@ pub struct CoordinateDir {
 /// Needs more parameters than CoordinateDir because
 /// it assembles the chunks whereas CoordinateDir can re-derive
 /// these parameters from the chunks themselves
-pub struct CoordinateDirBuilder {
+pub struct Builder {
+    /// The radius of each cell
     cell_radius: Length,
+    /// The number of layers in the celestial body
     num_layers: usize,
+    /// The number of radial lines in the first layer
     first_num_radial_lines: usize,
+    /// The number of concentric circles in the second layer
     second_num_concentric_circles: usize,
-    first_num_tangential_chunkss: usize,
+    /// The number of tangential chunks in the first layer
+    first_num_tangential_chunks: usize,
+    /// The maximum number of radial lines in a chunk
+    /// This determines the splitting of chunks once they reach this number of radial lines
     max_radial_lines_per_chunk: usize,
+    /// The maximum number of concentric circles in a chunk
+    /// This determines the splitting of chunks once they reach this number of concentric circles
     max_concentric_circles_per_chunk: usize,
 }
 
-impl Default for CoordinateDirBuilder {
+impl Default for Builder {
     /// Start here
     fn default() -> Self {
         Self::new()
@@ -58,14 +66,14 @@ impl Default for CoordinateDirBuilder {
 
 /// Builds a CoordinateDir
 /// This is where most of the logic is stored for assembling the directory
-impl CoordinateDirBuilder {
+impl Builder {
     /// Start here
     pub fn new() -> Self {
         Self {
             cell_radius: Length(1.0),
             num_layers: 1,
             first_num_radial_lines: 6,
-            first_num_tangential_chunkss: 3,
+            first_num_tangential_chunks: 3,
             max_radial_lines_per_chunk: 128,
             max_concentric_circles_per_chunk: 128,
             second_num_concentric_circles: 2,
@@ -93,7 +101,7 @@ impl CoordinateDirBuilder {
     /// The core doesn't really have chunks, but you can imagine them as
     /// starting in the core. The second layer has the same number of chunks as the first layer.
     pub fn first_num_tangential_chunkss(mut self, first_num_tangential_chunkss: usize) -> Self {
-        self.first_num_tangential_chunkss = first_num_tangential_chunkss;
+        self.first_num_tangential_chunks = first_num_tangential_chunkss;
         self
     }
 
@@ -146,7 +154,7 @@ impl CoordinateDirBuilder {
         let mut start_concentric_circle_absolute = 0;
         let mut layer_num = 0;
         let mut total_concentric_circle_chunks = 0;
-        let mut num_tangential_chunkss = self.first_num_tangential_chunkss;
+        let mut num_tangential_chunkss = self.first_num_tangential_chunks;
         let mut num_concentric_chunks = 1;
         let mut core_chunks = Grid::new_empty(num_tangential_chunkss, num_concentric_chunks);
         for k in 0..num_tangential_chunkss {
@@ -583,7 +591,7 @@ mod tests {
         use super::*;
 
         fn default_coordinate_dir() -> CoordinateDir {
-            CoordinateDirBuilder::new()
+            Builder::new()
                 .cell_radius(Length(1.0))
                 .num_layers(9)
                 .first_num_radial_lines(6)
@@ -747,7 +755,7 @@ mod tests {
             /// the cell index is correct returned by rel_pos_to_cell_idx
             #[test]
             fn test_rel_pos_to_cell_idx() {
-                let coordinate_dir = CoordinateDirBuilder::new()
+                let coordinate_dir = Builder::new()
                     .cell_radius(Length(1.0))
                     .num_layers(8)
                     .first_num_radial_lines(6)
@@ -832,7 +840,7 @@ mod tests {
 
             #[test]
             fn test_cell_idx_to_chunk_idx() {
-                let coordinate_dir = CoordinateDirBuilder::new()
+                let coordinate_dir = Builder::new()
                     .cell_radius(Length(1.0))
                     .num_layers(8)
                     .first_num_radial_lines(6)
@@ -909,7 +917,7 @@ mod tests {
 
     #[test]
     fn test_radial_mesh_chunk_sizes_manual() {
-        let coordinate_dir = CoordinateDirBuilder::new()
+        let coordinate_dir = Builder::new()
             .cell_radius(Length(1.0))
             .num_layers(8)
             .first_num_radial_lines(6)

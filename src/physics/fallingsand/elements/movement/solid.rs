@@ -7,7 +7,7 @@ use crate::physics::{
         },
         data::element_grid::ElementGrid,
         elements::element::{Element, ElementTakeOptions, StateOfMatter},
-        mesh::coordinate_directory::CoordinateDir,
+        mesh::coordinate_dir::CoordinateDir,
         util::vectors::JkVector,
     },
     util::clock::Clock,

@@ -1,6 +1,3 @@
-#![expect(missing_docs)] // TODO: Remove this line
-#![expect(clippy::missing_docs_in_private_items)] // TODO: Remove this line
-
 use bevy::{ecs::component::Component, math::Vec2, render::color::Color};
 
 use crate::physics::{fallingsand::util::mesh::OwnedMeshData, util::vectors::Vertex};

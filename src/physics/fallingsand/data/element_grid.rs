@@ -11,7 +11,7 @@ use crate::physics::util::clock::Clock;
 
 use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
 use super::super::elements::vacuum::Vacuum;
-use super::super::mesh::coordinate_directory::CoordinateDir;
+use super::super::mesh::coordinate_dir::CoordinateDir;
 use super::super::util::grid::{Grid, GridOutOfBoundsError};
 use super::super::util::image::RawImage;
 use itertools::iproduct;

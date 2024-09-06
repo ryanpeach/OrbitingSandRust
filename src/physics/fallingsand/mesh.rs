@@ -50,4 +50,4 @@
 pub mod chunk_coords;
 
 /// A directory of chunks forming a full coordinate system.
-pub mod coordinate_directory;
+pub mod coordinate_dir;

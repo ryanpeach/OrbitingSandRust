@@ -2,7 +2,13 @@
 //! For players, we will eventually create a mdbook describing gameplay.
 //! This is the entry point for the game. It installs the plugins and contains
 //! a couple of setup functions for creating different scenes.
-#[warn(clippy::pedantic, clippy::unwrap_used, clippy::panic)]
+#[warn(
+    clippy::pedantic,
+    clippy::unwrap_used,
+    clippy::panic,
+    clippy::trivially_copy_pass_by_ref,
+    clippy::inefficient_to_string
+)]
 #[deny(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
 #[allow(clippy::too_many_lines)]
 #[warn(missing_docs)]
