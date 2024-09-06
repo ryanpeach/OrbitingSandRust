@@ -3,7 +3,7 @@ use super::movement::solid::solid_process;
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
-use crate::physics::fallingsand::mesh::coordinate_directory::CoordinateDir;
+use crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 
 use crate::physics::util::clock::Clock;
@@ -60,10 +60,7 @@ impl Element for Sand {
 #[cfg(test)]
 mod tests {
     use crate::physics::{
-        fallingsand::{
-            data::element_directory::ElementGridDir,
-            mesh::coordinate_directory::CoordinateDirBuilder,
-        },
+        fallingsand::{data::element_directory::ElementGridDir, mesh::coordinate_dir::Builder},
         orbits::components::Length,
     };
 
@@ -71,7 +68,7 @@ mod tests {
 
     /// The default element grid directory for testing
     fn get_element_grid_dir() -> ElementGridDir {
-        let coordinate_dir = CoordinateDirBuilder::new()
+        let coordinate_dir = Builder::new()
             .cell_radius(Length(1.0))
             .num_layers(10)
             .first_num_radial_lines(6)

@@ -1,10 +1,10 @@
-//! Indexes in [ChunkIjkVector]s for all the neighbors of a chunk
+//! Indexes in [`ChunkIjkVector`]s for all the neighbors of a chunk
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 
 /// The main type exported by this module
-/// Contains all the [ChunkIjkVector] indexes for the convolution
-/// Check out the [super::neighbor_identifiers::ConvolutionIdentifier] and
-/// [super::neighbor_indexes::ElementGridConvolutionNeighborIdxs] documentation for more information
+/// Contains all the  [`ChunkIjkVector`] indexes for the convolution
+/// Check out the  [`super::neighbor_identifiers::ConvolutionIdentifier`] and
+///  [`super::neighbor_indexes::ElementGridConvolutionNeighborIdxs`] documentation for more information
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ElementGridConvolutionNeighborIdxs {
     /// Top neighbor indexes
@@ -72,15 +72,15 @@ impl ElementGridConvolutionNeighborIdxs {
         }
     }
 
-    /// Check if the given [ChunkIjkVector] is contained in the neighbor indexes
+    /// Check if the given  [`ChunkIjkVector`] is contained in the neighbor indexes
     pub fn contains(&self, chunk_idx: &ChunkIjkVector) -> bool {
         self.iter().any(|c| c == *chunk_idx)
     }
 }
 
 /// Left and Right neighbor indexes in the convolution
-/// Check out the [super::neighbor_identifiers::LeftRightNeighborIdentifier] and
-/// [super::neighbor_grids::LeftRightNeighborGrids] documentation for more information
+/// Check out the  [`super::neighbor_identifiers::LeftRightNeighborIdentifier`] and
+///  [`super::neighbor_grids::LeftRightNeighborGrids`] documentation for more information
 /// documentation for more information
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum LeftRightNeighborIdxs {
@@ -132,8 +132,8 @@ impl LeftRightNeighborIdxs {
 }
 
 /// Top neighbor indexes in the convolution
-/// Check out the [super::neighbor_identifiers::TopNeighborIdentifier] and
-/// [super::neighbor_grids::TopNeighborGrids] documentation for more information
+/// Check out the  [`super::neighbor_identifiers::TopNeighborIdentifier`] and
+///  [`super::neighbor_grids::TopNeighborGrids`] documentation for more information
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TopNeighborIdxs {
     /// Indicates that there are the same number of chunks above as you have
@@ -212,8 +212,8 @@ impl TopNeighborIdxs {
 }
 
 /// Bottom neighbor indexes in the convolution
-/// Check out the [super::neighbor_identifiers::BottomNeighborIdentifier] and
-/// [super::neighbor_grids::BottomNeighborGrids] documentation for more information
+/// Check out the  [`super::neighbor_identifiers::BottomNeighborIdentifier`] and
+///  [`super::neighbor_grids::BottomNeighborGrids`] documentation for more information
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum BottomNeighborIdxs {
     /// Indicates that there are the same number of chunks below as you have
@@ -231,7 +231,7 @@ pub enum BottomNeighborIdxs {
     /// Indicates a **chunk doubling** layer transition
     /// One of these will be directly below you, and be bigger than you off to one direction
     /// Whereas the other will be diagonally below you
-    /// This depends on if your [ChunkIjkVector] has a `k` value which is even or odd
+    /// This depends on if your  [`ChunkIjkVector`] has a `k` value which is even or odd
     /// If it is even, then the `bl` will be directly below you, and you will be straddling its right side
     /// If it is odd, then the `br` will be directly below you, and you will be straddling its left side
     ChunkDoubling {

@@ -216,7 +216,7 @@ impl CameraPlugin {
     /// Uses the Visibility component to hide and show entities
     ///
     /// **TODO**: This system is not currently working
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     fn frustum_culling_2d(
         mut commands: Commands,
         camera: Query<(&Camera2d, &GlobalTransform)>,

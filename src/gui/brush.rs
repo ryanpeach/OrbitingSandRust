@@ -5,7 +5,7 @@
 #![warn(clippy::missing_docs_in_private_items)]
 
 use crate::entities::celestials::celestial::Data;
-use crate::entities::utils::Radius;
+use crate::entities::components::Radius;
 use crate::physics::fallingsand::util::mesh::GizmoDrawableLoop;
 use crate::physics::util::clock::Clock;
 use crate::physics::util::vectors::{mouse_coord_to_world_coord, RelXyPoint};

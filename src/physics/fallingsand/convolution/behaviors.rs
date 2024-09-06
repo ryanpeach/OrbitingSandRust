@@ -1,7 +1,7 @@
 //! # Element Behavior API
 //!
 //! This module contains the behaviors of the convolution
-//! It exports the [ElementGridConvolutionNeighbors] struct which contains
+//! It exports the [`ElementGridConvolutionNeighbors`] struct which contains
 //! both the indexes and the grids of the neighbors
 //! It contains getters for the chunks based on index or identifier
 //! and both getters and setters by element
@@ -24,7 +24,7 @@ use crate::physics::{
     fallingsand::{
         data::element_grid::ElementGrid,
         elements::element::Element,
-        mesh::coordinate_directory::CoordinateDir,
+        mesh::coordinate_dir::CoordinateDir,
         util::{
             functions::modulo,
             vectors::{ChunkIjkVector, JkVector},
@@ -55,7 +55,7 @@ use super::{
 /// It does not contain the target chunk itself, as this usually violates several
 /// borrow checker rules
 pub struct ElementGridConvolutionNeighbors {
-    /// The indexes of the neighbors, tells you where they come from in the [crate::physics::fallingsand::data::element_directory::ElementGridDir]
+    /// The indexes of the neighbors, tells you where they come from in the [`crate::physics::fallingsand::data::element_directory::ElementGridDir`]
     pub chunk_idxs: ElementGridConvolutionNeighborIdxs,
     /// The grids of the neighbors, actually stores the data
     pub grids: ElementGridConvolutionNeighborGrids,
@@ -257,7 +257,7 @@ impl ElementGridConvolutionNeighbors {
 #[derive(Debug)]
 pub enum GetChunkErr {
     /// You aren't allowed to get the center chunk.
-    /// As [ElementGridConvolutionNeighbors] describes in its documentation,
+    /// As [`ElementGridConvolutionNeighbors`] describes in its documentation,
     /// it doesn't contain the center chunk.
     CenterChunk,
 }
@@ -569,7 +569,7 @@ impl ElementGridConvolutionNeighbors {
 mod tests {
     use super::*;
     use crate::physics::fallingsand::{
-        data::element_directory::ElementGridDir, mesh::coordinate_directory::CoordinateDirBuilder,
+        data::element_directory::ElementGridDir, mesh::coordinate_dir::Builder,
     };
 
     mod get_below_idx_from_center {
@@ -578,7 +578,7 @@ mod tests {
 
         /// The default element grid directory for testing
         fn get_element_grid_dir() -> ElementGridDir {
-            let coordinate_dir = CoordinateDirBuilder::new()
+            let coordinate_dir = Builder::new()
                 .cell_radius(Length(1.0))
                 .num_layers(10)
                 .first_num_radial_lines(6)
@@ -679,7 +679,7 @@ mod tests {
 
         /// The default element grid directory for testing
         fn get_element_grid_dir() -> ElementGridDir {
-            let coordinate_dir = CoordinateDirBuilder::new()
+            let coordinate_dir = Builder::new()
                 .cell_radius(Length(1.0))
                 .num_layers(7)
                 .first_num_radial_lines(12)

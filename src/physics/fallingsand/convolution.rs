@@ -5,9 +5,9 @@
 //!
 //! Chunk convolutions are the basis for the speed of all the planetary simulations in the game
 //! The idea is that we iterate over all the chunks in a
-//! [super::data::element_directory::ElementGridDir] and for each of them package
+//! [`super::data::element_directory::ElementGridDir`] and for each of them package
 //! all their neighbors into a single
-//! struct, called the [self::neighbor_grids::ElementGridConvolutionNeighborGrids].
+//! struct, called the [`self::neighbor_grids::ElementGridConvolutionNeighborGrids`].
 //! We move these neighbor chunks out of a collection using `take`
 //! so that we have complete ownership of them. Then we process the chunk with its
 //! neighbors as context, and then put them back into the collection.
@@ -26,8 +26,8 @@
 //! parallel process 0 and 3 together.
 //!
 //! > **TIP**
-//! > Please familiarize yourself with [super::mesh::chunk_coords] and
-//! > [super::mesh::coordinate_directory] documentation before continuing to understand
+//! > Please familiarize yourself with [`super::mesh::chunk_coords`] and
+//! > [`super::mesh::coordinate_dir`] documentation before continuing to understand
 //! > chunk layouts etc.
 //!
 //! # The Problem
@@ -48,17 +48,15 @@
 //!
 //! # The Solution
 //!
-//! The primary submodule exported by this module is the [self::behaviors] module.
+//! The primary submodule exported by this module is the [`self::behaviors`] module.
 //!
 //! It gives you an API to get elements from locations relative to another element in
 //! a convolution.
 //!
-//! This greatly simplifies the code in the [super::elements] module, otherwise this
+//! This greatly simplifies the code in the [`super::elements`] module, otherwise this
 //! game would basically be impossible to be chunked.
 //!
-//! Please continue by reading the documentation for the [self::behaviors] module.
-#![warn(missing_docs)]
-#![warn(clippy::missing_docs_in_private_items)]
+//! Please continue by reading the documentation for the [`self::behaviors`] module.
 
 pub mod behaviors;
 pub mod neighbor_grids;

@@ -1,5 +1,4 @@
-#![allow(missing_docs)] // TODO: Remove this line
-#![allow(clippy::missing_docs_in_private_items)] // TODO: Remove this line
+//! A simple Earth-like celestial body
 
 use bevy::log::info;
 
@@ -8,19 +7,27 @@ use crate::{
     physics::{
         fallingsand::{
             data::element_directory::ElementGridDir, elements::element::ElementType,
-            mesh::coordinate_directory::CoordinateDirBuilder, util::vectors::ChunkIjkVector,
+            mesh::coordinate_dir, util::vectors::ChunkIjkVector,
         },
         orbits::components::Length,
     },
 };
 
+/// Builds an earthlike celestial body
 pub struct Builder {
+    /// See [`coordinate_dir::Builder::cell_radius`]
     cell_radius: Length,
+    /// See [`coordinate_dir::Builder::num_layers`]
     num_layers: usize,
+    /// See [`coordinate_dir::Builder::first_num_radial_lines`]
     first_num_radial_lines: usize,
+    /// See [`coordinate_dir::Builder::second_num_concentric_circles`]
     second_num_concentric_circles: usize,
-    first_num_tangential_chunkss: usize,
+    /// See [`coordinate_dir::Builder::first_num_tangential_chunks`]
+    first_num_tangential_chunks: usize,
+    /// See [`coordinate_dir::Builder::max_radial_lines_per_chunk`]
     max_radial_lines_per_chunk: usize,
+    /// See [`coordinate_dir::Builder::max_concentric_circles_per_chunk`]
     max_concentric_circles_per_chunk: usize,
 }
 
@@ -31,6 +38,7 @@ impl Default for Builder {
 }
 
 impl Builder {
+    /// Create a new [`Builder`]
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -38,48 +46,55 @@ impl Builder {
             num_layers: 8,
             first_num_radial_lines: 12,
             second_num_concentric_circles: 3,
-            first_num_tangential_chunkss: 3,
+            first_num_tangential_chunks: 3,
             max_radial_lines_per_chunk: 128,
             max_concentric_circles_per_chunk: 128,
         }
     }
 
+    /// Set [`Builder::cell_radius`]
     #[must_use]
     pub fn cell_radius(mut self, cell_radius: Length) -> Self {
         self.cell_radius = cell_radius;
         self
     }
 
+    /// Set [`Builder::num_layers`]
     #[must_use]
     pub fn num_layers(mut self, num_layers: usize) -> Self {
         self.num_layers = num_layers;
         self
     }
 
+    /// Set [`Builder::first_num_radial_lines`]
     #[must_use]
     pub fn first_num_radial_lines(mut self, first_num_radial_lines: usize) -> Self {
         self.first_num_radial_lines = first_num_radial_lines;
         self
     }
 
+    /// Set [`Builder::second_num_concentric_circles`]
     #[must_use]
     pub fn second_num_concentric_circles(mut self, second_num_concentric_circles: usize) -> Self {
         self.second_num_concentric_circles = second_num_concentric_circles;
         self
     }
 
+    /// Set [`Builder::first_num_tangential_chunks`]
     #[must_use]
     pub fn first_num_tangential_chunkss(mut self, first_num_tangential_chunkss: usize) -> Self {
-        self.first_num_tangential_chunkss = first_num_tangential_chunkss;
+        self.first_num_tangential_chunks = first_num_tangential_chunkss;
         self
     }
 
+    /// Set [`Builder::max_radial_lines_per_chunk`]
     #[must_use]
     pub fn max_radial_lines_per_chunk(mut self, max_radial_lines_per_chunk: usize) -> Self {
         self.max_radial_lines_per_chunk = max_radial_lines_per_chunk;
         self
     }
 
+    /// Set [`Builder::max_concentric_circles_per_chunk`]
     #[must_use]
     pub fn max_concentric_circles_per_chunk(
         mut self,
@@ -89,13 +104,14 @@ impl Builder {
         self
     }
 
+    /// Build [`Data`]
     pub fn build(&self) -> Data {
-        let coordinate_dir = CoordinateDirBuilder::new()
+        let coordinate_dir = coordinate_dir::Builder::new()
             .cell_radius(self.cell_radius)
             .num_layers(self.num_layers)
             .first_num_radial_lines(self.first_num_radial_lines)
             .second_num_concentric_circles(self.second_num_concentric_circles)
-            .first_num_tangential_chunkss(self.first_num_tangential_chunkss)
+            .first_num_tangential_chunkss(self.first_num_tangential_chunks)
             .max_radial_lines_per_chunk(self.max_radial_lines_per_chunk)
             .max_concentric_circles_per_chunk(self.max_concentric_circles_per_chunk)
             .build();

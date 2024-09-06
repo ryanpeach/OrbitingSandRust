@@ -1,5 +1,4 @@
-#![allow(missing_docs)] // TODO: Remove this line
-#![allow(clippy::missing_docs_in_private_items)] // TODO: Remove this line
+//! Components for entities
 
 use bevy::{ecs::component::Component, math::Vec2, render::color::Color};
 
@@ -13,6 +12,7 @@ impl Radius {
     /// Calculate the mesh for the circle described by the radius
     #[must_use]
     pub fn calc_mesh(self) -> OwnedMeshData {
+        /// Number of vertices in the circle
         const NB_VERTICES: usize = 100;
         let mut vertices: Vec<Vertex> = Vec::with_capacity(NB_VERTICES);
         let mut indices: Vec<u32> = Vec::with_capacity(NB_VERTICES);
