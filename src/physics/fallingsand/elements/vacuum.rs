@@ -1,4 +1,4 @@
-use bevy::render::color::Color;
+use bevy::color::Color;
 
 use super::element::{Density, Element, ElementTakeOptions, ElementType, StateOfMatter};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
@@ -30,7 +30,7 @@ impl Element for Vacuum {
         StateOfMatter::Empty
     }
     fn color(&self) -> Color {
-        Color::rgba(0.0, 0.0, 0.0, 0.0)
+        Color::srgba(0.0, 0.0, 0.0, 0.0)
     }
     fn _process(
         &mut self,

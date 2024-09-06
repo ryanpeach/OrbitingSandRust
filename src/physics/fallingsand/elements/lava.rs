@@ -1,3 +1,6 @@
+use bevy::color::palettes::css::RED;
+use bevy::color::Color;
+
 use super::element::{Density, Element, ElementTakeOptions, ElementType, StateOfMatter};
 use super::movement::fluid::fluid_process;
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
@@ -5,7 +8,6 @@ use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::util::clock::Clock;
-use bevy::render::color::Color;
 
 #[derive(Copy, Default, Clone, Debug)]
 pub struct Lava {
@@ -29,7 +31,7 @@ impl Element for Lava {
     }
     // Gray
     fn color(&self) -> Color {
-        Color::RED
+        RED.into()
     }
     // Stone does nothing
     fn _process(

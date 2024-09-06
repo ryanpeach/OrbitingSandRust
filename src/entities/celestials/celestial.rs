@@ -5,6 +5,7 @@
 
 use bevy::app::{App, FixedUpdate, Plugin, Update};
 use bevy::asset::{AssetServer, Assets, Handle};
+use bevy::color::{Color, Srgba};
 use bevy::core::{FrameCount, Name};
 use bevy::ecs::component::Component;
 
@@ -12,7 +13,6 @@ use bevy::ecs::entity::Entity;
 
 use bevy::gizmos::gizmos::Gizmos;
 
-use bevy::render::color::Color;
 use bevy::render::view::{ViewVisibility, Visibility, VisibilityBundle};
 use bevy_mod_picking::prelude::*;
 
@@ -251,12 +251,12 @@ impl Builder {
                             Name::new(format!("Wireframe {chunk_ijk:?}")),
                             GizmoDrawableGrid::new(
                                 wireframe,
-                                Color::Rgba {
+                                Srgba {
                                     red: 0.1,
                                     green: 0.1,
                                     blue: 0.1,
                                     alpha: 0.1,
-                                },
+                                }.into(),
                             ),
                             SpatialBundle {
                                 transform: Transform::from_translation(

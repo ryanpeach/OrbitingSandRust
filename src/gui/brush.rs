@@ -10,6 +10,7 @@ use crate::physics::fallingsand::util::mesh::GizmoDrawableLoop;
 use crate::physics::util::clock::Clock;
 use crate::physics::util::vectors::{mouse_coord_to_world_coord, RelXyPoint};
 use bevy::app::{App, Plugin, Update};
+use bevy::color::palettes::css::WHITE;
 use bevy::core::FrameCount;
 use bevy::core_pipeline::core_2d::Camera2d;
 use bevy::ecs::entity::Entity;
@@ -22,7 +23,6 @@ use bevy::input::ButtonInput;
 use bevy::log::debug;
 use bevy::math::{Vec2, Vec3};
 use bevy::prelude::Window;
-use bevy::render::color::Color;
 
 use bevy::time::Time;
 use bevy::{
@@ -103,7 +103,7 @@ impl BrushPlugin {
     ) {
         for (transform, brush_radius) in query.iter() {
             let mesh = brush_radius.mesh();
-            GizmoDrawableLoop::new(mesh, Color::WHITE).draw_bevy_gizmo_loop(&mut gizmos, transform);
+            GizmoDrawableLoop::new(mesh, WHITE.into()).draw_bevy_gizmo_loop(&mut gizmos, transform);
         }
     }
 
