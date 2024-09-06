@@ -1272,7 +1272,10 @@
 <a href="#1272" id="1272">1272</a>
 <a href="#1273" id="1273">1273</a>
 <a href="#1274" id="1274">1274</a>
+<a href="#1275" id="1275">1275</a>
+<a href="#1276" id="1276">1276</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>hashbrown::{HashMap, HashSet};
+<span class="kw">use </span>itertools::multizip;
 
 <span class="kw">use </span><span class="kw">crate</span>::physics::orbits::components::Mass;
 <span class="kw">use </span><span class="kw">crate</span>::physics::util::clock::Clock;
@@ -1483,11 +1486,12 @@
     <span class="kw">let </span><span class="kw-2">mut </span>has_single_bottom_neighbor: [Sequential&lt;HashSet&lt;ChunkIjkVector&gt;&gt;; <span class="number">9</span>] =
         Default::default();
     <span class="kw">let </span><span class="kw-2">mut </span>has_multi_bottom_neighbor: [Parallel&lt;HashSet&lt;ChunkIjkVector&gt;&gt;; <span class="number">9</span>] = Default::default();
-    <span class="kw">for </span>(i, ((standard, single), multi)) <span class="kw">in </span>standard_convolution
-        .iter_mut()
-        .zip(has_single_bottom_neighbor.iter_mut())
-        .zip(has_multi_bottom_neighbor.iter_mut())
-        .enumerate()
+    <span class="kw">for </span>(i, (standard, single, multi)) <span class="kw">in </span>multizip((
+        <span class="kw-2">&amp;mut </span>standard_convolution,
+        <span class="kw-2">&amp;mut </span>has_single_bottom_neighbor,
+        <span class="kw-2">&amp;mut </span>has_multi_bottom_neighbor,
+    ))
+    .enumerate()
     {
         <span class="kw-2">*</span>standard = calculate_ith_standard_convolution_targets(coords, i);
         <span class="kw-2">*</span>single = calculate_ith_has_single_bottom_neighbor_targets(coords, i);
