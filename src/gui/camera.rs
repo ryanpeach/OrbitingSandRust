@@ -68,7 +68,7 @@ impl Add<usize> for CelestialIdx {
 
 impl CelestialIdx {
     /// Returns the selected celestials index
-    pub fn get_selected_celestial(
+    pub fn selected_celestial(
         celestials: &[(Entity, &CelestialIdx)],
         camera: (&Parent, Entity),
     ) -> CelestialIdx {
@@ -281,7 +281,7 @@ impl CameraPlugin {
     ) {
         if let Ok((parent, camera, mut transform)) = camera.get_single_mut() {
             let celestials_vec = celestials.iter().collect::<Vec<_>>();
-            let idx = CelestialIdx::get_selected_celestial(&celestials_vec, (parent, camera));
+            let idx = CelestialIdx::selected_celestial(&celestials_vec, (parent, camera));
             let next_idx = {
                 if input.just_pressed(KeyCode::BracketLeft) {
                     input.reset(KeyCode::BracketLeft);

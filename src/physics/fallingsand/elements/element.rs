@@ -81,7 +81,7 @@ pub enum ElementType {
 
 impl ElementType {
     /// This gets the default element of the type
-    pub fn get_element(&self) -> Box<dyn Element> {
+    pub fn element(&self) -> Box<dyn Element> {
         match self {
             ElementType::Vacuum => Box::<Vacuum>::default(),
             ElementType::DownFlier => Box::<DownFlier>::default(),
@@ -104,25 +104,25 @@ pub struct SetHeatOnZeroSpecificHeatError;
 pub trait Element: Send + Sync {
     /// This gets the type of the element
     /// Converts between the trait and the enum
-    fn get_type(&self) -> ElementType;
+    fn element_type(&self) -> ElementType;
     /// This gets the last time the element was processed
     /// Useful for physics calculations by getting the dt between now and then
-    fn get_last_processed(&self) -> Clock;
+    fn last_processed(&self) -> Clock;
     /// This gets the color of the element
     /// Always constant and unique for each element, so that we can process them
     /// in fragment shaders knowing their type just by their color
     /// You can map them to other colors and add effects using the fragment shader
-    fn get_color(&self) -> Color;
+    fn color(&self) -> Color;
     /// This gets the density of the element relative to the cell_width
     /// This is so bigger cells have more mass, so we don't have to have as many cells
     /// for simpler bodies, like gas giants or the sun
-    fn get_density(&self) -> Density;
+    fn density(&self) -> Density;
     /// This gets the mass of the element based on the density and the cell_width
-    fn get_mass(&self, cell_width: Length) -> Mass {
-        self.get_density().mass(cell_width)
+    fn mass(&self, cell_width: Length) -> Mass {
+        self.density().mass(cell_width)
     }
     /// This gets the state of matter of the element
-    fn get_state_of_matter(&self) -> StateOfMatter;
+    fn state_of_matter(&self) -> StateOfMatter;
     /// This is the "public" process method, that calls the private _process method
     /// makes sure that _set_last_processed is called
     fn process(
@@ -205,7 +205,7 @@ mod tests {
     fn test_all_elements_have_different_color() {
         let mut colors = Vec::<Color>::new();
         for element_type in ElementType::iter() {
-            let color = element_type.get_element().get_color();
+            let color = element_type.element().color();
             assert!(
                 !colors.contains(&color),
                 "Color {:?} of element {:?} is not unique",
@@ -234,10 +234,10 @@ mod tests {
     #[test]
     fn test_all_types_and_elements_correspond() {
         for element_type in ElementType::iter() {
-            let element = element_type.get_element();
+            let element = element_type.element();
             assert_eq!(
                 element_type,
-                element.get_type(),
+                element.element_type(),
                 "Element type {:?} does not match the type of the element",
                 element_type
             );

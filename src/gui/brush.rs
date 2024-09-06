@@ -155,47 +155,28 @@ impl BrushPlugin {
             radius.0 + brush_transform.translation.y + camera_transform.translation.y,
         );
         let mut positions = Vec::new();
-        let mut x = begin_at.0.x
-            + celestial
-                .element_grid_dir
-                .get_coordinate_dir()
-                .get_cell_width()
-                .0
-                / 2.0;
+        let mut x = begin_at.0.x + celestial.element_grid_dir.coordinate_dir().cell_width().0 / 2.0;
         while x < end_at.0.x {
-            let mut y = begin_at.0.y
-                + celestial
-                    .element_grid_dir
-                    .get_coordinate_dir()
-                    .get_cell_width()
-                    .0
-                    / 2.0;
+            let mut y =
+                begin_at.0.y + celestial.element_grid_dir.coordinate_dir().cell_width().0 / 2.0;
             while y < end_at.0.y {
                 let pos = RelXyPoint::new(x, y);
                 if pos.0.distance(Vec2::new(0., 0.)) < radius.0 {
                     positions.push(pos);
                 }
-                y += celestial
-                    .element_grid_dir
-                    .get_coordinate_dir()
-                    .get_cell_width()
-                    .0;
+                y += celestial.element_grid_dir.coordinate_dir().cell_width().0;
             }
-            x += celestial
-                .element_grid_dir
-                .get_coordinate_dir()
-                .get_cell_width()
-                .0;
+            x += celestial.element_grid_dir.coordinate_dir().cell_width().0;
         }
 
         // Now apply the brush to the celestial
         let current_time = Clock::new(current_time.as_generic(), frame_count.as_ref().to_owned());
         for pos in positions {
             let element_dir = &mut celestial.element_grid_dir;
-            let coord_dir = element_dir.get_coordinate_dir();
+            let coord_dir = element_dir.coordinate_dir();
             let conversion = coord_dir.rel_pos_to_cell_idx(pos);
             if let Ok(coords) = conversion {
-                element_dir.set_element(coords, element_picker.0.get_element(), current_time);
+                element_dir.set_element(coords, element_picker.0.element(), current_time);
             }
         }
     }

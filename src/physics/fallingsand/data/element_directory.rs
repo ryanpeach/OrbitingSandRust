@@ -58,7 +58,7 @@ fn calculate_ith_standard_convolution_targets(
     let mut out = HashSet::new();
 
     // We are going to iterate up every j chunk ignoring the layer they are on, so we need the total number of them
-    let j_size = coords.get_total_number_concentric_chunks();
+    let j_size = coords.total_number_concentric_chunks();
     debug_assert!(
         j_size % 3 == 0,
         "Number of chunks in radial dimension must be divisible by 3, but it is {}",
@@ -75,14 +75,14 @@ fn calculate_ith_standard_convolution_targets(
     for j in (start_j..j_size).step_by(3) {
         // Get our layer shape
         let (layer_num, chunk_layer_concentric_circle) = coords
-            .get_layer_and_chunk_num_from_absolute_concentric_chunk(j)
+            .layer_and_chunk_num_from_absolute_concentric_chunk(j)
             .expect("We are iterating in a well defined range");
-        let chunk_layer_tangential_chunkss = coords.get_layer_num_tangential_chunkss(layer_num);
+        let chunk_layer_tangential_chunkss = coords.layer_num_tangential_chunkss(layer_num);
         let prev_chunk_layer_tangential_chunkss = {
             if j == 0 {
                 1usize
             } else {
-                coords.get_layer_num_tangential_chunkss(layer_num - 1)
+                coords.layer_num_tangential_chunkss(layer_num - 1)
             }
         };
         debug_assert!(
@@ -124,7 +124,7 @@ fn calculate_ith_has_single_bottom_neighbor_targets(
     frame_nb: usize,
 ) -> Sequential<HashSet<ChunkIjkVector>> {
     let mut out = HashSet::new();
-    let i_size = coords.get_num_layers();
+    let i_size = coords.num_layers();
     // For this we actually only need 3 frames
     if frame_nb >= 3 {
         return Sequential(out);
@@ -137,7 +137,7 @@ fn calculate_ith_has_single_bottom_neighbor_targets(
             if layer_num == 0 {
                 1usize // Include the bottom layer
             } else {
-                coords.get_layer_num_tangential_chunkss(layer_num - 1)
+                coords.layer_num_tangential_chunkss(layer_num - 1)
             }
         };
         if prev_chunk_layer_tangential_chunkss != 1 {
@@ -145,7 +145,7 @@ fn calculate_ith_has_single_bottom_neighbor_targets(
         }
 
         // Now add all the k's in this layer
-        let chunk_layer_tangential_chunkss = coords.get_layer_num_tangential_chunkss(layer_num);
+        let chunk_layer_tangential_chunkss = coords.layer_num_tangential_chunkss(layer_num);
         for k in 0..chunk_layer_tangential_chunkss {
             out.insert(ChunkIjkVector {
                 i: layer_num,
@@ -166,7 +166,7 @@ fn calculate_ith_has_different_k_bottom_neighbor_targets(
     frame_nb: usize,
 ) -> Parallel<HashSet<ChunkIjkVector>> {
     let mut out = HashSet::new();
-    let i_size = coords.get_num_layers();
+    let i_size = coords.num_layers();
     // The calculate_ith_has_single_bottom_neighbor_targets stops at the third frame
     // we are going to start at the 4th frame and go to the 9th frame
     if frame_nb < 3 {
@@ -179,9 +179,9 @@ fn calculate_ith_has_different_k_bottom_neighbor_targets(
     // and we will always be on the bottom chunk of the layer
     for layer_num in 1..i_size {
         // Skip any layers whos previous layer doesn't only have one chunk
-        let chunk_layer_tangential_chunkss = coords.get_layer_num_tangential_chunkss(layer_num);
+        let chunk_layer_tangential_chunkss = coords.layer_num_tangential_chunkss(layer_num);
         let prev_chunk_layer_tangential_chunkss =
-            coords.get_layer_num_tangential_chunkss(layer_num - 1);
+            coords.layer_num_tangential_chunkss(layer_num - 1);
         if prev_chunk_layer_tangential_chunkss == 1
             || prev_chunk_layer_tangential_chunkss == chunk_layer_tangential_chunkss
         {
@@ -189,7 +189,7 @@ fn calculate_ith_has_different_k_bottom_neighbor_targets(
         }
 
         // Now add all the k's in this layer but skip by 6 to prevent overlap
-        let chunk_layer_tangential_chunkss = coords.get_layer_num_tangential_chunkss(layer_num);
+        let chunk_layer_tangential_chunkss = coords.layer_num_tangential_chunkss(layer_num);
         for k in (k_start..chunk_layer_tangential_chunkss).step_by(6) {
             out.insert(ChunkIjkVector {
                 i: layer_num,
@@ -243,16 +243,15 @@ pub struct ElementGridDir {
 
 impl ElementGridDir {
     pub fn new_empty(coords: CoordinateDir) -> Self {
-        let mut chunks: Vec<Grid<Option<ElementGrid>>> =
-            Vec::with_capacity(coords.get_num_layers());
-        for i in 0..coords.get_num_layers() {
-            let j_size = coords.get_layer_num_concentric_chunks(i);
-            let k_size = coords.get_layer_num_tangential_chunkss(i);
+        let mut chunks: Vec<Grid<Option<ElementGrid>>> = Vec::with_capacity(coords.num_layers());
+        for i in 0..coords.num_layers() {
+            let j_size = coords.layer_num_concentric_chunks(i);
+            let k_size = coords.layer_num_tangential_chunkss(i);
             let mut layer = Grid::new_empty(k_size, j_size);
             for j in 0..j_size {
                 for k in 0..k_size {
                     let element_grid =
-                        ElementGrid::new_empty(coords.get_chunk_at_idx(ChunkIjkVector { i, j, k }));
+                        ElementGrid::new_empty(coords.chunk_at_idx(ChunkIjkVector { i, j, k }));
                     layer.replace(JkVector { j, k }, Some(element_grid));
                 }
             }
@@ -276,17 +275,16 @@ impl ElementGridDir {
         fill0: &dyn Element,
         fill1: &dyn Element,
     ) -> Self {
-        let mut chunks: Vec<Grid<Option<ElementGrid>>> =
-            Vec::with_capacity(coords.get_num_layers());
-        for i in 0..coords.get_num_layers() {
-            let j_size = coords.get_layer_num_concentric_chunks(i);
-            let k_size = coords.get_layer_num_tangential_chunkss(i);
+        let mut chunks: Vec<Grid<Option<ElementGrid>>> = Vec::with_capacity(coords.num_layers());
+        for i in 0..coords.num_layers() {
+            let j_size = coords.layer_num_concentric_chunks(i);
+            let k_size = coords.layer_num_tangential_chunkss(i);
             let mut layer = Grid::new_empty(k_size, j_size);
             for j in 0..j_size {
                 for k in 0..k_size {
                     let fill: &dyn Element = if (j + k) % 2 == 0 { fill0 } else { fill1 };
                     let element_grid = ElementGrid::new_filled(
-                        coords.get_chunk_at_idx(ChunkIjkVector { i, j, k }),
+                        coords.chunk_at_idx(ChunkIjkVector { i, j, k }),
                         fill,
                     );
                     layer.replace(JkVector { j, k }, Some(element_grid));
@@ -308,15 +306,15 @@ impl ElementGridDir {
     }
 
     #[cfg(test)]
-    fn get_process_targets(&self) -> ProcessTargets {
+    fn process_targets(&self) -> ProcessTargets {
         self.process_targets.clone()
     }
 
     // TODO: This needs testing
-    fn get_chunk_top_neighbors(&self, coord: ChunkIjkVector) -> TopNeighborIdxs {
-        let top_chunk_in_layer = self.coords.get_layer_num_concentric_chunks(coord.i) - 1;
-        let top_layer = self.coords.get_num_layers() - 1;
-        let radial_lines = |i: usize| self.coords.get_layer_num_tangential_chunkss(i);
+    fn chunk_top_neighbors(&self, coord: ChunkIjkVector) -> TopNeighborIdxs {
+        let top_chunk_in_layer = self.coords.layer_num_concentric_chunks(coord.i) - 1;
+        let top_layer = self.coords.num_layers() - 1;
+        let radial_lines = |i: usize| self.coords.layer_num_tangential_chunkss(i);
         let k_isize = coord.k as isize;
 
         // A convenience function for making a vector and adding it to the out set
@@ -360,8 +358,8 @@ impl ElementGridDir {
     }
 
     // TODO: This needs testing
-    fn get_chunk_left_right_neighbors(&self, coord: ChunkIjkVector) -> LeftRightNeighborIdxs {
-        let num_tangential_chunkss = self.coords.get_layer_num_tangential_chunkss(coord.i);
+    fn chunk_left_right_neighbors(&self, coord: ChunkIjkVector) -> LeftRightNeighborIdxs {
+        let num_tangential_chunkss = self.coords.layer_num_tangential_chunkss(coord.i);
         debug_assert!(
             num_tangential_chunkss > 0,
             "Number of tangential chunkss must be greater than 0"
@@ -383,12 +381,11 @@ impl ElementGridDir {
     }
 
     // TODO: This needs testing
-    fn get_chunk_bottom_neighbors(&self, coord: ChunkIjkVector) -> BottomNeighborIdxs {
+    fn chunk_bottom_neighbors(&self, coord: ChunkIjkVector) -> BottomNeighborIdxs {
         let bottom_chunk_in_layer = 0usize;
         let bottom_layer = 0usize;
-        let tangential_chunkss = |i: usize| self.coords.get_layer_num_tangential_chunkss(i);
-        let top_chunk_in_prev_layer =
-            |i: usize| self.coords.get_layer_num_concentric_chunks(i - 1) - 1;
+        let tangential_chunkss = |i: usize| self.coords.layer_num_tangential_chunkss(i);
+        let top_chunk_in_prev_layer = |i: usize| self.coords.layer_num_concentric_chunks(i - 1) - 1;
         let k_isize = coord.k as isize;
 
         let make_vector = |i: usize, j: usize, k: isize| -> ChunkIjkVector {
@@ -442,10 +439,10 @@ impl ElementGridDir {
         }
     }
 
-    fn get_chunk_neighbors(&self, coord: ChunkIjkVector) -> ElementGridConvolutionNeighborIdxs {
-        let top = self.get_chunk_top_neighbors(coord);
-        let left_right = self.get_chunk_left_right_neighbors(coord);
-        let bottom = self.get_chunk_bottom_neighbors(coord);
+    fn chunk_neighbors(&self, coord: ChunkIjkVector) -> ElementGridConvolutionNeighborIdxs {
+        let top = self.chunk_top_neighbors(coord);
+        let left_right = self.chunk_left_right_neighbors(coord);
+        let bottom = self.chunk_bottom_neighbors(coord);
         ElementGridConvolutionNeighborIdxs {
             top,
             left_right,
@@ -457,7 +454,7 @@ impl ElementGridDir {
         &mut self,
         coord: ChunkIjkVector,
     ) -> Result<ElementGridConvolutionNeighbors> {
-        let neighbors = self.get_chunk_neighbors(coord);
+        let neighbors = self.chunk_neighbors(coord);
         let mut out = HashMap::new();
         for neighbor in neighbors.iter() {
             if let Some(chunk) = self.chunks[neighbor.i].replace(neighbor.to_jk_vector(), None) {
@@ -523,7 +520,7 @@ impl ElementGridDir {
             .set_already_processed_deduplicated(true)
             .expect("should not have already been set");
         {
-            let target_idx = target.get_chunk_coords().get_chunk_idx();
+            let target_idx = target.chunk_coords().chunk_idx();
             let prev = self.chunks[target_idx.i].replace(target_idx.to_jk_vector(), Some(target));
             debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
         }
@@ -546,15 +543,15 @@ impl ElementGridDir {
     }
 
     /// Using the already_processed flag, get all the chunks that have not been processed yet
-    fn get_unprocessed_chunk_idxs(&self) -> Vec<ChunkIjkVector> {
+    fn unprocessed_chunk_idxs(&self) -> Vec<ChunkIjkVector> {
         let mut out = Vec::new();
-        for i in 0..self.coords.get_num_layers() {
-            let j_size = self.coords.get_layer_num_concentric_chunks(i);
-            let k_size = self.coords.get_layer_num_tangential_chunkss(i);
+        for i in 0..self.coords.num_layers() {
+            let j_size = self.coords.layer_num_concentric_chunks(i);
+            let k_size = self.coords.layer_num_tangential_chunkss(i);
             for j in 0..j_size {
                 for k in 0..k_size {
                     let coord = ChunkIjkVector { i, j, k };
-                    if !self.get_chunk_by_chunk_ijk(coord).get_already_processed() {
+                    if !self.chunk_at_chunk_ijk(coord).already_processed() {
                         out.push(coord);
                     }
                 }
@@ -565,14 +562,14 @@ impl ElementGridDir {
 
     /// Sets the already_processed flag to false for all chunks
     fn unlock_all_chunks(&mut self) {
-        for i in 0..self.coords.get_num_layers() {
-            let j_size = self.coords.get_layer_num_concentric_chunks(i);
-            let k_size = self.coords.get_layer_num_tangential_chunkss(i);
+        for i in 0..self.coords.num_layers() {
+            let j_size = self.coords.layer_num_concentric_chunks(i);
+            let k_size = self.coords.layer_num_tangential_chunkss(i);
             for j in 0..j_size {
                 for k in 0..k_size {
                     let coord = ChunkIjkVector { i, j, k };
                     // Doesn't even matter if this fails
-                    self.get_chunk_by_chunk_ijk_mut(coord)
+                    self.chunk_at_chunk_ijk_mut(coord)
                         .set_already_processed(false);
                 }
             }
@@ -602,10 +599,10 @@ impl ElementGridDir {
         // Check for errors and unlock all chunks every 9 iterations
         if self.process_count % FRAMES_PER_FULL_PROCESS == 0 {
             debug_assert_eq!(
-                self.get_unprocessed_chunk_idxs().len(),
+                self.unprocessed_chunk_idxs().len(),
                 0,
                 "After 9 iterations not all chunks are processed. Missing {:?}",
-                self.get_unprocessed_chunk_idxs()
+                self.unprocessed_chunk_idxs()
             );
             self.unlock_all_chunks();
             self.recalculate_everything();
@@ -634,13 +631,13 @@ impl ElementGridDir {
         let mut chunk = self.chunks[coord.i]
             .replace(coord.to_jk_vector(), None)
             .expect("Should not have been replaced already.");
-        chunk.process(self.get_coordinate_dir(), &mut conv, current_time);
+        chunk.process(self.coordinate_dir(), &mut conv, current_time);
         // Unpackage the convolution
         self.unpackage_convolution(chunk, conv);
     }
 
     /// Gets the textures of the targets updated in the last call to process
-    pub fn get_updated_target_textures(&self) -> HashMap<ChunkIjkVector, Textures> {
+    pub fn updated_target_textures(&self) -> HashMap<ChunkIjkVector, Textures> {
         // You should call this function only AFTER calling process
         let process_count = self.process_count - 1;
         let targets1 = self.process_targets.standard_convolution[process_count % 9].clone();
@@ -656,11 +653,11 @@ impl ElementGridDir {
         all_targets
             .into_par_iter()
             .map(|target| {
-                let chunk = self.get_chunk_by_chunk_ijk(target);
+                let chunk = self.chunk_at_chunk_ijk(target);
                 (
                     target,
                     Textures {
-                        texture: Some(chunk.get_texture()),
+                        texture: Some(chunk.texture()),
                     },
                 )
             })
@@ -679,7 +676,7 @@ impl ElementGridDir {
             let mut chunk = self.chunks[target.i]
                 .replace(target.to_jk_vector(), None)
                 .expect("Should not have been replaced already.");
-            chunk.process(self.get_coordinate_dir(), &mut conv, current_time);
+            chunk.process(self.coordinate_dir(), &mut conv, current_time);
             // Unpackage the convolution
             self.unpackage_convolution(chunk, conv);
         }
@@ -696,27 +693,24 @@ impl ElementGridDir {
             .par_iter_mut()
             .zip(target_chunks.par_iter_mut())
             .for_each(|(convolution, target_chunk)| {
-                target_chunk.process(self.get_coordinate_dir(), convolution, current_time);
+                target_chunk.process(self.coordinate_dir(), convolution, current_time);
             });
         self.unpackage_convolutions(convolutions, target_chunks);
     }
 
     /// Get the number of chunks from the coordinate directory
-    pub fn get_num_chunks(&self) -> usize {
-        self.coords.get_num_chunks()
+    pub fn num_chunks(&self) -> usize {
+        self.coords.num_chunks()
     }
-    pub fn get_total_num_cells(&self) -> usize {
+    pub fn total_num_cells(&self) -> usize {
         let mut out = 0;
-        for i in 0..self.coords.get_num_layers() {
-            let j_size = self.coords.get_layer_num_concentric_chunks(i);
-            let k_size = self.coords.get_layer_num_tangential_chunkss(i);
+        for i in 0..self.coords.num_layers() {
+            let j_size = self.coords.layer_num_concentric_chunks(i);
+            let k_size = self.coords.layer_num_tangential_chunkss(i);
             for j in 0..j_size {
                 for k in 0..k_size {
                     let coord = ChunkIjkVector { i, j, k };
-                    out += self
-                        .get_chunk_by_chunk_ijk(coord)
-                        .get_chunk_coords()
-                        .total_size();
+                    out += self.chunk_at_chunk_ijk(coord).chunk_coords().total_size();
                 }
             }
         }
@@ -724,7 +718,7 @@ impl ElementGridDir {
     }
 
     /// Get the total mass of the directory
-    pub fn get_total_mass(&self) -> Mass {
+    pub fn total_mass(&self) -> Mass {
         self.total_mass
     }
 
@@ -738,7 +732,7 @@ impl ElementGridDir {
         let mut out = Mass(0.0);
         for layer in chunks {
             for chunk in layer.into_iter().flatten() {
-                out += chunk.get_total_mass();
+                out += chunk.total_mass();
             }
         }
         out
@@ -782,7 +776,7 @@ impl ElementGridDir {
 
     /// Gets the chunk at the given index
     /// Errors if it is currently borrowed
-    pub fn get_chunk_by_chunk_ijk(&self, coord: ChunkIjkVector) -> &ElementGrid {
+    pub fn chunk_at_chunk_ijk(&self, coord: ChunkIjkVector) -> &ElementGrid {
         self.chunks[coord.i]
             .get(coord.to_jk_vector())
             .as_ref()
@@ -790,16 +784,16 @@ impl ElementGridDir {
     }
     /// Gets the chunk at the given index mutably
     /// Errors if it is currently borrowed
-    pub fn get_chunk_by_chunk_ijk_mut(&mut self, coord: ChunkIjkVector) -> &mut ElementGrid {
+    pub fn chunk_at_chunk_ijk_mut(&mut self, coord: ChunkIjkVector) -> &mut ElementGrid {
         self.chunks[coord.i]
             .get_mut(coord.to_jk_vector())
             .as_mut()
             .unwrap()
     }
 
-    pub fn get_element(&self, coord: IjkVector) -> &dyn Element {
-        let chunk_idx = self.get_coordinate_dir().cell_idx_to_chunk_idx(coord);
-        let chunk = self.get_chunk_by_chunk_ijk(chunk_idx.0);
+    pub fn element(&self, coord: IjkVector) -> &dyn Element {
+        let chunk_idx = self.coordinate_dir().cell_idx_to_chunk_idx(coord);
+        let chunk = self.chunk_at_chunk_ijk(chunk_idx.0);
         chunk.get(chunk_idx.1)
     }
 
@@ -809,12 +803,12 @@ impl ElementGridDir {
         element: Box<dyn Element>,
         current_time: Clock,
     ) {
-        let chunk_idx = self.get_coordinate_dir().cell_idx_to_chunk_idx(coord);
-        let chunk = self.get_chunk_by_chunk_ijk_mut(chunk_idx.0);
+        let chunk_idx = self.coordinate_dir().cell_idx_to_chunk_idx(coord);
+        let chunk = self.chunk_at_chunk_ijk_mut(chunk_idx.0);
         chunk.set(chunk_idx.1, element, current_time);
     }
 
-    pub fn get_coordinate_dir(&self) -> &CoordinateDir {
+    pub fn coordinate_dir(&self) -> &CoordinateDir {
         &self.coords
     }
     pub fn len(&self) -> usize {
@@ -825,34 +819,34 @@ impl ElementGridDir {
     }
 
     /// Get all textures
-    pub fn get_textures(&self) -> HashMap<ChunkIjkVector, Textures> {
+    pub fn textures(&self) -> HashMap<ChunkIjkVector, Textures> {
         // Create a filter with all true
-        let mut filter: Vec<Grid<bool>> = Vec::with_capacity(self.coords.get_num_layers());
-        for i in 0..self.coords.get_num_layers() {
-            let j_size = self.coords.get_layer_num_concentric_chunks(i);
-            let k_size = self.coords.get_layer_num_tangential_chunkss(i);
+        let mut filter: Vec<Grid<bool>> = Vec::with_capacity(self.coords.num_layers());
+        for i in 0..self.coords.num_layers() {
+            let j_size = self.coords.layer_num_concentric_chunks(i);
+            let k_size = self.coords.layer_num_tangential_chunkss(i);
             let layer = Grid::new_fill(k_size, j_size, true);
             filter.push(layer);
         }
 
         // Call the filtered version
-        self.get_textures_filtered(&filter)
+        self.textures_filtered(&filter)
     }
 
     /// Where filter is true, get the textures
-    fn get_textures_filtered(&self, filter: &[Grid<bool>]) -> HashMap<ChunkIjkVector, Textures> {
+    fn textures_filtered(&self, filter: &[Grid<bool>]) -> HashMap<ChunkIjkVector, Textures> {
         let mut out = HashMap::new();
         // let (max_temp, min_temp) = self.get_max_min_temp();
         for (i, item) in filter.iter().enumerate() {
-            let j_size = self.coords.get_layer_num_concentric_chunks(i);
-            let k_size = self.coords.get_layer_num_tangential_chunkss(i);
+            let j_size = self.coords.layer_num_concentric_chunks(i);
+            let k_size = self.coords.layer_num_tangential_chunkss(i);
             for j in 0..j_size {
                 for k in 0..k_size {
                     if !item.get(JkVector { j, k }) {
                         continue;
                     }
                     let coord = ChunkIjkVector { i, j, k };
-                    let tex = self.get_chunk_by_chunk_ijk(coord).get_texture();
+                    let tex = self.chunk_at_chunk_ijk(coord).texture();
                     out.insert(coord, Textures { texture: Some(tex) });
                 }
             }
@@ -868,7 +862,7 @@ mod tests {
     use super::*;
 
     /// The default element grid directory for testing
-    fn get_element_grid_dir() -> ElementGridDir {
+    fn element_grid_dir() -> ElementGridDir {
         let coordinate_dir = Builder::new()
             .cell_width(Length(1.0))
             .num_layers(9)
@@ -887,55 +881,55 @@ mod tests {
         /// Going to verify the chunk grid sizes before we start testing, and so we can know if they change
         #[test]
         fn test_grid_sizes() {
-            let element_grid_dir = get_element_grid_dir();
+            let element_grid_dir = element_grid_dir();
             assert_eq!(element_grid_dir.len(), 9);
 
             // Core
-            assert_eq!(element_grid_dir.chunks[0].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[0].get_width(), 3);
+            assert_eq!(element_grid_dir.chunks[0].height(), 1);
+            assert_eq!(element_grid_dir.chunks[0].width(), 3);
 
             // Layer 1
-            assert_eq!(element_grid_dir.chunks[1].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[1].get_width(), 3);
+            assert_eq!(element_grid_dir.chunks[1].height(), 1);
+            assert_eq!(element_grid_dir.chunks[1].width(), 3);
 
             // Layer 2
-            assert_eq!(element_grid_dir.chunks[2].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[2].get_width(), 3);
+            assert_eq!(element_grid_dir.chunks[2].height(), 1);
+            assert_eq!(element_grid_dir.chunks[2].width(), 3);
 
             // Layer 3
-            assert_eq!(element_grid_dir.chunks[3].get_height(), 3);
-            assert_eq!(element_grid_dir.chunks[3].get_width(), 3);
+            assert_eq!(element_grid_dir.chunks[3].height(), 3);
+            assert_eq!(element_grid_dir.chunks[3].width(), 3);
 
             // Layer 4
-            assert_eq!(element_grid_dir.chunks[4].get_height(), 3);
-            assert_eq!(element_grid_dir.chunks[4].get_width(), 6);
+            assert_eq!(element_grid_dir.chunks[4].height(), 3);
+            assert_eq!(element_grid_dir.chunks[4].width(), 6);
 
             // Layer 5
-            assert_eq!(element_grid_dir.chunks[5].get_height(), 3);
-            assert_eq!(element_grid_dir.chunks[5].get_width(), 12);
+            assert_eq!(element_grid_dir.chunks[5].height(), 3);
+            assert_eq!(element_grid_dir.chunks[5].width(), 12);
 
             // Layer 6
-            assert_eq!(element_grid_dir.chunks[6].get_height(), 6);
-            assert_eq!(element_grid_dir.chunks[6].get_width(), 24);
+            assert_eq!(element_grid_dir.chunks[6].height(), 6);
+            assert_eq!(element_grid_dir.chunks[6].width(), 24);
 
             // Layer 7
-            assert_eq!(element_grid_dir.chunks[7].get_height(), 12);
-            assert_eq!(element_grid_dir.chunks[7].get_width(), 48);
+            assert_eq!(element_grid_dir.chunks[7].height(), 12);
+            assert_eq!(element_grid_dir.chunks[7].width(), 48);
 
             // Layer 8
-            assert_eq!(element_grid_dir.chunks[8].get_height(), 24);
-            assert_eq!(element_grid_dir.chunks[8].get_width(), 96);
+            assert_eq!(element_grid_dir.chunks[8].height(), 24);
+            assert_eq!(element_grid_dir.chunks[8].width(), 96);
         }
 
         #[test]
         fn test_get_chunk_neighbors() {
-            let element_grid_dir = get_element_grid_dir();
+            let element_grid_dir = element_grid_dir();
 
             // Core
             // Has no chunks below it
             {
                 let coord = ChunkIjkVector { i: 0, j: 0, k: 0 };
-                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                let neighbors = element_grid_dir.chunk_neighbors(coord);
                 assert_eq!(neighbors.iter().count(), 5, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 1, j: 0, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 1, j: 0, k: 1 }));
@@ -947,7 +941,7 @@ mod tests {
             // Layer 1
             {
                 let coord = ChunkIjkVector { i: 1, j: 0, k: 0 };
-                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                let neighbors = element_grid_dir.chunk_neighbors(coord);
                 assert_eq!(neighbors.iter().count(), 8, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 2, j: 0, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 2, j: 0, k: 1 }));
@@ -962,7 +956,7 @@ mod tests {
             // Layer 2
             {
                 let coord = ChunkIjkVector { i: 2, j: 0, k: 0 };
-                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                let neighbors = element_grid_dir.chunk_neighbors(coord);
                 assert_eq!(neighbors.iter().count(), 8, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 0, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 0, k: 1 }));
@@ -977,7 +971,7 @@ mod tests {
             // Layer 3
             {
                 let coord = ChunkIjkVector { i: 3, j: 0, k: 0 };
-                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                let neighbors = element_grid_dir.chunk_neighbors(coord);
                 assert_eq!(neighbors.iter().count(), 8, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 1, k: 0 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 3, j: 1, k: 1 }));
@@ -993,7 +987,7 @@ mod tests {
             // This is the first special one, because it is the first layer with fewer chunks below it
             {
                 let coord = ChunkIjkVector { i: 4, j: 0, k: 0 };
-                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                let neighbors = element_grid_dir.chunk_neighbors(coord);
                 assert_eq!(neighbors.iter().count(), 7, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 1, k: 1 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 1, k: 0 }));
@@ -1007,7 +1001,7 @@ mod tests {
             // Layer 5,
             {
                 let coord = ChunkIjkVector { i: 5, j: 0, k: 0 };
-                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                let neighbors = element_grid_dir.chunk_neighbors(coord);
                 assert_eq!(neighbors.iter().count(), 7, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 2, k: 5 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 4, j: 2, k: 0 }));
@@ -1021,7 +1015,7 @@ mod tests {
             // Layer 6
             {
                 let coord = ChunkIjkVector { i: 6, j: 0, k: 0 };
-                let neighbors = element_grid_dir.get_chunk_neighbors(coord);
+                let neighbors = element_grid_dir.chunk_neighbors(coord);
                 assert_eq!(neighbors.iter().count(), 7, "{:?}", neighbors);
                 assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 2, k: 11 }));
                 assert!(neighbors.contains(&ChunkIjkVector { i: 5, j: 2, k: 0 }));
@@ -1040,47 +1034,47 @@ mod tests {
         /// Going to verify the chunk grid sizes before we start testing, and so we can know if they change
         #[test]
         fn test_grid_sizes() {
-            let element_grid_dir = get_element_grid_dir();
+            let element_grid_dir = element_grid_dir();
             assert_eq!(element_grid_dir.len(), 9);
 
             // Core
-            assert_eq!(element_grid_dir.chunks[0].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[0].get_width(), 3);
+            assert_eq!(element_grid_dir.chunks[0].height(), 1);
+            assert_eq!(element_grid_dir.chunks[0].width(), 3);
 
             // Layer 1
-            assert_eq!(element_grid_dir.chunks[1].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[1].get_width(), 3);
+            assert_eq!(element_grid_dir.chunks[1].height(), 1);
+            assert_eq!(element_grid_dir.chunks[1].width(), 3);
 
             // Layer 2
-            assert_eq!(element_grid_dir.chunks[2].get_height(), 1);
-            assert_eq!(element_grid_dir.chunks[2].get_width(), 3);
+            assert_eq!(element_grid_dir.chunks[2].height(), 1);
+            assert_eq!(element_grid_dir.chunks[2].width(), 3);
 
             // Layer 3
-            assert_eq!(element_grid_dir.chunks[3].get_height(), 3);
-            assert_eq!(element_grid_dir.chunks[3].get_width(), 3);
+            assert_eq!(element_grid_dir.chunks[3].height(), 3);
+            assert_eq!(element_grid_dir.chunks[3].width(), 3);
 
             // Layer 4
-            assert_eq!(element_grid_dir.chunks[4].get_height(), 3);
-            assert_eq!(element_grid_dir.chunks[4].get_width(), 6);
+            assert_eq!(element_grid_dir.chunks[4].height(), 3);
+            assert_eq!(element_grid_dir.chunks[4].width(), 6);
 
             // Layer 5
-            assert_eq!(element_grid_dir.chunks[5].get_height(), 3);
-            assert_eq!(element_grid_dir.chunks[5].get_width(), 12);
+            assert_eq!(element_grid_dir.chunks[5].height(), 3);
+            assert_eq!(element_grid_dir.chunks[5].width(), 12);
 
             // Layer 6
-            assert_eq!(element_grid_dir.chunks[6].get_height(), 6);
-            assert_eq!(element_grid_dir.chunks[6].get_width(), 24);
+            assert_eq!(element_grid_dir.chunks[6].height(), 6);
+            assert_eq!(element_grid_dir.chunks[6].width(), 24);
 
             // Layer 7
-            assert_eq!(element_grid_dir.chunks[7].get_height(), 12);
-            assert_eq!(element_grid_dir.chunks[7].get_width(), 48);
+            assert_eq!(element_grid_dir.chunks[7].height(), 12);
+            assert_eq!(element_grid_dir.chunks[7].width(), 48);
 
             // Layer 8
-            assert_eq!(element_grid_dir.chunks[8].get_height(), 24);
-            assert_eq!(element_grid_dir.chunks[8].get_width(), 96);
+            assert_eq!(element_grid_dir.chunks[8].height(), 24);
+            assert_eq!(element_grid_dir.chunks[8].width(), 96);
         }
 
-        fn get_next_targets(this: &mut ElementGridDir) -> HashSet<ChunkIjkVector> {
+        fn next_targets(this: &mut ElementGridDir) -> HashSet<ChunkIjkVector> {
             let out1 = this.process_targets.standard_convolution[this.process_count % 9].clone();
             let out2 =
                 this.process_targets.has_single_bottom_neighbor[this.process_count % 9].clone();
@@ -1093,17 +1087,17 @@ mod tests {
         /// Test that every chunk is targetted exactly once in 9 iterations
         #[test]
         fn test_get_next_targets_full_coverage() {
-            let mut element_grid_dir = get_element_grid_dir();
+            let mut element_grid_dir = element_grid_dir();
             let mut all_targets = HashSet::new();
             for _ in 0..9 {
-                let targets = get_next_targets(&mut element_grid_dir);
+                let targets = next_targets(&mut element_grid_dir);
                 all_targets.extend(targets);
             }
             // Just to display what is missing
             let mut full_coverage = HashSet::new();
-            for i in 0..element_grid_dir.coords.get_num_layers() {
-                let j_size = element_grid_dir.coords.get_layer_num_concentric_chunks(i);
-                let k_size = element_grid_dir.coords.get_layer_num_tangential_chunkss(i);
+            for i in 0..element_grid_dir.coords.num_layers() {
+                let j_size = element_grid_dir.coords.layer_num_concentric_chunks(i);
+                let k_size = element_grid_dir.coords.layer_num_tangential_chunkss(i);
                 for j in 0..j_size {
                     for k in 0..k_size {
                         full_coverage.insert(ChunkIjkVector { i, j, k });
@@ -1112,7 +1106,7 @@ mod tests {
             }
             assert_eq!(
                 all_targets.len(),
-                element_grid_dir.coords.get_num_chunks(),
+                element_grid_dir.coords.num_chunks(),
                 "{:?}",
                 full_coverage.difference(&all_targets)
             );
@@ -1121,10 +1115,10 @@ mod tests {
         /// Test that no chunk is targetted twice in 9 iterations
         #[test]
         fn test_get_next_targets_no_duplicates() {
-            let mut element_grid_dir = get_element_grid_dir();
+            let mut element_grid_dir = element_grid_dir();
             let mut all_targets = HashSet::new();
             for process_count in 0..9 {
-                let targets = get_next_targets(&mut element_grid_dir);
+                let targets = next_targets(&mut element_grid_dir);
                 for t in &targets {
                     assert!(
                         !all_targets.contains(t),
@@ -1139,8 +1133,8 @@ mod tests {
 
         #[test]
         fn test_standard_convolution_packaging() {
-            let mut element_grid_dir = get_element_grid_dir();
-            let process_targets = element_grid_dir.get_process_targets();
+            let mut element_grid_dir = element_grid_dir();
+            let process_targets = element_grid_dir.process_targets();
             for frame_nb in 0..9 {
                 let res = element_grid_dir
                     .package_convolutions(process_targets.standard_convolution[frame_nb].0.clone());
@@ -1161,8 +1155,8 @@ mod tests {
 
         #[test]
         fn test_has_multi_bottom_neighbor_packaging() {
-            let mut element_grid_dir = get_element_grid_dir();
-            let process_targets = element_grid_dir.get_process_targets();
+            let mut element_grid_dir = element_grid_dir();
+            let process_targets = element_grid_dir.process_targets();
             for frame_nb in 0..9 {
                 let res = element_grid_dir.package_convolutions(
                     process_targets.has_multi_bottom_neighbor[frame_nb]
@@ -1187,8 +1181,8 @@ mod tests {
         /// Not really necessary since this is done in sequence but good to have a test anyway
         #[test]
         fn test_has_single_bottom_neighbor_packaging() {
-            let mut element_grid_dir = get_element_grid_dir();
-            let process_targets = element_grid_dir.get_process_targets();
+            let mut element_grid_dir = element_grid_dir();
+            let process_targets = element_grid_dir.process_targets();
             for frame_nb in 0..9 {
                 for chunk_coord in process_targets.has_single_bottom_neighbor[frame_nb]
                     .0
@@ -1208,8 +1202,8 @@ mod tests {
         #[test]
         #[warn(unused_variables)]
         fn test_get_next_targets_manual_j_dim() {
-            let mut element_grid_dir = get_element_grid_dir();
-            let all_targets_1 = get_next_targets(&mut element_grid_dir);
+            let mut element_grid_dir = element_grid_dir();
+            let all_targets_1 = next_targets(&mut element_grid_dir);
 
             // For every j step by 3 we should
             assert!(all_targets_1.contains(&ChunkIjkVector { i: 0, j: 0, k: 0 }));
@@ -1222,9 +1216,9 @@ mod tests {
             assert!(all_targets_1.contains(&ChunkIjkVector { i: 8, j: 6, k: 0 }));
             assert!(all_targets_1.contains(&ChunkIjkVector { i: 8, j: 9, k: 0 }));
 
-            get_next_targets(&mut element_grid_dir);
-            get_next_targets(&mut element_grid_dir);
-            let all_targets_2 = get_next_targets(&mut element_grid_dir);
+            next_targets(&mut element_grid_dir);
+            next_targets(&mut element_grid_dir);
+            let all_targets_2 = next_targets(&mut element_grid_dir);
 
             // assert!(all_targets_2.contains(&ChunkIjkVector { i: 1, j: 0, k: 0 }));
             // assert!(all_targets_2.contains(&ChunkIjkVector { i: 4, j: 0, k: 0 }));
@@ -1236,9 +1230,9 @@ mod tests {
             assert!(all_targets_2.contains(&ChunkIjkVector { i: 8, j: 7, k: 0 }));
             assert!(all_targets_2.contains(&ChunkIjkVector { i: 8, j: 10, k: 0 }));
 
-            get_next_targets(&mut element_grid_dir);
-            get_next_targets(&mut element_grid_dir);
-            let all_targets_3 = get_next_targets(&mut element_grid_dir);
+            next_targets(&mut element_grid_dir);
+            next_targets(&mut element_grid_dir);
+            let all_targets_3 = next_targets(&mut element_grid_dir);
 
             // assert!(all_targets_3.contains(&ChunkIjkVector { i: 2, j: 0, k: 0 }));
             // assert!(all_targets_3.contains(&ChunkIjkVector { i: 5, j: 0, k: 0 }));
@@ -1253,8 +1247,8 @@ mod tests {
 
         #[test]
         fn test_get_next_targets_manual_k_dim() {
-            let mut element_grid_dir = get_element_grid_dir();
-            let all_targets_1 = get_next_targets(&mut element_grid_dir);
+            let mut element_grid_dir = element_grid_dir();
+            let all_targets_1 = next_targets(&mut element_grid_dir);
 
             // Same as first test
             assert!(all_targets_1.contains(&ChunkIjkVector { i: 0, j: 0, k: 0 }));
@@ -1262,7 +1256,7 @@ mod tests {
             assert!(all_targets_1.contains(&ChunkIjkVector { i: 6, j: 3, k: 0 }));
             assert!(all_targets_1.contains(&ChunkIjkVector { i: 6, j: 3, k: 3 }));
 
-            let all_targets_2 = get_next_targets(&mut element_grid_dir);
+            let all_targets_2 = next_targets(&mut element_grid_dir);
 
             // Layers that only have one chunk should not repeat
             assert!(!all_targets_2.contains(&ChunkIjkVector { i: 0, j: 0, k: 0 }));
@@ -1270,7 +1264,7 @@ mod tests {
             assert!(all_targets_2.contains(&ChunkIjkVector { i: 6, j: 3, k: 1 }));
             assert!(all_targets_2.contains(&ChunkIjkVector { i: 6, j: 3, k: 4 }));
 
-            let all_targets_3 = get_next_targets(&mut element_grid_dir);
+            let all_targets_3 = next_targets(&mut element_grid_dir);
 
             assert!(all_targets_3.contains(&ChunkIjkVector { i: 6, j: 3, k: 2 }));
             assert!(all_targets_3.contains(&ChunkIjkVector { i: 6, j: 3, k: 5 }));

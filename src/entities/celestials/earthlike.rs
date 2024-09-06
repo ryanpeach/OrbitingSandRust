@@ -116,21 +116,21 @@ impl Builder {
             .max_concentric_circles_per_chunk(self.max_concentric_circles_per_chunk)
             .build();
         let mut element_grid_dir = ElementGridDir::new_empty(coordinate_dir);
-        info!("Num elements: {}", element_grid_dir.get_total_num_cells());
+        info!("Num elements: {}", element_grid_dir.total_num_cells());
 
         // Iterate over each layer of the element grid and fill it with the appropriate element
         let mut total_j = 0;
-        for layer_num in 0..element_grid_dir.get_coordinate_dir().get_num_layers() {
+        for layer_num in 0..element_grid_dir.coordinate_dir().num_layers() {
             for j in 0..element_grid_dir
-                .get_coordinate_dir()
-                .get_layer_num_concentric_chunks(layer_num)
+                .coordinate_dir()
+                .layer_num_concentric_chunks(layer_num)
             {
                 for k in 0..element_grid_dir
-                    .get_coordinate_dir()
-                    .get_layer_num_tangential_chunkss(layer_num)
+                    .coordinate_dir()
+                    .layer_num_tangential_chunkss(layer_num)
                 {
                     let chunk_idx = ChunkIjkVector::new(layer_num, j, k);
-                    let element_grid = element_grid_dir.get_chunk_by_chunk_ijk_mut(chunk_idx);
+                    let element_grid = element_grid_dir.chunk_at_chunk_ijk_mut(chunk_idx);
                     match total_j {
                         0..=3 => {
                             element_grid.fill(ElementType::Lava);

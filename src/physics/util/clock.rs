@@ -27,13 +27,13 @@ impl Clock {
     pub fn new(time: Time, frame: FrameCount) -> Self {
         Self { time, frame }
     }
-    pub fn get_current_time(&self) -> Duration {
+    pub fn current_time(&self) -> Duration {
         self.time.elapsed()
     }
-    pub fn get_last_delta(&self) -> Duration {
+    pub fn last_delta(&self) -> Duration {
         self.time.delta()
     }
-    pub fn get_current_frame(&self) -> u32 {
+    pub fn current_frame(&self) -> u32 {
         self.frame.0
     }
     /// Advances the clock by the given delta and one frame.

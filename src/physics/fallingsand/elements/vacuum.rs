@@ -14,22 +14,22 @@ pub struct Vacuum {
 }
 
 impl Element for Vacuum {
-    fn get_type(&self) -> ElementType {
+    fn element_type(&self) -> ElementType {
         ElementType::Vacuum
     }
-    fn get_last_processed(&self) -> Clock {
+    fn last_processed(&self) -> Clock {
         self.last_processed
     }
-    fn get_density(&self) -> Density {
+    fn density(&self) -> Density {
         Density(0.0)
     }
     fn _set_last_processed(&mut self, current_time: Clock) {
         self.last_processed = current_time;
     }
-    fn get_state_of_matter(&self) -> StateOfMatter {
+    fn state_of_matter(&self) -> StateOfMatter {
         StateOfMatter::Empty
     }
-    fn get_color(&self) -> Color {
+    fn color(&self) -> Color {
         Color::rgba(0.0, 0.0, 0.0, 0.0)
     }
     fn _process(
