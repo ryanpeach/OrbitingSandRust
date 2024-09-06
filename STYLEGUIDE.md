@@ -1,4 +1,4 @@
-Use `derive_builder` and `getset` whenever possible.
+Use `derive_builder`, `getset`, and `derive_more` whenever possible.
 
 Do not use positional attributes except for single field structs.
 
