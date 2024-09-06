@@ -520,7 +520,7 @@ impl ElementGridDir {
             .set_already_processed_deduplicated(true)
             .expect("should not have already been set");
         {
-            let target_idx = target.chunk_coords().chunk_idx();
+            let target_idx = target.coords().chunk_idx();
             let prev = self.chunks[target_idx.i].replace(target_idx.to_jk_vector(), Some(target));
             debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
         }
@@ -710,7 +710,7 @@ impl ElementGridDir {
             for j in 0..j_size {
                 for k in 0..k_size {
                     let coord = ChunkIjkVector { i, j, k };
-                    out += self.chunk_at_chunk_ijk(coord).chunk_coords().total_size();
+                    out += self.chunk_at_chunk_ijk(coord).coords().total_size();
                 }
             }
         }
@@ -718,6 +718,7 @@ impl ElementGridDir {
     }
 
     /// Get the total mass of the directory
+    /// TODO: Cleanup memoization
     pub fn total_mass(&self) -> Mass {
         self.total_mass
     }

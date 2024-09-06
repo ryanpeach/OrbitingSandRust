@@ -102,7 +102,7 @@ impl BrushPlugin {
         mut gizmos: Gizmos,
     ) {
         for (transform, brush_radius) in query.iter() {
-            let mesh = brush_radius.calc_mesh();
+            let mesh = brush_radius.mesh();
             GizmoDrawableLoop::new(mesh, Color::WHITE).draw_bevy_gizmo_loop(&mut gizmos, transform);
         }
     }

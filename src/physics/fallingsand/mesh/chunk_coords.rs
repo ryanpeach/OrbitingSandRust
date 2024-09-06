@@ -492,7 +492,7 @@ impl ChunkCoords {
         vertexes
     }
     /// Get the outline mesh for the chunk
-    pub fn calc_chunk_outline(&self) -> OwnedMeshData {
+    pub fn chunk_outline(&self) -> OwnedMeshData {
         let positions = self.outline();
         let mut vertices = Vec::with_capacity(positions.len());
         for pos in positions {
@@ -509,14 +509,14 @@ impl ChunkCoords {
         OwnedMeshData::new(vertices, indices)
     }
     /// Get the mesh data for the chunk as you would normally draw it
-    pub fn calc_chunk_meshdata(&self, settings: VertexSettings) -> OwnedMeshData {
+    pub fn chunk_meshdata(&self, settings: VertexSettings) -> OwnedMeshData {
         let indices = self.indices(settings);
         let vertices: Vec<Vertex> = self.vertices(settings);
         OwnedMeshData::new(vertices, indices)
     }
 
     /// Get the wireframe mesh data for the chunk
-    pub fn calc_chunk_triangle_wireframe(&self, settings: VertexSettings) -> OwnedMeshData {
+    pub fn chunk_triangle_wireframe(&self, settings: VertexSettings) -> OwnedMeshData {
         let indices = self.indices(settings);
         let vertices: Vec<Vertex> = self.vertices(settings);
         let mut new_indices = Vec::new();

@@ -201,7 +201,7 @@ impl Builder {
                     let celestial_chunk_id = ChunkIdk(chunk_ijk);
                     let mesh = coordinate_dir
                         .chunk_at_idx(chunk_ijk)
-                        .calc_chunk_meshdata(VertexSettings::default());
+                        .chunk_meshdata(VertexSettings::default());
                     let mesh_handle = mesh.load_bevy_mesh(meshes);
 
                     // Wireframes start to look weird unless you are at a certain level of detail at a certain chunk
@@ -214,11 +214,11 @@ impl Builder {
                     };
                     let wireframe = coordinate_dir
                         .chunk_at_idx(chunk_ijk)
-                        .calc_chunk_triangle_wireframe(VertexSettings {
+                        .chunk_triangle_wireframe(VertexSettings {
                             lod,
                             mode: VertexMode::Grid,
                         });
-                    let outline = coordinate_dir.chunk_at_idx(chunk_ijk).calc_chunk_outline();
+                    let outline = coordinate_dir.chunk_at_idx(chunk_ijk).chunk_outline();
 
                     let textures = textures
                         .remove(&chunk_ijk)

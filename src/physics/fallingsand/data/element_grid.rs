@@ -94,7 +94,7 @@ impl ElementGrid {
     pub fn last_set(&self) -> Clock {
         self.last_set
     }
-    pub fn chunk_coords(&self) -> &ChunkCoords {
+    pub fn coords(&self) -> &ChunkCoords {
         &self.coords
     }
     pub fn grid(&self) -> &Grid<Box<dyn Element>> {
@@ -191,8 +191,8 @@ impl ElementGrid {
 impl ElementGrid {
     /// Fill the grid with the given element
     pub fn fill(&mut self, element: ElementType) {
-        for j in 0..self.chunk_coords().num_concentric_circles() {
-            for k in 0..self.chunk_coords().num_radial_lines() {
+        for j in 0..self.coords().num_concentric_circles() {
+            for k in 0..self.coords().num_radial_lines() {
                 let pos = JkVector { j, k };
                 self.grid.replace(pos, element.element());
             }

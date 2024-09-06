@@ -61,8 +61,8 @@ impl LeftRightNeighborGrids {
         match self {
             LeftRightNeighborGrids::LR { l, r } => {
                 let mut map = HashMap::new();
-                map.insert(l.chunk_coords().chunk_idx(), l);
-                map.insert(r.chunk_coords().chunk_idx(), r);
+                map.insert(l.coords().chunk_idx(), l);
+                map.insert(r.coords().chunk_idx(), r);
                 map
             }
         }
@@ -88,9 +88,9 @@ impl LeftRightNeighborGrids {
     ) -> Option<(&ElementGrid, LeftRightNeighborIdentifier)> {
         match self {
             LeftRightNeighborGrids::LR { l, r } => {
-                if l.chunk_coords().chunk_idx() == idx {
+                if l.coords().chunk_idx() == idx {
                     Some((l, LeftRightNeighborIdentifier::Left))
-                } else if r.chunk_coords().chunk_idx() == idx {
+                } else if r.coords().chunk_idx() == idx {
                     Some((r, LeftRightNeighborIdentifier::Right))
                 } else {
                     None
@@ -138,17 +138,17 @@ impl TopNeighborGrids {
         match self {
             TopNeighborGrids::Normal { tl, t, tr } => {
                 let mut map = HashMap::new();
-                map.insert(tl.chunk_coords().chunk_idx(), tl);
-                map.insert(t.chunk_coords().chunk_idx(), t);
-                map.insert(tr.chunk_coords().chunk_idx(), tr);
+                map.insert(tl.coords().chunk_idx(), tl);
+                map.insert(t.coords().chunk_idx(), t);
+                map.insert(tr.coords().chunk_idx(), tr);
                 map
             }
             TopNeighborGrids::ChunkDoubling { tl, t1, t0, tr } => {
                 let mut map = HashMap::new();
-                map.insert(tl.chunk_coords().chunk_idx(), tl);
-                map.insert(t1.chunk_coords().chunk_idx(), t1);
-                map.insert(t0.chunk_coords().chunk_idx(), t0);
-                map.insert(tr.chunk_coords().chunk_idx(), tr);
+                map.insert(tl.coords().chunk_idx(), tl);
+                map.insert(t1.coords().chunk_idx(), t1);
+                map.insert(t0.coords().chunk_idx(), t0);
+                map.insert(tr.coords().chunk_idx(), tr);
                 map
             }
             TopNeighborGrids::TopOfGrid => HashMap::new(),
@@ -315,17 +315,17 @@ impl TopNeighborGrids {
     ) -> Option<(&ElementGrid, TopNeighborIdentifier)> {
         match self {
             TopNeighborGrids::Normal { tl, t, tr } => {
-                if tl.chunk_coords().chunk_idx() == idx {
+                if tl.coords().chunk_idx() == idx {
                     Some((
                         tl,
                         TopNeighborIdentifier::Normal(TopNeighborIdentifierNormal::TopLeft),
                     ))
-                } else if t.chunk_coords().chunk_idx() == idx {
+                } else if t.coords().chunk_idx() == idx {
                     Some((
                         t,
                         TopNeighborIdentifier::Normal(TopNeighborIdentifierNormal::Top),
                     ))
-                } else if tr.chunk_coords().chunk_idx() == idx {
+                } else if tr.coords().chunk_idx() == idx {
                     Some((
                         tr,
                         TopNeighborIdentifier::Normal(TopNeighborIdentifierNormal::TopRight),
@@ -335,28 +335,28 @@ impl TopNeighborGrids {
                 }
             }
             TopNeighborGrids::ChunkDoubling { tl, t1, t0, tr } => {
-                if tl.chunk_coords().chunk_idx() == idx {
+                if tl.coords().chunk_idx() == idx {
                     Some((
                         tl,
                         TopNeighborIdentifier::ChunkDoubling(
                             TopNeighborIdentifierChunkDoubling::TopLeft,
                         ),
                     ))
-                } else if t1.chunk_coords().chunk_idx() == idx {
+                } else if t1.coords().chunk_idx() == idx {
                     Some((
                         t1,
                         TopNeighborIdentifier::ChunkDoubling(
                             TopNeighborIdentifierChunkDoubling::Top1,
                         ),
                     ))
-                } else if t0.chunk_coords().chunk_idx() == idx {
+                } else if t0.coords().chunk_idx() == idx {
                     Some((
                         t0,
                         TopNeighborIdentifier::ChunkDoubling(
                             TopNeighborIdentifierChunkDoubling::Top0,
                         ),
                     ))
-                } else if tr.chunk_coords().chunk_idx() == idx {
+                } else if tr.coords().chunk_idx() == idx {
                     Some((
                         tr,
                         TopNeighborIdentifier::ChunkDoubling(
@@ -374,15 +374,13 @@ impl TopNeighborGrids {
     /// Gets the number of concentric circles in the top layer of the convolution
     pub fn num_concentric_circles(&self) -> usize {
         match self {
-            TopNeighborGrids::Normal { tl: _, t, tr: _ } => {
-                t.chunk_coords().num_concentric_circles()
-            }
+            TopNeighborGrids::Normal { tl: _, t, tr: _ } => t.coords().num_concentric_circles(),
             TopNeighborGrids::ChunkDoubling {
                 tl,
                 t1: _,
                 t0: _,
                 tr: _,
-            } => tl.chunk_coords().num_concentric_circles(),
+            } => tl.coords().num_concentric_circles(),
             TopNeighborGrids::TopOfGrid => 0,
         }
     }
@@ -390,13 +388,13 @@ impl TopNeighborGrids {
     /// Gets the number of radial lines in the top layer of the convolution
     pub fn num_radial_lines(&self) -> usize {
         match self {
-            TopNeighborGrids::Normal { tl: _, t, tr: _ } => t.chunk_coords().num_radial_lines(),
+            TopNeighborGrids::Normal { tl: _, t, tr: _ } => t.coords().num_radial_lines(),
             TopNeighborGrids::ChunkDoubling {
                 tl,
                 t1: _,
                 t0: _,
                 tr: _,
-            } => tl.chunk_coords().num_radial_lines(),
+            } => tl.coords().num_radial_lines(),
             TopNeighborGrids::TopOfGrid => 0,
         }
     }
@@ -441,15 +439,15 @@ impl BottomNeighborGrids {
         match self {
             BottomNeighborGrids::Normal { bl, b, br } => {
                 let mut map = HashMap::new();
-                map.insert(bl.chunk_coords().chunk_idx(), bl);
-                map.insert(b.chunk_coords().chunk_idx(), b);
-                map.insert(br.chunk_coords().chunk_idx(), br);
+                map.insert(bl.coords().chunk_idx(), bl);
+                map.insert(b.coords().chunk_idx(), b);
+                map.insert(br.coords().chunk_idx(), br);
                 map
             }
             BottomNeighborGrids::ChunkDoubling { bl, br } => {
                 let mut map = HashMap::new();
-                map.insert(bl.chunk_coords().chunk_idx(), bl);
-                map.insert(br.chunk_coords().chunk_idx(), br);
+                map.insert(bl.coords().chunk_idx(), bl);
+                map.insert(br.coords().chunk_idx(), br);
                 map
             }
             BottomNeighborGrids::BottomOfGrid => HashMap::new(),
@@ -482,19 +480,19 @@ impl BottomNeighborGrids {
     ) -> Option<(&ElementGrid, BottomNeighborIdentifier)> {
         match self {
             BottomNeighborGrids::Normal { bl, b, br } => {
-                if bl.chunk_coords().chunk_idx() == idx {
+                if bl.coords().chunk_idx() == idx {
                     Some((
                         bl,
                         BottomNeighborIdentifier::Normal(
                             BottomNeighborIdentifierNormal::BottomLeft,
                         ),
                     ))
-                } else if b.chunk_coords().chunk_idx() == idx {
+                } else if b.coords().chunk_idx() == idx {
                     Some((
                         b,
                         BottomNeighborIdentifier::Normal(BottomNeighborIdentifierNormal::Bottom),
                     ))
-                } else if br.chunk_coords().chunk_idx() == idx {
+                } else if br.coords().chunk_idx() == idx {
                     Some((
                         br,
                         BottomNeighborIdentifier::Normal(
@@ -506,14 +504,14 @@ impl BottomNeighborGrids {
                 }
             }
             BottomNeighborGrids::ChunkDoubling { bl, br } => {
-                if bl.chunk_coords().chunk_idx() == idx {
+                if bl.coords().chunk_idx() == idx {
                     Some((
                         bl,
                         BottomNeighborIdentifier::ChunkDoubling(
                             BottomNeighborIdentifierChunkDoubling::BottomLeft,
                         ),
                     ))
-                } else if br.chunk_coords().chunk_idx() == idx {
+                } else if br.coords().chunk_idx() == idx {
                     Some((
                         br,
                         BottomNeighborIdentifier::ChunkDoubling(
@@ -531,10 +529,8 @@ impl BottomNeighborGrids {
     /// Gets the number of radial lines in the bottom layer of the convolution
     pub fn num_radial_lines(&self) -> usize {
         match self {
-            BottomNeighborGrids::Normal { bl: _, b, br: _ } => b.chunk_coords().num_radial_lines(),
-            BottomNeighborGrids::ChunkDoubling { bl, br: _ } => {
-                bl.chunk_coords().num_radial_lines()
-            }
+            BottomNeighborGrids::Normal { bl: _, b, br: _ } => b.coords().num_radial_lines(),
+            BottomNeighborGrids::ChunkDoubling { bl, br: _ } => bl.coords().num_radial_lines(),
             BottomNeighborGrids::BottomOfGrid => 0,
         }
     }
@@ -542,11 +538,9 @@ impl BottomNeighborGrids {
     /// Gets the number of concentric circles in the bottom layer of the convolution
     pub fn num_concentric_circles(&self) -> usize {
         match self {
-            BottomNeighborGrids::Normal { bl: _, b, br: _ } => {
-                b.chunk_coords().num_concentric_circles()
-            }
+            BottomNeighborGrids::Normal { bl: _, b, br: _ } => b.coords().num_concentric_circles(),
             BottomNeighborGrids::ChunkDoubling { bl, br: _ } => {
-                bl.chunk_coords().num_concentric_circles()
+                bl.coords().num_concentric_circles()
             }
             BottomNeighborGrids::BottomOfGrid => 0,
         }
