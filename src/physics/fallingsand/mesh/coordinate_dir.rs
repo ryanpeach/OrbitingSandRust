@@ -4,7 +4,7 @@ use std::f32::consts::PI;
 
 use bevy::math::Rect;
 
-use crate::entities::utils::Radius;
+use crate::entities::components::Radius;
 use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use crate::physics::orbits::components::Length;

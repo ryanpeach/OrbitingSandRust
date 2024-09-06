@@ -4,8 +4,7 @@
 use bevy::app::{PluginGroup as PGTrait, PluginGroupBuilder};
 
 pub mod celestials;
-#[expect(missing_docs)]
-pub mod utils;
+pub mod components;
 
 /// The plugin group for all entities
 pub struct PluginGroup;

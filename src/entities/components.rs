@@ -1,3 +1,5 @@
+//! Components for entities
+
 use bevy::{ecs::component::Component, math::Vec2, render::color::Color};
 
 use crate::physics::{fallingsand::util::mesh::OwnedMeshData, util::vectors::Vertex};
