@@ -12,6 +12,7 @@ use crate::physics::util::vectors::RelXyPoint;
 
 use super::chunk_coords::ChunkCoords;
 use super::chunk_coords::PartialLayerChunkCoordsBuilder;
+use anyhow::{bail, Result};
 
 /// The different ways to draw a mesh
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -376,7 +377,7 @@ impl CoordinateDir {
     pub fn get_layer_and_chunk_num_from_absolute_concentric_chunk(
         &self,
         j_chunk: usize,
-    ) -> Result<(usize, usize), String> {
+    ) -> Result<(usize, usize)> {
         if j_chunk == 0 {
             return Ok((0, 0));
         }
@@ -388,7 +389,7 @@ impl CoordinateDir {
             }
             total_concentric_chunks += layer_num_concentric_chunks;
         }
-        Err("j is out of bounds".to_owned())
+        bail!("j is out of bounds")
     }
 }
 

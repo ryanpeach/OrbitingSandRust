@@ -4,9 +4,9 @@ use crate::physics::fallingsand::util::mesh::OwnedMeshData;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use crate::physics::orbits::components::Length;
 use crate::physics::util::vectors::{RelXyPoint, Vertex};
+use anyhow::{bail, Result};
 use bevy::math::{Rect, Vec2};
 use bevy::render::color::Color;
-
 use std::f32::consts::PI;
 
 /// The settings for generating the vertexes
@@ -534,7 +534,7 @@ impl ChunkCoords {
 
     /// Converts a position relative to the origin of the circle to a cell index
     /// Returns an Err if the position is not on the circle
-    pub fn rel_pos_to_cell_idx(&self, xy_coord: RelXyPoint) -> Result<IjkVector, String> {
+    pub fn rel_pos_to_cell_idx(&self, xy_coord: RelXyPoint) -> Result<IjkVector> {
         let norm_vertex_coord = (xy_coord.0.x * xy_coord.0.x + xy_coord.0.y * xy_coord.0.y).sqrt();
         let start_concentric_circle = self.get_start_concentric_circle_layer_relative();
         let end_concentric_circle = self.get_end_concentric_circle_layer_relative();
@@ -565,22 +565,22 @@ impl ChunkCoords {
 
         // Check to see if the vertex is in the chunk
         if j < start_concentric_circle && j >= end_concentric_circle {
-            return Err(format!(
+            bail!(
                 "Vertex j {:?} is not in chunk {:?}. start_concentric_circle: {}, end_concentric_circle: {}",
                 xy_coord,
                 self.get_chunk_idx(),
                 start_concentric_circle,
                 end_concentric_circle,
-            ));
+            );
         }
         if k < start_radial_line && k >= end_radial_line {
-            return Err(format!(
+            bail!(
                 "Vertex k {:?} is not in chunk {:?}. start_radial_line: {}, end_radial_line: {}",
                 xy_coord,
                 self.get_chunk_idx(),
                 start_radial_line,
                 end_radial_line,
-            ));
+            );
         }
         Ok(IjkVector {
             i: self.get_layer_num(),
@@ -591,38 +591,35 @@ impl ChunkCoords {
 
     /// Convert a cell coordinate "on the circle" to a position "on the chunk"
     /// Return an Err if this is not on the chunk
-    pub fn absolute_cell_idx_to_in_chunk_cell_idx(
-        &self,
-        cell_idx: IjkVector,
-    ) -> Result<JkVector, String> {
+    pub fn absolute_cell_idx_to_in_chunk_cell_idx(&self, cell_idx: IjkVector) -> Result<JkVector> {
         if cell_idx.i != self.get_layer_num() {
-            return Err(format!(
+            bail!(
                 "Cell index i {:?} is not in chunk {:?}",
                 cell_idx,
                 self.get_chunk_idx()
-            ));
+            );
         }
         let start_radial_line = self.get_start_radial_line();
         let end_radial_line = self.get_end_radial_line();
         let start_concentric_circle = self.get_start_concentric_circle_layer_relative();
         let end_concentric_circle = self.get_end_concentric_circle_layer_relative();
         if cell_idx.j < start_concentric_circle || cell_idx.j >= end_concentric_circle {
-            return Err(format!(
+            bail!(
                 "Cell index j {:?} is not in chunk {:?}. start_concentric_circle: {}, end_concentric_circle: {}",
                 cell_idx,
                 self.get_chunk_idx(),
                 start_concentric_circle,
                 end_concentric_circle,
-            ));
+            );
         }
         if cell_idx.k < start_radial_line || cell_idx.k >= end_radial_line {
-            return Err(format!(
+            bail!(
                 "Cell index k {:?} is not in chunk {:?}. start_radial_line: {}, end_radial_line: {}",
                 cell_idx,
                 self.get_chunk_idx(),
                 start_radial_line,
                 end_radial_line,
-            ));
+            );
         }
         Ok(JkVector {
             j: cell_idx.j - start_concentric_circle,

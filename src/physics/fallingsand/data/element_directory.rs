@@ -15,6 +15,7 @@ use super::super::util::grid::Grid;
 use super::super::util::image::RawImage;
 use super::super::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use super::element_grid::ElementGrid;
+use anyhow::{bail, Result};
 
 use rayon::prelude::*;
 
@@ -455,7 +456,7 @@ impl ElementGridDir {
     pub fn package_coordinate_neighbors(
         &mut self,
         coord: ChunkIjkVector,
-    ) -> Result<ElementGridConvolutionNeighbors, String> {
+    ) -> Result<ElementGridConvolutionNeighbors> {
         let neighbors = self.get_chunk_neighbors(coord);
         let mut out = HashMap::new();
         for neighbor in neighbors.iter() {
@@ -469,10 +470,10 @@ impl ElementGridDir {
                         .replace(neighbor_idx.to_jk_vector(), Some(neighbor));
                     debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
                 }
-                return Err(format!(
+                bail!(
                     "Chunk {:?} is already borrowed by another convolution.",
                     neighbor
-                ));
+                );
             }
         }
         Ok(ElementGridConvolutionNeighbors::new(neighbors, out))
