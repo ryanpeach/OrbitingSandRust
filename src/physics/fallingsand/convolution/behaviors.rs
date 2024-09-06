@@ -19,6 +19,7 @@
 //! All of that is handled automagically by this API.
 
 use hashbrown::HashMap;
+use thiserror::Error;
 
 use crate::physics::{
     fallingsand::{
@@ -254,8 +255,9 @@ impl ElementGridConvolutionNeighbors {
 }
 
 /// Errors for the getter methods
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum GetChunkErr {
+    #[error("You aren't allowed to get the center chunk")]
     /// You aren't allowed to get the center chunk.
     /// As [`ElementGridConvolutionNeighbors`] describes in its documentation,
     /// it doesn't contain the center chunk.

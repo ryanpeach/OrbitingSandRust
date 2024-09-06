@@ -1,7 +1,6 @@
 //! Actual data storage types for the convolution
-use std::fmt;
-
 use hashbrown::HashMap;
+use thiserror::Error;
 
 use crate::physics::fallingsand::{
     data::element_grid::ElementGrid,
@@ -36,17 +35,9 @@ impl ElementGridConvolutionNeighborGrids {
 }
 
 /// Defines when the user has simply exceeded the bounds of the convolution
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Error)]
+#[error("{:?} went outside the constraints of chunk {:?} and there are no further chunks", .0.0, .0.1)]
 pub struct ConvOutOfBoundsError(pub ConvolutionIdx);
-impl fmt::Display for ConvOutOfBoundsError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{:?} went outside the constraints of chunk {:?} and there are no further chunks",
-            self.0 .0, self.0 .1
-        )
-    }
-}
 
 /// Left and Right neighbor grids in the convolution
 /// Check out the  [`super::neighbor_identifiers::LeftRightNeighborIdentifier`] and

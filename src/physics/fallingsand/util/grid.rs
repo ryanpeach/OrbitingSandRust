@@ -3,10 +3,8 @@
 //! use the ndarray crate as the backend for this type. This is because the ndarray crate
 //! has a convolution function that is helpful for the physics simulation.
 //! So some of this code is now redundant, but is maintained for legacy reasons
-#![warn(missing_docs)]
-#![warn(clippy::missing_docs_in_private_items)]
 
-use std::fmt;
+use thiserror::Error;
 
 use super::vectors::JkVector;
 
@@ -70,13 +68,9 @@ impl<T> Grid<T> {
 }
 
 /// Defines when the user has simply exceeded the bounds of the convolution
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Error)]
+#[error("{:?} went outside the constraints of grid", .0)]
 pub struct GridOutOfBoundsError(pub JkVector);
-impl fmt::Display for GridOutOfBoundsError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?} went outside the constraints of grid", self.0)
-    }
-}
 
 /* ======================================
  * Position Based Getters
