@@ -733,8 +733,8 @@ mod tests {
             let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
             let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx.0);
             assert_eq!(
-                chunk.absolute_cell_idx_to_in_chunk_cell_idx(coord),
-                Ok(coord.to_jk_vector())
+                chunk.absolute_cell_idx_to_in_chunk_cell_idx(coord).unwrap(),
+                coord.to_jk_vector()
             );
         }
 
@@ -763,8 +763,10 @@ mod tests {
                             // assert_eq!(chunk_idx, ChunkIjkVector { i, j: cj, k: ck });
                             let chunk = coordinate_dir.get_chunk_at_idx(chunk_idx.0);
                             assert_eq!(
-                                chunk.absolute_cell_idx_to_in_chunk_cell_idx(absolute_coord),
-                                Ok(in_chunk_coord)
+                                chunk
+                                    .absolute_cell_idx_to_in_chunk_cell_idx(absolute_coord)
+                                    .unwrap(),
+                                in_chunk_coord
                             );
                         }
                     }
