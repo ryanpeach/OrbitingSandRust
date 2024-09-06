@@ -279,7 +279,6 @@ impl ElementGrid {
 
     /// Process the heat of the grid
     /// Currently disabled as it is broken
-    // #[allow(dead_code)]
     // fn process_heat(
     //     &mut self,
     //     element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,

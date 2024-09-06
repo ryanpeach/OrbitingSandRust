@@ -51,7 +51,7 @@ struct ProcessTargets {
 /// 3x3 convolution kernels. It excludes known edge cases, like the bottom of a layer where there is a reduction in tangential chunkss.
 /// Run this over 0..9 frame_nb to get the targets for each frame
 fn calculate_ith_standard_convolution_targets(
-    coords: CoordinateDir,
+    coords: &CoordinateDir,
     frame_nb: usize,
 ) -> Parallel<HashSet<ChunkIjkVector>> {
     let mut out = HashSet::new();
@@ -119,7 +119,7 @@ fn calculate_ith_standard_convolution_targets(
 /// This really only calculates the core now
 /// TODO: Maybe consider removing this
 fn calculate_ith_has_single_bottom_neighbor_targets(
-    coords: CoordinateDir,
+    coords: &CoordinateDir,
     frame_nb: usize,
 ) -> Sequential<HashSet<ChunkIjkVector>> {
     let mut out = HashSet::new();
@@ -161,7 +161,7 @@ fn calculate_ith_has_single_bottom_neighbor_targets(
 /// In this case we still need to maintain a j step of 3, but we need to
 /// process all k's sequentially.
 fn calculate_ith_has_different_k_bottom_neighbor_targets(
-    coords: CoordinateDir,
+    coords: &CoordinateDir,
     frame_nb: usize,
 ) -> Parallel<HashSet<ChunkIjkVector>> {
     let mut out = HashSet::new();
@@ -203,18 +203,20 @@ fn calculate_ith_has_different_k_bottom_neighbor_targets(
 
 /// Pre calculate all the chunk idx's we need to process each frame.
 /// We pregenerate these so that we can test them and so that we don't waste time recalculating them
-#[allow(clippy::needless_range_loop)]
 fn pregen_process_targets(coords: &CoordinateDir) -> ProcessTargets {
     let mut standard_convolution: [Parallel<HashSet<ChunkIjkVector>>; 9] = Default::default();
     let mut has_single_bottom_neighbor: [Sequential<HashSet<ChunkIjkVector>>; 9] =
         Default::default();
     let mut has_multi_bottom_neighbor: [Parallel<HashSet<ChunkIjkVector>>; 9] = Default::default();
-    for i in 0..9 {
-        standard_convolution[i] = calculate_ith_standard_convolution_targets(coords.clone(), i);
-        has_single_bottom_neighbor[i] =
-            calculate_ith_has_single_bottom_neighbor_targets(coords.clone(), i);
-        has_multi_bottom_neighbor[i] =
-            calculate_ith_has_different_k_bottom_neighbor_targets(coords.clone(), i);
+    for (i, ((standard, single), multi)) in standard_convolution
+        .iter_mut()
+        .zip(has_single_bottom_neighbor.iter_mut())
+        .zip(has_multi_bottom_neighbor.iter_mut())
+        .enumerate()
+    {
+        *standard = calculate_ith_standard_convolution_targets(coords, i);
+        *single = calculate_ith_has_single_bottom_neighbor_targets(coords, i);
+        *multi = calculate_ith_has_different_k_bottom_neighbor_targets(coords, i);
     }
     ProcessTargets {
         standard_convolution,
