@@ -1,7 +1,7 @@
 //! # Element Behavior API
 //!
 //! This module contains the behaviors of the convolution
-//! It exports the [ElementGridConvolutionNeighbors] struct which contains
+//! It exports the [`ElementGridConvolutionNeighbors`] struct which contains
 //! both the indexes and the grids of the neighbors
 //! It contains getters for the chunks based on index or identifier
 //! and both getters and setters by element

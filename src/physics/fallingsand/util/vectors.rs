@@ -1,5 +1,5 @@
 //! A collection of coordinate types and their conversions
-//! Mostly for the [ChunkCoords] [crate::physics::fallingsand::mesh::coordinate_directory::Directory]
+//! Mostly for the [`ChunkCoords`] [`crate::physics::fallingsand::mesh::coordinate_dir::Directory`]
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
@@ -161,7 +161,7 @@ pub struct FullIdx {
 
 /// Instantiation
 impl FullIdx {
-    /// Create a new [FullIdx]
+    /// Create a new [`FullIdx`]
     pub fn new(chunk_idx: ChunkIjkVector, pos: JkVector) -> Self {
         Self { chunk_idx, pos }
     }
@@ -187,7 +187,7 @@ impl IjkVector {
     pub fn new(i: usize, j: usize, k: usize) -> Self {
         Self { i, j, k }
     }
-    /// Convert to a [JkVector]
+    /// Convert to a [`JkVector`]
     pub fn to_jk_vector(self) -> JkVector {
         JkVector {
             j: self.j,
@@ -209,7 +209,7 @@ pub struct Vertex {
     pub color: Color,
 }
 
-/// The  [`IjkVector`]of a chunk within an [crate::physics::fallingsand::data::element_directory::ElementGridDir]
+/// The  [`IjkVector`]of a chunk within an [`crate::physics::fallingsand::data::element_directory::ElementGridDir`]
 /// In this case Ijk relate to the index of the chunk itself, not
 /// perportional to the cells within the chunk
 /// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
@@ -230,7 +230,7 @@ impl ChunkIjkVector {
     }
     /// The zero vector
     pub const ZERO: Self = Self { i: 0, j: 0, k: 0 };
-    /// Convert to a [JkVector]
+    /// Convert to a [`JkVector`]
     pub fn to_jk_vector(self) -> JkVector {
         JkVector {
             j: self.j,

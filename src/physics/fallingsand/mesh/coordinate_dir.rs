@@ -1,4 +1,4 @@
-//! The [`Directory`] layouts the chunks in the game.
+//! The directory contains all the chunks of a celestial.
 
 use std::f32::consts::PI;
 

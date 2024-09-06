@@ -1,4 +1,4 @@
-//! Indexes in [ChunkIjkVector]s for all the neighbors of a chunk
+//! Indexes in [`ChunkIjkVector`]s for all the neighbors of a chunk
 use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 
 /// The main type exported by this module

@@ -24,7 +24,7 @@ pub struct Builder {
     /// See [`coordinate_dir::Builder::second_num_concentric_circles`]
     second_num_concentric_circles: usize,
     /// See [`coordinate_dir::Builder::first_num_tangential_chunks`]
-    first_num_tangential_chunkss: usize,
+    first_num_tangential_chunks: usize,
     /// See [`coordinate_dir::Builder::max_radial_lines_per_chunk`]
     max_radial_lines_per_chunk: usize,
     /// See [`coordinate_dir::Builder::max_concentric_circles_per_chunk`]
@@ -46,7 +46,7 @@ impl Builder {
             num_layers: 4,
             first_num_radial_lines: 12,
             second_num_concentric_circles: 3,
-            first_num_tangential_chunkss: 3,
+            first_num_tangential_chunks: 3,
             max_radial_lines_per_chunk: 128,
             max_concentric_circles_per_chunk: 128,
         }
@@ -78,7 +78,7 @@ impl Builder {
     /// Set [`Builder::first_num_tangential_chunks`]
     #[must_use]
     pub fn first_num_tangential_chunkss(mut self, first_num_tangential_chunkss: usize) -> Self {
-        self.first_num_tangential_chunkss = first_num_tangential_chunkss;
+        self.first_num_tangential_chunks = first_num_tangential_chunkss;
         self
     }
     /// Set [`Builder::max_radial_lines_per_chunk`]
@@ -105,7 +105,7 @@ impl Builder {
             .num_layers(self.num_layers)
             .first_num_radial_lines(self.first_num_radial_lines)
             .second_num_concentric_circles(self.second_num_concentric_circles)
-            .first_num_tangential_chunkss(self.first_num_tangential_chunkss)
+            .first_num_tangential_chunkss(self.first_num_tangential_chunks)
             .max_radial_lines_per_chunk(self.max_radial_lines_per_chunk)
             .max_concentric_circles_per_chunk(self.max_concentric_circles_per_chunk)
             .build();
