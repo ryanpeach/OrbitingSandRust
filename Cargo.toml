@@ -23,10 +23,10 @@ bon
 conv
 derive_more = "0.99.17"
 getset = "0.1.2"
-hashbrown = { version = "0.14.2", features = ["rayon", "ahash"] }
+hashbrown = { version = "0.14.2", features = ["ahash"] }
 itertools = "0.12.1"
 # nabo = "0.3.0"
-ndarray = { version = "0.15.6", features = ["rayon", "serde", "blas"] }
+ndarray = { version = "0.15.6", features = ["serde", "blas"] }
 rand = "0.8.5"
 strum = "0.25.0"
 strum_macros = "0.25.3"
