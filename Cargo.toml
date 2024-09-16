@@ -19,7 +19,8 @@ bevy_egui = "0.29.0"
 bevy_eventlistener = "0.7.0"
 bevy_mod_picking = { version = "0.19.0", features = ["bevy_picking_raycast"] }
 # bytemuck = "1.14.0"
-derive_builder = "0.20.1"
+bon
+conv
 derive_more = "0.99.17"
 getset = "0.1.2"
 hashbrown = { version = "0.14.2", features = ["rayon", "ahash"] }
@@ -27,7 +28,6 @@ itertools = "0.12.1"
 # nabo = "0.3.0"
 ndarray = { version = "0.15.6", features = ["rayon", "serde", "blas"] }
 rand = "0.8.5"
-rayon = "1.8.0"
 strum = "0.25.0"
 strum_macros = "0.25.3"
 thiserror = "1.0.63"
