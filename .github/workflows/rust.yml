@@ -35,7 +35,9 @@ jobs:
         override: true
 
     - name: Install dependencies
-      run: sudo apt-get install -y libasound2-dev libusb-1.0-0-dev libftdi1-dev libudev-dev
+      run: |
+        supo apt-get update
+        sudo apt-get install -y libasound2-dev libusb-1.0-0-dev libftdi1-dev libudev-dev
 
     - name: Install cargo fmt, clippy
       run: rustup component add rustfmt clippy
