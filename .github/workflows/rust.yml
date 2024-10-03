@@ -36,7 +36,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        supo apt-get update
+        sudo apt-get update
         sudo apt-get install -y libasound2-dev libusb-1.0-0-dev libftdi1-dev libudev-dev
 
     - name: Install cargo fmt, clippy
