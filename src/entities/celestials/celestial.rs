@@ -5,7 +5,7 @@
 
 use bevy::app::{App, FixedUpdate, Plugin, Update};
 use bevy::asset::{AssetServer, Assets, Handle};
-use bevy::color::{Color, Srgba};
+use bevy::color::Srgba;
 use bevy::core::{FrameCount, Name};
 use bevy::ecs::component::Component;
 
