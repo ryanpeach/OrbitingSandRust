@@ -2,7 +2,7 @@
 //! For players, we will eventually create a mdbook describing gameplay.
 //! This is the entry point for the game. It installs the plugins and contains
 //! a couple of setup functions for creating different scenes.
-#[warn(
+#![warn(
     clippy::pedantic,
     clippy::unwrap_used,
     clippy::panic,
@@ -15,12 +15,8 @@
     clippy::missing_fields_in_debug,
     clippy::redundant_clone
 )]
-#[deny(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
-#[allow(clippy::too_many_lines)]
-pub mod entities;
-pub mod gui;
-pub mod physics;
-
+#![deny(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
+#![allow(clippy::too_many_lines)]
 use bevy::app::App;
 use bevy::app::PostStartup;
 use bevy::asset::AssetServer;
@@ -45,23 +41,23 @@ use bevy::sprite::ColorMaterial;
 use bevy::DefaultPlugins;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
-use crate::entities::celestials::celestial;
-use crate::entities::celestials::earthlike;
-use crate::entities::celestials::sun;
 use bevy::log::LogPlugin;
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy_egui::EguiPlugin;
 use bevy_mod_picking::low_latency_window_plugin;
 use bevy_mod_picking::DefaultPickingPlugins;
-use gui::camera::MainCamera;
+use orbiting_sand::entities::celestials::celestial;
+use orbiting_sand::entities::celestials::earthlike;
+use orbiting_sand::entities::celestials::sun;
+use orbiting_sand::gui::camera::MainCamera;
 
 use bevy::prelude::PluginGroup;
 
-use crate::gui::camera::{BackgroundLayer1, CelestialIdx};
-use crate::gui::GuiPluginGroup;
-use crate::physics::orbits::components::{Mass, Velocity};
+use orbiting_sand::gui::camera::{BackgroundLayer1, CelestialIdx};
+use orbiting_sand::gui::GuiPluginGroup;
+use orbiting_sand::physics::orbits::components::{Mass, Velocity};
 
-use crate::physics::PhysicsPluginGroup;
+use orbiting_sand::physics::PhysicsPluginGroup;
 
 /// Create the bevy app
 fn main() {
@@ -80,7 +76,7 @@ fn main() {
         ))
         .add_plugins(GuiPluginGroup)
         .add_plugins(PhysicsPluginGroup)
-        .add_plugins(entities::PluginGroup)
+        .add_plugins(orbiting_sand::entities::PluginGroup)
         .add_plugins(WorldInspectorPlugin::new())
         .add_systems(PostStartup, planet_only_setup)
         .run();
