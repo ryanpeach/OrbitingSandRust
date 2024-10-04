@@ -14,26 +14,25 @@ debug = false
 [dependencies]
 anyhow = "1.0.86"
 bevy = "0.14.2"
-bevy-inspector-egui = "0.25.0"
+bevy-inspector-egui = "0.26.0"
 bevy_egui = "0.29.0"
-bevy_eventlistener = "0.7.0"
-bevy_mod_picking = { version = "0.19.0", features = ["bevy_picking_raycast"] }
+bevy_eventlistener = "0.8.1"
+bevy_mod_picking = { version = "0.20.1", features = ["bevy_picking_raycast"] }
 # bytemuck = "1.14.0"
-bon
-conv
-derive_more = "0.99.17"
+derive_more = { version = "1.0.0", features = ["full"] }
 getset = "0.1.2"
-hashbrown = { version = "0.14.2", features = ["ahash"] }
-itertools = "0.12.1"
+hashbrown = { version = "0.15.0", features = ["rayon"] }
+itertools = "0.13.0"
 # nabo = "0.3.0"
-ndarray = { version = "0.15.6", features = ["serde", "blas"] }
+ndarray = { version = "0.16.1", features = ["rayon", "serde", "blas"] }
 rand = "0.8.5"
-strum = "0.25.0"
-strum_macros = "0.25.3"
+rayon = "1.10.0"
+strum = "0.26.3"
+strum_macros = "0.26.4"
 thiserror = "1.0.63"
 
 [dev-dependencies]
-criterion = { version = "0.4", features = ["html_reports"] }
+criterion = { version = "0.5.1", features = ["html_reports"] }
 just = "1.23.0"
 
 [net]

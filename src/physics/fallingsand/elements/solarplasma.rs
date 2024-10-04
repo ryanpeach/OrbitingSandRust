@@ -5,9 +5,9 @@ use crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
 use crate::physics::fallingsand::util::vectors::JkVector;
 
 use crate::physics::util::clock::Clock;
+use bevy::color::palettes::css::ORANGE;
 use bevy::color::Color;
 use rand::Rng;
-use bevy::color::palettes::css::ORANGE;
 
 /// Literally nothing
 #[derive(Default, Copy, Clone, Debug)]

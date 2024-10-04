@@ -9,8 +9,8 @@ use bevy::color::{Color, Srgba};
 use bevy::core::{FrameCount, Name};
 use bevy::ecs::component::Component;
 
+use bevy::color::palettes::css::RED;
 use bevy::ecs::entity::Entity;
-
 use bevy::gizmos::gizmos::Gizmos;
 
 use bevy::render::view::{ViewVisibility, Visibility, VisibilityBundle};
@@ -256,7 +256,8 @@ impl Builder {
                                     green: 0.1,
                                     blue: 0.1,
                                     alpha: 0.1,
-                                }.into(),
+                                }
+                                .into(),
                             ),
                             SpatialBundle {
                                 transform: Transform::from_translation(
@@ -272,7 +273,7 @@ impl Builder {
                     let outline_entity = commands
                         .spawn((
                             Name::new(format!("Outline {chunk_ijk:?}")),
-                            GizmoDrawableLoop::new(outline, Color::RED),
+                            GizmoDrawableLoop::new(outline, RED.into()),
                             SpatialBundle {
                                 transform: Transform::from_translation(
                                     self.translation.extend(3.0),

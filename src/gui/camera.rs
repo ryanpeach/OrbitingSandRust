@@ -6,16 +6,26 @@
 use std::ops::Add;
 
 use bevy::{
-    app::{App, Plugin, Update}, core_pipeline::core_2d::{Camera2d, Camera2dBundle}, ecs::{
+    app::{App, Plugin, Update},
+    core_pipeline::core_2d::{Camera2d, Camera2dBundle},
+    ecs::{
         component::Component,
         event::{Event, EventReader},
         query::{With, Without},
         system::{Commands, Query, Res, ResMut},
-    }, hierarchy::{BuildChildren, Parent}, input::{
+    },
+    hierarchy::{BuildChildren, Parent},
+    input::{
         keyboard::KeyCode,
         mouse::{MouseScrollUnit, MouseWheel},
         ButtonInput,
-    }, math::{Rect, Vec2, Vec3}, prelude::Entity, render::view::Visibility, time::Time, transform::components::{GlobalTransform, Transform}, window::Window
+    },
+    math::{Rect, Vec2, Vec3},
+    prelude::Entity,
+    render::view::Visibility,
+    time::Time,
+    transform::components::{GlobalTransform, Transform},
+    window::Window,
 };
 use bevy_eventlistener::callbacks::ListenerInput;
 use bevy_mod_picking::events::{Down, Pointer};
