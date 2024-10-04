@@ -16,7 +16,7 @@
     clippy::redundant_clone
 )]
 #![deny(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
-#![allow(clippy::too_many_lines)]
+#![allow(clippy::too_many_lines, clippy::items_after_statements)]
 use bevy::app::App;
 use bevy::app::PostStartup;
 use bevy::asset::AssetServer;
@@ -84,6 +84,7 @@ fn main() {
 
 /// Creates a solar system with a sun, earth, and a bunch of asteroids.
 #[allow(dead_code)]
+#[allow(clippy::needless_pass_by_value)]
 fn solar_system_setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -117,11 +118,12 @@ fn solar_system_setup(
         &asset_server,
     );
 
-    // Create a bunch of asteroids
+    /// Create a bunch of asteroids
     const NUM_ASTEROIDS: usize = 10000;
     for i in 0..NUM_ASTEROIDS {
         // Put them in a circle around the sun
         // at radius 5000 with a tangent velocity of 600
+        #[allow(clippy::cast_precision_loss)]
         let angle = (i as f32 / NUM_ASTEROIDS as f32) * 2.0 * std::f32::consts::PI;
         // random radius between 5000.0 and 6000.0
         let r = 5000.0 + 1000.0 * rand::random::<f32>();
@@ -143,6 +145,7 @@ fn solar_system_setup(
 
 /// Creates just a planet
 #[allow(dead_code)]
+#[allow(clippy::needless_pass_by_value)]
 fn planet_only_setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
