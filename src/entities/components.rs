@@ -25,7 +25,7 @@ impl Radius {
             vertices.push(Vertex {
                 position: Vec2::new(x, y),
                 uv: Vec2::new(0.0, 0.0),
-                color: Color::rgba(0.0, 0.0, 0.0, 1.0),
+                color: Color::srgba(0.0, 0.0, 0.0, 1.0),
             });
             // indices only takes u32s
             #[allow(clippy::cast_possible_truncation)]

@@ -32,7 +32,7 @@ impl Element for LeftFlier {
         StateOfMatter::Solid
     }
     fn color(&self) -> Color {
-        Color::rgb_u8(254, 254, 254)
+        Color::srgb_u8(254, 254, 254)
     }
     fn _process(
         &mut self,

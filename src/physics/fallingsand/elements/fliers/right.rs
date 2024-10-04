@@ -32,7 +32,7 @@ impl Element for RightFlier {
         StateOfMatter::Solid
     }
     fn color(&self) -> Color {
-        Color::rgb_u8(253, 253, 253)
+        Color::srgb_u8(253, 253, 253)
     }
     fn _process(
         &mut self,
