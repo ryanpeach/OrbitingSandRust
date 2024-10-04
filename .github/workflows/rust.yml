@@ -64,7 +64,7 @@ jobs:
           jq '.packages[] | select(.name == "iai-callgrind").version' |\
           tr -d '"'
         )
-        cargo binstall --no-confirm iai-callgrind-runner --version $version
+        cargo binstall --no-confirm iai-callgrind-runner
 
     - name: Run Benchmarks
       run: |
