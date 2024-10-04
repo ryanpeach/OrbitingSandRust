@@ -1,4 +1,4 @@
-use criterion::{criterion_group, Criterion};
+use iai_callgrind::{library_benchmark, library_benchmark_group};
 use orbiting_sand::physics::fallingsand::{
     data::element_directory::ElementGridDir, mesh::coordinate_dir::Builder,
 };
@@ -17,13 +17,13 @@ fn get_element_grid_dir() -> ElementGridDir {
     ElementGridDir::new_empty(coordinate_dir)
 }
 
-fn bench_get_textures(c: &mut Criterion) {
+#[library_benchmark]
+fn bench_get_textures() {
     let element_grid_dir = get_element_grid_dir();
-    c.bench_function("get_textures", |b| {
-        b.iter(|| {
-            element_grid_dir.textures();
-        })
-    });
+    element_grid_dir.textures();
 }
 
-criterion_group!(benches, bench_get_textures);
+library_benchmark_group!(
+  name = element_directory_group;
+  benchmarks=bench_get_textures
+);

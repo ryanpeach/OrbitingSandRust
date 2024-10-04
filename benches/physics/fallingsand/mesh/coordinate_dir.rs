@@ -1,5 +1,5 @@
 use bevy::math::Vec2;
-use criterion::{black_box, criterion_group, Criterion};
+use iai_callgrind::{library_benchmark, library_benchmark_group};
 use orbiting_sand::physics::{
     fallingsand::{
         mesh::coordinate_dir::{Builder, CoordinateDir},
@@ -57,8 +57,7 @@ fn get_rel_pos_to_cell_idx_input_coords(coordinate_dir: &CoordinateDir) -> Vec<R
     out
 }
 
-/// Now benchmark the relative position to cell index function
-fn from_xycoord(c: &mut Criterion) {
+fn setup_xycoords() -> Vec<RelXyPoint> {
     let coordinate_dir = Builder::new()
         .cell_width(Length(1.0))
         .num_layers(8)
@@ -68,17 +67,19 @@ fn from_xycoord(c: &mut Criterion) {
         .max_radial_lines_per_chunk(64)
         .build();
 
-    let xycoords = get_rel_pos_to_cell_idx_input_coords(&coordinate_dir);
-
-    c.bench_function("rel_pos_to_cell_idx", |b| {
-        b.iter(|| {
-            for xycoord in xycoords.iter() {
-                let _ = coordinate_dir
-                    .rel_pos_to_cell_idx(black_box(*xycoord))
-                    .unwrap();
-            }
-        })
-    });
+    get_rel_pos_to_cell_idx_input_coords(&coordinate_dir)
 }
 
-criterion_group!(benches, from_xycoord);
+#[library_benchmark]
+#[benches::multiple(setup_xycoords())]
+fn bench_rel_pos_to_cell_idx(xycoord: RelXyPoint) {
+    let _ = coordinate_dir
+        .rel_pos_to_cell_idx(xycoord)
+        .unwrap();
+}
+
+library_benchmark_group!(
+  name=coordinate_dir_group;
+  benchmarks =
+    bench_rel_pos_to_cell_idx
+);
