@@ -9,3 +9,5 @@ Do not use `get_`. Do use `set_` and `take_` when necessary. Use `_mut` for muta
 Functions that return bool should start with `is_` or `has_`.
 
 Always use `hasbrown` for `HashMap` and `HashSet`.
+
+Prefer `From` over `Into`.

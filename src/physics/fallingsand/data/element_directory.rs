@@ -459,14 +459,14 @@ impl ElementGridDir {
         let neighbors = self.chunk_neighbors(coord);
         let mut out = HashMap::new();
         for neighbor in neighbors.iter() {
-            if let Some(chunk) = self.chunks[neighbor.i].replace(neighbor.to_jk_vector(), None) {
+            if let Some(chunk) = self.chunks[neighbor.i].replace(neighbor.into(), None) {
                 out.insert(neighbor, chunk);
             } else {
                 // In this case we need to unpackage the convolutions we have already packaged
                 // and put the chunks back where they came from
                 for (neighbor_idx, neighbor) in out.into_iter() {
-                    let prev = self.chunks[neighbor_idx.i]
-                        .replace(neighbor_idx.to_jk_vector(), Some(neighbor));
+                    let prev =
+                        self.chunks[neighbor_idx.i].replace(neighbor_idx.into(), Some(neighbor));
                     debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
                 }
                 bail!(
@@ -491,7 +491,7 @@ impl ElementGridDir {
 
         for coord in &target_chunk_coords {
             let conv = self.package_coordinate_neighbors(*coord);
-            let chunk = self.chunks[coord.i].replace(coord.to_jk_vector(), None);
+            let chunk = self.chunks[coord.i].replace((*coord).into(), None);
             match (conv, chunk) {
                 (Ok(conv), Some(chunk)) => {
                     convolutions.push(conv);
@@ -523,12 +523,11 @@ impl ElementGridDir {
             .expect("should not have already been set");
         {
             let target_idx = target.coords().chunk_idx();
-            let prev = self.chunks[target_idx.i].replace(target_idx.to_jk_vector(), Some(target));
+            let prev = self.chunks[target_idx.i].replace(target_idx.into(), Some(target));
             debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
         }
         for (neighbor_idx, neighbor) in conv.into_iter() {
-            let prev =
-                self.chunks[neighbor_idx.i].replace(neighbor_idx.to_jk_vector(), Some(neighbor));
+            let prev = self.chunks[neighbor_idx.i].replace(neighbor_idx.into(), Some(neighbor));
             debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
         }
     }
@@ -631,7 +630,7 @@ impl ElementGridDir {
             .package_coordinate_neighbors(coord)
             .expect("In runtime, this should never fail.");
         let mut chunk = self.chunks[coord.i]
-            .replace(coord.to_jk_vector(), None)
+            .replace(coord.into(), None)
             .expect("Should not have been replaced already.");
         chunk.process(self.coordinate_dir(), &mut conv, current_time);
         // Unpackage the convolution
@@ -676,7 +675,7 @@ impl ElementGridDir {
                 .package_coordinate_neighbors(target)
                 .expect("In runtime, this should never fail.");
             let mut chunk = self.chunks[target.i]
-                .replace(target.to_jk_vector(), None)
+                .replace(target.into(), None)
                 .expect("Should not have been replaced already.");
             chunk.process(self.coordinate_dir(), &mut conv, current_time);
             // Unpackage the convolution
@@ -780,18 +779,12 @@ impl ElementGridDir {
     /// Gets the chunk at the given index
     /// Errors if it is currently borrowed
     pub fn chunk_at_chunk_ijk(&self, coord: ChunkIjkVector) -> &ElementGrid {
-        self.chunks[coord.i]
-            .get(coord.to_jk_vector())
-            .as_ref()
-            .unwrap()
+        self.chunks[coord.i].get(coord.into()).as_ref().unwrap()
     }
     /// Gets the chunk at the given index mutably
     /// Errors if it is currently borrowed
     pub fn chunk_at_chunk_ijk_mut(&mut self, coord: ChunkIjkVector) -> &mut ElementGrid {
-        self.chunks[coord.i]
-            .get_mut(coord.to_jk_vector())
-            .as_mut()
-            .unwrap()
+        self.chunks[coord.i].get_mut(coord.into()).as_mut().unwrap()
     }
 
     pub fn element(&self, coord: IjkVector) -> &dyn Element {
@@ -1195,7 +1188,7 @@ mod tests {
                         .package_coordinate_neighbors(*chunk_coord)
                         .unwrap();
                     let chunk = element_grid_dir.chunks[chunk_coord.i]
-                        .replace(chunk_coord.to_jk_vector(), None)
+                        .replace(chunk_coord.into(), None)
                         .unwrap();
                     element_grid_dir.unpackage_convolution(chunk, conv);
                 }

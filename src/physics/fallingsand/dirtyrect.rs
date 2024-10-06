@@ -20,7 +20,7 @@ impl PointCloud {
     }
 
     pub fn insert(&mut self, point: IjkVector) {
-        self.points_by_layer[point.i].insert(point.to_jk_vector());
+        self.points_by_layer[point.i].insert(point.into());
     }
 
     pub fn expand_by(&self, n: u32, coord_dir: &CoordinateDir) -> PointCloud {

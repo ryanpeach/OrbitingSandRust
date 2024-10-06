@@ -109,6 +109,33 @@ impl JkVector {
     }
 }
 
+impl From<ChunkIjkVector> for JkVector {
+    fn from(value: ChunkIjkVector) -> Self {
+        Self {
+            j: value.j,
+            k: value.k,
+        }
+    }
+}
+
+impl From<RelJkVector> for JkVector {
+    fn from(value: RelJkVector) -> Self {
+        Self {
+            j: value.rj as usize,
+            k: value.rk as usize,
+        }
+    }
+}
+
+impl From<IjkVector> for JkVector {
+    fn from(value: IjkVector) -> Self {
+        Self {
+            j: value.j,
+            k: value.k,
+        }
+    }
+}
+
 /// This defines a movement or a vector relative to some position on the circular grid
 /// Same as  [`JkVector`], but with isize type fields which can contain negative numbers
 /// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
@@ -128,42 +155,12 @@ impl RelJkVector {
     }
 }
 
-/// Sometimes while resolving a relative  [`JkVector`] into a  [`JkVector`] when you
-/// need isize type fields
-/// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct TempJkVector {
-    /// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
-    pub j: isize,
-    /// The k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
-    pub k: isize,
-}
-
-/// Instantiation
-impl TempJkVector {
-    /// Add a  [`RelJkVector`]to a  [`JkVector`]
-    pub fn add(pos: &JkVector, rel: &RelJkVector) -> Self {
-        Self {
-            j: pos.j as isize + rel.rj,
-            k: pos.k as isize + rel.rk,
+impl From<JkVector> for RelJkVector {
+    fn from(value: JkVector) -> Self {
+        RelJkVector {
+            rj: value.j as isize,
+            rk: value.k as isize,
         }
-    }
-}
-
-/// Defines both the chunk and the internal idx of the element
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct FullIdx {
-    /// The chunk index
-    pub chunk_idx: ChunkIjkVector,
-    /// The position of an element within a chunk
-    pub pos: JkVector,
-}
-
-/// Instantiation
-impl FullIdx {
-    /// Create a new [`FullIdx`]
-    pub fn new(chunk_idx: ChunkIjkVector, pos: JkVector) -> Self {
-        Self { chunk_idx, pos }
     }
 }
 
@@ -186,13 +183,6 @@ impl IjkVector {
     /// Instantiation
     pub fn new(i: usize, j: usize, k: usize) -> Self {
         Self { i, j, k }
-    }
-    /// Convert to a [`JkVector`]
-    pub fn to_jk_vector(self) -> JkVector {
-        JkVector {
-            j: self.j,
-            k: self.k,
-        }
     }
 }
 
@@ -230,11 +220,4 @@ impl ChunkIjkVector {
     }
     /// The zero vector
     pub const ZERO: Self = Self { i: 0, j: 0, k: 0 };
-    /// Convert to a [`JkVector`]
-    pub fn to_jk_vector(self) -> JkVector {
-        JkVector {
-            j: self.j,
-            k: self.k,
-        }
-    }
 }

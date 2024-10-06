@@ -734,7 +734,7 @@ mod tests {
             let chunk = coordinate_dir.chunk_at_idx(chunk_idx.0);
             assert_eq!(
                 chunk.absolute_cell_idx_to_in_chunk_cell_idx(coord).unwrap(),
-                coord.to_jk_vector()
+                coord.into()
             );
         }
 
