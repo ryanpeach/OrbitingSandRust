@@ -25,6 +25,7 @@ use crate::physics::{
     fallingsand::{
         data::element_grid::ElementGrid,
         elements::element::Element,
+        mesh::chunk_coords::ChunkCoords,
         mesh::coordinate_dir::CoordinateDir,
         util::{
             functions::modulo,
@@ -136,7 +137,7 @@ impl ElementGridConvolutionNeighbors {
     /// the pos is the position in the target chunk
     pub fn idx_below_idx_from_center(
         &self,
-        target_chunk: &ElementGrid,
+        target_chunk_coords: &ChunkCoords,
         _coord_dir: &CoordinateDir,
         pos: &JkVector,
         n: usize,
@@ -174,7 +175,7 @@ impl ElementGridConvolutionNeighbors {
                 // If you are on odd index chunk, the left half of br is the same as b
                 // TODO: document this with pictures
                 // TODO: Unit test
-                let transition = if target_chunk.coords().chunk_idx().k % 2 == 0 {
+                let transition = if target_chunk_coords.chunk_idx().k % 2 == 0 {
                     BottomNeighborIdentifierChunkDoubling::BottomLeft
                 } else {
                     new_coords.k += self.grids.bottom.num_radial_lines() / 2;
@@ -196,7 +197,7 @@ impl ElementGridConvolutionNeighbors {
                 // just with the same number of tangential chunkss
                 // If there are the same number of radial lines (not a layer transition) we dont
                 // need to divide k by 2
-                let this_radial_lines = target_chunk.coords().num_radial_lines();
+                let this_radial_lines = target_chunk_coords.num_radial_lines();
                 let b_radial_lines = self.grids.bottom.num_radial_lines();
                 if this_radial_lines != b_radial_lines {
                     new_coords.k = pos.k / 2;
@@ -215,12 +216,12 @@ impl ElementGridConvolutionNeighbors {
     /// Negative k is right, clockwise
     pub fn idx_left_right_idx_from_center(
         &self,
-        target_chunk: &ElementGrid,
+        target_chunk_coords: &ChunkCoords,
         pos: &JkVector,
         rk: isize,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
         // In the left right direction, unlike up down, every chunk has the same number of radial lines
-        let radial_lines = target_chunk.coords().num_radial_lines();
+        let radial_lines = target_chunk_coords.num_radial_lines();
 
         // You should not be doing any loops that might make you re-target yourself
         if rk.abs() >= radial_lines as isize {
@@ -597,7 +598,12 @@ mod tests {
                 .unwrap();
             let chunk = element_dir.chunk_at_chunk_ijk(chunk_pos1.0);
             let should_eq_pos2 = package
-                .idx_below_idx_from_center(chunk, element_dir.coordinate_dir(), &chunk_pos1.1, 1)
+                .idx_below_idx_from_center(
+                    chunk.coords(),
+                    element_dir.coordinate_dir(),
+                    &chunk_pos1.1,
+                    1,
+                )
                 .unwrap();
             assert_eq!(chunk_pos2.1, should_eq_pos2.0, "The position is incorrect");
 
@@ -694,7 +700,7 @@ mod tests {
                 .unwrap();
             let chunk = element_dir.chunk_at_chunk_ijk(chunk_pos1.0);
             let should_eq_pos2 = package
-                .idx_left_right_idx_from_center(chunk, &chunk_pos1.1, n)
+                .idx_left_right_idx_from_center(chunk.coords(), &chunk_pos1.1, n)
                 .unwrap();
             assert_eq!(chunk_pos2.1, should_eq_pos2.0, "The position is incorrect");
 

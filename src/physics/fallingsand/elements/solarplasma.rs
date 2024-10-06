@@ -43,7 +43,8 @@ impl Element for SolarPlasma {
         current_time: Clock,
     ) -> ElementTakeOptions {
         // Go down one cell
-        let below = element_grid_conv.idx_below_idx_from_center(target_chunk, coord_dir, &pos, 1);
+        let below =
+            element_grid_conv.idx_below_idx_from_center(target_chunk.coords(), coord_dir, &pos, 1);
         let element = {
             match below {
                 Ok(below) => element_grid_conv.get(target_chunk, below),
@@ -66,10 +67,16 @@ impl Element for SolarPlasma {
                         current_time,
                     )
                 } else {
-                    let new_idx_l =
-                        element_grid_conv.idx_left_right_idx_from_center(target_chunk, &pos, 1);
-                    let new_idx_r =
-                        element_grid_conv.idx_left_right_idx_from_center(target_chunk, &pos, -1);
+                    let new_idx_l = element_grid_conv.idx_left_right_idx_from_center(
+                        target_chunk.coords(),
+                        &pos,
+                        1,
+                    );
+                    let new_idx_r = element_grid_conv.idx_left_right_idx_from_center(
+                        target_chunk.coords(),
+                        &pos,
+                        -1,
+                    );
                     let element_l = {
                         match new_idx_l {
                             Ok(new_idx_l) => element_grid_conv.get(target_chunk, new_idx_l),

@@ -44,8 +44,12 @@ impl Element for DownFlier {
     ) -> ElementTakeOptions {
         // Doing this as a way to make sure I set last_processed AFTER I've done all the processing
         let out: ElementTakeOptions = {
-            let below =
-                element_grid_conv.idx_below_idx_from_center(target_chunk, coord_dir, &pos, 1);
+            let below = element_grid_conv.idx_below_idx_from_center(
+                target_chunk.coords(),
+                coord_dir,
+                &pos,
+                1,
+            );
             match below {
                 Ok(idx) => {
                     if let Ok(element) = element_grid_conv.get(target_chunk, idx) {

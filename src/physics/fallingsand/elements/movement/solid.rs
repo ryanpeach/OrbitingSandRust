@@ -23,7 +23,8 @@ pub fn solid_process(
     current_time: Clock,
 ) -> ElementTakeOptions {
     // Go down one cell
-    let below = element_grid_conv.idx_below_idx_from_center(target_chunk, coord_dir, &pos, 1);
+    let below =
+        element_grid_conv.idx_below_idx_from_center(target_chunk.coords(), coord_dir, &pos, 1);
     match below {
         Ok(idx) => {
             match idx.1 {
@@ -44,12 +45,12 @@ pub fn solid_process(
                                 )
                             } else {
                                 let new_idx_l = element_grid_conv.idx_left_right_idx_from_center(
-                                    target_chunk,
+                                    target_chunk.coords(),
                                     &idx.0,
                                     1,
                                 );
                                 let new_idx_r = element_grid_conv.idx_left_right_idx_from_center(
-                                    target_chunk,
+                                    target_chunk.coords(),
                                     &idx.0,
                                     -1,
                                 );

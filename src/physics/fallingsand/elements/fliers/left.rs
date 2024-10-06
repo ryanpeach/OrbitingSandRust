@@ -44,7 +44,8 @@ impl Element for LeftFlier {
     ) -> ElementTakeOptions {
         // Doing this as a way to make sure I set last_processed AFTER I've done all the processing
         let out: ElementTakeOptions = {
-            let left = element_grid_conv.idx_left_right_idx_from_center(target_chunk, &pos, 1);
+            let left =
+                element_grid_conv.idx_left_right_idx_from_center(target_chunk.coords(), &pos, 1);
             match left {
                 Ok(idx) => {
                     if let Ok(element) = element_grid_conv.get(target_chunk, idx) {
