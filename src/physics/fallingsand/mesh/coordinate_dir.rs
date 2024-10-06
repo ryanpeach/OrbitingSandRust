@@ -589,24 +589,28 @@ impl CoordinateDir {
         rel_point: RelJkVector,
     ) -> Vec<IjkVector> {
         let mut out: Vec<(usize, RelJkVector)> = Vec::new();
-        for new_point in self.fuzzy_rel_ijk_to_absolute_ijk_up_down(layer_num, rel_point) {
-            for new_point in self.fuzzy_rel_ijk_to_absolute_ijk_lr(layer_num, new_point) {
-                out.push(new_point);
+        for (new_layer, new_point) in
+            self.fuzzy_rel_ijk_to_absolute_ijk_up_down(layer_num, rel_point)
+        {
+            for (new_layer, new_point) in
+                self.fuzzy_rel_ijk_to_absolute_ijk_lr(new_layer, new_point)
+            {
+                out.push((new_layer, new_point));
             }
         }
         debug_assert!(out.iter().all(|(_, x)| x.rj >= 0));
         debug_assert!(out
             .iter()
-            .all(|(_, x)| x.rj < self.layer_num_concentric_circles(layer_num)));
+            .all(|(_, x)| x.rj < self.layer_num_concentric_circles(layer_num) as isize));
         debug_assert!(out.iter().all(|(_, x)| x.rk >= 0));
         debug_assert!(out
             .iter()
-            .all(|(_, x)| x.rk < self.layer_num_radial_lines(layer_num)));
+            .all(|(_, x)| x.rk < self.layer_num_radial_lines(layer_num) as isize));
         out.iter()
             .map(|(layer_num, new_point)| IjkVector {
-                i: layer_num,
-                j: new_point.rj,
-                k: new_point.rk,
+                i: *layer_num,
+                j: new_point.rj as usize,
+                k: new_point.rk as usize,
             })
             .collect()
     }
@@ -617,20 +621,26 @@ impl CoordinateDir {
         rel_point: RelJkVector,
     ) -> Vec<IjkVector> {
         let mut out: Vec<(usize, RelJkVector)> = Vec::new();
-        unimplemented!();
+        for (new_layer, new_point) in self.fuzzy_rel_ijk_to_absolute_ijk_lr(layer_num, rel_point) {
+            for (new_layer, new_point) in
+                self.fuzzy_rel_ijk_to_absolute_ijk_up_down(new_layer, new_point)
+            {
+                out.push((new_layer, new_point));
+            }
+        }
         debug_assert!(out.iter().all(|(_, x)| x.rj >= 0));
         debug_assert!(out
             .iter()
-            .all(|(_, x)| x.rj < self.layer_num_concentric_circles(layer_num)));
+            .all(|(_, x)| x.rj < self.layer_num_concentric_circles(layer_num) as isize));
         debug_assert!(out.iter().all(|(_, x)| x.rk >= 0));
         debug_assert!(out
             .iter()
-            .all(|(_, x)| x.rk < self.layer_num_radial_lines(layer_num)));
+            .all(|(_, x)| x.rk < self.layer_num_radial_lines(layer_num) as isize));
         out.iter()
             .map(|(layer_num, new_point)| IjkVector {
-                i: layer_num,
-                j: new_point.rj,
-                k: new_point.rk,
+                i: *layer_num,
+                j: new_point.rj as usize,
+                k: new_point.rk as usize,
             })
             .collect()
     }
@@ -643,7 +653,7 @@ impl CoordinateDir {
         if rel_point.rj > self.layer_num_concentric_circles(layer_num) as isize {
             self.fuzzy_rel_ijk_to_absolute_ijk_up(layer_num, rel_point)
         } else if rel_point.rj < 0 {
-            vec![self.fuzzy_rel_ijk_to_absolute_ijk_down(layer_num, rel_point)]
+            self.fuzzy_rel_ijk_to_absolute_ijk_down(layer_num, rel_point)
         } else {
             vec![(layer_num, rel_point)]
         }
@@ -654,15 +664,64 @@ impl CoordinateDir {
         layer_num: usize,
         rel_point: RelJkVector,
     ) -> Vec<(usize, RelJkVector)> {
-        unimplemented!()
+        if layer_num >= self.num_layers() {
+            vec![(layer_num, rel_point)]
+        } else if self.layer_num_radial_lines(layer_num + 1)
+            == self.layer_num_radial_lines(layer_num)
+        {
+            vec![(
+                layer_num + 1,
+                RelJkVector {
+                    rj: 0,
+                    rk: rel_point.rk,
+                },
+            )]
+        } else {
+            vec![
+                (
+                    layer_num + 1,
+                    RelJkVector {
+                        rj: 0,
+                        rk: rel_point.rk * 2,
+                    },
+                ),
+                (
+                    layer_num + 1,
+                    RelJkVector {
+                        rj: 0,
+                        rk: rel_point.rk * 2 - rel_point.rk.signum(),
+                    },
+                ),
+            ]
+        }
     }
 
     fn fuzzy_rel_ijk_to_absolute_ijk_down(
         &self,
         layer_num: usize,
         rel_point: RelJkVector,
-    ) -> (usize, RelJkVector) {
-        unimplemented!()
+    ) -> Vec<(usize, RelJkVector)> {
+        if layer_num == 0 {
+            vec![]
+        } else if self.layer_num_radial_lines(layer_num - 1)
+            == self.layer_num_radial_lines(layer_num)
+        {
+            vec![(
+                layer_num - 1,
+                RelJkVector {
+                    rj: (self.layer_num_concentric_circles(layer_num) - 1) as isize,
+                    rk: rel_point.rk,
+                },
+            )]
+        } else {
+            vec![(
+                layer_num - 1,
+                RelJkVector {
+                    rj: (self.layer_num_concentric_circles(layer_num) - 1) as isize,
+                    rk: rel_point.rk / 2,
+                },
+            )]
+        }
     }
 
     fn fuzzy_rel_ijk_to_absolute_ijk_lr(
