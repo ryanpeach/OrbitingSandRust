@@ -4,6 +4,7 @@
 
 pub mod convolution;
 pub mod data;
+pub mod dirtyrect;
 pub mod elements;
 pub mod mesh;
 pub mod util;

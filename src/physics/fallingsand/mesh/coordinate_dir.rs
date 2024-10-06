@@ -6,7 +6,9 @@ use bevy::math::Rect;
 
 use crate::entities::components::Radius;
 use crate::physics::fallingsand::util::grid::Grid;
-use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
+use crate::physics::fallingsand::util::vectors::{
+    ChunkIjkVector, IjkVector, JkVector, RelJkVector,
+};
 use crate::physics::orbits::components::Length;
 use crate::physics::util::vectors::RelXyPoint;
 
@@ -562,6 +564,20 @@ impl CoordinateDir {
                 k: cell_idx.k % chunk_layer_num_radial_lines,
             },
         )
+    }
+
+    /// Converts a [`RelJkVector`] into an absolute [`IjkVector`], given the `layer_num`.
+    ///
+    /// However, this is not as good as the methods in
+    /// [`crate::physics::fallingsand::convolution`], its just quite a bit faster.
+    /// Not suitable for element movement, but suitable for finding greater than or equal to all
+    /// the possible points
+    pub fn fuzzy_rel_ijk_to_absolute_ijk(
+        &self,
+        layer_num: usize,
+        rel_point: RelJkVector,
+    ) -> Vec<IjkVector> {
+        unimplemented!()
     }
 }
 
