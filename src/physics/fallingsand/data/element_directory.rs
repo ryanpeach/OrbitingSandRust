@@ -1,6 +1,11 @@
+use std::sync::Arc;
+
+use bevy::log::tracing_subscriber::Layer;
+use bevy::utils::tracing::field::debug;
 use hashbrown::{HashMap, HashSet};
 use itertools::multizip;
 
+use crate::physics::fallingsand::dirtyrect::{ChunkPointClouds, LayerPointClouds};
 use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 
@@ -237,6 +242,8 @@ pub struct ElementGridDir {
     coords: CoordinateDir,
     chunks: Vec<Grid<Option<ElementGrid>>>,
     process_targets: ProcessTargets,
+    last_frame_chunk_point_clouds: Option<Arc<ChunkPointClouds>>,
+    chunk_point_clouds: ChunkPointClouds,
     process_count: usize,
     total_mass: Mass,
     // max_temp: ThermodynamicTemperature,
@@ -266,6 +273,8 @@ impl ElementGridDir {
             process_targets,
             process_count: 0,
             total_mass: Self::calc_total_mass(&mut chunks),
+            last_frame_chunk_point_clouds: None,
+            chunk_point_clouds: ChunkPointClouds::default(),
             // max_temp,
             // min_temp,
             chunks,
@@ -301,6 +310,8 @@ impl ElementGridDir {
             process_targets,
             process_count: 0,
             total_mass: Self::calc_total_mass(&mut chunks),
+            last_frame_chunk_point_clouds: None,
+            chunk_point_clouds: ChunkPointClouds::default(),
             // max_temp,
             // min_temp,
             chunks,
@@ -583,18 +594,21 @@ impl ElementGridDir {
     /// This is important because elementgrids can effect one another at a maximum range of
     /// the size of one elementgrid.
     pub fn process(&mut self, current_time: Clock) {
-        self.process_parallel(
+        let changed = self.process_parallel(
             self.process_targets.standard_convolution[self.process_count % 9].clone(),
             current_time,
         );
-        self.process_sequence(
+        self.chunk_point_clouds.points_by_chunk.extend(changed);
+        let changed = self.process_sequence(
             self.process_targets.has_single_bottom_neighbor[self.process_count % 9].clone(),
             current_time,
         );
-        self.process_parallel(
+        self.chunk_point_clouds.points_by_chunk.extend(changed);
+        let changed = self.process_parallel(
             self.process_targets.has_multi_bottom_neighbor[self.process_count % 9].clone(),
             current_time,
         );
+        self.chunk_point_clouds.points_by_chunk.extend(changed);
         self.process_count += 1;
 
         // Check for errors and unlock all chunks every 9 iterations
@@ -614,6 +628,17 @@ impl ElementGridDir {
     pub fn recalculate_everything(&mut self) {
         // self.recalculate_max_min_temp();
         self.recalculate_total_mass();
+        let last_frame_chunk_point_clouds = std::mem::take(&mut self.chunk_point_clouds);
+        let last_frame_layer_point_clouds = LayerPointClouds::from_chunk_point_clouds(
+            last_frame_chunk_point_clouds,
+            self.coordinate_dir(),
+        );
+        let last_frame_layer_point_clouds =
+            last_frame_layer_point_clouds.expand_by(3, self.coordinate_dir());
+        self.last_frame_chunk_point_clouds = Some(ChunkPointClouds::from_layer_point_clouds(
+            last_frame_layer_point_clouds,
+            self.coordinate_dir(),
+        ));
     }
 
     /// Run process FRAMES_PER_FULL_PROCESS times
@@ -625,16 +650,21 @@ impl ElementGridDir {
 
     /// Process a single chunk and its neighbors, mostly used for unit testing
     /// Also single threaded so should be good for debugging and tracing
-    pub fn process_single_chunk(&mut self, current_time: Clock, coord: ChunkIjkVector) {
+    /// Returns all changed indexes
+    pub fn process_single_chunk(
+        &mut self,
+        current_time: Clock,
+        coord: ChunkIjkVector,
+    ) -> HashSet<JkVector> {
         let mut conv = self
             .package_coordinate_neighbors(coord)
             .expect("In runtime, this should never fail.");
         let mut chunk = self.chunks[coord.i]
             .replace(coord.into(), None)
             .expect("Should not have been replaced already.");
-        chunk.process(self.coordinate_dir(), &mut conv, current_time);
-        // Unpackage the convolution
+        let changed_indexes = chunk.process(self.coordinate_dir(), &mut conv, current_time);
         self.unpackage_convolution(chunk, conv);
+        changed_indexes
     }
 
     /// Gets the textures of the targets updated in the last call to process
@@ -665,11 +695,16 @@ impl ElementGridDir {
             .collect()
     }
 
+    /// Process all the targets in sequence
+    /// Mostly used when chunks are too close together to process in parallel
+    /// Return a map of changed indices by chunk
+    #[must_use]
     fn process_sequence(
         &mut self,
         targets: Sequential<HashSet<ChunkIjkVector>>,
         current_time: Clock,
-    ) {
+    ) -> HashMap<ChunkIjkVector, HashSet<JkVector>> {
+        let mut out: HashMap<ChunkIjkVector, HashSet<JkVector>> = HashMap::new();
         for target in targets.0 {
             let mut conv = self
                 .package_coordinate_neighbors(target)
@@ -677,26 +712,47 @@ impl ElementGridDir {
             let mut chunk = self.chunks[target.i]
                 .replace(target.into(), None)
                 .expect("Should not have been replaced already.");
-            chunk.process(self.coordinate_dir(), &mut conv, current_time);
-            // Unpackage the convolution
+            let changed_indexes = chunk.process(
+                self.coordinate_dir(),
+                &mut conv,
+                self.last_frame_chunk_point_clouds,
+                current_time,
+            );
+            let found = out.insert(target, changed_indexes);
+            debug_assert_eq!(found, None);
             self.unpackage_convolution(chunk, conv);
         }
+        out
     }
+
+    /// Process all the targets in parallel using rayon
+    /// Return a map of changed indices by chunk
+    #[must_use]
     fn process_parallel(
         &mut self,
         targets: Parallel<HashSet<ChunkIjkVector>>,
         current_time: Clock,
-    ) {
+    ) -> HashMap<ChunkIjkVector, HashSet<JkVector>> {
         let (mut convolutions, mut target_chunks) = self
             .package_convolutions(targets.0)
             .expect("In runtime, this should never fail.");
-        convolutions
+        let changed_indexes: HashMap<ChunkIjkVector, HashSet<JkVector>> = convolutions
             .par_iter_mut()
             .zip(target_chunks.par_iter_mut())
-            .for_each(|(convolution, target_chunk)| {
-                target_chunk.process(self.coordinate_dir(), convolution, current_time);
-            });
+            .map(|(convolution, target_chunk)| {
+                (
+                    target_chunk.coords().chunk_idx(),
+                    target_chunk.process(
+                        self.coordinate_dir(),
+                        convolution,
+                        self.last_frame_chunk_point_clouds,
+                        current_time,
+                    ),
+                )
+            })
+            .collect();
         self.unpackage_convolutions(convolutions, target_chunks);
+        changed_indexes
     }
 
     /// Get the number of chunks from the coordinate directory

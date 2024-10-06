@@ -1,9 +1,11 @@
 use bevy::color::ColorToPacked;
 use bevy::math::Rect;
+use hashbrown::HashSet;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
+use crate::physics::fallingsand::dirtyrect::{ChunkPointClouds, JkRect};
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
@@ -204,37 +206,66 @@ impl ElementGrid {
 /// Handle processing
 impl ElementGrid {
     /// Do one iteration of processing on the grid
+    /// Returns all changed indexes
     #[allow(clippy::mem_replace_with_default)]
+    #[must_use]
     pub fn process(
         &mut self,
         coord_dir: &CoordinateDir,
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
+        dirty_rects: Option<Vec<JkRect>>,
         current_time: Clock,
-    ) {
-        self.process_elements(coord_dir, element_grid_conv_neigh, current_time);
+    ) -> HashSet<JkVector> {
+        let changed_indexes = self.process_elements(
+            coord_dir,
+            element_grid_conv_neigh,
+            dirty_rects,
+            current_time,
+        );
         // self.process_heat(element_grid_conv_neigh, current_time);
         self.process_mass(element_grid_conv_neigh);
+        changed_indexes
     }
 
     /// Run each elements process method
+    /// Returns all changed indexes
     #[allow(clippy::mem_replace_with_default)]
+    #[must_use]
     fn process_elements(
         &mut self,
         coord_dir: &CoordinateDir,
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
+        dirty_rects: Option<Vec<JkRect>>,
         current_time: Clock,
-    ) {
+    ) -> HashSet<JkVector> {
         let already_processed = self.already_processed();
         debug_assert!(!already_processed, "Already processed");
 
+        // We return any changed indexes for bounding rectangles
+        let mut changed_indexes = HashSet::<JkVector>::new();
+
         // By randomly shuffling the order we process the elements
         // we can avoid creating a "favorite direction" for the elements to move
+        let mut iter: Vec<(usize, usize)> = vec![];
+        match dirty_rects {
+            None => {
+                let mut iter: Vec<(usize, usize)> = iproduct!(
+                    0..self.coords.num_concentric_circles(),
+                    0..self.coords.num_radial_lines()
+                )
+                .collect();
+            }
+            Some(rects) => {
+                for rect in rects {
+                    for j in rect.min_j..=rect.max_j {
+                        for k in rect.min_k..=rect.max_k {
+                            iter.push((j, k));
+                        }
+                    }
+                }
+            }
+        }
         let mut rng = thread_rng();
-        let mut iter: Vec<(usize, usize)> = iproduct!(
-            0..self.coords.num_concentric_circles(),
-            0..self.coords.num_radial_lines()
-        )
-        .collect();
         iter.shuffle(&mut rng);
         for (j, k) in iter.into_iter() {
             let pos = JkVector { j, k };
@@ -244,6 +275,7 @@ impl ElementGrid {
             let mut element = self.grid.replace(pos, Box::<Vacuum>::default());
 
             // Check that the element hasn't already been processed this frame
+            // We don't consider it changed if we do this, so we don't add it to the output
             if element.last_processed().current_frame() >= current_time.current_frame() {
                 self.grid.replace(pos, element);
                 continue;
@@ -267,11 +299,14 @@ impl ElementGrid {
                     self.grid.replace(pos, element);
                 }
                 ElementTakeOptions::ReplaceWith(new_element) => {
+                    if new_element.element_type() != element.element_type() {
+                        changed_indexes.insert(pos);
+                    }
                     self.grid.replace(pos, new_element);
                 }
-                ElementTakeOptions::DoNothing => {}
             }
         }
+        changed_indexes
     }
 
     /// Process the heat of the grid

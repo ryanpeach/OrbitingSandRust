@@ -50,7 +50,6 @@ impl Density {
 pub enum ElementTakeOptions {
     #[default]
     PutBack,
-    DoNothing,
     ReplaceWith(Box<dyn Element>),
 }
 

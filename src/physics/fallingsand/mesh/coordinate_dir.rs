@@ -256,8 +256,13 @@ impl Builder {
  * chunk index
  * ========================================= */
 impl CoordinateDir {
+    /// Used to get a chunk coordinates at a given chunk index
     pub fn chunk_at_idx(&self, chunk_idx: ChunkIjkVector) -> ChunkCoords {
-        *self.partial_chunks[chunk_idx.i].get(chunk_idx.into())
+        if chunk_idx.i == 0 {
+            *self.core_chunks().get(chunk_idx.into())
+        } else {
+            *self.partial_chunks()[chunk_idx.i].get(chunk_idx.into())
+        }
     }
     pub fn chunk_bounding_box(&self, chunk_idx: ChunkIjkVector) -> Rect {
         self.partial_chunks[chunk_idx.i]
@@ -421,7 +426,7 @@ impl CoordinateDir {
         &self.partial_chunks[0]
     }
     /// Useful for getting all the partial chunks, useful for getting their shapes
-    pub fn partial_chunks(&self, _layer_num: usize) -> &Vec<Grid<ChunkCoords>> {
+    pub fn partial_chunks(&self) -> &Vec<Grid<ChunkCoords>> {
         &self.partial_chunks
     }
     /// The number of concentric circles in a given layer
