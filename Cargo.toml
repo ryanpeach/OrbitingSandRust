@@ -32,7 +32,7 @@ strum_macros = "0.26.4"
 thiserror = "1.0.63"
 
 [dev-dependencies]
-iai-callgrind = "0.13.4"
+iai-callgrind = "0.14.0"
 just = "1.23.0"
 
 [[bench]]

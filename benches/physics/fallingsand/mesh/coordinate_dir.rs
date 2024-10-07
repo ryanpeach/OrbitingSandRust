@@ -57,7 +57,8 @@ fn get_rel_pos_to_cell_idx_input_coords(coordinate_dir: &CoordinateDir) -> Vec<R
     out
 }
 
-fn setup_xycoords() -> Vec<RelXyPoint> {
+#[library_benchmark]
+fn bench_rel_pos_to_cell_idx() {
     let coordinate_dir = Builder::new()
         .cell_width(Length(1.0))
         .num_layers(8)
@@ -67,15 +68,11 @@ fn setup_xycoords() -> Vec<RelXyPoint> {
         .max_radial_lines_per_chunk(64)
         .build();
 
-    get_rel_pos_to_cell_idx_input_coords(&coordinate_dir)
-}
+    let xycoords = get_rel_pos_to_cell_idx_input_coords(&coordinate_dir);
 
-#[library_benchmark]
-#[benches::multiple(setup_xycoords())]
-fn bench_rel_pos_to_cell_idx(xycoord: RelXyPoint) {
-    let _ = coordinate_dir
-        .rel_pos_to_cell_idx(xycoord)
-        .unwrap();
+    for xycoord in xycoords {
+        coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
+    }
 }
 
 library_benchmark_group!(
