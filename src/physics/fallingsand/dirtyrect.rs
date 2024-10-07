@@ -228,18 +228,18 @@ impl Directory {
 
                     for neighbor in neighbors.iter() {
                         if point_cloud.contains(neighbor) && !visited.contains(neighbor) {
-                            queue.push_back(neighbor.clone());
-                            visited.insert(neighbor.clone());
+                            queue.push_back(*neighbor);
+                            visited.insert(*neighbor);
                         }
                     }
                 }
 
                 // After BFS, create the bounding rectangle
                 let rect = JkRect {
-                    min_j: min_j as usize,
-                    max_j: max_j as usize,
-                    min_k: min_k as usize,
-                    max_k: max_k as usize,
+                    min_j,
+                    max_j,
+                    min_k,
+                    max_k,
                 };
                 rects.push(rect);
             }
