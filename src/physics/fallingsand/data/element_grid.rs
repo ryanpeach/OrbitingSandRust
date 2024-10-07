@@ -5,7 +5,7 @@ use rand::seq::SliceRandom;
 use rand::thread_rng;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use crate::physics::fallingsand::dirtyrect::{ChunkPointClouds, JkRect};
+use crate::physics::fallingsand::dirtyrect::JkRect;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use crate::physics::fallingsand::util::vectors::JkVector;
@@ -249,11 +249,11 @@ impl ElementGrid {
         let mut iter: Vec<(usize, usize)> = vec![];
         match dirty_rects {
             None => {
-                let mut iter: Vec<(usize, usize)> = iproduct!(
+                iproduct!(
                     0..self.coords.num_concentric_circles(),
                     0..self.coords.num_radial_lines()
                 )
-                .collect();
+                .for_each(|x| iter.push(x));
             }
             Some(rects) => {
                 for rect in rects {

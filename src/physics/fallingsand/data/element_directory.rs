@@ -1,7 +1,3 @@
-use std::sync::Arc;
-
-use bevy::log::tracing_subscriber::Layer;
-use bevy::utils::tracing::field::debug;
 use hashbrown::{HashMap, HashSet};
 use itertools::multizip;
 
@@ -1286,7 +1282,7 @@ mod tests {
                         .package_coordinate_neighbors(*chunk_coord)
                         .unwrap();
                     let chunk = element_grid_dir.chunks[chunk_coord.i]
-                        .replace(chunk_coord.into(), None)
+                        .replace((*chunk_coord).into(), None)
                         .unwrap();
                     element_grid_dir.unpackage_convolution(chunk, conv);
                 }

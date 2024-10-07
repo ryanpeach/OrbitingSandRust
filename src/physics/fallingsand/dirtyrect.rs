@@ -1,5 +1,5 @@
 use super::{
-    mesh::coordinate_dir::{self, CoordinateDir},
+    mesh::coordinate_dir::CoordinateDir,
     util::vectors::{ChunkIjkVector, IjkVector, JkVector, RelJkVector},
 };
 use hashbrown::{HashMap, HashSet};
