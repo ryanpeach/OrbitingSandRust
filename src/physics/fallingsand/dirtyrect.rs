@@ -1,5 +1,5 @@
 use super::{
-    mesh::coordinate_dir::CoordinateDir,
+    mesh::{chunk_coords::ChunkCoords, coordinate_dir::CoordinateDir},
     util::vectors::{ChunkIjkVector, IjkVector, JkVector, RelJkVector},
 };
 use hashbrown::{HashMap, HashSet};
@@ -57,9 +57,6 @@ impl LayerPointClouds {
     /// # Example
     ///
     /// ```
-    /// let center = JkVector { j: 0, k: 0 };
-    /// let points = get_square_points(&center, 3);
-    /// // points will include all Vec2 from (-1, -1) to (1, 1)
     /// ```
     #[must_use]
     fn get_square_points(center: &JkVector, n: u32) -> Vec<RelJkVector> {
@@ -86,7 +83,10 @@ impl LayerPointClouds {
         chunk_point_clouds: ChunkPointClouds,
         coord_dir: &CoordinateDir,
     ) -> Self {
-        let mut out: Vec<HashSet<JkVector>> = Vec::new();
+        let mut out: Vec<HashSet<JkVector>> = Vec::with_capacity(coord_dir.num_layers());
+        for _ in 0..coord_dir.num_layers() {
+            out.push(HashSet::new());
+        }
         for (chunk_idx, in_set) in chunk_point_clouds.points_by_chunk {
             for point in in_set {
                 let this = coord_dir
@@ -160,12 +160,13 @@ pub struct Directory {
 
 impl Directory {
     #[must_use]
-    pub fn new(chunk_point_clouds: ChunkPointClouds) -> Directory {
+    pub fn new(chunk_point_clouds: ChunkPointClouds, coord_dir: &CoordinateDir) -> Directory {
         let rects_by_chunk: HashMap<ChunkIjkVector, Vec<JkRect>> = chunk_point_clouds
             .points_by_chunk
             .par_iter()
             .map(|(chunk_idx, set)| {
-                let rects = Directory::calc_dirty_rects(set.clone());
+                let rects =
+                    Directory::calc_dirty_rects(set.clone(), &coord_dir.chunk_at_idx(*chunk_idx));
                 (*chunk_idx, rects)
             })
             .collect();
@@ -174,7 +175,10 @@ impl Directory {
     }
 
     #[must_use]
-    pub fn calc_dirty_rects(point_cloud: HashSet<JkVector>) -> Vec<JkRect> {
+    pub fn calc_dirty_rects(
+        point_cloud: HashSet<JkVector>,
+        chunk_coords: &ChunkCoords,
+    ) -> Vec<JkRect> {
         let mut rects = Vec::new();
         let mut visited = HashSet::with_capacity(point_cloud.len());
         let mut queue = VecDeque::new();
@@ -206,25 +210,51 @@ impl Directory {
                         max_k = current.k;
                     }
 
-                    // Define 4-connected neighbors
-                    let neighbors = [
-                        JkVector {
-                            j: current.j + 1,
-                            k: current.k,
+                    // Define 8-connected neighbors
+                    let neighbors: Vec<JkVector> = [
+                        RelJkVector {
+                            rj: current.j as isize + 1,
+                            rk: current.k as isize + 1,
                         },
-                        JkVector {
-                            j: current.j - 1,
-                            k: current.k,
+                        RelJkVector {
+                            rj: current.j as isize + 1,
+                            rk: current.k as isize,
                         },
-                        JkVector {
-                            j: current.j,
-                            k: current.k + 1,
+                        RelJkVector {
+                            rj: current.j as isize + 1,
+                            rk: current.k as isize - 1,
                         },
-                        JkVector {
-                            j: current.j,
-                            k: current.k - 1,
+                        RelJkVector {
+                            rj: current.j as isize,
+                            rk: current.k as isize + 1,
                         },
-                    ];
+                        RelJkVector {
+                            rj: current.j as isize,
+                            rk: current.k as isize - 1,
+                        },
+                        RelJkVector {
+                            rj: current.j as isize - 1,
+                            rk: current.k as isize + 1,
+                        },
+                        RelJkVector {
+                            rj: current.j as isize - 1,
+                            rk: current.k as isize,
+                        },
+                        RelJkVector {
+                            rj: current.j as isize - 1,
+                            rk: current.k as isize - 1,
+                        },
+                    ]
+                    // Eliminate anything out of bounds
+                    .into_iter()
+                    .filter(|x| {
+                        x.rj >= 0
+                            && x.rk >= 0
+                            && x.rj < chunk_coords.num_concentric_circles() as isize
+                            && x.rk < chunk_coords.num_radial_lines() as isize
+                    })
+                    .map(|x| x.into())
+                    .collect();
 
                     for neighbor in neighbors.iter() {
                         if point_cloud.contains(neighbor) && !visited.contains(neighbor) {
@@ -246,5 +276,28 @@ impl Directory {
         }
 
         rects
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::LayerPointClouds;
+    use crate::physics::fallingsand::util::vectors::{JkVector, RelJkVector};
+
+    /// Test a simple 3x3 grid around the origin
+    #[test]
+    fn test_calc_square_points() {
+        let center = JkVector { j: 0, k: 0 };
+        let points = LayerPointClouds::get_square_points(&center, 3);
+        assert!(points.contains(&RelJkVector { rj: -1, rk: -1 }));
+        assert!(points.contains(&RelJkVector { rj: -1, rk: 0 }));
+        assert!(points.contains(&RelJkVector { rj: -1, rk: 1 }));
+        assert!(points.contains(&RelJkVector { rj: 0, rk: -1 }));
+        assert!(points.contains(&RelJkVector { rj: 0, rk: 0 }));
+        assert!(points.contains(&RelJkVector { rj: 0, rk: 1 }));
+        assert!(points.contains(&RelJkVector { rj: 1, rk: -1 }));
+        assert!(points.contains(&RelJkVector { rj: 1, rk: 0 }));
+        assert!(points.contains(&RelJkVector { rj: 1, rk: 1 }));
+        assert_eq!(points.len(), 9);
     }
 }

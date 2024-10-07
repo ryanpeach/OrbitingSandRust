@@ -625,6 +625,11 @@ impl ElementGridDir {
         // self.recalculate_max_min_temp();
         self.recalculate_total_mass();
 
+        // You can't do this on the very first frame
+        if self.process_count < FRAMES_PER_FULL_PROCESS {
+            return;
+        }
+
         // Calculate the dirty rects from the point cloud
         // Convert to layer
         let last_frame_chunk_point_clouds = std::mem::take(&mut self.chunk_point_clouds);
@@ -642,12 +647,16 @@ impl ElementGridDir {
             last_frame_layer_point_clouds,
             self.coordinate_dir(),
         );
-        self.dirty_rects = Some(dirtyrect::Directory::new(last_frame_chunk_point_clouds));
+        self.dirty_rects = Some(dirtyrect::Directory::new(
+            last_frame_chunk_point_clouds,
+            self.coordinate_dir(),
+        ));
     }
 
     /// Run process FRAMES_PER_FULL_PROCESS times
     pub fn process_full(&mut self, current_time: Clock) {
         for _ in 0..FRAMES_PER_FULL_PROCESS {
+            assert!(self.dirty_rects.is_none());
             self.process(current_time);
         }
     }
