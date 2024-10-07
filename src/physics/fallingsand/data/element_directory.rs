@@ -5,7 +5,7 @@ use bevy::utils::tracing::field::debug;
 use hashbrown::{HashMap, HashSet};
 use itertools::multizip;
 
-use crate::physics::fallingsand::dirtyrect::{ChunkPointClouds, LayerPointClouds};
+use crate::physics::fallingsand::dirtyrect::{self, ChunkPointClouds, JkRect, LayerPointClouds};
 use crate::physics::orbits::components::Mass;
 use crate::physics::util::clock::Clock;
 
@@ -242,7 +242,7 @@ pub struct ElementGridDir {
     coords: CoordinateDir,
     chunks: Vec<Grid<Option<ElementGrid>>>,
     process_targets: ProcessTargets,
-    last_frame_chunk_point_clouds: Option<Arc<ChunkPointClouds>>,
+    dirty_rects: Option<dirtyrect::Directory>,
     chunk_point_clouds: ChunkPointClouds,
     process_count: usize,
     total_mass: Mass,
@@ -273,7 +273,7 @@ impl ElementGridDir {
             process_targets,
             process_count: 0,
             total_mass: Self::calc_total_mass(&mut chunks),
-            last_frame_chunk_point_clouds: None,
+            dirty_rects: None,
             chunk_point_clouds: ChunkPointClouds::default(),
             // max_temp,
             // min_temp,
@@ -310,7 +310,7 @@ impl ElementGridDir {
             process_targets,
             process_count: 0,
             total_mass: Self::calc_total_mass(&mut chunks),
-            last_frame_chunk_point_clouds: None,
+            dirty_rects: None,
             chunk_point_clouds: ChunkPointClouds::default(),
             // max_temp,
             // min_temp,
@@ -628,17 +628,25 @@ impl ElementGridDir {
     pub fn recalculate_everything(&mut self) {
         // self.recalculate_max_min_temp();
         self.recalculate_total_mass();
+
+        // Calculate the dirty rects from the point cloud
+        // Convert to layer
         let last_frame_chunk_point_clouds = std::mem::take(&mut self.chunk_point_clouds);
         let last_frame_layer_point_clouds = LayerPointClouds::from_chunk_point_clouds(
             last_frame_chunk_point_clouds,
             self.coordinate_dir(),
         );
+
+        // Manipulate
         let last_frame_layer_point_clouds =
             last_frame_layer_point_clouds.expand_by(3, self.coordinate_dir());
-        self.last_frame_chunk_point_clouds = Some(ChunkPointClouds::from_layer_point_clouds(
+
+        // Back to by chunk and then into the directory
+        let last_frame_chunk_point_clouds = ChunkPointClouds::from_layer_point_clouds(
             last_frame_layer_point_clouds,
             self.coordinate_dir(),
-        ));
+        );
+        self.dirty_rects = Some(dirtyrect::Directory::new(last_frame_chunk_point_clouds));
     }
 
     /// Run process FRAMES_PER_FULL_PROCESS times
@@ -662,7 +670,21 @@ impl ElementGridDir {
         let mut chunk = self.chunks[coord.i]
             .replace(coord.into(), None)
             .expect("Should not have been replaced already.");
-        let changed_indexes = chunk.process(self.coordinate_dir(), &mut conv, current_time);
+        let dirty_rects = match &mut self.dirty_rects {
+            Some(ref mut dir) => {
+                // We only have to process each chunk once, so it's fine to consume our directory
+                // with take
+                let mut out = dir.rects_by_chunk.remove(&coord);
+                // This will tell the function: We are using dirty_rects, you just don't have any
+                if out.is_none() {
+                    out = Some(vec![])
+                }
+                out
+            }
+            None => None,
+        };
+        let changed_indexes =
+            chunk.process(self.coordinate_dir(), &mut conv, dirty_rects, current_time);
         self.unpackage_convolution(chunk, conv);
         changed_indexes
     }
@@ -712,12 +734,22 @@ impl ElementGridDir {
             let mut chunk = self.chunks[target.i]
                 .replace(target.into(), None)
                 .expect("Should not have been replaced already.");
-            let changed_indexes = chunk.process(
-                self.coordinate_dir(),
-                &mut conv,
-                self.last_frame_chunk_point_clouds,
-                current_time,
-            );
+
+            let dirty_rects = match &mut self.dirty_rects {
+                Some(ref mut dir) => {
+                    // We only have to process each chunk once, so it's fine to consume our directory
+                    // with take
+                    let mut out = dir.rects_by_chunk.remove(&target);
+                    // This will tell the function: We are using dirty_rects, you just don't have any
+                    if out.is_none() {
+                        out = Some(vec![])
+                    }
+                    out
+                }
+                None => None,
+            };
+            let changed_indexes =
+                chunk.process(self.coordinate_dir(), &mut conv, dirty_rects, current_time);
             let found = out.insert(target, changed_indexes);
             debug_assert_eq!(found, None);
             self.unpackage_convolution(chunk, conv);
@@ -734,20 +766,30 @@ impl ElementGridDir {
         current_time: Clock,
     ) -> HashMap<ChunkIjkVector, HashSet<JkVector>> {
         let (mut convolutions, mut target_chunks) = self
-            .package_convolutions(targets.0)
+            .package_convolutions(targets.0.clone())
             .expect("In runtime, this should never fail.");
+        let dirty_rects: Vec<Option<Vec<JkRect>>> = match &mut self.dirty_rects {
+            Some(ref mut dir) => {
+                // We only have to process each chunk once, so it's fine to consume our directory
+                // with take
+                targets
+                    .0
+                    .iter()
+                    .map(|chunk_idx| dir.rects_by_chunk.remove(chunk_idx))
+                    // This will tell the function: We are using dirty_rects, you just don't have any at this chunk.
+                    .map(|x| if x.is_none() { Some(vec![]) } else { x })
+                    .collect()
+            }
+            None => targets.0.iter().map(|_| None).collect(),
+        };
         let changed_indexes: HashMap<ChunkIjkVector, HashSet<JkVector>> = convolutions
             .par_iter_mut()
             .zip(target_chunks.par_iter_mut())
-            .map(|(convolution, target_chunk)| {
+            .zip(dirty_rects.into_par_iter())
+            .map(|((convolution, target_chunk), rects)| {
                 (
                     target_chunk.coords().chunk_idx(),
-                    target_chunk.process(
-                        self.coordinate_dir(),
-                        convolution,
-                        self.last_frame_chunk_point_clouds,
-                        current_time,
-                    ),
+                    target_chunk.process(self.coordinate_dir(), convolution, rects, current_time),
                 )
             })
             .collect();

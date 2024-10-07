@@ -86,13 +86,18 @@ impl LayerPointClouds {
         chunk_point_clouds: ChunkPointClouds,
         coord_dir: &CoordinateDir,
     ) -> Self {
-        // let mut out: Vec<HashSet<JkVector>> = Vec::new();
-        // let chunks = coord_dir.chunks;
-        // for (chunk_idx, set) in chunk_point_clouds {
-        //     for point in set {
-        //     }
-        // }
-        unimplemented!()
+        let mut out: Vec<HashSet<JkVector>> = Vec::new();
+        for (chunk_idx, in_set) in chunk_point_clouds.points_by_chunk {
+            for point in in_set {
+                let this = coord_dir
+                    .chunk_at_idx(chunk_idx)
+                    .external_coord_from_internal_coord(point);
+                out[this.i].insert(this.into());
+            }
+        }
+        Self {
+            points_by_layer: out,
+        }
     }
 }
 
@@ -150,12 +155,12 @@ pub struct JkRect {
 }
 
 pub struct Directory {
-    rects_by_chunk: HashMap<ChunkIjkVector, Vec<JkRect>>,
+    pub rects_by_chunk: HashMap<ChunkIjkVector, Vec<JkRect>>,
 }
 
 impl Directory {
     #[must_use]
-    pub fn new(chunk_point_clouds: &ChunkPointClouds) -> Directory {
+    pub fn new(chunk_point_clouds: ChunkPointClouds) -> Directory {
         let rects_by_chunk: HashMap<ChunkIjkVector, Vec<JkRect>> = chunk_point_clouds
             .points_by_chunk
             .par_iter()
