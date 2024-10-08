@@ -24,10 +24,18 @@ lazy_static! {
 
 /// All the element grid directories that need processing
 mod get_element_grid_dir {
+    use orbiting_sand::entities::celestials::{earthlike, sun};
+
     use super::*;
     /// The default element grid directory for testing
     pub fn empty() -> ElementGridDir {
         ElementGridDir::new_empty(COORDINATE_DIR.clone())
+    }
+    pub fn earthlike() -> ElementGridDir {
+        earthlike::Builder::new().build().element_grid_dir
+    }
+    pub fn sun() -> ElementGridDir {
+        sun::Builder::new().build().element_grid_dir
     }
 }
 
@@ -41,7 +49,9 @@ fn bench_get_textures() {
 // Fully processes a set of element grid directories as defined in the get_element_grid_dir module
 #[library_benchmark(config = LibraryBenchmarkConfig::default().valgrind_args(["--num-callers=10"]))]
 #[benches::multiple(
-    (get_element_grid_dir::empty(), 1)
+    (get_element_grid_dir::empty(), 1),
+    (get_element_grid_dir::sun(), 1),
+    (get_element_grid_dir::earthlike(), 10),
 )]
 fn bench_process(mut element_grid_dir: ElementGridDir, nb_iterations: usize) {
     let mut current_time = Clock::new(Time::default(), FrameCount(0));
