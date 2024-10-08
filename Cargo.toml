@@ -39,5 +39,8 @@ just = "1.23.0"
 name    = "bench_main"
 harness = false
 
+[profile.bench]
+debug = true
+
 [net]
 git-fetch-with-cli = true
