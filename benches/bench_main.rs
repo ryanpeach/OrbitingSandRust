@@ -1,7 +1,4 @@
-use iai_callgrind::{
-    main, EventKind, LibraryBenchmarkConfig,
-    RegressionConfig,
-};
+use iai_callgrind::{main, EventKind, LibraryBenchmarkConfig, RegressionConfig};
 pub mod physics;
 
 use crate::physics::fallingsand::data::element_directory::element_directory_group;
