@@ -23,6 +23,7 @@ derive_more = { version = "1.0.0", features = ["full"] }
 getset = "0.1.2"
 hashbrown = { version = "0.15.0", features = ["rayon"] }
 itertools = "0.13.0"
+lazy_static = "1.5.0"
 # nabo = "0.3.0"
 ndarray = { version = "0.16.1", features = ["rayon", "serde", "blas"] }
 rand = "0.8.5"

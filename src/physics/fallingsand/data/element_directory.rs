@@ -21,7 +21,7 @@ use anyhow::{bail, Result};
 use rayon::prelude::*;
 
 /// The number of frames it takes to fully process the directory
-const FRAMES_PER_FULL_PROCESS: usize = 9;
+pub const FRAMES_PER_FULL_PROCESS: usize = 9;
 
 /// A struct of textures for use in rendering
 /// These are options so you can take them out of the struct and use them elsewhere
