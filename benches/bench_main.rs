@@ -1,5 +1,5 @@
 use iai_callgrind::{
-    library_benchmark, library_benchmark_group, main, EventKind, LibraryBenchmarkConfig,
+    main, EventKind, LibraryBenchmarkConfig,
     RegressionConfig,
 };
 pub mod physics;
