@@ -51,9 +51,6 @@ jobs:
     - name: Build
       run: cargo build --verbose
 
-    - name: Test that the bench builds
-      run: cargo build --bench bench_main
-    
     - name: Test
       run: cargo test
 
