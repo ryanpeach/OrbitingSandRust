@@ -33,7 +33,7 @@ use bevy_mod_picking::PickableBundle;
 use bevy::sprite::{ColorMaterial, MaterialMesh2dBundle};
 use bevy::time::{Fixed, Time};
 
-use bevy::transform::components::Transform;
+use bevy::transform::components::{GlobalTransform, Transform};
 
 use hashbrown::HashMap;
 
@@ -317,6 +317,9 @@ impl Builder {
         }
 
         // Create a wireframes entity parented to the celestial
+        // which itself is the parent to all the other wireframe entities
+        // this enables you to change their visibility easier with egui inspector
+        // and cleans up the hierarchy
         let wireframe_id = commands
             .spawn((
                 Name::new("Wireframes"),
@@ -324,12 +327,16 @@ impl Builder {
                     visibility: Visibility::Hidden,
                     ..Default::default()
                 },
+                GlobalTransform::default(),
             ))
             .id();
         commands.entity(wireframe_id).push_children(&wireframes);
         commands.entity(celestial_id).push_children(&[wireframe_id]);
 
         // Create an outlines entity parented to the celestial
+        // which itself is the parent to all the other outline entities
+        // this enables you to change their visibility easier with egui inspector
+        // and cleans up the hierarchy
         let outline = commands
             .spawn((
                 Name::new("Outlines"),
@@ -337,6 +344,7 @@ impl Builder {
                     visibility: Visibility::Hidden,
                     ..Default::default()
                 },
+                GlobalTransform::default(),
             ))
             .id();
         commands.entity(outline).push_children(&outlines);

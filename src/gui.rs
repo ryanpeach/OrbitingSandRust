@@ -6,11 +6,12 @@ use bevy::{
     ecs::system::Commands,
 };
 
-use self::{brush::BrushPlugin, camera::CameraPlugin};
+use self::{brush::BrushPlugin, camera::CameraPlugin, system_stepping::SteppingEguiPlugin};
 
 pub mod brush;
 pub mod camera;
 pub mod element_picker;
+pub mod system_stepping;
 
 pub struct GuiUnifiedPlugin;
 
@@ -36,5 +37,6 @@ impl PluginGroup for GuiPluginGroup {
             .add(brush::BrushPlugin)
             .add(element_picker::ElementPickerPlugin)
             .add(GuiUnifiedPlugin)
+            .add(SteppingEguiPlugin::default())
     }
 }

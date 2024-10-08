@@ -65,7 +65,9 @@ fn main() {
         .add_plugins((
             DefaultPlugins
                 .set(LogPlugin {
-                    level: bevy::log::Level::TRACE,
+                    level: bevy::log::Level::DEBUG,
+                    filter: "wgpu=error,bevy_render=info,bevy_ecs=info,bevy_egui=info,naga=info"
+                        .to_string(),
                     ..Default::default()
                 })
                 .set(ImagePlugin::default_nearest())
