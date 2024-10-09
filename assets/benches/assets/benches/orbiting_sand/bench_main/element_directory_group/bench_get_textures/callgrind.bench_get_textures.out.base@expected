@@ -1,0 +1,4877 @@
+# callgrind format
+version: 1
+creator: callgrind-3.22.0
+pid: 39205
+cmd:  /home/ryanpeach/Documents/Workspace/OrbitingSandRust/target/release/deps/bench_main-99f962cd7ead7367 --iai-run element_directory_group 0 0 bench_main::element_directory_group::bench_get_textures
+part: 1
+thread: 1
+
+
+desc: I1 cache: 32768 B, 64 B, 8-way associative
+desc: D1 cache: 32768 B, 64 B, 8-way associative
+desc: LL cache: 8388608 B, 64 B, 16-way associative
+
+desc: Timerange: Basic block 0 - 1667082626
+desc: Trigger: Program termination
+
+positions: line
+events: Ir Dr Dw I1mr D1mr D1mw ILmr DLmr DLmw
+summary: 8716427629 2078115617 1126513323 463 42792876 33284348 440 38242883 32737433
+
+
+ob=/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+fl=???
+fn=0x000000000001f540
+cob=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/target/release/deps/bench_main-99f962cd7ead7367
+cfi=???
+cfn=(below main)
+calls=1 0 
+0 8716427629 2078115617 1126513323 463 42792876 33284348 440 38242883 32737433
+
+fl=./elf/./elf/dl-tunables.c
+fn=__tunable_get_val
+387 1 0 0 1
+390 2
+387 1
+390 8 1 0 0 1
+399 1 1
+390 2
+
+ob=???
+fl=???
+fn=0x000000000499f6b0
+0 4 2 0 0 1
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S
+cfn=__memcpy_avx_unaligned_erms
+calls=58 255 
+0 130 32 26 3 10 10 3 0 10
+
+fn=0x000000000499f720
+0 2 1 0 0 1
+cob=/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+cfi=./elf/./elf/dl-tunables.c
+cfn=__tunable_get_val
+calls=21 387 
+0 24 4 1 1 1
+
+ob=/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+fl=./elf/./elf/dl-tunables.c
+fn=__tunable_get_val
+416 6 1
+418 1 1
+399 1 0 1
+400 1
+
+ob=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/target/release/deps/bench_main-99f962cd7ead7367
+fl=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/array/mod.rs
+fn=core::array::<impl core::default::Default for [T; _]>::default
+466 8 0 4 1 0 1 1 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 4 0 2 0 0 1 0 0 1
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=2 27 
+2069 93 10 9 6 2 0 6 2
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+34 10 4 6 1 2 1 1 2 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 2 0 2
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=2 27 
+2069 36 8 4
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+34 10 4 6 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 2 2 2 0 1 0 0 1
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=2 27 
+2069 36 8 4
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+34 10 4 6 1 0 1 1 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 2 2 2
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=2 27 
+2069 36 8 4
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+34 10 4 6
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 2 2 2
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=2 27 
+2069 36 8 4
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+34 10 4 6 1 0 1 1 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 2 2 2
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=2 27 
+2069 36 8 4
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+34 10 4 6 1 0 1 1 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 2 2 2
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=2 27 
+2069 36 8 4
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+34 10 4 6
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 2 2 2
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=2 27 
+2069 36 8 4
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+34 12 4 6 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 2 2 2
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=2 27 
+2069 36 8 4
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/array/mod.rs
+467 106 52 54 6 0 4 6 0 2
+468 8 6
+
+fl=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+fn=orbiting_sand::physics::fallingsand::util::grid::Grid<T>::new_empty
+31 99 0 66 1 0 0 1
+35 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+215 33 0 11 0 0 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/alloc/layout.rs
+451 55 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+220 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1706 22 11 0 0 3
+0 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+100 33 11 11 0 3 2
+cfi=???
+cfn=__rust_alloc
+calls=11 0 
+100 2363 472 256 11 40 19 10 1 10
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+234 22 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+699 77 0 33 0 0 2
+0 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+278 49176 49176
+0 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 295056 0 295056 0 0 61462 0 0 61462
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2008 49176 0 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 98352
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2002 98352 49176 0 1 0 0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+39 121 44 44 2 4 4 2
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+cfn=ndarray::impl_constructors::<impl ndarray::ArrayBase<S,D>>::from_shape_vec
+calls=11 458 
+39 1122 198 198 9 0 8 9
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/result.rs
+1100 22 11
+1101 88 44 44 0 0 5
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+40 88 77 0 1 0 0 1
+31 77 0 66 1 0 0 1
+35 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+215 33 0 22 0 0 2
+0 11 0 11
+215 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/alloc/layout.rs
+451 55 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+220 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1706 22 11
+0 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+100 33 11 11 0 0 1
+cfi=???
+cfn=__rust_alloc
+calls=11 0 
+100 2587 526 286 12 29 39 0 3 16
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+234 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+699 99 11 33 1 9 0 1 3
+0 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 196704 0 49176
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S
+cfn=__memcpy_avx_unaligned_erms
+calls=49176 255 
+1534 2600178 590112 442584 0 16 185558 0 6 185556
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2008 49176 0 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 98352
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/option.rs
+2071 49176 0 49176 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2002 98352 49176
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+39 121 55 44 1 0 0 1
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+cfn=ndarray::impl_constructors::<impl ndarray::ArrayBase<S,D>>::from_shape_vec
+calls=11 458 
+39 1144 198 198 9 0 5 9 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/result.rs
+1100 22 11
+1101 99 55 44 1 0 10 1 0 2
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+40 88 77 0 0 5 0 0 1
+
+fl=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/elements/vacuum.rs
+fn=<orbiting_sand::physics::fallingsand::elements::vacuum::Vacuum as orbiting_sand::physics::fallingsand::elements::element::Element>::color
+32 12582906 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_color-0.14.3/src/color.rs
+93 37748718 0 25165812
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/elements/vacuum.rs
+34 12582906 12582906
+
+fn=<orbiting_sand::physics::fallingsand::elements::vacuum::Vacuum as orbiting_sand::physics::fallingsand::elements::element::Element>::box_clone
+45 25165812 0 12582906 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1706 25165812 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+100 37748718 12582906 12582906
+cfi=???
+cfn=__rust_alloc
+calls=12582906 0 
+100 2491952779 490864145 226589657 24 14164 12589083 24 180 12584278
+332 25165812 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/boxed.rs
+260 176160684 88080342 88080342 0 0 12582906 0 0 12582905
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/elements/vacuum.rs
+47 37748718 25165812 0 1 0 0 1
+
+fl=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+fn=alloc::raw_vec::finish_grow
+569 12 0 9 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/result.rs
+852 6
+0 6
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+582 8 5
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+204 4
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+0 2 2
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+138 6 2 2 0 1
+cfi=???
+cfn=__rust_realloc
+calls=2 0 
+138 858 184 114 14 31 18 4 0 12
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/result.rs
+852 4
+853 9 0 6
+0 10 2 1 1 0 0 1
+cfi=???
+cfn=__rust_alloc
+calls=1 0 
+0 195 38 18 0 0 1 0 0 1
+852 2 0 0 1 0 0 1
+0 3 0 3
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+594 12 12
+
+fn=alloc::raw_vec::RawVec<T,A>::grow_one
+363 9 0 6 1 0 0 1
+364 3 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+464 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/mod.rs
+24 3 0 0 1 0 0 1
+0 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+468 3
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+480 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+0 27
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/alloc/layout.rs
+451 9
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+300 6
+486 2 2
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+831 2
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+312 6 0 4
+0 6 0 1 1 0 0 1
+486 1 0 1
+cfn=alloc::raw_vec::finish_grow
+calls=1 569 
+486 223 45 25 3 0 1 3 0 1
+0 6 0 2
+486 2 0 2 0 0 1
+cfn=alloc::raw_vec::finish_grow
+calls=2 569 
+486 914 200 128 14 32 18 4 0 12
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/result.rs
+1976 6 3
+1977 3 3
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+454 3 0 3
+455 3 0 3 1 0 0 1
+367 12 9
+
+fl=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/benches/physics/fallingsand/data/element_directory.rs
+fn=bench_main::physics::fallingsand::data::element_directory::bench_get_textures::__iai_callgrind_wrapper_mod::bench_get_textures
+43 7 0 6 2 0 0 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lazy_static-1.5.0/src/lib.rs
+135 2 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/sync/atomic.rs
+3314 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sys/sync/once/futex.rs
+79 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sync/once.rs
+153 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cell.rs
+2148 1 1
+0 1
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+30 2 0 1
+cfi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+cfn=<alloc::vec::Vec<T,A> as core::clone::Clone>::clone
+calls=1 2841 
+30 1307799 1072116 1071827 20 61579 61522 20 0 61486
+0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/benches/physics/fallingsand/data/element_directory.rs
+32 3 1 1 0 1 0 0 1
+cfi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+cfn=orbiting_sand::physics::fallingsand::data::element_directory::ElementGridDir::new_empty
+calls=1 247 
+32 3110334797 683939777 397255606 225 803361 28979591 213 259300 28653530
+32 1 0 0 1 0 0 1
+46 2 1 1 0 1 0 0 1
+cfi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+cfn=orbiting_sand::physics::fallingsand::data::element_directory::ElementGridDir::textures
+calls=1 825 
+46 3010973118 680921359 370766013 91 6605763 956600 91 3388793 875042
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1
+2213 2
+2154 3 1
+0 1
+2380 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1226 1 1 0 0 1 0 0 1
+1445 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+31 1 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/const_ptr.rs
+903 3
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+0 147528
+3742 49176
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 102207
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1226 3855 3855 0 0 966 0 0 732
+1445 3855
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 3855
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/const_ptr.rs
+903 3855
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 7710
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1226 240 240 0 0 60 0 0 45
+1445 240
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 240
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/const_ptr.rs
+903 240
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 480
+31 3855
+38 3855
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/nonzero.rs
+567 3855
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 11565
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 11565 3855 0 0 3855 0 0 3745
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+38 45321
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/nonzero.rs
+567 45321 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 135963
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 135963 45321 0 0 45321 0 0 44131
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+300 98352
+599 49176 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 98352 49176 49176
+cfi=???
+cfn=__rust_dealloc
+calls=49176 0 
+119 10715276 3325864 1720216 4 76506 69 4 60906 66
+0 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+262 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 2
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 3 1 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 77 20 12 0 2 0 0 1
+0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/benches/physics/fallingsand/data/element_directory.rs
+47 1 0 1
+cfi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+cfn=core::ptr::drop_in_place<orbiting_sand::physics::fallingsand::data::element_directory::ElementGridDir>
+calls=1 542 
+47 2579268002 708456614 354813078 39 35195314 3129591 39 34485224 3085815
+43 8 7 0 0 1 0 0 1
+0 1 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sync/once.rs
+157 2 0 1
+158 6 0 2 1 0 1 1
+cfi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sys/sync/once/futex.rs
+cfn=std::sys::sync::once::futex::Once::call
+calls=1 97 
+158 2812692 248227 837380 76 145 156973 65 2 61494
+158 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/benches/physics/fallingsand/data/element_directory.rs
+
+fn=bench_main::physics::fallingsand::data::element_directory::bench_get_textures::wrapper
+cfn=bench_main::physics::fallingsand::data::element_directory::bench_get_textures::__iai_callgrind_wrapper_mod::bench_get_textures
+calls=1 43 
+43 8716427629 2078115617 1126513323 463 42792876 33284348 440 38242883 32737433
+
+fl=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+fn=hashbrown::raw::RawTableInner::fallible_with_capacity
+1554 1162 0 996 1 0 0 1
+199 332
+203 132
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 66
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/mod.rs
+24 33
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 266
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/mod.rs
+24 133
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 133 0 0 1 0 0 1
+0 133
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+210 931
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2799 133
+2804 133
+2805 798
+2830 133
+2293 266
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/mod.rs
+24 465 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+468 166
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 166
+262 166
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+464 332
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/mod.rs
+24 166
+0 166
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+266 332
+1581 1328 1162 0 0 4
+0 498 0 166 1 0 19 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1706 332 166 0 0 36 0 0 1
+0 166
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+100 498 166 166 1 36 0 1 1
+cfi=???
+cfn=__rust_alloc
+calls=166 0 
+100 32393 5940 3553 3 541 268 3 21 42
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/alloc.rs
+36 332
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1543 166
+222 1162
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+1044 166
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3235 830 166 166 1 48 0 1 5
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./string/../sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S
+cfn=__memset_avx2_unaligned_erms
+calls=166 158 
+3235 262460 267 259650 1 48 4430 1 5 3661
+0 166 166
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1578 830 0 664 0 0 2
+
+fn=hashbrown::raw::RawTable<T,A>::reserve_rehash
+1031 1057 0 906 1 0 20 1
+2689 151 151
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+464 151
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/mod.rs
+24 151
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2693 151 151 0 1 0 0 1
+222 1359
+2694 604
+0 453 0 151 1 0 19 1
+2721 151
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+0 302
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2633 151
+0 151
+2633 453 0 151 0 0 19
+cfn=hashbrown::raw::RawTableInner::fallible_with_capacity
+calls=151 1554 
+2633 174308 7251 135631 10 654 2645 10 18 1646
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/result.rs
+1976 151 151
+0 302 302
+1976 302
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3868 302 0 0 1 0 0 1
+0 270 0 270
+2566 135 135
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1226 135 135 0 0 4
+1445 135
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+31 135
+0 198198 135 135 1 0 0 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+153 65796
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+1800 65796
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2532 65796
+2535 65796 0 65796
+2536 65796 0 65796 0 0 3
+2340 263184
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 263184 131592 131592 0 72 27337 0 0 14992
+0 65796
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3868 131592
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 136103 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1226 4511 4511 0 0 763
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+1044 4511
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 4511
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3854 4511
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 9022
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1226 72 72 0 0 17
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+1044 72
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 72
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3854 72
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 144
+31 4511
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/nonzero.rs
+567 4511
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3824 4511
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/int_macros.rs
+1178 9022
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 4511
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/lib.rs
+171 4511 4511
+0 4511 4511 0 0 1808
+184 9022 4511 0 0 82
+115 4511
+123 4511
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2393 9022
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 4511 4511 0 0 57
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 4511
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 4511
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 4511
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/nonzero.rs
+567 61285 0 0 1 0 0 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3824 61285
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/int_macros.rs
+1178 122570
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 61285
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/lib.rs
+171 61285 61285
+0 61285 61285 0 0 18010
+184 122570 61285 0 0 38
+115 61285
+123 61285
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2393 122570
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 61285 61285 0 0 255
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 61285
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 61285
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 61285
+0 96020
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+183 96020
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 48010 48010 0 0 90
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 48010
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 48010
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 48010
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 48010
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+183 269628
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 134814 134814 0 0 1065
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 134814
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 134814
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 134814
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 134814
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 65796 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 131592
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+114 65796 65796 0 0 5
+1653 65796
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/step_by.rs
+0 540 405 0 2 27 0 2
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1058 1359 1057 0 0 54
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1325 16 16 0 1 0 0 1
+0 16
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2874 16
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 64 0 48
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2642 16
+0 32 16
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+0 135
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2874 135
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 540 0 405 0 0 28
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2642 135
+0 540 135
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 270
+468 135
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 135 0 0 1 0 0 1
+262 135
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 270
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 135
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 405 135 135 0 38 29 0 1
+cfi=???
+cfn=__rust_dealloc
+calls=135 0 
+119 21660 6616 3708 5 621 59 5 13
+0 270
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1031 105 0 90 1 0 0 1
+2689 15 15
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+464 15
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/mod.rs
+24 15
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2693 15 15 0 1 0 0 1
+222 135
+2694 60
+0 45 0 15 1 0 0 1
+2721 15
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+0 30
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2633 15
+0 15
+2633 45 0 15
+cfn=hashbrown::raw::RawTableInner::fallible_with_capacity
+calls=15 1554 
+2633 133762 782 129730 0 59 2074 0 15 2057
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/result.rs
+1976 15 15
+0 30 30
+1976 30
+0 15 15
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3868 30 0 0 1 0 0 1
+0 42 0 42
+2566 14 14 0 0 2
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1226 14 14 0 0 7 0 0 1
+1445 14
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+31 14
+0 172104 14 0 1 2 0 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+153 57340
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+1800 57340
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2532 57340
+2535 57340 0 57340
+2536 57340 0 57340 0 0 4
+2340 229360
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 458720 229360 229360 0 992 63436 0 737 59675
+0 57340
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3868 114680
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 118693 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1226 4013 4013 0 0 994 0 0 137
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+1044 4013
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 4013
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3854 4013
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 8026
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1226 70 70 0 0 19 0 0 4
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+1044 70
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 70
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3854 70
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 140
+31 4013
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/nonzero.rs
+567 4013
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3824 4013
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 16052
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/lib.rs
+171 4013 4013
+0 4013 4013 0 0 4009 0 0 3249
+184 8026 4013
+115 4013
+123 4013
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2393 8026
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 4013 4013 0 0 295
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 4013
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 4013
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 4013
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/nonzero.rs
+567 53327 0 0 1 0 0 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3824 53327
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 213308
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/lib.rs
+171 53327 53327 0 0 2
+0 53327 53327 0 0 53252 0 0 43618
+184 106654 53327
+115 53327
+123 53327
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2393 106654
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 53327 53327 0 1 1978 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 53327
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 53327
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 53327
+0 101734
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+183 101734
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 50867 50867 0 0 656
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 50867
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 50867
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 50867
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 50867
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+183 807914
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 403957 403957 0 0 23470
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 403957
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 403957
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 403957
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 403957
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 57340
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 114680 0 0 1 0 0 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+114 57340 57340 0 0 3
+1653 57340
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/step_by.rs
+0 70 56 0 1 14 0 1 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1325 1 1 0 1 0 0 1
+0 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2874 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 3 0 3
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2642 2 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+0 14
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2874 14
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 42 0 42 0 0 8 0 0 2
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2642 28
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 14
+468 28
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 14
+0 14
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 42 14 14 0 12 0 0 4
+cfi=???
+cfn=__rust_dealloc
+calls=14 0 
+119 2275 666 397 5 134 17 5 10 4
+0 29
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1058 135 105 0 1 8 0 1 2
+
+fl=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_color-0.14.3/src/srgba.rs
+fn=<bevy_color::srgba::Srgba as bevy_color::color_ops::ColorToPacked>::to_u8_array
+369 75497436 0 50331624 1 0 0 1
+370 25165812 12582906 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/f32.rs
+1540 25165812 12582906
+0 12582906 12582906 0 0 6581 0 0 4
+1543 12582906
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_color-0.14.3/src/srgba.rs
+371 12582906 12582906
+0 12582906 12582906 0 1 5689 0 1 4
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/f32.rs
+102 12582906 0 12582906 0 0 1
+cob=/usr/lib/x86_64-linux-gnu/libm.so.6
+cfi=./math/../sysdeps/ieee754/flt-32/s_roundf.c
+cfn=roundf
+calls=12582906 29 
+102 213909402 12582906 0 2 0 0 2
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_color-0.14.3/src/srgba.rs
+371 75497436 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/f32.rs
+1540 25165812 12582906
+0 12582906 12582906
+1543 12582906
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_color-0.14.3/src/srgba.rs
+371 12582906
+0 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/f32.rs
+102 12582906 0 12582906 1 0 0 1
+cob=/usr/lib/x86_64-linux-gnu/libm.so.6
+cfi=./math/../sysdeps/ieee754/flt-32/s_roundf.c
+cfn=roundf
+calls=12582906 29 
+102 213909402 12582906
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_color-0.14.3/src/srgba.rs
+371 62914530 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/array/mod.rs
+138 25165812
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/f32.rs
+1540 75497436 25165812
+1543 25165812 12582906 0 1 5689 0 1 5
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_color-0.14.3/src/srgba.rs
+371 25165812 12582906 12582906 0 3458 0 0 7
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/f32.rs
+102 25165812 0 12582906
+cob=/usr/lib/x86_64-linux-gnu/libm.so.6
+cfi=./math/../sysdeps/ieee754/flt-32/s_roundf.c
+cfn=roundf
+calls=12582906 29 
+102 213909402 12582906
+102 37748718 12582906 25165812
+cob=/usr/lib/x86_64-linux-gnu/libm.so.6
+cfi=./math/../sysdeps/ieee754/flt-32/s_roundf.c
+cfn=roundf
+calls=12582906 29 
+102 213909402 12582906
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_color-0.14.3/src/srgba.rs
+371 125829060 25165812 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/array/mod.rs
+138 176160684
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_color-0.14.3/src/srgba.rs
+372 75497436 62914530
+
+fl=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sys/sync/once/futex.rs
+fn=<std::sys::sync::once::futex::CompletionGuard as core::ops::drop::Drop>::drop
+55 2 0 1 1 0 0 1
+59 2 2
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/sync/atomic.rs
+3331 1 1 1
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sys/sync/once/futex.rs
+59 2
+62 2 2
+
+fn=std::sys::sync::once::futex::Once::call
+97 10 0 7 1 0 2 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/sync/atomic.rs
+3314 1 1
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sys/sync/once/futex.rs
+101 2
+0 5 0 0 1 0 0 1
+100 6 1 0 1 1 0 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/sync/atomic.rs
+3424 2 0 1
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sys/sync/once/futex.rs
+107 2
+116 2 0 2 1 0 1 1
+124 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1325 1 1
+1534 1 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/option.rs
+968 2
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sync/once.rs
+158 1 1
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+122 9 0 7 1 0 0 1
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/benches/physics/fallingsand/data/element_directory.rs
+15 1 1 1
+cfi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+cfn=orbiting_sand::physics::fallingsand::mesh::coordinate_dir::Builder::build
+calls=1 137 
+15 2812622 248206 837355 69 142 156969 58 1 61494
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 4 2 2 1 0 1 1
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sys/sync/once/futex.rs
+125 1 0 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 1 1 1 0 1
+cfi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sys/sync/once/futex.rs
+cfn=<std::sys::sync::once::futex::CompletionGuard as core::ops::drop::Drop>::drop
+calls=1 55 
+542 9 5 2 1 0 0 1
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sys/sync/once/futex.rs
+145 8 7 0 0 1
+
+fl=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/rt.rs
+fn=std::rt::lang_start::{{closure}}
+cfi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sys/backtrace.rs
+cfn=std::sys::backtrace::__rust_begin_short_backtrace
+calls=1 148 
+162 8716427629 2078115617 1126513323 463 42792876 33284348 440 38242883 32737433
+
+fn=std::rt::lang_start_internal
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ops/function.rs
+cfn=std::rt::lang_start::{{closure}}
+calls=1 162 
+284 8716427629 2078115617 1126513323 463 42792876 33284348 440 38242883 32737433
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/rt.rs
+
+fl=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_color-0.14.3/src/color.rs
+fn=bevy_color::color::Color::to_srgba
+81 25165812 0 12582906 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/convert/mod.rs
+759 12582906 12582906 12582906 0 3400 0 0 6
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_color-0.14.3/src/color.rs
+cfn=bevy_color::color::<impl core::convert::From<bevy_color::color::Color> for bevy_color::srgba::Srgba>::from
+calls=12582906 489 
+759 226492308 75497436 37748718 2 3259 0 2 6
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_color-0.14.3/src/color.rs
+83 37748718 25165812
+
+fn=bevy_color::color::<impl core::convert::From<bevy_color::color::Color> for bevy_color::srgba::Srgba>::from
+489 50331624 0 25165812 1 0 0 1
+490 12582906 12582906
+0 25165812
+490 37748718 12582906 0 0 3259 0 0 6
+491 37748718 12582906 12582906
+502 62914530 37748718 0 1 0 0 1
+
+fl=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/alloc.rs
+fn=__rdl_dealloc
+407 25362920 0 12681460
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sys/pal/unix/alloc.rs
+48 25362920 25362920 0 0 56 0 0 8
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./malloc/./malloc/malloc.c
+cfn=free
+calls=12681468 3359 
+48 2335791450 622922405 330732152 15 31989065 3100557 15 31289720 3085886
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/alloc.rs
+
+fn=__rdl_alloc
+397 12681472
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sys/pal/unix/alloc.rs
+13 50725888
+14 25362944 12681472 0 0 6793 0 0 7
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./malloc/./malloc/malloc.c
+cfn=malloc
+calls=12681480 3294 
+14 2409038723 481821879 228434202 86 240088 12714282 73 326 12680809
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/alloc.rs
+
+fn=__rdl_realloc
+414 18 0 10 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sys/pal/unix/alloc.rs
+53 8
+54 16 12 0 1 2 0 1
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./malloc/./malloc/malloc.c
+cfn=realloc
+calls=2 3407 
+54 814 172 104 13 29 17 3 0 12
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/alloc.rs
+
+fl=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+fn=orbiting_sand::physics::fallingsand::data::element_directory::ElementGridDir::new_empty
+247 9 0 7 1 0 1 1 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2260 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+215 3 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/alloc/layout.rs
+451 6 0 1 1 0 1 1 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+220 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1706 2 1 0 0 1 0 0 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+100 3 1 1 0 1
+cfi=???
+cfn=__rust_alloc
+calls=1 0 
+100 189 37 18 0 13 5 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+234 2
+0 1 1 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+699 7 1 4
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+0 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+278 11 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+1044 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 88 44 44 1 0 19 1 0 15
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2008 22 0 11
+0 11 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 44 22
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+54 22 0 0 1 0 0 1
+50 11 11 0 0 11 0 0 5
+54 11 11
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+252 55 0 22
+cfi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+cfn=orbiting_sand::physics::fallingsand::util::grid::Grid<T>::new_empty
+calls=11 31 
+252 3194758 640243 590827 27 59 185615 15 13 185575
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 11
+0 11 11
+753 11 0 0 1 0 0 1
+0 572 462 88 1 192 6 1 97 4
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 396 198
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 198
+0 3168 594 396 2 0 0 2
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+0 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 98352 98352 0 0 49140
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 49176
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+109 344232 147528 0 1 49139 0 1 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+760 147528
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+50 98352 98352
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 245880 49176 0 1 49141 0 1 1
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+258 491760 245880 245880 1 98345 12 1 89410 4
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/elements/vacuum.rs
+11 442584 0 442584 1 0 12 1 0 8
+0 98352 0 0 1 0 0 1
+11 147528 0 147528
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+54 245880 49176 49176 0 49140 0 0 2
+cfn=orbiting_sand::physics::fallingsand::data::element_grid::ElementGrid::new_filled
+calls=49176 58 
+54 3039214390 671162769 393996047 67 310423 28614329 67 251 28325374
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+257 196704 196704 0 1 0 0 1
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+109 49176 49176
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+760 49176
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+257 49176 49176
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+50 49176 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 147528 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1325 196704 196704 0 0 110618 0 0 108186
+1534 1770336 737640 983520 3 0 129049 3 0 118183
+542 98352 0 0 1 0 0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+260 88 44 44 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+1999 11 11
+2002 22 11 0 1 0 0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+0 1
+262 1 0 1 1 0 0 1
+cfn=orbiting_sand::physics::fallingsand::data::element_directory::pregen_process_targets
+calls=1 208 
+262 62412452 10069782 799361 104 25628 50522 104 52 24346
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2830 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+1752 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 1
+0 5 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+1752 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 11
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+693 11 11 0 0 11 0 0 9
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_methods.rs
+0 11 11 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+694 66
+704 16 8
+702 11
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_methods.rs
+1710 33 11
+1712 11 11
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+0 11
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+659 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+1044 55 0 0 1 0 0 1
+0 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/option.rs
+733 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+0 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/option.rs
+733 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+604 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/option.rs
+733 98352 49176 0 0 12301 0 0 12300
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/flatten.rs
+940 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ops/arith.rs
+759 49176 49176 0 0 49176 0 0 48971
+0 98353 0 1 0 0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+271 5 3 2 1 1 1 1 0 1
+264 8 3 3 0 2 0 0 1
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S
+cfn=__memcpy_avx_unaligned_erms
+calls=1 255 
+264 137 40 37 0 19 17 0 0 17
+264 3 1 2 1 0 0 1
+273 9 7
+
+fn=orbiting_sand::physics::fallingsand::data::element_directory::ElementGridDir::textures
+825 7 0 6 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2260 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+215 3 0 2 1 0 0 1
+0 1 0 1
+215 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/alloc/layout.rs
+451 5
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+220 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1706 2 1 0 0 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+100 3 1 1 1 1 0 1
+cfi=???
+cfn=__rust_alloc
+calls=1 0 
+100 422 67 43 0 15 4 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+234 2
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+699 2 0 2
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+0 2 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+278 11 11 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+1044 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 110 44 66 0 0 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2008 11
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+0 11 0 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 11
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+50 11 11 0 1 11 0 1
+54 11 11
+24 33 0 11
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+cfn=ndarray::impl_constructors::<impl ndarray::ArrayBase<S,D>>::from_elem
+calls=11 323 
+24 51272 466 48826 7 20 772 7 10
+24 44 33 11 1 0 0 1
+0 11
+24 66 33 33 1 0 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+1999 11 11 0 0 1
+0 11
+2002 22 11
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 1 1 1 1 1 0 1
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=1 27 
+2069 18 4 2 0 1
+542 5 2 3 0 2 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+1752 2 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 1
+0 44 14 4 1 1 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+1752 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/index.rs
+301 22 11 0 1 0 0 1
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+54 44 22 0 0 11 0 0 2
+0 11 0 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 11
+0 44 22 11 1 0 0 1
+753 11
+0 44 33 11 0 11 0 0 2
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/index.rs
+301 11
+0 451 209 22 0 56
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 198 198
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 198
+0 2178 198 594 2 0 0 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+127 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/convert/num.rs
+78 49176
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2400 49176 0 49176 0 0 3944 0 0 5
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+1800 49176
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2532 49176
+2535 49176 0 49176
+2536 49176 0 49176 0 0 4 0 0 1
+2402 49176 0 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 147528
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 737640 245880 344232 1 12153 54989 1 19 53245
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+0 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 49176 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 49176
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+109 196704 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+760 49176
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+50 49176 49176 0 0 6836 0 0 1
+0 49176 49176
+50 49176 49176 0 0 3465 0 0 5
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 49176 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/internal_macros.rs
+15 49176 49176 0 0 44885 0 0 922
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+848 49176
+0 49176 49176 0 1 7298 0 1 4
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+109 147528 98352
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+760 147528
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+50 98352 98352
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 344232 49176 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/option.rs
+711 98352 49176 0 0 49175 0 0 48168
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+0 49176
+852 98352 49176 49176 0 6772 0 0 2
+cfi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+cfn=orbiting_sand::physics::fallingsand::data::element_grid::ElementGrid::texture
+calls=49176 345 
+852 2832745108 651250511 369553220 40 3512300 831331 40 3287220 760050
+0 49176
+853 147528 98352 49176
+0 98352 49176 49176 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/lib.rs
+184 49176
+0 98352 49176 0 0 17409
+184 49176
+115 147528
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+988 98352 49176
+993 75 0 15
+cfn=hashbrown::raw::RawTable<T,A>::reserve_rehash
+calls=15 1031 
+993 6207662 976723 474388 18 85908 65539 18 47780 61738
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+0 49176 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1216 98352 98352
+153 540936 49176 0 0 8 0 0 1
+0 49176 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 49176 49176 0 0 7234 0 0 72
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 147528
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 98352
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+0 1453406
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 1453406 1453406 0 0 490664 0 0 4028
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 4360218
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 2906812
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 4507746
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 1502582
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 6010328
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 3005164
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 3005164 1502582 0 1 9 0 1 4
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1780 3005164
+182 2906812
+181 1453406
+0 1453406
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+38 8140166
+50 8140166
+0 8140166
+50 8140166
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/nonzero.rs
+567 8140166 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1765 16280332
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 24420498
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/vectors.rs
+219 16280332 8140166 0 0 2361363 0 0 520
+221 16211022 8105511
+223 8064477 8064477 0 0 102
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1767 8064477
+2582 49176 49176 0 1 7 0 1 1
+114 49176
+1653 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1226 1 1
+1445 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/nonzero.rs
+567 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1237 2 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+857 7 4 3 1 0 1 1 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+3308 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 2
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+3308 1 1 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/data_repr.rs
+168 1
+0 2
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 33
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/data_repr.rs
+168 33 11 0 0 10 0 0 10
+136 22 0 11 0 0 1 0 0 1
+137 11 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 22 0 11
+cfi=???
+cfn=__rust_dealloc
+calls=11 0 
+119 1360 395 212 0 30 2 0 18 1
+0 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+599 1 1
+300 2 0 0 1 0 0 1
+599 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+831 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1 0 1 0 0 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 90 27 15 0 1 0 0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+837 9 7 0 0 1 0 0 1
+
+fn=orbiting_sand::physics::fallingsand::data::element_directory::pregen_process_targets
+208 11 0 9 1 0 3 1 0 3
+209 2 0 1
+cfi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/array/mod.rs
+cfn=core::array::<impl core::default::Default for [T; _]>::default
+calls=1 466 
+209 331 90 85 18 5 7 18 5 7
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 1 1 1
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=1 27 
+2069 18 4 2
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+37 5 2 3 1 0 1 1 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 1 1 1
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=1 27 
+2069 18 4 2
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+37 5 2 3 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 1 1 1
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=1 27 
+2069 18 4 2
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+37 5 2 3 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 1 1 1
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=1 27 
+2069 18 4 2
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+37 5 2 3 1 0 1 1 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 1 1 1
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=1 27 
+2069 18 4 2
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+37 5 2 3 1 0 1 1 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 1 1 1
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=1 27 
+2069 18 4 2
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+37 5 2 3 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 1 1 1
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=1 27 
+2069 18 4 2
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+37 5 2 3 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 1 1 1
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=1 27 
+2069 18 4 2
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+37 6 2 3 1 0 1 1 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 1 1 1
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=1 27 
+2069 18 4 2
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/array/mod.rs
+467 55 26 28 6 0 5 6 0 5
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+212 1 0 1
+cfi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/array/mod.rs
+cfn=core::array::<impl core::default::Default for [T; _]>::default
+calls=1 466 
+212 274 88 80 0 0 4 0 0 2
+0 1 1 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 13 1 4
+0 27 9 0 1 0 0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+222 63 36 27 0 0 4
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+1752 54 0 9
+0 9 0 9
+1752 9
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 9
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 9 9 9 1 0 0 1
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=9 27 
+2069 162 36 18
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/set.rs
+157 45 18 27 1 0 0 1
+0 27 9 18
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 9
+0 27
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+369 9 9 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+1752 18
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 9
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+369 90 90 0 0 10 0 0 8
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+1752 180
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 99
+0 9 0 9 1 0 0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+73 45
+72 54
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+849 27 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2698 18
+2700 36
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/step_by.rs
+448 18
+0 48 12 9
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/index.rs
+301 3
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+0 1782 594 0 0 29
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/step_by.rs
+448 594
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+381 2376 594 594 1 0 0 1
+0 2955 591 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 1182
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 591
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+0 5229
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 10458
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 5229
+0 5820 5820 0 0 312
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+387 29100
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/index.rs
+301 1773 591 0 1 0 0 1
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+358 591 591
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+50 591 591
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+97 1182
+98 60
+0 1710 570
+105 1330
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+849 1710 570 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2698 1710
+2700 2280
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/step_by.rs
+448 570
+0 570 0 570
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+110 570
+0 2280 570 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+127 48411
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/convert/num.rs
+78 48411
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2400 48411 0 48411
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+1800 48411
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2532 48411
+2535 48411 0 48411
+2536 48411 0 48411 0 0 3
+2402 48411 0 48411
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/int_macros.rs
+1178 48411
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 48411
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 193644 0 145233 0 0 20037 0 0 7668
+0 48411
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/step_by.rs
+448 48411 48411
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+110 48411
+0 48411 48411 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/lib.rs
+184 48411
+0 96822 48411
+184 48411
+115 145233
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+988 96822 48411 0 1 0 0 1
+993 540 0 108
+cfn=hashbrown::raw::RawTable<T,A>::reserve_rehash
+calls=108 1031 
+993 4367670 650727 396660 27 23424 29462 27 31 16638
+0 145233 0 48411 0 0 28
+1216 96822 96822
+153 435699 0 0 1 0 0 1
+0 48411
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 48411 48411 0 0 67
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 145233
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 96822
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+0 475078
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 475078 475078 0 0 1049
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 1425234
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 950156
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 1570467 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 523489
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 2093956
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 1046978
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 1046978 523489 0 0 30 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1780 1046978
+182 950156
+181 475078
+0 475078
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+38 2662468
+50 2662468
+0 2662468
+50 2662468
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/nonzero.rs
+567 2662468
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1765 5324936
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/int_macros.rs
+1178 2662468
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 2662468
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/vectors.rs
+219 5324936 2662468 0 0 384
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1218 2647666
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/vectors.rs
+221 5295332 2647666 0 0 9
+223 5278764 2639382 0 0 5
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2582 48411 48411 0 1 5 0 1
+114 48411 0 0 1 0 0 1
+1653 48411
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1226 2 2
+1445 2
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/nonzero.rs
+567 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1237 4 2
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+118 54 27 27
+0 9 9 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 9 9 0 0 9 0 0 3
+2213 18
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+220 54 27 27 1 0 5 1 0 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 9 9 9 0 9
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=9 27 
+2069 162 36 18
+2069 36 36 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/set.rs
+157 45 18 27 0 9
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+130 18
+131 36 18 18
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 6 6 0 0 6
+2213 18
+0 3 3 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+849 9
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2698 9 0 0 1 0 0 1
+2700 12
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/step_by.rs
+448 6
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+159 30 21 9 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 3 3 0 0 3
+2213 6
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+221 54 27 27 1 0 4 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+2069 9 9 9 1 0 0 1
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+cfn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+calls=9 27 
+2069 162 36 18
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/set.rs
+157 45 18 27
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+173 18
+174 18 9 9
+0 3 3
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 3 3 0 0 3
+2213 9
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+0 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/step_by.rs
+448 11
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+138 22 0 0 2 0 0 2
+141 10
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/index.rs
+301 20 10
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+619 10
+0 10 10
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+144 20 10
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/index.rs
+301 2 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+619 3 1
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+50 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 1 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 1
+0 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+127 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/convert/num.rs
+78 3
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2400 3 0 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+1800 3
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2532 3
+2535 3 0 3
+2536 3 0 3
+2402 3 0 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/int_macros.rs
+1178 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 9 0 9 0 0 1
+0 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 3
+0 3 3 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/lib.rs
+184 3
+115 12 3
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+988 6 3
+993 5 0 1 1 0 0 1
+cfn=hashbrown::raw::RawTable<T,A>::reserve_rehash
+calls=1 1031 
+993 191 39 33 0 11 6 0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+0 6
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1216 6 6
+153 24
+0 3 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 3 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 9
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 6
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 9
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 3
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 12
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 6
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 6 3 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1780 6
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+38 3
+50 3
+0 6
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/nonzero.rs
+567 3
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1765 6
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/int_macros.rs
+1178 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 3
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/vectors.rs
+219 6 3
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1218 3
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/vectors.rs
+221 6 3
+223 6 3
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2582 3 3 0 1 0 0 1
+114 3
+1653 3
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+176 24 0 0 1 0 0 1
+0 6 6
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 6
+0 96 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 60 60
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 60
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+619 120
+0 60 60
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+50 60 60
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+186 120
+0 120 120
+186 120 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+849 126
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2698 126
+2700 210
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/step_by.rs
+448 84
+0 84 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+127 762
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/convert/num.rs
+78 762
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2400 762 0 762
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+1800 762
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2532 762
+2535 762 0 762
+2536 762 0 762
+2402 762 0 762
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/int_macros.rs
+1178 762
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 762
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 2286 0 2286 0 0 240
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+1759 762
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/step_by.rs
+448 1524
+0 762 762 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/lib.rs
+184 762
+115 3048 762
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+988 1524 762
+993 210 0 42 1 0 0 1
+cfn=hashbrown::raw::RawTable<T,A>::reserve_rehash
+calls=42 1031 
+993 82904 14004 8031 0 225 691
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/map.rs
+0 762
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1216 1524 1524
+153 6858
+0 762 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 762 762
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 2286
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 1524
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+0 1572
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 1572 1572
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 4716
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 3144
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 7002
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 2334
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+50 9336
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/macros/mod.rs
+457 4668
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1445 4668 2334 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1780 4668
+182 3144
+181 1572
+0 1572
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/bitmask.rs
+38 16002
+50 16002
+0 16002
+50 16002
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/nonzero.rs
+567 16002
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1765 32004
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/int_macros.rs
+1178 16002
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 16002
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/vectors.rs
+219 32004 16002
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1218 16002
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/vectors.rs
+221 32004 16002
+223 32004 16002
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2582 762 762 0 1 0 0 1
+114 762
+1653 762
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/../../stdarch/crates/core_arch/src/x86/sse2.rs
+1226 5 5
+1445 5
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/nonzero.rs
+567 5
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+1237 10 5 0 1 0 0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+203 54 36 18 1 0 0 1
+0 6 6
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 6 6 0 0 6
+2213 12
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+0 2 1 0 1 1 0 1 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_directory.rs
+225 4 1 1
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S
+cfn=__memcpy_avx_unaligned_erms
+calls=1 255 
+225 65 16 13 0 5 6 0 1 5
+224 2 0 0 1 0 0 1
+226 2 0 1
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S
+cfn=__memcpy_avx_unaligned_erms
+calls=1 255 
+226 65 16 13 0 5 5 0 0 5
+224 2
+227 3 0 1
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S
+cfn=__memcpy_avx_unaligned_erms
+calls=1 255 
+227 65 16 13 0 5 5 0 0 5
+229 8 7 0 0 1
+
+fl=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+fn=<foldhash::seed::fast::RandomState as core::default::Default>::default
+27 110 0 55 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/sync/atomic.rs
+3313 110 55 0 0 2 0 0 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+66 55
+0 55
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/lib.rs
+115 110
+123 55
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/sync/atomic.rs
+3298 55 0 55
+3314 110 55 0 1 0 0 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+262 110
+74 216 108
+263 1 0 1
+cfn=foldhash::seed::global::GlobalSeed::init_slow
+calls=1 272 
+263 56 2 4 4 1 0 4 1
+74 4 2
+
+fn=foldhash::seed::global::GlobalSeed::init_slow
+272 1 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_input-0.14.2/src/keyboard.rs
+0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/lib.rs
+115 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+179 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_input-0.14.2/src/keyboard.rs
+0 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+179 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/lib.rs
+115 1 0 0 1 0 0 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+179 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/lib.rs
+123 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+179 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/lib.rs
+115 4
+123 1
+115 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_input-0.14.2/src/keyboard.rs
+0 5
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/x11-dl-2.21.0/src/lib.rs
+1 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/lib.rs
+123 1
+115 4 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_input-0.14.2/src/keyboard.rs
+732 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/x11-dl-2.21.0/src/lib.rs
+1 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/lib.rs
+123 1
+115 3
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_input-0.14.2/src/keyboard.rs
+732 2
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/result.rs
+1978 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/lib.rs
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/sync/atomic.rs
+3421 2 0 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+277 1
+0 1 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_input-0.14.2/src/keyboard.rs
+0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/x11-dl-2.21.0/src/lib.rs
+1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/result.rs
+1978 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_input-0.14.2/src/keyboard.rs
+732 1
+0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/x11-dl-2.21.0/src/lib.rs
+1 1 1 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_input-0.14.2/src/keyboard.rs
+732 2
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+285 1 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/x11-dl-2.21.0/src/lib.rs
+1 1 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_input-0.14.2/src/keyboard.rs
+732 1 0 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/foldhash-0.1.3/src/seed.rs
+299 1 1
+
+fl=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+fn=orbiting_sand::physics::fallingsand::mesh::coordinate_dir::Builder::build
+137 8 0 6 1 0 0 1
+138 2 1
+0 1 0 1 1 0 0 1
+140 5 2 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+423 3 0 3
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+155 1 1
+0 1 0 0 1 0 0 1
+157 3 0 1 0 0 1
+cfi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+cfn=orbiting_sand::physics::fallingsand::util::grid::Grid<T>::new_empty
+calls=1 31 
+157 264 55 65 16 0 1 16
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 1
+0 6 4 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+760 20 1 0 1 0 0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+171 3
+170 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 6 0 6
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+0 3
+171 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 18 0 18
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 12
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 3
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+760 6 0 0 1 0 0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+0 3 3
+170 18
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+1999 1 1
+2002 2 1 0 1 0 0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+177 2 2
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2003 1 0 1
+cfi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+cfn=alloc::raw_vec::RawVec<T,A>::grow_one
+calls=1 363 
+2003 260 51 31 7 0 1 7 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+278 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+1044 2
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 8 4 4 1 0 1 1 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2008 2 0 1
+0 1 0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+186 2 1
+0 1 1
+181 1 1 0 1 0 0 1
+180 1
+0 4
+236 63 18
+0 9
+186 18 9 0 0 4
+192 40 0 10 1 0 2 1
+cfi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+cfn=orbiting_sand::physics::fallingsand::util::grid::Grid<T>::new_empty
+calls=10 31 
+192 741565 99165 344830 11 50 61504 10 1 61472
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 20 0 10
+0 20
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 10
+0 290 50 40 2 0 8 2
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+213 197
+0 197 197 0 0 48
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 591 197 197
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 197
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 197
+0 1970 591 197 1 0 0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+0 147519 49173 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 147519 0 147519 0 0 60791
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+0 98346
+202 98346
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 344211 0 344211 0 0 34626
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 196692
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 49173
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+760 98346 0 0 1 0 0 1
+0 49173 49173
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+196 49173 49173 0 0 4
+204 393384 0 0 1 0 0 1
+199 393384 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+1999 10 10 0 1 0 0 1
+2002 20 10
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+216 8 4 4
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2003 4 0 2 0 0 1
+cfi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+cfn=alloc::raw_vec::RawVec<T,A>::grow_one
+calls=2 363 
+2003 998 214 144 14 32 19 4 0 12
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+278 10 10 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+1044 20
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 80 40 40 1 4 12 1 0 8
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2008 20 0 10
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/coordinate_dir.rs
+220 10
+221 10
+0 10 10
+225 20 20
+222 10
+225 20
+232 20
+233 1
+0 2 1
+186 2 1 0 1 0 0 1
+245 5 3 2 0 0 1
+248 8 7
+
+fl=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sys/backtrace.rs
+fn=std::sys::backtrace::__rust_begin_short_backtrace
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ops/function.rs
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/iai-callgrind-0.14.0/src/macros.rs
+cfn=bench_main::main
+calls=1 697 
+250 8716427629 2078115617 1126513323 463 42792876 33284348 440 38242883 32737433
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/sys/backtrace.rs
+
+fl=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+fn=ndarray::impl_constructors::<impl ndarray::ArrayBase<S,D>>::from_shape_vec
+458 344232 0 196704 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/shape_builder.rs
+127 147528 0 147528
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+467 196704 98352 98352
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+278 49176 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2822 98352 49176 0 1 0 0 1
+0 49176
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+469 196704 0 49176
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+cfn=ndarray::dimension::can_index_slice_with_strides
+calls=49176 142 
+469 1721160 295056 0 4 0 0 4
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/result.rs
+1976 98352
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+470 98352 98352
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+659 147528
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+470 98352
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+687 196704 0 0 1 0 0 1
+0 147528
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+435 295056
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+687 98352
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+474 49176 49176
+516 49176 0 49176 0 0 49140 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+435 98352
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+604 98352
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+516 147528 0 147528 1 0 0 1
+474 245880 0 196704
+463 344232 245880 0 1 0 0 1
+458 66 0 44 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/shape_builder.rs
+127 33 0 33 1 0 4 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+462 33 33
+467 44 22 22
+0 22
+469 44 0 11
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+cfn=ndarray::dimension::can_index_slice_with_strides
+calls=11 142 
+469 385 66 0 4 0 0 4
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/result.rs
+1976 22
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+470 22 22 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+659 33
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+470 22
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+687 44
+0 33
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+435 66 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+687 22
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+516 11 0 11
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+435 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+604 33
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+516 33 0 33 0 0 4
+474 55 0 44
+463 77 55 0 1 0 0 1
+458 77 0 44 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/shape_builder.rs
+127 33 0 33 1 0 5 1 0 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+467 44 22 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+278 11 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2822 22 11
+0 11
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+469 44 0 11
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+cfn=ndarray::dimension::can_index_slice_with_strides
+calls=11 142 
+469 385 66 0 3 0 0 3
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/result.rs
+1976 22
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+470 22 22 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+659 33
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+470 22
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+687 44
+0 33
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+435 66 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+687 22
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+474 11 11
+516 11 0 11
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+435 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+604 44
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+516 33 0 33
+474 55 0 44 1 0 0 1
+463 77 55 0 1 0 0 1
+
+fn=ndarray::impl_constructors::<impl ndarray::ArrayBase<S,D>>::from_elem
+323 99 0 55 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/shape_builder.rs
+141 66 0 33
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+1752 11 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+1752 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 22
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+93 22 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+604 22
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+93 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/filter.rs
+84 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/traits/iterator.rs
+2410 22
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+96 22
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+659 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/spec_from_elem.rs
+24 22
+0 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+215 11
+220 11 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1706 22 11
+0 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+100 33 11 11
+cfi=???
+cfn=__rust_alloc
+calls=11 0 
+100 1596 329 193 0 17 7 0 10
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+234 22
+0 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 44 11 11 1 1 0 1
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./string/../sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S
+cfn=__memset_avx2_unaligned_erms
+calls=11 158 
+1534 48598 16 48424 0 1 763
+0 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 11 0 11
+0 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+0 11 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+687 55
+0 22
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+435 11
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+516 11 0 11 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+435 55 0 0 1 0 0 1
+0 22
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+687 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+604 11
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+516 33 0 33
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_internal_constructors.rs
+59 44 0 44 0 0 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+332 88 66 0 1 1 0 1
+
+fl=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+fn=orbiting_sand::physics::fallingsand::data::element_grid::ElementGrid::new_filled
+58 442584 0 295056 1 0 0 1
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/chunk_coords.rs
+398 98352 98352
+403 49176 49176
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+60 98352
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+215 147528 0 98352
+0 98352 0 98352 1 0 0 1
+215 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/alloc/layout.rs
+451 245880
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+220 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1706 98352 49176 0 0 5 0 0 3
+0 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+100 147528 49176 49176 0 5 0 0 3
+cfi=???
+cfn=__rust_alloc
+calls=49176 0 
+100 9091887 1777492 927228 22 99688 50937 22 63 49536
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+234 98352 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+699 98352 0 98352
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+0 147528 49176 49176 0 49141 0 0 2
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+278 12582906 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+1044 25165812
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 25165812 0 25165812 0 0 3145700 0 0 3108648
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2008 12582906
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+0 12582906 0 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 12582906
+0 12582906
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+63 25165812 0 12582906 1 0 0 1
+cfi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/elements/vacuum.rs
+cfn=<orbiting_sand::physics::fallingsand::elements::vacuum::Vacuum as orbiting_sand::physics::fallingsand::elements::element::Element>::box_clone
+calls=12582906 45 
+63 2819108335 629276111 339835811 27 14164 25171989 27 180 25167183
+63 25165812
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+1999 12582906 12582906
+2002 25165812 12582906
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+69 491760 245880 147528 1 0 49140 1 0 1
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/util/grid.rs
+28 49176 0 49176
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_constructors.rs
+cfn=ndarray::impl_constructors::<impl ndarray::ArrayBase<S,D>>::from_shape_vec
+calls=49176 458 
+28 5015952 885168 885168 9 0 49140 9 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/result.rs
+1100 98352 49176 0 1 0 0 1
+1101 491760 295056 196704 0 0 49141 0 0 2
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+65 1229400 245880 934344 3 98280 98282 3 0 3
+76 393408 344232 0 0 49140
+
+fn=orbiting_sand::physics::fallingsand::data::element_grid::ElementGrid::texture
+345 393408 0 295056 2 0 2550 2 0 2
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/chunk_coords.rs
+398 295056 98352 98352 0 55317 2671 0 42846 3
+403 49176 49176 0 0 12290 0 0 15
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+347 196704 0 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+215 147528 0 49176 1 0 0 1
+220 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1706 98352 49176 0 0 17040
+0 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+100 147528 49176 49176 0 6828 3620 0 3 3
+cfi=???
+cfn=__rust_alloc
+calls=49176 0 
+100 9403432 1853777 912668 14 132305 73892 14 54 46913
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+234 98352
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+699 147528 0 147528 1 0 0 1
+0 49176 0 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 49176
+0 49176 49176
+753 49176
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+360 393408 245880 147528 1 0 0 1
+362 98352
+0 196704 98352
+fi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/mesh/chunk_coords.rs
+419 49176 49176
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+363 147528 49176
+0 49176 0 0 1 0 0 1
+364 98352
+0 49176 0 0 1 0 0 1
+364 49176
+366 98352
+0 49176
+365 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/f32.rs
+955 196704
+935 98352
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+359 196704 0 196704
+369 393408 344232
+0 2212554 1081506 295056 3 61469 0 3 61469
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 2359350 1572900 786450
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 786450 786450
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 786450
+0 19660956 3145800 1572900 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+278 12582906 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 12582906 0 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2008 25165812 0 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/cmp.rs
+1563 37748718 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/range.rs
+753 12582906
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+760 25165812 12582906 0 1 0 0 1
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+352 50331624 37748718 12582906 0 3189074 0 0 3182792
+cfi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/elements/vacuum.rs
+cfn=<orbiting_sand::physics::fallingsand::elements::vacuum::Vacuum as orbiting_sand::physics::fallingsand::elements::element::Element>::color
+calls=12582906 32 
+352 62914530 12582906 25165812 1 0 0 1
+352 37748718 12582906 12582906 1 3616 0 1 5
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_color-0.14.3/src/color.rs
+cfn=bevy_color::color::Color::to_srgba
+calls=12582906 81 
+352 301989744 113246154 62914530 3 6659 0 3 12
+352 25165812 12582906 12582906 0 6285 0 0 4
+cfi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bevy_color-0.14.3/src/srgba.rs
+cfn=<bevy_color::srgba::Srgba as bevy_color::color_ops::ColorToPacked>::to_u8_array
+calls=12582906 369 
+352 1862270088 314572650 138411966 7 21417 1 7 20
+0 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+1999 12582906 12582906
+2002 25165812 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+278 12582906 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 12582906 0 12582906 1 0 748597 1 0 713129
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2008 25165812 0 12582906
+2002 25165812 12582906
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+0 25165812
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+278 12582906 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 12582906 0 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2008 25165812 0 12582906
+2002 25165812 12582906
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+0 25165812 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+278 12582906 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1534 12582906 0 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2008 25165812 0 12582906
+2002 25165812 12582906
+fe=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/src/physics/fallingsand/data/element_grid.rs
+
+fl=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+fn=<alloc::vec::Vec<T,A> as core::ops::drop::Drop>::drop
+3303 7 0 6 1 0 0 1
+3308 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 2
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+3308 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 1
+0 3
+542 33
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/data_repr.rs
+168 33 11 0 1 11 0 1 11
+137 11 11 0 0 7 0 0 3
+134 11 11
+136 22 0 11
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+831 33 0 33
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 22 0 11
+cfi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+cfn=<alloc::vec::Vec<T,A> as core::ops::drop::Drop>::drop'2
+calls=11 3303 
+542 2517794563 692675684 344561981 5 34195069 2936758 5 33587901 2892985
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+831 33 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 33 0 11
+cfi=???
+cfn=__rust_dealloc
+calls=11 0 
+119 61469054 15779710 10250375 1 1000141 192830 1 897233 192828
+0 11
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+3311 8 7 0 0 1 0 0 1
+
+fn=<alloc::vec::Vec<T,A> as core::ops::drop::Drop>::drop'2
+3303 245880 0 245880 1 0 0 1
+3308 49176 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 98352
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+3308 49176 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 49176
+0 98352
+542 100663248 37748718 0 1 3172776 0 1 3145747
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/mem/mod.rs
+394 12582906 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/boxed.rs
+1294 25165812
+0 12582906 12582906
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 25165812 0 12582906
+cfi=???
+cfn=__rust_dealloc
+calls=12582906 0 
+119 1396702434 390070062 176160690 0 15731940 4 0 15683013 4
+0 12582906
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+3311 295056 295056
+3303 77 0 66 1 0 0 1
+3308 11 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 22
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+3308 11 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 11
+0 11
+542 295100 49176 0 1 49174 0 1 49173
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/data_repr.rs
+168 147528 49176 0 0 49176 0 0 49176
+137 49176 49176 0 0 12296 0 0 12296
+134 49176 49176
+136 98352 0 49176
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+831 147528 0 147528 1 0 29180 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 98352 0 49176 0 0 1
+cfi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+cfn=<alloc::vec::Vec<T,A> as core::ops::drop::Drop>::drop'2
+calls=49176 3303 
+542 1586331192 453378000 188989476 2 18904716 4 2 18828760 4
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+831 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 196704 0 49176
+cfi=???
+cfn=__rust_dealloc
+calls=49176 0 
+119 930282872 239100881 155277383 0 15179693 2907573 0 14648490 2892981
+119 49176
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+3311 88 77 0 0 14 0 0 6
+
+fn=<alloc::vec::Vec<T,A> as core::clone::Clone>::clone
+2841 7 0 6 1 0 0 1
+2822 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+215 3 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/alloc/layout.rs
+451 5 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+220 1
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2843 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1706 2 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+100 3 1 1 0 1
+cfi=???
+cfn=__rust_alloc
+calls=1 0 
+100 189 37 18 0 13 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+234 2
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+699 7 0 5 1 0 0 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/intrinsics.rs
+3061 44 11 11 0 4
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S
+cfn=__memcpy_avx_unaligned_erms
+calls=11 255 
+3061 1304401 1071420 1071385 12 61486 61471 12 0 61464
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/data_traits.rs
+392 88 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+528 33
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dim.rs
+37 44 22 22 0 15 8
+0 11 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/enumerate.rs
+50 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+604 11 0 0 1 0 0 1
+0 11 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/mem/maybe_uninit.rs
+492 99 33 66 0 0 15 0 0 10
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/take.rs
+39 11
+0 11 11
+39 33 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+1752 11 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 11
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/impl_clone.rs
+18 33 33 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+215 22 0 11
+0 11 0 11
+215 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/alloc/layout.rs
+451 55 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+220 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+1706 44 0 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+100 33 11 11 0 3
+cfi=???
+cfn=__rust_alloc
+calls=11 0 
+100 2467 491 264 0 56 26 0 0 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+234 22
+0 22
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+1489 2 1 1 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/slice.rs
+154 5 2 3 0 0 1
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+2844 8 7
+
+fl=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+fn=ndarray::dimension::can_index_slice_with_strides
+142 11 0 0 1 0 0 1
+146 22 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/traits/iterator.rs
+0 33
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+1752 11 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+1752 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 22
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+93 22 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+604 22
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+93 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/filter.rs
+84 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 22
+0 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/traits/iterator.rs
+2410 22
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+96 22 0 0 1 0 0 1
+99 11 11
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+659 11 11
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+159 22
+0 11
+152 22 11
+142 11 0 0 1 0 0 1
+146 22 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/traits/iterator.rs
+0 33 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+1752 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+1752 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 22
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+93 22 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+604 22
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+93 22 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/filter.rs
+84 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 22
+0 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/traits/iterator.rs
+2410 22
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+96 22 0 0 1 0 0 1
+99 11 11
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+659 11 11
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+159 22
+0 11
+152 22 11
+142 49176 0 0 1 0 0 1
+146 98352 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/traits/iterator.rs
+0 147528 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+1752 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 49176
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+1752 98352
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/slice/iter/macros.rs
+25 98352
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+93 98352 98352
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/non_null.rs
+604 98352
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+93 98352
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/adapters/filter.rs
+84 98352
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 98352
+0 98352
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/iter/traits/iterator.rs
+2410 98352
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+96 98352 0 0 1 0 0 1
+99 49176 49176
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/dimension_trait.rs
+659 49176 49176 0 1 0 0 1
+fe=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/dimension/mod.rs
+159 98352
+0 49176
+152 98352 49176
+
+fl=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+fn=core::ptr::drop_in_place<orbiting_sand::physics::fallingsand::data::element_directory::ProcessTargets>
+542 2 0 1 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1
+2213 2
+2571 1 0 0 1 0 0 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 1
+468 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 1
+262 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 70 20 10 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1 0 0 1 0 0 1
+2213 2
+2571 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 1
+468 1 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 1
+262 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 70 20 10 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1 0 0 1 0 0 1
+2213 2
+2571 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 1
+468 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 1
+262 1 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 70 20 10 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1
+2213 2
+2571 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 1
+468 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 1
+262 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2 0 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 70 20 10 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1 0 0 1 0 0 1
+2213 2
+2571 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 1
+468 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 1
+262 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 70 20 10 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1 0 0 1 0 0 1
+2213 2
+2571 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 1
+468 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 1
+262 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 70 20 10 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1
+2213 2
+2571 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 1
+468 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 1
+262 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 70 20 10 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1 0 0 1 0 0 1
+2213 2
+2571 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 1
+468 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 1
+262 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 1 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 70 20 10 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1
+2213 2
+2571 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 1
+468 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 1
+262 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 1 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 70 20 10 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1 0 0 1 0 0 1
+2213 2
+2571 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 1
+468 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 1
+262 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1 1 0 0 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 109 31 14 0 6 1 0 4 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1 0 0 1 0 0 1
+2213 2
+2592 1 1 0 1 0 0 1
+2213 2
+2592 1 1 0 1 1 0 1 1
+2213 2
+2592 1 1 0 1 1 0 1 1
+2213 2
+2592 1 1 0 1 0 0 1
+2213 2
+2592 1 1 0 1 1 0 1 1
+2213 2
+2592 1 1 0 1 0 0 1
+2213 2
+2592 1 1 0 1 1 0 1 1
+2213 2
+2592 1 1 0 1 1 0 1 1
+2213 2
+2592 1 1
+2213 2 0 0 1 0 0 1
+2592 1 1 0 0 1 0 0 1
+2213 2 0 0 1 0 0 1
+2592 1 1 0 0 1 0 0 1
+2213 2
+2571 1 0 0 1 0 0 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 1
+468 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 1
+262 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 168 49 31 0 4 1 0 3 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1
+2213 2
+2571 1 0 0 1 0 0 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 1
+468 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 1
+262 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 201 61 35 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1 0 0 1 0 0 1
+2213 2
+2571 1
+0 1 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 1
+468 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 1
+262 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 201 61 35 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1
+2213 2
+2571 1
+0 1 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 1
+468 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 1
+262 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 201 61 35 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1 0 0 1 0 0 1
+2213 2
+2571 1
+0 1 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 1
+468 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 1
+262 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 201 61 35 0 1 0 0 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+2592 1 1 0 0 1 0 0 1
+2213 2
+2571 1
+0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+2293 1 0 0 1 0 0 1
+468 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+261 1
+262 1
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/allocator-api2-0.2.18/src/stable/alloc/global.rs
+110 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/hashbrown-0.15.0/src/raw/mod.rs
+3066 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mut_ptr.rs
+458 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 3 2
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 420 126 73 0 7 0 0 5
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+
+fn=core::ptr::drop_in_place<orbiting_sand::physics::fallingsand::data::element_directory::ElementGridDir>
+542 6 0 5 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+278 1 1 0 0 1 0 0 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+3308 1 1
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 2
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/data_repr.rs
+168 3
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 33
+fi=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ndarray-0.16.1/src/data_repr.rs
+168 33 11 0 1 11 0 1 11
+136 22 0 11
+137 11 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+831 22
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 22 0 11
+cfi=???
+cfn=__rust_dealloc
+calls=11 0 
+119 1341 400 226 0 17 1 0 12
+0 11
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+599 1 1
+300 2
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+831 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 3 1 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 90 27 15
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 3 0 1 1 0 0 1
+cfi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/vec/mod.rs
+cfn=<alloc::vec::Vec<T,A> as core::ops::drop::Drop>::drop
+calls=1 3303 
+542 2579263882 708455436 354812428 9 35195229 3129588 9 34485149 3085813
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/raw_vec.rs
+599 1 1 0 0 1 0 0 1
+300 2
+599 1 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/num/uint_macros.rs
+831 1
+fi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/alloc/src/alloc.rs
+119 2 1 1 0 1 0 0 1
+cfi=???
+cfn=__rust_dealloc
+calls=1 0 
+119 90 27 15 0 6 0 0 6
+fe=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/core/src/ptr/mod.rs
+542 8 5 0 0 1 0 0 1
+cfn=core::ptr::drop_in_place<orbiting_sand::physics::fallingsand::data::element_directory::ProcessTargets>
+calls=1 542 
+542 2407 690 364 27 47 2 27 42 2
+
+fl=/home/ryanpeach/.cargo/registry/src/index.crates.io-6f17d22bba15001f/iai-callgrind-0.14.0/src/macros.rs
+fn=bench_main::main
+cfn=bench_main::physics::fallingsand::data::element_directory::element_directory_group::__run
+calls=1 1489 
+739 8716427629 2078115617 1126513323 463 42792876 33284348 440 38242883 32737433
+
+fn=bench_main::physics::fallingsand::data::element_directory::element_directory_group::__run
+cfi=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/benches/physics/fallingsand/data/element_directory.rs
+cfn=bench_main::physics::fallingsand::data::element_directory::bench_get_textures::wrapper
+calls=1 43 
+1490 8716427629 2078115617 1126513323 463 42792876 33284348 440 38242883 32737433
+
+fl=???
+fn=__rust_realloc
+0 2
+cfi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/alloc.rs
+cfn=__rdl_realloc
+calls=2 414 
+0 856 184 114 14 31 18 4 0 12
+
+fn=__rust_dealloc
+0 12681460
+cfi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/alloc.rs
+cfn=__rdl_dealloc
+calls=12681468 407 
+0 2386517290 648285325 343413612 15 31989121 3100557 15 31289728 3085886
+
+fn=(below main)
+cob=/usr/lib/x86_64-linux-gnu/libc.so.6
+cfi=./csu/../csu/libc-start.c
+cfn=__libc_start_main@@GLIBC_2.34
+calls=1 242 
+0 8716427629 2078115617 1126513323 463 42792876 33284348 440 38242883 32737433
+
+fn=main
+cfi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/rt.rs
+cfn=std::rt::lang_start_internal
+calls=1 118 
+0 8716427629 2078115617 1126513323 463 42792876 33284348 440 38242883 32737433
+
+fn=__rust_alloc
+0 12681472
+cfi=/rustc/eeb90cda1969383f56a2637cbd3037bdf598841c/library/std/src/alloc.rs
+cfn=__rdl_alloc
+calls=12681480 397 
+0 2497809027 494503351 228434202 86 246881 12714282 73 333 12680809
+
+ob=/usr/lib/x86_64-linux-gnu/libc.so.6
+fl=./misc/../sysdeps/unix/syscall-template.S
+fn=munmap
+117 90 0 0 1 0 0 1
+122 18 18
+
+fl=./csu/../csu/libc-start.c
+fn=__libc_start_main@@GLIBC_2.34
+cfi=./csu/../sysdeps/nptl/libc_start_call_main.h
+cfn=(below main)
+calls=1 29 
+360 8716427629 2078115617 1126513323 463 42792876 33284348 440 38242883 32737433
+
+fl=./misc/../sysdeps/unix/sysv/linux/setvmaname.c
+fn=__set_vma_name
+33 12544 0 7168 1 0 1533 1 0 1
+35 8960 3584 1792 0 1792 195 0 4 3
+49 16131 12544 0 1 0 0 1
+40 4 0 1 0 0 1
+cob=???
+cfi=???
+cfn=0x000000000499f720
+calls=1 0 
+40 26 5 1 1 2
+40 3 1
+47 1 0 1 1 0 0 1
+48 1
+
+fl=./misc/./misc/sbrk.c
+fn=sbrk
+37 14824 0 7412 1 0 1783 0 0 1
+40 1853 1853 0 0 1853 0 0 2
+43 1853 1853 0 0 1853 0 0 2
+40 1853 1853 0 0 1853 0 0 2
+43 1853
+78 147 105
+58 3706 0 0 1
+62 3706
+66 7328
+78 1771
+50 1771
+78 10626 8855
+74 1832 0 1832 1 0 49 0 0 1
+cfi=./misc/../sysdeps/unix/sysv/linux/brk.c
+cfn=brk
+calls=1833 36 
+74 20030 5435 3603 3 1771 1771 1 2 2
+74 3664
+78 427 305
+
+fl=./csu/../sysdeps/nptl/libc_start_call_main.h
+fn=(below main)
+cob=/home/ryanpeach/Documents/Workspace/OrbitingSandRust/target/release/deps/bench_main-99f962cd7ead7367
+cfi=???
+cfn=main
+calls=1 0 
+58 8716427629 2078115617 1126513323 463 42792876 33284348 440 38242883 32737433
+
+fl=./malloc/./malloc/morecore.c
+fn=__glibc_morecore
+25 1853
+26 3706 1853
+25 3706 0 1853
+29 1853 0 1853
+cfi=./misc/./misc/sbrk.c
+cfn=sbrk
+calls=1855 37 
+29 77244 20259 12847 6 7330 3603 1 8 4
+30 3706
+34 164 164
+27 1771
+34 3542 3542
+
+fl=./misc/../sysdeps/unix/sysv/linux/brk.c
+fn=brk
+36 1832 0 0 2 0 0 1
+fi=./misc/../sysdeps/unix/sysv/linux/brk_call.h
+24 3664
+fe=./misc/../sysdeps/unix/sysv/linux/brk.c
+37 3664 1832 1832 1
+38 3664
+44 61
+45 61 61
+40 3542 1771 1771 0 1771 1771 0 2 2
+41 3542 1771
+
+fl=./malloc/./malloc/malloc.c
+fn=_int_free
+4495 88777311 0 50729892 0 0 8 0 0 3
+4499 38047419 12682473
+4505 50729892
+4506 25364946
+4510 63412365
+4518 50729892 25364946
+4517 25364946
+4518 25364946 12682473 0 0 35 0 0 3
+4547 12633074 12633074
+4527 12633074 12633074 0 0 906 0 0 7
+4521 12633074
+4527 25266148 12633074 0 0 3110481 0 0 3110361
+4547 50532296 12633074 0 0 97 0 0 31
+1792 12682330 12682330 0 0 39 0 0 4
+4561 25364660 0 0 1 0 0 1
+4572 50334856 12583714 0 0 12582887 0 0 12533960
+4574 37751142 12583714 0 0 4 0 0 3
+1992 12583714 12583714
+4593 12583714
+1992 25167428
+4595 12583714 0 12583714 1 0 3 1 0 3
+4596 12583714
+4600 25167428
+4602 12583714 12583714 0 0 4 0 0 3
+4600 12583714 12583714
+4602 12583714
+4606 25167428
+4608 37751142 0 12583714
+4609 12583714 0 12583714
+4628 50333234
+4658 75503142 62919285
+4637 197232 98616
+4640 197232 98616 0 0 35 0 0 2
+4658 98616
+4646 98616
+4658 394464 394464 0 1 0 0 1
+4646 98616
+cfn=_int_free_merge_chunk
+calls=98616 4665 
+4646 994284400 255756639 166172305 17 16192596 3100506 17 15581942 3085875
+3163 143 143
+3167 143
+3163 143 0 143
+3165 572 143 143 0 44 0 0 16
+3166 143 0 143
+3167 143 0 143
+4550 143
+
+fn=sysmalloc_mmap_fallback.constprop.0
+2490 19481 0 10626 2 0 0 2
+2494 1771 1771
+2497 5313 1771
+2498 5
+2501 3542
+2502 3542
+2506 1771
+2505 3542
+2508 14168 0 1771 1 0 0 1
+cfi=./misc/../sysdeps/unix/sysv/linux/mmap64.c
+cfn=mmap
+calls=1771 47 
+2508 46046 7084 5313
+2508 1771
+2511 3542
+2515 3542
+2519 7084 0 1771
+cfi=./misc/../sysdeps/unix/sysv/linux/setvmaname.c
+cfn=__set_vma_name
+calls=1771 33 
+2519 37191 15939 8855 0 1771 1722 0 2 1
+2524 1771 0 1771
+2526 1771 0 1771
+2528 15939 12397
+2008 7084 1771 0 1 0 0 1
+
+fn=_int_free_merge_chunk
+4665 493080 0 394464 1 0 0 1
+4666 98616
+4665 295848 0 197232 0 0 1
+4670 591696 98616 0 0 35 0 0 1
+4673 197232 98616 0 0 32 0 0 1
+4678 295848 98616 0 1 15039 0 1 400
+4681 197232
+4682 197232
+4683 197232 98616 0 0 37 0 0 1
+1992 295848 98616
+4689 197232 98616
+4691 48834 48834
+4693 48834
+4692 48834
+4694 195336 48834 0 0 2612 0 0 19
+4696 97668 0 48834 0 0 31
+cfn=unlink_chunk.isra.0
+calls=48834 1608 
+4696 1172496 488555 146612 0 5241 0 0 22
+4714 197232 98616 0 1 0 0 1
+4720 197210 98605 0 0 96775 0 0 47862
+4724 98233 0 98233
+4733 98233 98233
+4732 98233
+4733 294699 0 0 1 0 0 1
+4734 196466 98233 0 0 34585
+4733 372 372
+4732 372
+4733 1116
+4734 744 372
+4736 98605 0 98605 0 0 11567
+4738 197210
+4743 98605 0 98605
+4744 98605 0 98605
+4746 295815 0 98605
+4747 98605 0 98605
+4702 98605
+4701 197210
+4702 591630 591630
+4701 98605
+cfn=_int_free_maybe_consolidate
+calls=98605 4770 
+4701 986251794 253588566 164693682 11 16037567 3085811 11 15533596 3085807
+4702 11
+4701 22
+4702 66 66
+4701 11
+cfn=_int_free_maybe_consolidate
+calls=11 4770 
+4701 1035 352 176 0 63
+4740 295611 0 98537 1 0 3096 1 0 68
+4756 11
+4757 33 0 11
+4758 22 0 11
+4721 372 0 0 1 0 0 1
+4722 372
+4721 372 0 372
+cfn=unlink_chunk.isra.0
+calls=372 1608 
+4721 8793 3675 1116 0 610 0 0 40
+4722 372
+
+fn=munmap_chunk
+3024 18 0 18 1 0 0 1
+3026 18 18
+3025 18 18 0 0 6 0 0 3
+3026 36 0 0 1 0 0 1
+3028 18
+3025 18 18 0 0 6 0 0 4
+3024 18
+3028 18
+3031 36 18
+3038 18
+3030 18
+3039 18
+3031 18
+3032 18
+3038 54
+3039 72
+3042 18 18 18 1 0 0 1
+3043 54 18 18
+3049 18 18
+3048 36
+cfi=./misc/../sysdeps/unix/syscall-template.S
+cfn=munmap
+calls=18 117 
+3048 108 18 0 1 0 0 1
+
+fn=_int_realloc
+4914 16 0 12 0 0 1
+4925 8 2
+4926 10 2 0 0 1
+4927 8 0 0 1
+4933 4
+4935 4
+4936 6 2
+4938 8
+4941 4
+5030 18 14 0 1
+4951 4 2 0 1 1
+4963 4 2 0 0 1
+4975 8 0 4
+cfn=_int_malloc
+calls=3 3846 
+4975 264 48 26 0 6 5 0 0 2
+4975 2
+4976 4
+4985 2 2 0 1
+4979 2
+4980 2 2
+4985 4
+4993 2 2
+4992 2
+fi=./malloc/../string/bits/string_fortified.h
+29 2
+fe=./malloc/./malloc/malloc.c
+4993 12
+fi=./malloc/../string/bits/string_fortified.h
+29 2 0 2
+cob=???
+cfi=???
+cfn=0x000000000499f6b0
+calls=3 0 
+29 134 34 26 3 11 10 3 0 10
+fe=./malloc/./malloc/malloc.c
+4997 8 0 2 1
+cfn=_int_free
+calls=3 4495 
+4997 108 30 16 0 3
+4999 2
+
+fn=systrim.constprop.0
+2957 126 0 84
+2966 63 42 0 1 0 0 1
+2968 21
+2969 42
+2974 21 21
+2975 21
+2974 42
+2978 105 42 0 0 42
+2980 42
+2970 21
+3020 126 105
+2987 42 0 21 1 0 0 1
+cfi=./malloc/./malloc/morecore.c
+cfn=__glibc_morecore
+calls=21 25 
+2987 693 231 126 0 63 3 0 0 1
+2987 21
+2988 84 21
+
+fn=alloc_perturb
+1985 38040114 12680038
+1987 12680038 12680038
+
+fn=realloc
+3407 22 0 12
+3413 4 2 0 0 1
+3417 4
+3424 4
+5238 2 2 0 0 1
+3433 2
+5239 6
+5238 4 0 0 1
+5240 4 2 0 0 1
+3538 18 14
+5241 2
+3441 4
+3456 6 4 0 1 2
+fi=./malloc/./malloc/arena.c
+153 6
+fe=./malloc/./malloc/malloc.c
+3464 8
+3465 4
+1326 4
+1345 12 0 0 1
+3475 4
+3506 4 2 0 0 1
+3508 12 0 4 1 0 1
+cfn=_int_realloc
+calls=3 4914 
+3508 654 142 88 8 23 16 3 0 12
+3508 2
+3509 10 2
+fi=./malloc/./malloc/arena.c
+153 8 2 0 1
+fe=./malloc/./malloc/malloc.c
+3509 4
+
+fn=free
+3359 12681460
+3363 25362920
+3359 38044380 0 25362920 0 0 1 0 0 1
+3373 12681460
+3359 38044380 0 25362920 0 0 8 0 0 1
+3371 12681460 12681460 0 0 53 0 0 3
+3375 12681460 12681460 0 0 102731 0 0 63400
+3371 12681460 12681460 0 0 52
+3375 25362920
+3392 38044326 25362884 0 0 75 0 0 8
+fi=./malloc/./malloc/arena.c
+153 38044326
+fe=./malloc/./malloc/malloc.c
+3398 38044326 0 12681442 0 0 28
+cfn=_int_free
+calls=12681457 4495 
+3398 1942665550 496107661 254643330 10 31886132 3100517 10 31226296 3085881
+3401 12681442 0 12681442 0 0 3 0 0 3
+3402 76088652 63407210 0 0 3 0 0 3
+3379 54 18 0 0 4 0 0 2
+3381 44 18 0 1 3 0 1 1
+3383 4
+3384 4
+3383 4 0 4
+3384 4 0 4
+3385 4
+3388 8 0 4
+cfn=munmap_chunk
+calls=4 3024 
+3388 144 32 12 4 8 0 4 3
+3388 28 0 14
+cfn=munmap_chunk
+calls=14 3024 
+3388 504 112 42 0 4 0 0 4
+3401 18 0 18
+3402 108 90
+
+fn=_int_free_maybe_consolidate
+4770 1084776 98616 690312 2 29218 0 2 1
+4776 197232
+4798 1084545 887355 0 0 7 0 0 7
+4778 131468 32867 0 1 0 0 1
+4781 98601
+4779 6 0 6 0 0 2 0 0 1
+cfn=malloc_consolidate
+calls=6 4811 
+4779 983490138 252470828 164003309 4 16008259 3085806 4 15533582 3085805
+4779 6
+4784 164335 98601 0 1 41 0 1 6
+4785 84 63 0 1 0 0 1
+4798 147 126
+4785 21
+cfn=systrim.constprop.0
+calls=21 2957 
+4785 1470 462 231 2 105 3 2 0 1
+
+fn=malloc_consolidate
+4811 811 0 811 2 0 0 2
+4828 811
+4811 4055 0 2433 0 0 4 0 0 3
+4839 811
+4811 2433 0 1622 0 0 22
+4826 811 0 811 2 0 0 2
+4828 811 0 811
+4841 1622 811 811
+4842 1622
+4841 14598 7299 7299
+4842 14598
+4904 24330 8110
+4905 6488 5677 0 0 3 0 0 3
+4874 25167428 12583714 0 0 49148 0 0 48587
+4878 3438 0 1719 2 0 0 2
+4880 1719 1719
+4881 3438 0 1719
+4882 3438 1719 1719
+4884 3438
+4880 12581995 12581995
+4881 25163990 0 12581995
+4882 25163990 12581995 12581995
+4884 25163990
+4885 25140028 0 12570014 0 0 3085799 0 0 3085799
+4889 12570014
+4891 12570014 0 12570014
+4889 25140028 0 12570014
+4892 12570014 0 12570014
+4901 25140028
+4889 13700
+4891 13700 0 13700
+4889 27400 0 13700
+4892 13700 0 13700
+4901 12610303
+4845 25167428 0 0 1 0 0 1
+4849 37751142 12583714 0 0 12582152 0 0 12318389
+4850 50334856
+4858 12583714
+4855 25167428 12583714 0 0 3097913 0 0 3043817
+4858 12583714
+4855 12583714
+4859 12583714
+4855 12583714 0 0 1 0 0 1
+4860 12583714 12583714 0 0 46210 0 0 13835
+4855 12583714
+4860 25167428
+4862 25167428
+4863 49307 49307
+4865 49307
+4864 49307
+4866 197228 49307 0 0 37533 0 0 1626
+4868 345149 0 295842
+cfn=unlink_chunk.isra.0
+calls=49307 1608 
+4868 1183368 493070 147921 0 87929 0 0 45466
+4868 246535 246535
+4871 25167428 12583714 0 1 0 0 1
+4875 12581995 0 0 1 0 0 1
+4876 37745985 0 25163990 0 0 2 0 0 2
+4892 25163990 0 12581995
+4876 12581995 0 12581995 0 0 1 0 0 1
+cfn=unlink_chunk.isra.0
+calls=12581995 1608 
+4876 301926327 125806099 37745985 0 107393 0 0 61859
+4876 50327980 37745985
+
+fn=malloc
+3294 101451776 0 50725888 0 0 2774 0 0 3
+3301 25362944 12681472 0 0 11605 0 0 4
+1326 25362944
+1345 63407354
+3311 25362932
+3313 50725888 25362944 0 0 17901 0 0 10
+3316 25362944 12681472 0 0 11643 0 0 3
+3326 25362798 12681399 0 0 10918 0 0 4
+3354 76088394 63406995 0 0 1
+3318 37896558 12632186 0 0 10745 0 0 6
+3178 146 73 0 0 35 0 0 3
+3182 146
+3186 73
+3190 73
+3186 219 73 73 0 42 0 0 12
+3190 73 0 73
+3191 73 0 73
+3354 438 365
+3328 50725596 0 12681399 0 0 10
+cfn=_int_malloc
+calls=12681411 3846 
+3328 1813157603 329693501 165026696 86 177197 12711498 73 284 12680806
+3329 63406995 12681399 0 0 1
+fi=./malloc/./malloc/arena.c
+153 25362756
+fe=./malloc/./malloc/malloc.c
+
+fn=unlink_chunk.isra.0
+1608 12681866 0 12681866 1 0 0 1
+1610 38045598 12681866
+1608 12681866
+1610 25363732 12681866 0 0 6
+1613 12681866 12681866 0 0 8651 0 0 17
+1614 25363732 12681866
+1616 50727464 25363732 0 0 179212 0 0 95441
+1613 12681866 12681866
+1619 12681866 0 12681866
+1620 12681866 0 12681866
+1621 63367072 12667780 0 1 13301 0 1 11928
+1623 2456 1228
+1624 3684 2456
+1627 2456 1228 0 0 34 0 0 3
+1641 1228 0 1228
+1642 1228 0 1228
+1645 25363732 25363732
+
+fn=_int_malloc
+3846 139495411 12681401 88769807 0 17496 3619 0 3 3
+1326 25362802
+1345 76088405
+3887 25362800
+1794 12681400 12681400
+3914 25362800
+3979 25165822
+3916 50331644
+3919 12582911 12582911 0 0 3
+3921 25165822
+3977 196978
+4039 739141 0 0 1 0 0 1
+4040 295305 98435 0 0 55277 0 0 2
+4060 12681400 12681400
+4059 12681400
+4058 12681400
+4059 25362800 0 12681400 0 0 10749 0 0 2
+4060 25362800 12681400
+4058 25362800 12681400 0 0 1
+4070 63407000 12681400 12681400 0 6670 0 0 5
+4069 9414 0 4707
+4073 9414 4707 0 0 30
+4074 4707
+4076 9414
+4077 14121 4707 0 1 28 0 1
+4079 4707 4707 0 0 17
+4080 18828
+4082 18828 4707
+4072 4707 4707 0 0 2
+4084 9414 4707
+4085 9414 4707
+4087 9414 0 0 1 0 0 1
+4098 18828
+4127 2114 0 2114
+4128 2114 0 2114
+4132 4228
+4161 4208
+4169 9737 0 101 1 0 0 1
+4170 101
+4171 101 101 0 0 38 0 0 8
+4170 101
+4174 202 0 0 1 0 0 1
+4170 1127
+4171 1127 1127 0 0 185 0 0 122
+4170 1127
+4174 2254
+3887 2
+3914 2 1
+3980 12582966
+3982 12582966 12582966 0 0 25 0 0 9
+3980 12582966
+3982 25165932
+3984 1 1 0 0 1 0 0 1
+3985 2 1 0 0 1 0 0 1
+3991 1
+3987 1 0 1
+3988 1 0 1 1 0 0 1
+3989 1 0 1
+3991 2
+3998 4 2
+3997 2
+3998 2 1
+4003 26 2 0 1 0 0 1
+4004 14
+4006 14
+3914 3
+1345 1
+3919 2 1 0 0 1
+3921 2
+3930 37748736
+4041 1610 0 805
+cfn=malloc_consolidate
+calls=805 4811 
+4041 107065 27370 19320 6 22 22 6
+4041 805 0 0 1 0 0 1
+4134 12
+4135 12
+4134 12 0 12
+4135 24
+4121 12
+4140 24
+4141 12 8
+1985 30 10
+4487 152176812 114132609
+1985 1 1 0 1 0 0 1
+4020 1
+1985 2
+4163 2398 0 1199 1 0 0 1
+4164 3597 0 0 1 0 0 1
+4165 1199 1199 0 0 1198 0 0 54
+4164 1199
+4221 2398 1199
+4230 1199 0 1199
+4221 2398
+4230 1199 1199
+4221 3597 0 1199 0 0 10
+4222 1199 0 1199
+4223 1199 0 1199
+4224 1199 0 1199 0 0 1011 0 0 5
+4225 1199 0 1199 1 0 0 1
+4231 2398
+4221 2456 1228
+4230 1228 0 1228
+4221 2456
+4230 1228 1228
+4221 3684 0 1228 0 0 32 0 0 1
+4222 1228 0 1228
+4223 1228 0 1228
+4224 1228 0 1228
+4225 1228 0 1228
+4231 2456
+4070 7281 2427 0 1 0 0 1
+4246 4854
+4257 38037360
+4259 295275
+4262 98425 98425 0 0 59946 0 0 16
+4259 98425
+4262 196850
+4263 12679128 8
+4334 38037336
+4330 12679112
+4331 12679112
+4332 12679112
+4331 12679112
+4332 12679112
+4333 25358224 12679112 0 0 7587 0 0 4
+4334 38037336
+4339 50717930
+4355 28438
+4357 56876
+4353 60558 0 0 1 0 0 1
+4361 1841 1841 0 0 84
+4364 3682
+4366 491
+4367 491
+4368 491
+4366 1964 0 491
+4339 491
+4240 9708 2427 2427 1 0 0 1
+3163 2 2 0 1 1 0 1
+3167 2
+3163 2 0 2
+3165 16 4 6 0 1
+3166 4 2 2
+3167 2 0 2
+4070 4
+4099 5514 2757 0 1 0 0 1
+4101 2593
+4100 5186
+4127 325 0 325
+4128 325 0 325
+4132 650 0 0 1 0 0 1
+4161 794
+4169 740 0 148
+4008 7 7 0 1 0 0 1
+4009 7 0 7
+4010 14
+3159 7
+4012 7 0 7
+3167 7
+3159 7 0 7 0 0 1
+3163 7 7 0 1 1 0 1
+4013 7 0 7 0 0 7 0 0 7
+3163 7 0 7
+3165 28 7 7
+3166 7 7
+3168 7
+3166 7 0 7
+3167 7 0 7
+3168 7
+4218 1228 0 0 1 0 0 1
+4170 1228
+4218 3684 0 1228 0 0 12
+4343 38037363
+4346 50519308 12629827
+4343 37886244
+4346 50322024 12580506
+4343 37740954
+4346 50321088 12580272
+4343 25160360
+4443 12677762 12677762
+4444 25355524 12677762 0 0 5635 0 0 1
+4446 25355524 12677762 0 0 7006 0 0 5
+4449 38033286
+4466 7412 1853 1853 0 302
+4070 54
+3979 324
+4169 15264 0 979 3 0 0 3
+4343 1359 0 0 1 0 0 1
+4348 5436 0 0 1 0 0 1
+4349 2718
+4373 5400 1350 0 0 1
+4376 2700
+4378 1350
+4381 2700 0 1350
+4378 2700 0 1350
+4381 1350 0 1350 1 0 13 1 0 2
+cfn=unlink_chunk.isra.0
+calls=1350 1608 
+4381 42330 17975 6380 2 31 0 2 2
+4384 5400 2700
+4399 2700 1350
+4394 1350
+4399 2700
+4400 2700 1350
+4403 1350 0 1350 0 0 1158 0 0 257
+4404 1350 0 1350 1 0 0 1
+4405 1350 0 1350
+4408 2700
+4409 327 0 327
+4410 2700
+4412 2280 0 1140 0 0 248 0 0 19
+4415 9120 0 1140 1 0 0 1
+4417 3420 0 1140 0 0 249 0 0 18
+4418 1140 0 1140
+1985 1140 1140
+4421 1140
+1985 2280
+4415 1680 0 210
+4417 630 0 210
+4418 210 0 210
+1985 210 210
+4421 210
+1985 420
+4070 2 0 0 1 0 0 1
+3199 2 2
+3178 2 2
+3182 4
+3190 2 2
+3186 8 2 2
+3190 2 0 2
+3191 4 0 2
+4248 2 0 0 1 0 0 1
+4105 2268 0 0 1 0 0 1
+4104 2268
+4107 2268
+4106 2268 0 2268
+4107 4536 0 2268
+4108 6804 0 2268 0 0 2263 0 0 2258
+4109 4536
+4111 2546 0 1273 1 0 1 1
+4115 1273
+4121 1273
+4115 1273
+4122 1273
+4115 7638 0 1273
+4117 3819 0 1273
+4122 1273
+4118 1273 0 1273
+4122 1273 0 1273
+cfn=alloc_perturb
+calls=1273 1985 
+4122 5092 2546
+4115 995
+4121 995
+4115 995
+4122 995
+4115 5970 0 995
+4117 2985 0 995 0 0 1
+4122 995
+4118 995 0 995
+4122 995 0 995
+cfn=alloc_perturb
+calls=995 1985 
+4122 3980 1990
+4123 2268
+2552 1853 1853 0 0 1853 0 0 1
+2564 1853 1853 0 0 1853 0 0 1
+2552 9265 1853 3706 0 1853 0 0 1
+2564 1853
+2565 63 42 0 1 0 0 1
+2568 84 21
+2576 105 21 42 0 0 14 0 0 2
+cfn=sysmalloc_mmap.isra.0
+calls=21 2400 
+2576 2346 489 422 9 23 48 8 2 27
+2576 21
+2577 42
+4482 42
+4460 38033310 0 12677770 0 0 6977 0 0 4
+cfn=alloc_perturb
+calls=12677786 1985 
+4460 50711080 25355540
+4461 12677770
+4452 25351818
+4454 25351818
+4453 12675909 0 12675909
+4454 12675909
+4451 12675909
+4454 12675909
+4456 12675909
+4454 50703636 0 12675909
+4456 12675909 0 12675909 0 0 12675909 0 0 12674381
+4459 25351834
+4266 8 8
+4267 48 8
+4273 16 8
+4278 8 0 0 1 0 0 1
+4279 16 0 8
+4278 16 0 8
+4279 8 0 8
+cfn=unlink_chunk.isra.0
+calls=8 1608 
+4279 264 112 40
+4282 32 16
+4295 16 8
+4291 8
+4295 16
+4296 16 8 0 1 0 0 1
+4299 8 0 8 0 0 1
+4300 8 0 8
+4301 8 0 8
+4302 16
+4307 64 0 8 1 0 0 1
+4309 24 0 8 0 0 2
+4310 8 0 8
+4313 8
+2553 1832 0 1832
+2589 5496 1832
+2590 1832
+2589 1832 0 1832
+2590 1832 0 1832
+2599 18320 5496 0 1
+2605 5496 3664
+2608 5496
+2921 5496 3664
+2922 1832 0 1832
+2926 1832 1832
+2930 9160 3664
+2935 1832
+2933 1832
+2938 1832
+2935 3664 0 0 2 0 0 1
+2932 1832
+2934 1832 0 1832
+2935 1832
+2936 1832
+2935 5496 0 1832
+2936 1832 0 1832 0 0 1832 0 0 1830
+4482 1832
+2669 5496 1832 1832 1
+2677 3664 1832
+2678 186 62 62
+2691 62 62
+2693 62 62
+2691 1894 1770
+2693 1770 1770
+2691 3540
+2699 9160 1832 1832
+2707 3664
+2727 1771 1771
+2728 1771
+2727 3542
+2738 3542 1771 0 1 0 0 1
+2742 3542
+2744 1771 1771
+2746 1771 1771
+2744 1771
+2746 1771
+2752 1771
+2746 1771 0 1771
+2755 3542 1771
+2873 1771
+2876 1771
+2875 1771 0 1771
+2876 7084 0 1771 0 0 1771 0 0 1769
+2888 1771 1771
+2877 1771 0 1771
+2888 3542
+2895 3542
+2896 5313 0 1771
+2904 1771 0 1771 0 0 219 0 0 219
+2906 1771 0 1771
+2911 3542
+2913 4116 0 1029
+cfn=_int_free
+calls=1029 4495 
+2913 86833 23303 10565 10 993 0 10 36
+2913 1029
+2847 3542 0 0 1 0 0 1
+2782 1771 0 0 1 0 0 1
+2866 3542
+2746 61 0 0 1
+2752 183 61
+2746 61 0 61 1
+2752 305
+2753 366 61 61
+2732 10626 3542 1771
+cfn=sysmalloc_mmap_fallback.constprop.0
+calls=1771 2490 
+2732 178876 40733 31878 4 1771 1722 4 2 1
+2732 1771
+2734 3542
+2709 5496 0 3664 2 0 12 1
+cfi=./malloc/./malloc/morecore.c
+cfn=__glibc_morecore
+calls=1833 25 
+2709 96852 25587 16427 6 7267 3600 1 8 3
+2710 3664 1832
+2709 1832
+2710 1832
+2008 61 61
+2711 61
+2008 183 0 0 1
+2712 1832
+2715 3664
+2744 427 183
+
+fn=sysmalloc_mmap.isra.0
+2400 105 0 84 1 0 6 1
+2413 63
+2400 21
+2418 42
+2421 189 0 21 1 0 5 1 0 2
+cfi=./misc/../sysdeps/unix/sysv/linux/mmap64.c
+cfn=mmap
+calls=21 47 
+2421 546 84 63 0 0 9 0 0 1
+2421 21
+2424 42
+2428 42
+2008 84 21 0 1 0 0 1
+2432 84 0 21
+cfi=./misc/../sysdeps/unix/sysv/linux/setvmaname.c
+cfn=__set_vma_name
+calls=21 33 
+2432 479 195 108 4 23 7 3 2 3
+2448 63
+2467 21
+2466 21 0 21 0 0 21 0 0 21
+2471 21
+2467 42 0 21 1 0 0 1
+2471 42 21 21
+2472 103 21 20
+2475 63 21 21
+2476 105 21 21 1 0 0 1
+2481 147 105
+
+fl=./misc/../sysdeps/unix/sysv/linux/mmap64.c
+fn=mmap
+47 1792
+50 3584
+47 10752 0 5376 0 0 9 0 0 1
+53 3584
+58 10752
+60 7168 7168
+53 8960
+
+fl=./string/../sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S
+fn=__memset_avx2_unaligned_erms
+158 177 0 0 1 0 0 1
+159 354
+164 177
+165 177
+166 139
+167 139
+168 139
+170 33 0 33 0 0 19 0 0 1
+171 33 0 33
+172 66 33
+181 16 0 16
+182 16 0 16
+184 32 16
+237 106 106 0 0 46 0 0 5
+238 106
+244 70 0 70 0 0 58 0 0 8
+245 70 0 70 0 0 28 0 0 3
+257 70
+260 70
+261 70
+273 54 0 54 0 0 21 0 0 3
+274 54 0 54 0 0 18 0 0 2
+287 54
+288 54
+290 54
+293 37
+296 37
+299 37 0 37 0 0 1 0 0 1
+300 37 0 37 0 0 19 0 0 2
+301 37 0 37 0 0 18 0 0 3
+302 37 0 37 0 0 18 0 0 2
+303 37
+304 37
+305 37
+299 82 0 82 0 0 40 0 0 10
+300 82 0 82 0 0 42 0 0 6
+301 82 0 82 0 0 40 0 0 10
+302 82 0 82 0 0 42 0 0 7
+303 82
+304 82
+305 119
+308 37 0 37
+309 37 0 37 0 0 1
+310 37 0 37
+311 37 0 37
+314 74 37
+308 17 0 17
+309 17 0 17
+310 17 0 17
+311 17 0 17
+314 34 17
+325 36
+326 36
+327 36
+328 306993 0 306957 0 0 4808 0 0 3601
+329 36
+330 72 36 0 0 3
+337 38
+346 38
+347 38
+352 4
+353 4
+354 3
+355 3
+356 3
+357 3
+378 34 0 34 0 0 20 0 0 2
+379 34 0 34
+380 34 34
+389 1 0 1
+390 1 0 1
+395 1 1
+416 3 0 3
+417 3 0 3
+418 3 0 3
+423 3 3
+
+fl=./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S
+fn=__memcpy_avx_unaligned_erms
+255 49193
+256 49193
+262 49193
+263 49193
+265 49193 49193 0 0 14
+266 49193
+267 49193
+386 49193 49193 0 0 14 0 0 3
+387 49193
+392 49188
+393 49188
+395 3 3 0 0 1
+396 3
+397 3
+399 3 3 0 0 2
+400 3 3 0 0 1
+401 3 3 0 0 3
+402 3 3 0 0 2
+403 3 3
+404 3 3
+405 3 0 3 0 0 3 0 0 3
+406 3 0 3
+407 3 0 3 0 0 3 0 0 3
+408 3 0 3
+409 3 0 3
+410 3 0 3 0 0 3 0 0 3
+411 3 0 3
+412 3 0 3
+413 6 3
+417 49185
+418 49185
+422 49185
+424 49185 0 0 1 0 0 1
+428 49185 49185 0 0 13 0 0 4
+429 49185
+440 49185
+443 49185
+445 49185
+447 49185
+451 49185
+452 49185
+461 46108 46108 0 0 3
+462 46108 46108 0 0 3
+464 46108
+466 46108
+467 46108 46108 0 1 3 0 1
+468 46108 46108 0 0 3
+471 46108
+473 46108
+475 46108
+477 92216
+483 46108 46108 0 0 3
+484 46108 46108 0 0 3
+485 46108 46108 0 0 3
+486 46108 46108 0 0 3
+487 46108
+488 46108 0 46108 0 0 28815 0 0 28815
+489 46108 0 46108 0 0 23057 0 0 23057
+490 46108 0 46108 1 0 23051 1 0 23051
+491 46108 0 46108 0 0 23057 0 0 23057
+492 46108
+493 46108
+494 46108
+483 33 33 0 0 26
+484 33 33 0 0 2
+485 33 33 0 0 26
+486 33 33 0 0 1
+487 33
+488 33 0 33 0 0 9 0 0 9
+489 33 0 33 0 0 24 0 0 24
+490 33 0 33 0 0 9 0 0 9
+491 33 0 33 0 0 24 0 0 24
+492 33
+493 33
+494 33
+496 46108 0 46108 0 0 46103 0 0 46101
+497 46108 0 46108 0 0 23050 0 0 23050
+498 46108 0 46108 0 0 5761 0 0 5761
+499 46108 0 46108
+501 46108 0 46108 0 0 1
+505 92216 46108
+518 3077 3077 0 0 1
+519 3077 3077 0 0 1
+521 3077 0 0 1 0 0 1
+522 3077 3077 0 0 1
+523 3077 3077 0 0 2
+525 3077
+527 3077
+529 6154
+535 3077 3077
+536 3077 3077 0 0 2
+537 3077 3077
+538 3077 3077 0 0 2
+539 3077
+540 3077 0 3077 0 0 3076 0 0 3076
+541 3077 0 3077 1 0 1539 1 0 1539
+542 3077 0 3077 0 0 1538 0 0 1538
+543 3077 0 3077 0 0 1539 0 0 1539
+544 3077
+545 3077
+546 3077
+535 14 14
+536 14 14 0 0 12
+537 14 14
+538 14 14 0 0 11
+539 14
+540 14 0 14
+541 14 0 14 0 0 14 0 0 14
+542 14 0 14
+543 14 0 14 0 0 13 0 0 13
+544 14
+545 14
+546 14
+548 3077 0 3077 0 0 1539 0 0 1539
+549 3077 0 3077 0 0 1536 0 0 1536
+550 3077 0 3077 0 0 385 0 0 385
+551 3077 0 3077
+553 3077 0 3077 0 0 1538 0 0 1538
+554 6154 3077
+563 4 4 0 1 2 0 1
+570 4
+571 4
+577 2
+580 2
+582 2
+585 2
+586 2
+588 2
+590 921506 921504 921504 0 14398 14400 0 0 14400
+592 2 0 2 0 0 2
+594 2 0 2 0 0 2
+596 4 2 0 0 2
+601 5 0 0 1 0 0 1
+602 5
+606 5
+608 5
+611 5
+615 5 5 0 0 3
+616 5
+620 4 4
+624 4
+648 2
+650 2
+652 2
+654 2 0 0 1 0 0 1
+657 2
+658 2
+660 57522 57520 57520 0 898 899 0 0 898
+663 2 0 2 0 0 1
+665 2 0 2 0 0 1
+667 4 2 0 0 1
+684 1 1
+685 1
+686 1
+691 1
+692 1
+693 1
+700 1 1 0 1 1 0 1
+706 1 0 1
+708 1 0 1 0 0 1 0 0 1
+716 1
+717 1
+719 1
+721 1
+723 1
+725 1
+733 1
+734 1
+735 1
+736 1
+741 1
+742 1
+743 1
+746 1 0 0 1 0 0 1
+748 2
+753 1
+755 2
+756 2
+757 2
+758 2 0 0 1 0 0 1
+760 4 4 0 0 1
+761 4 4 0 0 2
+762 1 0 0 1 0 0 1
+764 4 0 4 0 0 1 0 0 1
+765 4 0 4 0 0 2 0 0 2
+766 1
+767 1
+768 1 0 0 1 0 0 1
+753 358
+755 716
+756 716
+757 716
+758 716
+760 1432 1432 0 0 716
+761 1432 1432 0 0 716
+762 358
+764 1432 0 1432 0 0 716 0 0 716
+765 1432 0 1432 0 0 716 0 0 716
+766 358
+767 358
+768 358
+755 22258
+756 22258
+757 22258
+758 22258
+760 44516 44516 0 0 22258
+761 44516 44516 0 0 22258
+762 11129
+764 44516 0 44516 0 0 22258 0 0 22258
+765 44516 0 44516 0 0 22258 0 0 22258
+766 11129
+767 11129
+768 11129
+769 359
+770 359
+771 359
+772 359
+773 1
+776 1
+777 1
+782 126
+783 126 0 0 1 0 0 1
+784 63 63 0 0 63
+785 63 63
+786 63 63 0 0 63
+787 63 63
+788 63
+789 63
+790 63 0 63 0 0 63 0 0 63
+791 63 0 63
+792 63 0 63 0 0 63 0 0 63
+793 63 0 63
+794 63
+795 63
+796 63
+800 1 1
+801 1 1 0 1 1 0 1
+802 1 1
+803 1 1 0 0 1
+805 1 0 1
+806 1 0 1 0 0 1 0 0 1
+807 1 0 1
+808 1 0 1 0 0 1 0 0 1
+809 2 1 0 0 1
+
+ob=/usr/lib/x86_64-linux-gnu/libm.so.6
+fl=./math/../sysdeps/ieee754/flt-32/s_roundf.c
+fn=roundf
+29 50331624 0 0 1 0 0 1
+36 50331624
+37 201326496
+38 100663248
+40 100663248
+42 50331624 0 0 1 0 0 1
+44 201326496
+66 50331624
+69 50331624 50331624
+
+totals: 8716427629 2078115617 1126513323 463 42792876 33284348 440 38242883 32737433

@@ -1,0 +1,22 @@
+# callgrind format
+version: 1
+creator: callgrind-3.22.0
+pid: 39608
+cmd:  /home/ryanpeach/Documents/Workspace/OrbitingSandRust/target/release/deps/bench_main-99f962cd7ead7367 --iai-run element_directory_group 1 0 bench_main::element_directory_group::bench_process
+part: 1
+thread: 5
+
+
+desc: I1 cache: 32768 B, 64 B, 8-way associative
+desc: D1 cache: 32768 B, 64 B, 8-way associative
+desc: LL cache: 8388608 B, 64 B, 16-way associative
+
+desc: Timerange: Basic block 0 - 2762860806
+desc: Trigger: Program termination
+
+positions: line
+events: Ir Dr Dw I1mr D1mr D1mw ILmr DLmr DLmw
+summary: 0
+
+
+totals: 0

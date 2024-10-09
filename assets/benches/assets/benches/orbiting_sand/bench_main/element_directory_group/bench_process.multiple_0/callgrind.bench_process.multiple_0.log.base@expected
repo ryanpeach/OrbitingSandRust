@@ -1,0 +1,30 @@
+==39608== Callgrind, a call-graph generating cache profiler
+==39608== Copyright (C) 2002-2017, and GNU GPL'd, by Josef Weidendorfer et al.
+==39608== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
+==39608== Command: /home/ryanpeach/Documents/Workspace/OrbitingSandRust/target/release/deps/bench_main-99f962cd7ead7367 --iai-run element_directory_group 1 0 bench_main::element_directory_group::bench_process
+==39608== Parent PID: 39196
+==39608== 
+--39608-- warning: L3 cache found, using its data for the LL simulation.
+==39608== For interactive control, run 'callgrind_control -h'.
+==39608== brk segment overflow in thread #1: can't grow to 0x4859000
+==39608== (see section Limitations in user manual)
+==39608== NOTE: further instances of this message will not be shown
+==39608== 
+==39608== Events    : Ir Dr Dw I1mr D1mr D1mw ILmr DLmr DLmw
+==39608== Collected : 4104759103 1071564686 623695349 8152 43676925 14616496 6116 41455768 9087798
+==39608== 
+==39608== I   refs:      4,104,759,103
+==39608== I1  misses:            8,152
+==39608== LLi misses:            6,116
+==39608== I1  miss rate:          0.00%
+==39608== LLi miss rate:          0.00%
+==39608== 
+==39608== D   refs:      1,695,260,035  (1,071,564,686 rd + 623,695,349 wr)
+==39608== D1  misses:       58,293,421  (   43,676,925 rd +  14,616,496 wr)
+==39608== LLd misses:       50,543,566  (   41,455,768 rd +   9,087,798 wr)
+==39608== D1  miss rate:           3.4% (          4.1%   +         2.3%  )
+==39608== LLd miss rate:           3.0% (          3.9%   +         1.5%  )
+==39608== 
+==39608== LL refs:          58,301,573  (   43,685,077 rd +  14,616,496 wr)
+==39608== LL misses:        50,549,682  (   41,461,884 rd +   9,087,798 wr)
+==39608== LL miss rate:            0.9% (          0.8%   +         1.5%  )
