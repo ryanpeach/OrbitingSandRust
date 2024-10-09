@@ -18,6 +18,7 @@ pub struct NdArrayCoords([usize; 2]);
 /// Instantiation
 impl NdArrayCoords {
     /// Create a new  [`NdArrayCoords`]
+    #[must_use]
     pub fn new(x: usize, y: usize) -> Self {
         Self([x, y])
     }
@@ -27,6 +28,7 @@ impl NdArrayCoords {
     /// Convert to a  [`JkVector`]
     /// ndarray is row-major, so the jk vector is flipped
     /// Bottom Right is (0, 0)
+    #[must_use]
     pub fn to_jk_vector(self, coords: &ChunkCoords) -> JkVector {
         JkVector {
             j: coords.num_concentric_circles() - 1 - self.y(),
@@ -35,11 +37,13 @@ impl NdArrayCoords {
     }
 
     /// Get the column index
+    #[must_use]
     pub fn x(&self) -> usize {
         self.0[0]
     }
 
     /// Get the row index
+    #[must_use]
     pub fn y(&self) -> usize {
         self.0[1]
     }
@@ -87,6 +91,7 @@ pub struct JkVector {
 /// Whereas in a Jk Vector, the bottom right is (0, 0)
 impl JkVector {
     /// Convert to a  [`NdArrayCoords`]
+    #[must_use]
     pub fn to_ndarray_coords(self, coords: &ChunkCoords) -> NdArrayCoords {
         NdArrayCoords::new(
             coords.num_radial_lines() - 1 - self.k,
@@ -104,6 +109,7 @@ impl JkVector {
 /// Instantiation
 impl JkVector {
     /// Create a new  [`JkVector`]
+    #[must_use]
     pub fn new(j: usize, k: usize) -> Self {
         Self { j, k }
     }
@@ -123,6 +129,7 @@ pub struct RelJkVector {
 /// Instantiation
 impl RelJkVector {
     /// Create a new  [`RelJkVector`]
+    #[must_use]
     pub fn new(rj: isize, rk: isize) -> Self {
         Self { rj, rk }
     }
@@ -142,6 +149,7 @@ pub struct TempJkVector {
 /// Instantiation
 impl TempJkVector {
     /// Add a  [`RelJkVector`]to a  [`JkVector`]
+    #[must_use]
     pub fn add(pos: &JkVector, rel: &RelJkVector) -> Self {
         Self {
             j: pos.j as isize + rel.rj,
@@ -162,6 +170,7 @@ pub struct FullIdx {
 /// Instantiation
 impl FullIdx {
     /// Create a new [`FullIdx`]
+    #[must_use]
     pub fn new(chunk_idx: ChunkIjkVector, pos: JkVector) -> Self {
         Self { chunk_idx, pos }
     }
@@ -184,10 +193,12 @@ impl IjkVector {
     /// The zero vector
     pub const ZERO: Self = Self { i: 0, j: 0, k: 0 };
     /// Instantiation
+    #[must_use]
     pub fn new(i: usize, j: usize, k: usize) -> Self {
         Self { i, j, k }
     }
     /// Convert to a [`JkVector`]
+    #[must_use]
     pub fn to_jk_vector(self) -> JkVector {
         JkVector {
             j: self.j,
@@ -225,12 +236,14 @@ pub struct ChunkIjkVector {
 
 impl ChunkIjkVector {
     /// Instantiation
+    #[must_use]
     pub fn new(i: usize, j: usize, k: usize) -> Self {
         Self { i, j, k }
     }
     /// The zero vector
     pub const ZERO: Self = Self { i: 0, j: 0, k: 0 };
     /// Convert to a [`JkVector`]
+    #[must_use]
     pub fn to_jk_vector(self) -> JkVector {
         JkVector {
             j: self.j,

@@ -1,6 +1,6 @@
 //! plugin for demonstrating bevy v0.13 system stepping using egui interface
 //! Released under the MIT License
-//! REF: https://gist.github.com/dmlary/3fd57ebf1f88bb9afa8a6604737dac97#file-stepping_egui-rs
+//! REF: <https://gist.github.com/dmlary/3fd57ebf1f88bb9afa8a6604737dac97#file-stepping_egui-rs>
 
 use std::collections::HashMap;
 
@@ -20,7 +20,7 @@ use bevy_egui::{egui, EguiContexts};
 #[derive(Debug, Hash, PartialEq, Eq, Clone, ScheduleLabel)]
 pub struct SteppingSchedule;
 
-/// copied from ecs::schedule::stepping; need to add methods to interrogate
+/// copied from `ecs::schedule::stepping`; need to add methods to interrogate
 /// system behavior state
 #[derive(Debug, Copy, Clone)]
 pub enum SystemBehavior {
@@ -129,17 +129,17 @@ fn draw_window(
 
         for label in schedule_order {
             let Some(schedule) = schedules.get(*label) else {
-                ui.label(format!("error: Schedule not found: {:?}", label));
+                ui.label(format!("error: Schedule not found: {label:?}"));
                 continue;
             };
-            ui.heading(format!("{:?}", label));
+            ui.heading(format!("{label:?}"));
 
             let Ok(systems) = schedule.systems() else {
-                ui.label(format!("error: {:?} has no systems", label));
+                ui.label(format!("error: {label:?} has no systems"));
                 continue;
             };
 
-            egui::Grid::new(format!("stepping_schedule_{:?}", label))
+            egui::Grid::new(format!("stepping_schedule_{label:?}"))
                 // cursor, disabled/enabled/always, breakpoint
                 .num_columns(5)
                 .striped(true)

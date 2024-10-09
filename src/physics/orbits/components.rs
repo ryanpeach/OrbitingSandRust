@@ -34,6 +34,7 @@ impl From<ForceVec> for Force {
 
 impl Force {
     /// Returns the force applied to the entity by gravitation
+    #[must_use]
     pub fn from_mass(mass: Mass, acceleration: GravitationalAcceleration) -> Self {
         Force(mass.0 * acceleration.0)
     }
@@ -51,6 +52,7 @@ impl Default for Length {
 
 impl Length {
     /// Returns the area of the length
+    #[must_use]
     pub fn area(&self) -> Area {
         Area(self.0 * self.0)
     }
@@ -72,6 +74,7 @@ pub struct GravitationalAcceleration(pub f32);
 
 impl GravitationalAcceleration {
     /// Returns the acceleration due to gravity towards a mass
+    #[must_use]
     pub fn from_total_mass(total_mass: Mass) -> Self {
         GravitationalAcceleration(G * total_mass.0)
     }

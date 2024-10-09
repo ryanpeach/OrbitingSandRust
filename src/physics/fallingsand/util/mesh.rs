@@ -41,7 +41,8 @@ pub struct GizmoDrawableLoop {
 }
 
 impl GizmoDrawableLoop {
-    /// Create a new GizmoDrawableLoop
+    /// Create a new `GizmoDrawableLoop`
+    #[must_use]
     pub fn new(mesh: OwnedMeshData, color: Color) -> Self {
         Self { mesh, color }
     }
@@ -76,7 +77,8 @@ pub struct GizmoDrawableGrid {
 }
 
 impl GizmoDrawableGrid {
-    /// Create a new GizmoDrawableTriangles
+    /// Create a new `GizmoDrawableTriangles`
+    #[must_use]
     pub fn new(mesh: OwnedMeshData, color: Color) -> Self {
         Self { mesh, color }
     }
@@ -103,7 +105,7 @@ impl GizmoDrawableGrid {
 }
 
 /// Represents a mesh that is owned by this object
-/// For some reason a MeshData in ggez object has a lifetime and is a set of borrows.
+/// For some reason a `MeshData` in ggez object has a lifetime and is a set of borrows.
 /// This is a workaround for that.
 #[derive(Clone)]
 pub struct OwnedMeshData {
@@ -113,7 +115,7 @@ pub struct OwnedMeshData {
     pub indices: Vec<u32>,
 }
 
-/// Create an empty OwnedMeshData
+/// Create an empty `OwnedMeshData`
 impl Default for OwnedMeshData {
     fn default() -> Self {
         Self {
@@ -124,33 +126,35 @@ impl Default for OwnedMeshData {
 }
 
 impl OwnedMeshData {
-    /// Create a new OwnedMeshData object
+    /// Create a new `OwnedMeshData` object
+    #[must_use]
     pub fn new(vertices: Vec<Vertex>, indices: Vec<u32>) -> Self {
         Self { vertices, indices }
     }
 
     /// Get the uv bounds of a list of vertices
+    #[must_use]
     pub fn bounds(&self) -> MeshBoundingBox {
         let width: f32 = self
             .vertices
             .iter()
             .map(|vertex| vertex.uv[0])
-            .fold(0.0, |a, b| a.max(b));
+            .fold(0.0, f32::max);
         let height: f32 = self
             .vertices
             .iter()
             .map(|vertex| vertex.uv[1])
-            .fold(0.0, |a, b| a.max(b));
+            .fold(0.0, f32::max);
         let min_x: f32 = self
             .vertices
             .iter()
             .map(|vertex| vertex.uv[0])
-            .fold(f32::INFINITY, |a, b| a.min(b));
+            .fold(f32::INFINITY, f32::min);
         let min_y: f32 = self
             .vertices
             .iter()
             .map(|vertex| vertex.uv[1])
-            .fold(f32::INFINITY, |a, b| a.min(b));
+            .fold(f32::INFINITY, f32::min);
         MeshBoundingBox(Rect::new(min_x, min_y, width, height))
     }
 

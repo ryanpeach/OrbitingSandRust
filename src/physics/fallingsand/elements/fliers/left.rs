@@ -126,8 +126,7 @@ mod tests {
                 assert_ne!(
                     previous_location_type,
                     ElementType::LeftFlier,
-                    "Previous location {:?} still has a leftflier",
-                    loc1
+                    "Previous location {loc1:?} still has a leftflier"
                 );
             }
 
@@ -138,8 +137,7 @@ mod tests {
                 assert_eq!(
                     left_location_type,
                     ElementType::LeftFlier,
-                    "New location {:?} does not have a leftflier",
-                    loc2
+                    "New location {loc2:?} does not have a leftflier"
                 );
             }
         }

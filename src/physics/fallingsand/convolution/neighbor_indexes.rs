@@ -63,6 +63,7 @@ impl Iterator for ElementGridConvolutionNeighborIdxsIter {
 
 impl ElementGridConvolutionNeighborIdxs {
     /// Get the iterator for the neighbor indexes
+    #[must_use]
     pub fn iter(&self) -> ElementGridConvolutionNeighborIdxsIter {
         ElementGridConvolutionNeighborIdxsIter {
             top_neighbors_iter: self.top.iter(),
@@ -73,6 +74,7 @@ impl ElementGridConvolutionNeighborIdxs {
     }
 
     /// Check if the given  [`ChunkIjkVector`] is contained in the neighbor indexes
+    #[must_use]
     pub fn contains(&self, chunk_idx: &ChunkIjkVector) -> bool {
         self.iter().any(|c| c == *chunk_idx)
     }
@@ -123,6 +125,7 @@ impl Iterator for LeftRightNeighborIdxsIter {
 
 impl LeftRightNeighborIdxs {
     /// Get the iterator for the left and right neighbor indexes
+    #[must_use]
     pub fn iter(&self) -> LeftRightNeighborIdxsIter {
         LeftRightNeighborIdxsIter {
             lr: Some(self.clone()),
@@ -203,6 +206,7 @@ impl Iterator for TopNeighborIdxsIter {
 
 impl TopNeighborIdxs {
     /// Get the iterator for the top neighbor indexes
+    #[must_use]
     pub fn iter(&self) -> TopNeighborIdxsIter {
         TopNeighborIdxsIter {
             top: Some(self.clone()),
@@ -282,6 +286,7 @@ impl Iterator for BottomNeighborIdxsIter {
 
 impl BottomNeighborIdxs {
     /// Get the iterator for the bottom neighbor indexes
+    #[must_use]
     pub fn iter(&self) -> BottomNeighborIdxsIter {
         BottomNeighborIdxsIter {
             bottom: Some(self.clone()),

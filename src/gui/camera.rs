@@ -68,6 +68,7 @@ impl Add<usize> for CelestialIdx {
 
 impl CelestialIdx {
     /// Returns the selected celestials index
+    #[must_use]
     pub fn selected_celestial(
         celestials: &[(Entity, &CelestialIdx)],
         camera: (&Parent, Entity),
@@ -88,7 +89,7 @@ impl CelestialIdx {
             }
             // Check all the indices are unique
             let mut indices = celestials.iter().map(|(_, idx)| idx.0).collect::<Vec<_>>();
-            indices.sort();
+            indices.sort_unstable();
             indices.dedup();
             assert_eq!(indices.len(), celestials.len());
             // Check that the indices start at 0 and end at len - 1
@@ -106,6 +107,7 @@ impl CelestialIdx {
     }
 
     /// Gets the next index
+    #[must_use]
     pub fn next(&self, celestials: Vec<&CelestialIdx>) -> CelestialIdx {
         let mut idx = self.0 + 1;
         if idx >= celestials.len() {
@@ -115,6 +117,7 @@ impl CelestialIdx {
     }
 
     /// Gets the previous index
+    #[must_use]
     pub fn prev(&self, celestials: Vec<&CelestialIdx>) -> CelestialIdx {
         let mut idx = self.0 as i32 - 1;
         if idx < 0 {
@@ -142,7 +145,7 @@ impl Plugin for CameraPlugin {
 
 /// Startup functions
 /// These are not systems, rather are written as function to be applied
-/// to the GuiUnifiedPlugin
+/// to the `GuiUnifiedPlugin`
 impl CameraPlugin {
     /// Setup the main camera
     pub fn setup_main_camera(commands: &mut Commands) -> Entity {
@@ -179,7 +182,7 @@ impl CameraPlugin {
             }
         }
         if delta != 0. {
-            for (mut transform, _) in query.iter_mut() {
+            for (mut transform, _) in &mut query {
                 transform.scale *= (1. + delta * time.delta_seconds() * 0.5).max(0.0001);
             }
         }
@@ -205,7 +208,7 @@ impl CameraPlugin {
             delta.y -= 1.;
         }
         if delta != Vec3::ZERO {
-            for (mut transform, _) in query.iter_mut() {
+            for (mut transform, _) in &mut query {
                 let scale = transform.scale;
                 transform.translation += delta * time.delta_seconds() * scale * 100.;
             }
@@ -238,7 +241,7 @@ impl CameraPlugin {
             height * camera_transform.scale.y,
         );
 
-        for (entity, mesh_bb, visible, transform) in mesh_entities.iter_mut() {
+        for (entity, mesh_bb, visible, transform) in &mut mesh_entities {
             let overlaps = rect_overlaps(
                 &camera_rect,
                 &rect_add(&mesh_bb.0, &transform.translation.truncate()),
@@ -342,7 +345,7 @@ impl CameraPlugin {
 pub struct SelectCelestial(Entity);
 
 impl From<ListenerInput<Pointer<Down>>> for SelectCelestial {
-    /// Converts a click event into a SelectCelestial event by saving the target of the click
+    /// Converts a click event into a `SelectCelestial` event by saving the target of the click
     fn from(event: ListenerInput<Pointer<Down>>) -> Self {
         Self(event.target)
     }

@@ -30,12 +30,14 @@ use derive_more::{Add, Sub};
 pub struct Density(pub f32);
 
 impl Density {
-    /// This gets the mass of the element based on the cell_width
+    /// This gets the mass of the element based on the `cell_width`
+    #[must_use]
     pub fn mass(&self, cell_width: Length) -> Mass {
         Mass(self.0 * cell_width.area().0)
     }
 
-    /// This gets the mass of the element based on the cell_width in matrix form
+    /// This gets the mass of the element based on the `cell_width` in matrix form
+    #[must_use]
     pub fn matrix_mass(density_matrix: &Array2<f32>, cell_width: Length) -> Array2<f32> {
         density_matrix * cell_width.area().0
     }
@@ -81,6 +83,7 @@ pub enum ElementType {
 
 impl ElementType {
     /// This gets the default element of the type
+    #[must_use]
     pub fn element(&self) -> Box<dyn Element> {
         match self {
             ElementType::Vacuum => Box::<Vacuum>::default(),
@@ -113,18 +116,18 @@ pub trait Element: Send + Sync {
     /// in fragment shaders knowing their type just by their color
     /// You can map them to other colors and add effects using the fragment shader
     fn color(&self) -> Color;
-    /// This gets the density of the element relative to the cell_width
+    /// This gets the density of the element relative to the `cell_width`
     /// This is so bigger cells have more mass, so we don't have to have as many cells
     /// for simpler bodies, like gas giants or the sun
     fn density(&self) -> Density;
-    /// This gets the mass of the element based on the density and the cell_width
+    /// This gets the mass of the element based on the density and the `cell_width`
     fn mass(&self, cell_width: Length) -> Mass {
         self.density().mass(cell_width)
     }
     /// This gets the state of matter of the element
     fn state_of_matter(&self) -> StateOfMatter;
     /// This is the "public" process method, that calls the private _process method
-    /// makes sure that _set_last_processed is called
+    /// makes sure that _`set_last_processed` is called
     fn process(
         &mut self,
         pos: JkVector,
@@ -208,9 +211,7 @@ mod tests {
             let color = element_type.element().color();
             assert!(
                 !colors.contains(&color),
-                "Color {:?} of element {:?} is not unique",
-                color,
-                element_type
+                "Color {color:?} of element {element_type:?} is not unique"
             );
             colors.push(color);
         }
@@ -223,8 +224,7 @@ mod tests {
         for element_type in ElementType::iter() {
             assert!(
                 !types.contains(&element_type),
-                "Element type {:?} is not unique",
-                element_type
+                "Element type {element_type:?} is not unique"
             );
             types.push(element_type);
         }
@@ -238,8 +238,7 @@ mod tests {
             assert_eq!(
                 element_type,
                 element.element_type(),
-                "Element type {:?} does not match the type of the element",
-                element_type
+                "Element type {element_type:?} does not match the type of the element"
             );
         }
     }

@@ -24,15 +24,19 @@ impl Debug for Clock {
 }
 
 impl Clock {
+    #[must_use]
     pub fn new(time: Time, frame: FrameCount) -> Self {
         Self { time, frame }
     }
+    #[must_use]
     pub fn current_time(&self) -> Duration {
         self.time.elapsed()
     }
+    #[must_use]
     pub fn last_delta(&self) -> Duration {
         self.time.delta()
     }
+    #[must_use]
     pub fn current_frame(&self) -> u32 {
         self.frame.0
     }

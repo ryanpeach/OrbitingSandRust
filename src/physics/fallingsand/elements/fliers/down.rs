@@ -126,8 +126,7 @@ mod tests {
                 assert_ne!(
                     previous_location_type,
                     ElementType::DownFlier,
-                    "Previous location {:?} still has a downflier",
-                    loc1
+                    "Previous location {loc1:?} still has a downflier"
                 );
             }
 
@@ -138,8 +137,7 @@ mod tests {
                 assert_eq!(
                     below_location_type,
                     ElementType::DownFlier,
-                    "New location {:?} does not have a downflier",
-                    loc2
+                    "New location {loc2:?} does not have a downflier"
                 );
             }
         }

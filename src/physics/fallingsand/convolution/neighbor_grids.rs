@@ -8,7 +8,15 @@ use crate::physics::fallingsand::{
     util::vectors::{ChunkIjkVector, JkVector},
 };
 
-use super::{neighbor_identifiers::*, neighbor_indexes::*};
+use super::{
+    neighbor_identifiers::{
+        BottomNeighborIdentifier, BottomNeighborIdentifierChunkDoubling,
+        BottomNeighborIdentifierNormal, ConvolutionIdentifier, ConvolutionIdx,
+        LeftRightNeighborIdentifier, TopNeighborIdentifier, TopNeighborIdentifierChunkDoubling,
+        TopNeighborIdentifierNormal,
+    },
+    neighbor_indexes::{BottomNeighborIdxs, LeftRightNeighborIdxs, TopNeighborIdxs},
+};
 
 /// The main type exported by this module
 /// Contains all the neighbor grids for the convolution
@@ -24,7 +32,8 @@ pub struct ElementGridConvolutionNeighborGrids {
 }
 
 impl ElementGridConvolutionNeighborGrids {
-    /// Converts the ElementGridConvolutionNeighborGrids into a hashmap
+    /// Converts the `ElementGridConvolutionNeighborGrids` into a hashmap
+    #[must_use]
     pub fn into_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
         let mut map = HashMap::new();
         map.extend(self.top.to_hashmap());
@@ -56,7 +65,8 @@ pub enum LeftRightNeighborGrids {
 }
 
 impl LeftRightNeighborGrids {
-    /// Converts the LeftRightNeighborGrids into a hashmap
+    /// Converts the `LeftRightNeighborGrids` into a hashmap
+    #[must_use]
     pub fn to_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
         match self {
             LeftRightNeighborGrids::LR { l, r } => {
@@ -68,7 +78,7 @@ impl LeftRightNeighborGrids {
         }
     }
 
-    /// Converts a hashmap into a LeftRightNeighborGrids
+    /// Converts a hashmap into a `LeftRightNeighborGrids`
     pub fn from_hashmap(
         idxs: &LeftRightNeighborIdxs,
         grids: &mut HashMap<ChunkIjkVector, ElementGrid>,
@@ -82,6 +92,7 @@ impl LeftRightNeighborGrids {
     }
 
     /// Gets the chunk at the given chunk index
+    #[must_use]
     pub fn chunk_at_chunk_ijk(
         &self,
         idx: ChunkIjkVector,
@@ -133,7 +144,8 @@ pub enum TopNeighborGrids {
 }
 
 impl TopNeighborGrids {
-    /// Converts the TopNeighborGrids into a hashmap
+    /// Converts the `TopNeighborGrids` into a hashmap
+    #[must_use]
     pub fn to_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
         match self {
             TopNeighborGrids::Normal { tl, t, tr } => {
@@ -155,7 +167,7 @@ impl TopNeighborGrids {
         }
     }
 
-    /// Converts a hashmap into a TopNeighborGrids
+    /// Converts a hashmap into a `TopNeighborGrids`
     pub fn from_hashmap(
         idxs: &TopNeighborIdxs,
         grids: &mut HashMap<ChunkIjkVector, ElementGrid>,
@@ -309,6 +321,7 @@ impl TopNeighborGrids {
     }
 
     /// Gets the chunk at the given chunk index
+    #[must_use]
     pub fn chunk_at_chunk_ijk(
         &self,
         idx: ChunkIjkVector,
@@ -372,6 +385,7 @@ impl TopNeighborGrids {
     }
 
     /// Gets the number of concentric circles in the top layer of the convolution
+    #[must_use]
     pub fn num_concentric_circles(&self) -> usize {
         match self {
             TopNeighborGrids::Normal { tl: _, t, tr: _ } => t.coords().num_concentric_circles(),
@@ -386,6 +400,7 @@ impl TopNeighborGrids {
     }
 
     /// Gets the number of radial lines in the top layer of the convolution
+    #[must_use]
     pub fn num_radial_lines(&self) -> usize {
         match self {
             TopNeighborGrids::Normal { tl: _, t, tr: _ } => t.coords().num_radial_lines(),
@@ -434,7 +449,8 @@ pub enum BottomNeighborGrids {
 }
 
 impl BottomNeighborGrids {
-    /// Converts the BottomNeighborGrids into a hashmap
+    /// Converts the `BottomNeighborGrids` into a hashmap
+    #[must_use]
     pub fn to_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
         match self {
             BottomNeighborGrids::Normal { bl, b, br } => {
@@ -454,7 +470,7 @@ impl BottomNeighborGrids {
         }
     }
 
-    /// Converts a hashmap into a BottomNeighborGrids
+    /// Converts a hashmap into a `BottomNeighborGrids`
     pub fn from_hashmap(
         idxs: &BottomNeighborIdxs,
         grids: &mut HashMap<ChunkIjkVector, ElementGrid>,
@@ -474,6 +490,7 @@ impl BottomNeighborGrids {
     }
 
     /// Gets the element at the given index
+    #[must_use]
     pub fn chunk_at_chunk_ijk(
         &self,
         idx: ChunkIjkVector,
@@ -527,6 +544,7 @@ impl BottomNeighborGrids {
     }
 
     /// Gets the number of radial lines in the bottom layer of the convolution
+    #[must_use]
     pub fn num_radial_lines(&self) -> usize {
         match self {
             BottomNeighborGrids::Normal { bl: _, b, br: _ } => b.coords().num_radial_lines(),
@@ -536,6 +554,7 @@ impl BottomNeighborGrids {
     }
 
     /// Gets the number of concentric circles in the bottom layer of the convolution
+    #[must_use]
     pub fn num_concentric_circles(&self) -> usize {
         match self {
             BottomNeighborGrids::Normal { bl: _, b, br: _ } => b.coords().num_concentric_circles(),

@@ -49,6 +49,7 @@ impl Default for ElementGrid {
 /* Initialization */
 impl ElementGrid {
     /// Creates a new element grid with the given chunk coords and fills it with vacuum
+    #[must_use]
     pub fn new_empty(chunk_coords: ChunkCoords) -> Self {
         let fill: &dyn Element = &Vacuum::default();
         ElementGrid::new_filled(chunk_coords, fill)
@@ -78,6 +79,7 @@ impl ElementGrid {
 
 /* Getters & Setters */
 impl ElementGrid {
+    #[must_use]
     pub fn already_processed(&self) -> bool {
         self.already_processed
     }
@@ -92,16 +94,20 @@ impl ElementGrid {
         self.already_processed = already_processed;
         Ok(())
     }
+    #[must_use]
     pub fn last_set(&self) -> Clock {
         self.last_set
     }
+    #[must_use]
     pub fn coords(&self) -> &ChunkCoords {
         &self.coords
     }
+    #[must_use]
     pub fn grid(&self) -> &Grid<Box<dyn Element>> {
         &self.grid
     }
     /// Does not calculate the total mass, just gets the set value of it
+    #[must_use]
     pub fn total_mass(&self) -> Mass {
         self.total_mass
     }
@@ -155,6 +161,7 @@ impl ElementGrid {
     //     self.total_mass_above
     // }
 
+    #[must_use]
     pub fn process_unneeded(&self, current_time: Clock) -> bool {
         self.last_set.current_frame() < current_time.current_frame() - 1
     }
@@ -162,6 +169,7 @@ impl ElementGrid {
 
 /// Public modifiers for the element grid
 impl ElementGrid {
+    #[must_use]
     pub fn get(&self, jk: JkVector) -> &dyn Element {
         self.grid.get(jk).as_ref()
     }
@@ -236,7 +244,7 @@ impl ElementGrid {
         )
         .collect();
         iter.shuffle(&mut rng);
-        for (j, k) in iter.into_iter() {
+        for (j, k) in iter {
             let pos = JkVector { j, k };
 
             // We have to take the element out of our grid to call it with a reference to self
@@ -329,7 +337,7 @@ impl ElementGrid {
                     })
                     .sum()
             })
-            .sum()
+            .sum();
     }
 
     // Get the heat properties of an element at an index
@@ -342,6 +350,7 @@ impl ElementGrid {
 /* Drawing */
 impl ElementGrid {
     /// Draw the texture as the color of each element
+    #[must_use]
     pub fn texture(&self) -> RawImage {
         let mut out = Vec::with_capacity(
             self.coords.num_radial_lines() * self.coords.num_concentric_circles() * 4,

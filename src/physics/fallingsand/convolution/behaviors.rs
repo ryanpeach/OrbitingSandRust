@@ -64,7 +64,8 @@ pub struct ElementGridConvolutionNeighbors {
 
 /// Instantiation
 impl ElementGridConvolutionNeighbors {
-    /// Create a new ElementGridConvolutionNeighbors
+    /// Create a new `ElementGridConvolutionNeighbors`
+    #[must_use]
     pub fn new(
         chunk_idxs: ElementGridConvolutionNeighborIdxs,
         mut grids: HashMap<ChunkIjkVector, ElementGrid>,
@@ -83,10 +84,12 @@ impl ElementGridConvolutionNeighbors {
     }
 
     /// Get the number of chunks
+    #[must_use]
     pub fn len(&self) -> usize {
         self.chunk_idxs.iter().count()
     }
     /// Checks if there are no chunks
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.chunk_idxs.iter().count() == 0
     }
@@ -94,7 +97,7 @@ impl ElementGridConvolutionNeighbors {
 
 /// Iteration
 /// We are going to implement into interation on the Neighbors so that unpackaging is easier
-/// To do this we will use the into_hashmap method on the neighbor grids
+/// To do this we will use the `into_hashmap` method on the neighbor grids
 /// and the iter method on the neighbor indexes
 /// taking from the hashmap on each iteration of the iter
 pub struct ElementGridConvolutionNeighborsIntoIter {

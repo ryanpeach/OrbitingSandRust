@@ -19,6 +19,7 @@ use bevy::{
 pub struct RelXyPoint(pub Vec2);
 
 impl RelXyPoint {
+    #[must_use]
     pub fn new(x: f32, y: f32) -> Self {
         Self(Vec2 { x, y })
     }
@@ -56,6 +57,7 @@ pub struct Vertex {
 }
 
 /// Take a mouse coordinate and translate it into a Transform position
+#[must_use]
 pub fn mouse_coord_to_world_coord(
     windows: &Query<'_, '_, &mut Window>,
     event: &CursorMoved,

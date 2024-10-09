@@ -76,6 +76,7 @@ impl Default for Builder {
 /// This is where most of the logic is stored for assembling the directory
 impl Builder {
     /// Create a new  [`Builder`]
+    #[must_use]
     pub fn new() -> Self {
         Self {
             cell_width: Length(1.0),
@@ -88,41 +89,48 @@ impl Builder {
         }
     }
     /// Set [`Builder::cell_width`]
+    #[must_use]
     pub fn cell_width(mut self, cell_width: Length) -> Self {
         self.cell_width = cell_width;
         self
     }
     /// Set [`Builder::num_layers`]
+    #[must_use]
     pub fn num_layers(mut self, num_layers: usize) -> Self {
         self.num_layers = num_layers;
         self
     }
 
     /// Set [`Builder::first_num_radial_lines`]
+    #[must_use]
     pub fn first_num_radial_lines(mut self, first_num_radial_lines: usize) -> Self {
         self.first_num_radial_lines = first_num_radial_lines;
         self
     }
 
     /// Set [`Builder::first_num_tangential_chunks`]
+    #[must_use]
     pub fn first_num_tangential_chunkss(mut self, first_num_tangential_chunkss: usize) -> Self {
         self.first_num_tangential_chunks = first_num_tangential_chunkss;
         self
     }
 
     /// Set [`Builder::second_num_concentric_circles`]
+    #[must_use]
     pub fn second_num_concentric_circles(mut self, second_num_concentric_circles: usize) -> Self {
         self.second_num_concentric_circles = second_num_concentric_circles;
         self
     }
 
     /// Set [`Builder::max_radial_lines_per_chunk`]
+    #[must_use]
     pub fn max_radial_lines_per_chunk(mut self, max_radial_lines_per_chunk: usize) -> Self {
         self.max_radial_lines_per_chunk = max_radial_lines_per_chunk;
         self
     }
 
     /// Set [`Builder::max_concentric_circles_per_chunk`]
+    #[must_use]
     pub fn max_concentric_circles_per_chunk(
         mut self,
         max_concentric_circles_per_chunk: usize,
@@ -132,8 +140,9 @@ impl Builder {
     }
 
     /// builds a [`CoordinateDir`] by iterating over the number of layers
-    /// and dynamically allocating chunks to each layer based on max_cells
+    /// and dynamically allocating chunks to each layer based on `max_cells`
     /// and the other parameters of the builder.
+    #[must_use]
     pub fn build(self) -> CoordinateDir {
         assert_ne!(self.num_layers, 0);
         assert!(
@@ -240,7 +249,7 @@ impl Builder {
             }
         }
 
-        debug_assert!(total_concentric_circle_chunks % 3 == 0, "For multithreading purposes, the total number of concentric circle chunks must be a multiple of 3, got {}", total_concentric_circle_chunks);
+        debug_assert!(total_concentric_circle_chunks % 3 == 0, "For multithreading purposes, the total number of concentric circle chunks must be a multiple of 3, got {total_concentric_circle_chunks}");
 
         let out = CoordinateDir { partial_chunks };
         debug_assert!(out.total_number_concentric_chunks() % 3 == 0);
@@ -254,39 +263,47 @@ impl Builder {
  * chunk index
  * ========================================= */
 impl CoordinateDir {
+    #[must_use]
     pub fn chunk_at_idx(&self, chunk_idx: ChunkIjkVector) -> ChunkCoords {
         *self.partial_chunks[chunk_idx.i].get(chunk_idx.to_jk_vector())
     }
+    #[must_use]
     pub fn chunk_bounding_box(&self, chunk_idx: ChunkIjkVector) -> Rect {
         self.partial_chunks[chunk_idx.i]
             .get(chunk_idx.to_jk_vector())
             .bounding_box()
     }
+    #[must_use]
     pub fn chunk_start_radius(&self, chunk_idx: ChunkIjkVector) -> f32 {
         self.partial_chunks[chunk_idx.i]
             .get(chunk_idx.to_jk_vector())
             .start_radius()
     }
+    #[must_use]
     pub fn chunk_end_radius(&self, chunk_idx: ChunkIjkVector) -> f32 {
         self.partial_chunks[chunk_idx.i]
             .get(chunk_idx.to_jk_vector())
             .end_radius()
     }
+    #[must_use]
     pub fn chunk_start_theta(&self, chunk_idx: ChunkIjkVector) -> f32 {
         self.partial_chunks[chunk_idx.i]
             .get(chunk_idx.to_jk_vector())
             .start_theta()
     }
+    #[must_use]
     pub fn chunk_end_theta(&self, chunk_idx: ChunkIjkVector) -> f32 {
         self.partial_chunks[chunk_idx.i]
             .get(chunk_idx.to_jk_vector())
             .end_theta()
     }
+    #[must_use]
     pub fn chunk_num_radial_lines(&self, chunk_idx: ChunkIjkVector) -> usize {
         self.partial_chunks[chunk_idx.i]
             .get(chunk_idx.to_jk_vector())
             .num_radial_lines()
     }
+    #[must_use]
     pub fn chunk_num_concentric_circles(&self, chunk_idx: ChunkIjkVector) -> usize {
         self.partial_chunks[chunk_idx.i]
             .get(chunk_idx.to_jk_vector())
@@ -298,7 +315,8 @@ impl CoordinateDir {
  * Shape Conversion Functions
  * ============================ */
 impl CoordinateDir {
-    /// Returns: (layer_num, relative_concentric_circle)
+    /// Returns: (`layer_num`, `relative_concentric_circle`)
+    #[must_use]
     pub fn convert_absolute_concentric_circle_to_relative(
         &self,
         concentric_circle: usize,
@@ -326,6 +344,7 @@ impl CoordinateDir {
  * ================= */
 impl CoordinateDir {
     /// The first concentric circle (absolute) index of a given layer
+    #[must_use]
     pub fn layer_start_concentric_circle_absolute(&self, layer_num: usize) -> usize {
         self.partial_chunks[layer_num]
             .get(JkVector::ZERO)
@@ -333,6 +352,7 @@ impl CoordinateDir {
     }
 
     /// Get the height of all the chunks in a given layer
+    #[must_use]
     pub fn layer_chunk_num_concentric_circles(&self, layer_num: usize) -> usize {
         self.partial_chunks[layer_num]
             .get(JkVector::ZERO)
@@ -340,6 +360,7 @@ impl CoordinateDir {
     }
 
     /// Get the widtch of all the chunks in a given layer
+    #[must_use]
     pub fn layer_chunk_num_radial_lines(&self, layer_num: usize) -> usize {
         self.partial_chunks[layer_num]
             .get(JkVector::ZERO)
@@ -354,15 +375,18 @@ impl CoordinateDir {
  * ================== */
 impl CoordinateDir {
     /// Get the number of chunks around the circle in a given layer
+    #[must_use]
     pub fn layer_num_tangential_chunkss(&self, layer_num: usize) -> usize {
         self.partial_chunks[layer_num].width()
     }
     /// Get the number of chunks in the radial dimension in a given layer
+    #[must_use]
     pub fn layer_num_concentric_chunks(&self, layer_num: usize) -> usize {
         self.partial_chunks[layer_num].height()
     }
     /// Gets the total number of chunks you would encounter if you counted
     /// from the core up to the top layer in one dimension
+    #[must_use]
     pub fn total_number_concentric_chunks(&self) -> usize {
         let mut total = 0;
         for layer in &self.partial_chunks {
@@ -373,7 +397,7 @@ impl CoordinateDir {
 
     /// Useful if you want to count in chunk concentric circles and get a layer number
     /// In this case the j is the concentric circle index
-    /// Returns (layer_num, chunk_layer_concentric_circle)
+    /// Returns (`layer_num`, `chunk_layer_concentric_circle`)
     pub fn layer_and_chunk_num_from_absolute_concentric_chunk(
         &self,
         j_chunk: usize,
@@ -399,6 +423,7 @@ impl CoordinateDir {
  * ======================================== */
 impl CoordinateDir {
     /// The total number of cells in the whole directory
+    #[must_use]
     pub fn total_size(&self) -> usize {
         let mut total_size = 0;
         for partial_chunk in &self.partial_chunks {
@@ -407,23 +432,28 @@ impl CoordinateDir {
         total_size
     }
     /// Cell radius is constant for all chunks
+    #[must_use]
     pub fn cell_width(&self) -> Length {
         self.core_chunks().get(JkVector::ZERO).cell_width()
     }
     /// The number of layers in the circle
+    #[must_use]
     pub fn num_layers(&self) -> usize {
         self.partial_chunks.len()
     }
     /// Get the core chunk coordinates, useful for getting its shape
+    #[must_use]
     pub fn core_chunks(&self) -> &Grid<ChunkCoords> {
         &self.partial_chunks[0]
     }
     /// Useful for getting all the partial chunks, useful for getting their shapes
+    #[must_use]
     pub fn partial_chunks(&self, _layer_num: usize) -> &Vec<Grid<ChunkCoords>> {
         &self.partial_chunks
     }
     /// The number of concentric circles in a given layer
     /// Always 2x the previous layer except for the first and second layers
+    #[must_use]
     pub fn layer_num_concentric_circles(&self, layer_num: usize) -> usize {
         let mut total_height = 0;
         for j in 0..self.partial_chunks[layer_num].height() {
@@ -435,6 +465,7 @@ impl CoordinateDir {
     }
     /// The number of radial lines in a given layer
     /// Always 2x the previous layer except for the first layer
+    #[must_use]
     pub fn layer_num_radial_lines(&self, layer_num: usize) -> usize {
         let mut total_width = 0;
         for k in 0..self.partial_chunks[layer_num].width() {
@@ -445,6 +476,7 @@ impl CoordinateDir {
         total_width
     }
     /// The total number of chunks in the directory
+    #[must_use]
     pub fn num_chunks(&self) -> usize {
         let mut out = 0;
         for layer in &self.partial_chunks {
@@ -454,6 +486,7 @@ impl CoordinateDir {
     }
 
     /// Gets the starting radius of an entire layer
+    #[must_use]
     pub fn layer_start_radius(&self, layer_num: usize) -> f32 {
         self.partial_chunks[layer_num]
             .get(JkVector { j: 0, k: 0 })
@@ -461,6 +494,7 @@ impl CoordinateDir {
     }
 
     /// Gets the ending radius of an entire layer
+    #[must_use]
     pub fn layer_end_radius(&self, layer_num: usize) -> f32 {
         self.partial_chunks[layer_num]
             .get(JkVector {
@@ -471,6 +505,7 @@ impl CoordinateDir {
     }
 
     /// Gets the radius of the entire coordinate directory
+    #[must_use]
     pub fn radius(&self) -> Radius {
         Radius(self.layer_end_radius(self.num_layers() - 1))
     }
@@ -533,6 +568,7 @@ impl CoordinateDir {
         }
     }
 
+    #[must_use]
     pub fn cell_idx_to_chunk_idx(&self, cell_idx: IjkVector) -> (ChunkIjkVector, JkVector) {
         let chunk_layer_num_concentric_circles =
             self.layer_chunk_num_concentric_circles(cell_idx.i);
@@ -584,7 +620,7 @@ mod tests {
         };
     }
 
-    /// Needed these when I noticed get_layer_num_from_absolute_chunk_concentric_circle was wrong
+    /// Needed these when I noticed `get_layer_num_from_absolute_chunk_concentric_circle` was wrong
     mod test_concentric_circles_conversions {
         use super::*;
 
@@ -750,7 +786,7 @@ mod tests {
             use super::*;
 
             /// Iterate around the circle in every direction, targetting each cells midpoint, and make sure
-            /// the cell index is correct returned by rel_pos_to_cell_idx
+            /// the cell index is correct returned by `rel_pos_to_cell_idx`
             #[test]
             fn test_rel_pos_to_cell_idx() {
                 let coordinate_dir = Builder::new()
@@ -779,11 +815,7 @@ mod tests {
                     assert_eq!(
                         cell_idx,
                         IjkVector { i, j, k },
-                        "k: {}, radius: {}, theta: {}, xycoord: {:?}",
-                        k,
-                        radius,
-                        theta,
-                        xycoord
+                        "k: {k}, radius: {radius}, theta: {theta}, xycoord: {xycoord:?}"
                     );
 
                     // now test that the chunks own rel_pos_to_cell_idx returns the same thing

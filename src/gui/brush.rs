@@ -58,7 +58,7 @@ impl Plugin for BrushPlugin {
 
 /// Startup functions
 /// These are not systems, rather are written as function to be applied
-/// to the GuiUnifiedPlugin
+/// to the `GuiUnifiedPlugin`
 impl BrushPlugin {
     /// Create the brush
     pub fn create_brush(commands: &mut Commands, camera: Entity) -> Entity {
@@ -112,7 +112,7 @@ impl BrushPlugin {
         keys: Res<ButtonInput<KeyCode>>,
         mut query: Query<&mut Radius, With<BrushComponent>>,
     ) {
-        for mut brush_radius in query.iter_mut() {
+        for mut brush_radius in &mut query {
             if keys.just_pressed(KeyCode::Equal) {
                 brush_radius.0 *= 2.0;
             }

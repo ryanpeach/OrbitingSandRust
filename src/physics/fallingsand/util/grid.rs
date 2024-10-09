@@ -24,10 +24,12 @@ impl<T> Grid<T> {
         Self(ndarray::Array2::from_elem((width, height), value))
     }
     /// Create a new grid with the given width and height, and fill it with the given data
+    #[must_use]
     pub fn new_from_vec(width: usize, height: usize, data: Vec<T>) -> Self {
         Self(ndarray::Array2::from_shape_vec((width, height), data).unwrap())
     }
     /// Create a new grid with the given width and height, and fill it with default values
+    #[must_use]
     pub fn new_empty(width: usize, height: usize) -> Self
     where
         T: Default,
@@ -46,22 +48,27 @@ impl<T> Grid<T> {
  * ====================================== */
 impl<T> Grid<T> {
     /// Get the width of the grid
+    #[must_use]
     pub fn width(&self) -> usize {
         self.0.shape()[0]
     }
     /// Get the height of the grid
+    #[must_use]
     pub fn height(&self) -> usize {
         self.0.shape()[1]
     }
     /// Get the total size of the grid
+    #[must_use]
     pub fn total_size(&self) -> usize {
         self.0.len()
     }
     /// Get the data as a slice
+    #[must_use]
     pub fn data_slice(&self) -> &[T] {
         self.0.as_slice().unwrap()
     }
     /// Get the data as an ndarray
+    #[must_use]
     pub fn data(&self) -> &ndarray::Array2<T> {
         &self.0
     }
@@ -79,6 +86,7 @@ pub struct GridOutOfBoundsError(pub JkVector);
 /// Access data using JK coordinates, which are height and width respectively
 impl<T> Grid<T> {
     /// Gets the value at the given coordinate
+    #[must_use]
     pub fn get(&self, idx: JkVector) -> &T {
         let idx = self.transform_jk_coord_to_ndarray(idx);
         &self.0[idx]
@@ -142,6 +150,7 @@ impl<'a, T> IntoIterator for &'a mut Grid<T> {
 }
 
 /// Where filter is true, get the textures
+#[must_use]
 pub fn filter_vecgrid<T>(grid: &[Grid<T>], filter: &[Grid<bool>]) -> Vec<Grid<T>>
 where
     T: Default + Clone,
@@ -185,7 +194,7 @@ mod tests {
     fn test_iter_mut() {
         let mut grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]);
 
-        for val in grid.iter_mut() {
+        for val in &mut grid {
             *val *= 2;
         }
 

@@ -1,25 +1,29 @@
 use bevy::math::Vec2;
 
 /// A modulo that works for negative numbers
+#[must_use]
 pub fn modulo(x: isize, y: usize) -> usize {
     let y_isize = y as isize;
     (((x % y_isize) + y_isize) % y_isize) as usize
 }
 
 /// Tests if a number is a power of 2
-/// I found it's important that some values are powers of two in order to enable grid_iter to work
+/// I found it's important that some values are powers of two in order to enable `grid_iter` to work
+#[must_use]
 pub fn is_pow_2(n: usize) -> bool {
     n != 0 && (n & (n - 1)) == 0
 }
 
-/// Tests if a step is valid for a grid_iter
+/// Tests if a step is valid for a `grid_iter`
 /// A valid step is 1, len - 1, or a factor of len - 1
 /// We convert things less than 1 to 1, or things greater than len - 1 to len - 1
+#[must_use]
 pub fn valid_step(len: usize, step: usize) -> bool {
     step <= 1 || step >= len - 1 || (len - 1) % step == 0
 }
 
 /// Finds a point halfway between two points
+#[must_use]
 pub fn interpolate_points(p1: &Vec2, p2: &Vec2) -> Vec2 {
     Vec2::new((p1.x + p2.x) * 0.5, (p1.y + p2.y) * 0.5)
 }
@@ -27,6 +31,7 @@ pub fn interpolate_points(p1: &Vec2, p2: &Vec2) -> Vec2 {
 /// This is like the "skip" method but it always keeps the first and last item
 /// If it is larger than the number of items, it will just return the first and last item
 /// If the step is not a multiple of the number of items, it will round down to the previous multiple
+#[must_use]
 pub fn grid_iter(start: usize, end: usize, step: usize) -> Vec<usize> {
     let len = end - start;
     if len <= 1 {
@@ -40,9 +45,7 @@ pub fn grid_iter(start: usize, end: usize, step: usize) -> Vec<usize> {
 
     debug_assert!(
         valid_step(len, step),
-        "Step should be 1, len - 1, or a factor of len - 1. len: {}, step: {}",
-        len,
-        step
+        "Step should be 1, len - 1, or a factor of len - 1. len: {len}, step: {step}"
     );
 
     let start_item = start;
