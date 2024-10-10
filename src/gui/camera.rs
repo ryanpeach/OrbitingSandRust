@@ -30,6 +30,8 @@ use crate::{
     entities::celestials::celestial::ChunkIdk, physics::fallingsand::util::mesh::MeshBoundingBox,
 };
 
+use conv::ValueFrom;
+
 /// Used to help identify our main camera
 #[derive(Component)]
 pub struct MainCamera;
@@ -91,7 +93,7 @@ impl CelestialIdx {
             // Check that the indices start at 0 and end at len - 1
             let indices = indices.into_iter();
             for (idx, i) in indices.enumerate() {
-                assert_eq!(i, idx as u32);
+                assert_eq!(i as usize, idx);
             }
         }
         let parent = camera.0;
@@ -106,7 +108,7 @@ impl CelestialIdx {
     #[must_use]
     pub fn next(&self, celestials: Vec<&CelestialIdx>) -> CelestialIdx {
         let mut idx = self.0 + 1;
-        if idx >= celestials.len() as u32 {
+        if idx as usize >= celestials.len() {
             idx = 0;
         }
         CelestialIdx(idx)
@@ -115,11 +117,13 @@ impl CelestialIdx {
     /// Gets the previous index
     #[must_use]
     pub fn prev(&self, celestials: Vec<&CelestialIdx>) -> CelestialIdx {
-        let mut idx = self.0 as i32 - 1;
-        if idx < 0 {
-            idx = celestials.len() as i32 - 1;
+        if self.0 == 0 {
+            CelestialIdx(
+                u32::value_from(celestials.len() - 1).expect("Shouldn't be that many celestials"),
+            )
+        } else {
+            CelestialIdx(self.0 - 1)
         }
-        CelestialIdx(idx as u32)
     }
 }
 

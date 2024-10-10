@@ -157,7 +157,11 @@ impl ElementGridConvolutionNeighbors {
 
         // Handle error cases where you go beyond the chunk below you
         let b_concentric_circles = self.grids.bottom.num_concentric_circles();
-        if (pos.j as isize - n as isize + b_concentric_circles as isize) < 0 {
+        if (isize::value_from(pos.j).expect("32bit compilation disabled.")
+            - isize::value_from(n).expect("32bit compilation disabled.")
+            + isize::value_from(b_concentric_circles).expect("32bit compilation disabled."))
+            < 0
+        {
             return Err(ConvOutOfBoundsError(ConvolutionIdx(
                 JkVector { j: pos.j, k: pos.k },
                 ConvolutionIdentifier::Center,
@@ -227,26 +231,27 @@ impl ElementGridConvolutionNeighbors {
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
         // In the left right direction, unlike up down, every chunk has the same number of radial lines
         let radial_lines = target_chunk.coords().num_radial_lines();
-
+        let radial_lines_i = isize::value_from(radial_lines).expect("32bit compilation disabled.");
+        let pos_k = isize::value_from(pos.k).expect("32bit compilation disabled");
         // You should not be doing any loops that might make you re-target yourself
-        if rk.abs() >= radial_lines as isize {
+        if rk.abs() >= radial_lines_i {
             return Err(ConvOutOfBoundsError(ConvolutionIdx(
                 JkVector {
                     j: pos.j,
-                    k: modulo(pos.k as isize + rk, radial_lines),
+                    k: modulo(pos_k + rk, radial_lines),
                 },
                 ConvolutionIdentifier::Center,
             )));
         }
 
-        let new_k = modulo(pos.k as isize + rk, radial_lines);
+        let new_k = modulo(pos_k + rk, radial_lines);
 
-        if pos.k as isize + rk >= radial_lines as isize {
+        if pos_k + rk >= radial_lines_i {
             Ok(ConvolutionIdx(
                 JkVector { j: pos.j, k: new_k },
                 ConvolutionIdentifier::LR(LeftRightNeighborIdentifier::Left),
             ))
-        } else if pos.k as isize + rk < 0 {
+        } else if pos_k + rk < 0 {
             Ok(ConvolutionIdx(
                 JkVector { j: pos.j, k: new_k },
                 ConvolutionIdentifier::LR(LeftRightNeighborIdentifier::Right),

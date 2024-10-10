@@ -1,7 +1,7 @@
 #![expect(missing_docs)]
 //! The directory contains all the chunks of a celestial.
 
-use std::f32::consts::PI;
+use std::f64::consts::PI;
 
 use crate::entities::components::Radius;
 use crate::physics::fallingsand::util::grid::Grid;
@@ -10,7 +10,7 @@ use crate::physics::orbits::components::Length;
 use crate::physics::util::fastmath::FastVecGet;
 use crate::physics::util::vectors::RelXyPoint;
 use bevy::math::Rect;
-use conv::ValueFrom;
+use conv::{ApproxFrom, ConvAsUtil, ValueFrom};
 
 use super::chunk_coords::ChunkCoords;
 use super::chunk_coords::PartialLayerChunkCoordsBuilder;
@@ -565,18 +565,24 @@ impl CoordinateDir {
 
         // Get the concentric circle we are on
         let circle_separation_distance =
-            (ending_r - starting_r) / ith_num_concentric_circles as f32;
+            (ending_r - starting_r) as f64 / ith_num_concentric_circles as f64;
 
         // Calculate 'j' directly without the while loop
-        let j_rel = ((norm_vertex_coord - starting_r) / circle_separation_distance).floor() as u32;
+        let j_rel: u32 = ((norm_vertex_coord - starting_r) as f64 / circle_separation_distance)
+            .floor()
+            .approx()
+            .expect("j_rel is not bigger than the j dimension of a chunk");
         let j = j_rel.min(ith_num_concentric_circles - 1);
 
         // Get the radial line to the left of the vertex
-        let angle = (xy_coord.0.y.atan2(xy_coord.0.x) + 2.0 * PI) % (2.0 * PI);
-        let theta = 2.0 * PI / ith_num_radial_lines as f32;
+        let angle = ((xy_coord.0.y as f64).atan2(xy_coord.0.x as f64) + 2.0 * PI) % (2.0 * PI);
+        let theta = 2.0 * PI / ith_num_radial_lines as f64;
 
         // Calculate 'k' directly without the while loop
-        let k_rel = (angle / theta).floor() as u32;
+        let k_rel: u32 = (angle / theta)
+            .floor()
+            .approx()
+            .expect("k_rel is not bigger than the k dimension of a chunk");
         let k = k_rel.min(ith_num_radial_lines - 1);
 
         // Later discovered that k is inverted
@@ -639,7 +645,7 @@ mod tests {
         };
         ($a:expr, $b:expr, $epsilon:expr) => {
             assert!(
-                ($a - $b).abs() < $epsilon,
+                ($a - $b as f32).abs() < $epsilon,
                 "assertion failed: `(left approx== right)`\n  left: `{}`,\n right: `{}`",
                 $a,
                 $b
@@ -832,11 +838,11 @@ mod tests {
                 for k in 0..num_radial_lines {
                     let chunk_k = k / core_chunks.get(JkVector::ZERO).num_radial_lines();
                     // This radius and theta should define the midpoint of each cell
-                    let radius = coordinate_dir.cell_width().0 / 2.0;
-                    let theta = -2.0 * PI / num_radial_lines as f32 * (k as f32 + 0.5);
+                    let radius = coordinate_dir.cell_width().0 as f64 / 2.0;
+                    let theta = -2.0 * PI / num_radial_lines as f64 * (k as f64 + 0.5);
                     let xycoord = RelXyPoint(Vec2 {
-                        x: radius * theta.cos(),
-                        y: radius * theta.sin(),
+                        x: (radius * theta.cos()).approx().unwrap(),
+                        y: (radius * theta.sin()).approx().unwrap(),
                     });
                     let cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
                     assert_eq!(
@@ -870,15 +876,15 @@ mod tests {
                     for j in 0..num_concentric_circles {
                         for k in 0..num_radial_lines {
                             // This radius and theta should define the midpoint of each cell
-                            let radius = coordinate_dir.layer_start_radius(i)
-                                + (coordinate_dir.layer_end_radius(i)
-                                    - coordinate_dir.layer_start_radius(i))
-                                    / num_concentric_circles as f32
-                                    * (j as f32 + 0.5);
-                            let theta = -2.0 * PI / num_radial_lines as f32 * (k as f32 + 0.5);
+                            let radius: f64 = coordinate_dir.layer_start_radius(i) as f64
+                                + (coordinate_dir.layer_end_radius(i) as f64
+                                    - coordinate_dir.layer_start_radius(i) as f64)
+                                    / num_concentric_circles as f64
+                                    * (j as f64 + 0.5);
+                            let theta = -2.0 * PI / num_radial_lines as f64 * (k as f64 + 0.5);
                             let xycoord = RelXyPoint(Vec2 {
-                                x: radius * theta.cos(),
-                                y: radius * theta.sin(),
+                                x: (radius * theta.cos()).approx().unwrap(),
+                                y: (radius * theta.sin()).approx().unwrap(),
                             });
                             let cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
                             assert_eq!(cell_idx, IjkVector { i, j, k });
@@ -998,7 +1004,7 @@ mod tests {
         assert_eq!(coordinate_dir.chunk_end_radius(ChunkIjkVector::ZERO), 1.0);
         assert_eq!(coordinate_dir.chunk_start_theta(ChunkIjkVector::ZERO), 0.0);
         assert_eq!(
-            coordinate_dir.chunk_end_theta(ChunkIjkVector::ZERO),
+            coordinate_dir.chunk_end_theta(ChunkIjkVector::ZERO) as f64,
             2.0 * PI / 3.0
         );
 
@@ -1013,7 +1019,10 @@ mod tests {
         assert_eq!(coordinate_dir.chunk_start_radius(layer1), 1.0);
         assert_eq!(coordinate_dir.chunk_end_radius(layer1), 4.0);
         assert_eq!(coordinate_dir.chunk_start_theta(layer1), 0.0);
-        assert_eq!(coordinate_dir.chunk_end_theta(layer1), 2.0 * PI / 3.0);
+        assert_eq!(
+            coordinate_dir.chunk_end_theta(layer1) as f64,
+            2.0 * PI / 3.0
+        );
 
         // Layer 2
         let layer2 = ChunkIjkVector { i: 2, j: 0, k: 0 };
@@ -1024,7 +1033,10 @@ mod tests {
         assert_eq!(coordinate_dir.chunk_start_radius(layer2), 4.0);
         assert_eq!(coordinate_dir.chunk_end_radius(layer2), 10.0);
         assert_eq!(coordinate_dir.chunk_start_theta(layer2), 0.0);
-        assert_eq!(coordinate_dir.chunk_end_theta(layer2), 2.0 * PI / 3.0);
+        assert_eq!(
+            coordinate_dir.chunk_end_theta(layer2) as f64,
+            2.0 * PI / 3.0
+        );
 
         // Layer 3
         let layer3 = ChunkIjkVector { i: 3, j: 0, k: 0 };
@@ -1035,7 +1047,10 @@ mod tests {
         assert_eq!(coordinate_dir.chunk_start_radius(layer3), 10.0);
         assert_eq!(coordinate_dir.chunk_end_radius(layer3), 14.0);
         assert_eq!(coordinate_dir.chunk_start_theta(layer3), 0.0);
-        assert_eq!(coordinate_dir.chunk_end_theta(layer3), 2.0 * PI / 3.0);
+        assert_eq!(
+            coordinate_dir.chunk_end_theta(layer3) as f64,
+            2.0 * PI / 3.0
+        );
 
         // Layer 4
         let layer4 = ChunkIjkVector { i: 4, j: 0, k: 0 };
@@ -1046,7 +1061,10 @@ mod tests {
         assert_eq!(coordinate_dir.chunk_start_radius(layer4), 22.0);
         assert_eq!(coordinate_dir.chunk_end_radius(layer4), 30.0);
         assert_eq!(coordinate_dir.chunk_start_theta(layer4), 0.0);
-        assert_eq!(coordinate_dir.chunk_end_theta(layer4), 2.0 * PI / 6.0);
+        assert_eq!(
+            coordinate_dir.chunk_end_theta(layer4) as f64,
+            2.0 * PI / 6.0
+        );
 
         // Layer 5
         let layer5 = ChunkIjkVector { i: 5, j: 0, k: 0 };

@@ -70,7 +70,7 @@ impl<T> FastVecGet<T> for Vec<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use crate::FastVecGet;
+    /// use orbiting_sand::physics::util::fastmath::FastVecGet;
     ///
     /// let vec = vec![10, 20, 30];
     /// let value_ref = vec.fast_get_ref(1);
@@ -112,7 +112,7 @@ impl<T> FastVecGet<T> for Vec<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use crate::FastVecGet;
+    /// use orbiting_sand::physics::util::fastmath::FastVecGet;
     ///
     /// let vec = vec![10, 20, 30];
     /// let value_ref = vec.fast_get_ref(1);
@@ -154,7 +154,7 @@ impl<T> FastVecGet<T> for Vec<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use crate::FastVecGet;
+    /// use orbiting_sand::physics::util::fastmath::FastVecGet;
     ///
     /// let vec = vec![10, 20, 30];
     /// let value = vec.fast_get_copy(1);
@@ -250,7 +250,7 @@ impl<T> FastArray2Get<T> for Array2<T> {
     ///
     /// ```rust
     /// use ndarray::array;
-    /// use crate::FastArray2Get;
+    /// use orbiting_sand::physics::util::fastmath::FastArray2Get;
     ///
     /// let array = array![[1, 2, 3], [4, 5, 6]];
     /// let value_ref = array.fast_get_ref([0, 1]);
@@ -295,7 +295,7 @@ impl<T> FastArray2Get<T> for Array2<T> {
     ///
     /// ```rust
     /// use ndarray::array;
-    /// use crate::FastArray2Get;
+    /// use orbiting_sand::physics::util::fastmath::FastArray2Get;
     ///
     /// let mut array = array![[1, 2, 3], [4, 5, 6]];
     /// let value_mut_ref = array.fast_get_mut_ref([1, 0]);
@@ -338,7 +338,7 @@ impl<T> FastArray2Get<T> for Array2<T> {
     ///
     /// ```rust
     /// use ndarray::array;
-    /// use crate::FastArray2Get;
+    /// use orbiting_sand::physics::util::fastmath::FastArray2Get;
     ///
     /// let array = array![[1, 2, 3], [4, 5, 6]];
     /// let value = array.fast_get_copy([0, 2]);
@@ -440,7 +440,7 @@ impl<T, const N: usize> FastArrayGet<T, N> for [T; N] {
     /// # Examples
     ///
     /// ```rust
-    /// use crate::FastArrayGet;
+    /// use orbiting_sand::physics::util::fastmath::FastArrayGet;
     ///
     /// let array = [10, 20, 30, 40, 50, 60, 70, 80, 90];
     /// let value_ref = array.fast_get_ref(3);
@@ -483,7 +483,7 @@ impl<T, const N: usize> FastArrayGet<T, N> for [T; N] {
     /// # Examples
     ///
     /// ```rust
-    /// use crate::FastArrayGet;
+    /// use orbiting_sand::physics::util::fastmath::FastArrayGet;
     ///
     /// let mut array = [10, 20, 30, 40, 50, 60, 70, 80, 90];
     /// let value_mut_ref = array.fast_get_mut_ref(2);
@@ -524,7 +524,7 @@ impl<T, const N: usize> FastArrayGet<T, N> for [T; N] {
     /// # Examples
     ///
     /// ```rust
-    /// use crate::FastArrayGet;
+    /// use orbiting_sand::physics::util::fastmath::FastArrayGet;
     ///
     /// let array = [10, 20, 30, 40, 50, 60, 70, 80, 90];
     /// let value = array.fast_get_copy(7);

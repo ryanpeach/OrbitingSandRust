@@ -375,13 +375,19 @@ impl ElementGridDir {
         let left = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
-            k: modulo(coord.k as isize + 1, num_tangential_chunkss),
+            k: modulo(
+                isize::value_from(coord.k).expect("32bit compilation disabled.") + 1,
+                num_tangential_chunkss,
+            ),
         };
         debug_assert_ne!(left, coord);
         let right = ChunkIjkVector {
             i: coord.i,
             j: coord.j,
-            k: modulo(coord.k as isize - 1, num_tangential_chunkss),
+            k: modulo(
+                isize::value_from(coord.k).expect("32bit compilation disabled.") - 1,
+                num_tangential_chunkss,
+            ),
         };
         debug_assert_ne!(right, coord);
         debug_assert_ne!(left, right);
@@ -394,7 +400,7 @@ impl ElementGridDir {
         let bottom_layer = 0u32;
         let tangential_chunkss = |i: u32| self.coords.layer_num_tangential_chunkss(i);
         let top_chunk_in_prev_layer = |i: u32| self.coords.layer_num_concentric_chunks(i - 1) - 1;
-        let k_isize = coord.k as isize;
+        let k_isize = isize::value_from(coord.k).expect("32bit compilation disabled.");
 
         let make_vector = |i: u32, j: u32, k: isize| -> ChunkIjkVector {
             ChunkIjkVector {
@@ -1143,11 +1149,21 @@ mod tests {
         }
 
         fn next_targets(this: &mut ElementGridDir) -> HashSet<ChunkIjkVector> {
-            let out1 = this.process_targets.standard_convolution[this.process_count % 9].clone();
-            let out2 =
-                this.process_targets.has_single_bottom_neighbor[this.process_count % 9].clone();
-            let out3 =
-                this.process_targets.has_multi_bottom_neighbor[this.process_count % 9].clone();
+            let out1 = this
+                .process_targets
+                .standard_convolution
+                .fast_get_ref(this.process_count % 9)
+                .clone();
+            let out2 = this
+                .process_targets
+                .has_single_bottom_neighbor
+                .fast_get_ref(this.process_count % 9)
+                .clone();
+            let out3 = this
+                .process_targets
+                .has_multi_bottom_neighbor
+                .fast_get_ref(this.process_count % 9)
+                .clone();
             this.process_count += 1;
             out1.0.into_iter().chain(out2.0).chain(out3.0).collect()
         }
@@ -1174,7 +1190,7 @@ mod tests {
             }
             assert_eq!(
                 all_targets.len(),
-                element_grid_dir.coords.num_chunks(),
+                element_grid_dir.coords.num_chunks() as usize,
                 "{:?}",
                 full_coverage.difference(&all_targets)
             );
@@ -1252,7 +1268,9 @@ mod tests {
                     let conv = element_grid_dir
                         .package_coordinate_neighbors(*chunk_coord)
                         .unwrap();
-                    let chunk = element_grid_dir.chunks[chunk_coord.i]
+                    let chunk = element_grid_dir
+                        .chunks
+                        .fast_get_mut_ref(chunk_coord.i)
                         .replace(chunk_coord.to_jk_vector(), None)
                         .unwrap();
                     element_grid_dir.unpackage_convolution(chunk, conv);

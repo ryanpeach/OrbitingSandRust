@@ -6,9 +6,9 @@ use conv::ValueFrom;
 /// A modulo that works for negative numbers
 #[must_use]
 pub fn modulo(x: isize, y: u32) -> u32 {
-    let y_isize =
-        isize::value_from(y).expect("u32 should fit in isize, except at VERY large values");
-    (((x % y_isize) + y_isize) % y_isize) as u32
+    let y_isize = isize::value_from(y).expect("u32 should always fit in isize on a 64-bit system.");
+    u32::value_from(((x % y_isize) + y_isize) % y_isize)
+        .expect("Since y is a u32, this will always fit in a u32")
 }
 
 /// Tests if a number is a power of 2

@@ -5,6 +5,7 @@
 use bevy::{color::Color, math::Vec2};
 
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
+use conv::ValueFrom;
 use derive_more::{Add, AddAssign, Sub, SubAssign};
 
 /// A coordinate system for  [`ndarray`]
@@ -151,8 +152,8 @@ impl TempJkVector {
     #[must_use]
     pub fn add(pos: &JkVector, rel: &RelJkVector) -> Self {
         Self {
-            j: pos.j as isize + rel.rj,
-            k: pos.k as isize + rel.rk,
+            j: isize::value_from(pos.j).expect("32bit compilation disabled.") + rel.rj,
+            k: isize::value_from(pos.k).expect("32bit compilation disabled.") + rel.rk,
         }
     }
 }
