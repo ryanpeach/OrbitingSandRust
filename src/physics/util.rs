@@ -2,4 +2,5 @@
 //! to make them game engine agnostic.
 
 pub mod clock;
+pub mod fastmath;
 pub mod vectors;
