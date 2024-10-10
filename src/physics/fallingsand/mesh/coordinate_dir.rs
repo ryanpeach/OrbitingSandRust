@@ -7,7 +7,6 @@ use crate::entities::components::Radius;
 use crate::physics::fallingsand::util::grid::Grid;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use crate::physics::orbits::components::Length;
-use crate::physics::util::fastmath::FastVecGet;
 use crate::physics::util::vectors::RelXyPoint;
 use bevy::math::Rect;
 use conv::{ConvAsUtil, ValueFrom};
@@ -267,57 +266,47 @@ impl Builder {
 impl CoordinateDir {
     #[must_use]
     pub fn chunk_at_idx(&self, chunk_idx: ChunkIjkVector) -> ChunkCoords {
-        *self
-            .partial_chunks
-            .fast_get_ref(chunk_idx.i)
-            .get(chunk_idx.to_jk_vector())
+        *self.partial_chunks[(chunk_idx.i) as usize].get(chunk_idx.to_jk_vector())
     }
     #[must_use]
     pub fn chunk_bounding_box(&self, chunk_idx: ChunkIjkVector) -> Rect {
-        self.partial_chunks
-            .fast_get_ref(chunk_idx.i)
+        self.partial_chunks[(chunk_idx.i) as usize]
             .get(chunk_idx.to_jk_vector())
             .bounding_box()
     }
     #[must_use]
     pub fn chunk_start_radius(&self, chunk_idx: ChunkIjkVector) -> f32 {
-        self.partial_chunks
-            .fast_get_ref(chunk_idx.i)
+        self.partial_chunks[(chunk_idx.i) as usize]
             .get(chunk_idx.to_jk_vector())
             .start_radius()
     }
     #[must_use]
     pub fn chunk_end_radius(&self, chunk_idx: ChunkIjkVector) -> f32 {
-        self.partial_chunks
-            .fast_get_ref(chunk_idx.i)
+        self.partial_chunks[(chunk_idx.i) as usize]
             .get(chunk_idx.to_jk_vector())
             .end_radius()
     }
     #[must_use]
     pub fn chunk_start_theta(&self, chunk_idx: ChunkIjkVector) -> f32 {
-        self.partial_chunks
-            .fast_get_ref(chunk_idx.i)
+        self.partial_chunks[(chunk_idx.i) as usize]
             .get(chunk_idx.to_jk_vector())
             .start_theta()
     }
     #[must_use]
     pub fn chunk_end_theta(&self, chunk_idx: ChunkIjkVector) -> f32 {
-        self.partial_chunks
-            .fast_get_ref(chunk_idx.i)
+        self.partial_chunks[(chunk_idx.i) as usize]
             .get(chunk_idx.to_jk_vector())
             .end_theta()
     }
     #[must_use]
     pub fn chunk_num_radial_lines(&self, chunk_idx: ChunkIjkVector) -> u32 {
-        self.partial_chunks
-            .fast_get_ref(chunk_idx.i)
+        self.partial_chunks[(chunk_idx.i) as usize]
             .get(chunk_idx.to_jk_vector())
             .num_radial_lines()
     }
     #[must_use]
     pub fn chunk_num_concentric_circles(&self, chunk_idx: ChunkIjkVector) -> u32 {
-        self.partial_chunks
-            .fast_get_ref(chunk_idx.i)
+        self.partial_chunks[(chunk_idx.i) as usize]
             .get(chunk_idx.to_jk_vector())
             .num_concentric_circles()
     }
@@ -358,8 +347,7 @@ impl CoordinateDir {
     /// The first concentric circle (absolute) index of a given layer
     #[must_use]
     pub fn layer_start_concentric_circle_absolute(&self, layer_num: u32) -> u32 {
-        self.partial_chunks
-            .fast_get_ref(layer_num)
+        self.partial_chunks[(layer_num) as usize]
             .get(JkVector::ZERO)
             .start_concentric_circle_absolute()
     }
@@ -367,8 +355,7 @@ impl CoordinateDir {
     /// Get the height of all the chunks in a given layer
     #[must_use]
     pub fn layer_chunk_num_concentric_circles(&self, layer_num: u32) -> u32 {
-        self.partial_chunks
-            .fast_get_ref(layer_num)
+        self.partial_chunks[(layer_num) as usize]
             .get(JkVector::ZERO)
             .num_concentric_circles()
     }
@@ -376,8 +363,7 @@ impl CoordinateDir {
     /// Get the widtch of all the chunks in a given layer
     #[must_use]
     pub fn layer_chunk_num_radial_lines(&self, layer_num: u32) -> u32 {
-        self.partial_chunks
-            .fast_get_ref(layer_num)
+        self.partial_chunks[(layer_num) as usize]
             .get(JkVector::ZERO)
             .num_radial_lines()
     }
@@ -392,12 +378,12 @@ impl CoordinateDir {
     /// Get the number of chunks around the circle in a given layer
     #[must_use]
     pub fn layer_num_tangential_chunkss(&self, layer_num: u32) -> u32 {
-        self.partial_chunks.fast_get_ref(layer_num).width()
+        self.partial_chunks[(layer_num) as usize].width()
     }
     /// Get the number of chunks in the radial dimension in a given layer
     #[must_use]
     pub fn layer_num_concentric_chunks(&self, layer_num: u32) -> u32 {
-        self.partial_chunks.fast_get_ref(layer_num).height()
+        self.partial_chunks[(layer_num) as usize].height()
     }
     /// Gets the total number of chunks you would encounter if you counted
     /// from the core up to the top layer in one dimension
@@ -472,10 +458,8 @@ impl CoordinateDir {
     #[must_use]
     pub fn layer_num_concentric_circles(&self, layer_num: u32) -> u32 {
         let mut total_height = 0;
-        for j in 0..self.partial_chunks.fast_get_ref(layer_num).height() {
-            total_height += self
-                .partial_chunks
-                .fast_get_ref(layer_num)
+        for j in 0..self.partial_chunks[(layer_num) as usize].height() {
+            total_height += self.partial_chunks[(layer_num) as usize]
                 .get(JkVector { j, k: 0 })
                 .num_concentric_circles();
         }
@@ -486,10 +470,8 @@ impl CoordinateDir {
     #[must_use]
     pub fn layer_num_radial_lines(&self, layer_num: u32) -> u32 {
         let mut total_width = 0;
-        for k in 0..self.partial_chunks.fast_get_ref(layer_num).width() {
-            total_width += self
-                .partial_chunks
-                .fast_get_ref(layer_num)
+        for k in 0..self.partial_chunks[(layer_num) as usize].width() {
+            total_width += self.partial_chunks[(layer_num) as usize]
                 .get(JkVector { j: 0, k })
                 .num_radial_lines();
         }
@@ -508,8 +490,7 @@ impl CoordinateDir {
     /// Gets the starting radius of an entire layer
     #[must_use]
     pub fn layer_start_radius(&self, layer_num: u32) -> f32 {
-        self.partial_chunks
-            .fast_get_ref(layer_num)
+        self.partial_chunks[(layer_num) as usize]
             .get(JkVector { j: 0, k: 0 })
             .start_radius()
     }
@@ -517,10 +498,9 @@ impl CoordinateDir {
     /// Gets the ending radius of an entire layer
     #[must_use]
     pub fn layer_end_radius(&self, layer_num: u32) -> f32 {
-        self.partial_chunks
-            .fast_get_ref(layer_num)
+        self.partial_chunks[(layer_num) as usize]
             .get(JkVector {
-                j: self.partial_chunks.fast_get_ref(layer_num).height() - 1,
+                j: self.partial_chunks[(layer_num) as usize].height() - 1,
                 k: 0,
             })
             .end_radius()

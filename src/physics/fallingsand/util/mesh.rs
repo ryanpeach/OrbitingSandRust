@@ -20,7 +20,6 @@ use bevy::{
     transform::components::Transform,
 };
 
-use crate::physics::util::fastmath::FastVecGet;
 use bevy::render::render_asset::RenderAssetUsages;
 
 use crate::physics::util::vectors::Vertex;
@@ -209,8 +208,8 @@ impl OwnedMeshData {
         gizmos: &mut Gizmos,
         color: Color,
     ) {
-        let mut pos0 = self.vertices.fast_get_ref(idx0).position;
-        let mut pos1 = self.vertices.fast_get_ref(idx1).position;
+        let mut pos0 = self.vertices[(idx0) as usize].position;
+        let mut pos1 = self.vertices[(idx1) as usize].position;
         pos0.x += transform.translation.x;
         pos0.y += transform.translation.y;
         pos1.x += transform.translation.x;

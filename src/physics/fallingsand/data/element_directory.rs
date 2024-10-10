@@ -18,7 +18,6 @@ use super::super::util::grid::Grid;
 use super::super::util::image::RawImage;
 use super::super::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use super::element_grid::ElementGrid;
-use crate::physics::util::fastmath::{FastArrayGet, FastVecGet};
 use anyhow::{bail, Result};
 use conv::ValueFrom;
 use rayon::prelude::*;
@@ -471,19 +470,15 @@ impl ElementGridDir {
         let neighbors = self.chunk_neighbors(coord);
         let mut out = HashMap::new();
         for neighbor in &neighbors {
-            if let Some(chunk) = self
-                .chunks
-                .fast_get_mut_ref(neighbor.i)
-                .replace(neighbor.to_jk_vector(), None)
+            if let Some(chunk) =
+                self.chunks[(neighbor.i) as usize].replace(neighbor.to_jk_vector(), None)
             {
                 out.insert(neighbor, chunk);
             } else {
                 // In this case we need to unpackage the convolutions we have already packaged
                 // and put the chunks back where they came from
                 for (neighbor_idx, neighbor) in out {
-                    let prev = self
-                        .chunks
-                        .fast_get_mut_ref(neighbor_idx.i)
+                    let prev = self.chunks[(neighbor_idx.i) as usize]
                         .replace(neighbor_idx.to_jk_vector(), Some(neighbor));
                     debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
                 }
@@ -509,10 +504,7 @@ impl ElementGridDir {
 
         for coord in &target_chunk_coords {
             let conv = self.package_coordinate_neighbors(*coord);
-            let chunk = self
-                .chunks
-                .fast_get_mut_ref(coord.i)
-                .replace(coord.to_jk_vector(), None);
+            let chunk = self.chunks[(coord.i) as usize].replace(coord.to_jk_vector(), None);
             match (conv, chunk) {
                 (Ok(conv), Some(chunk)) => {
                     convolutions.push(conv);
@@ -544,16 +536,12 @@ impl ElementGridDir {
             .expect("should not have already been set");
         {
             let target_idx = target.coords().chunk_idx();
-            let prev = self
-                .chunks
-                .fast_get_mut_ref(target_idx.i)
+            let prev = self.chunks[(target_idx.i) as usize]
                 .replace(target_idx.to_jk_vector(), Some(target));
             debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
         }
         for (neighbor_idx, neighbor) in conv {
-            let prev = self
-                .chunks
-                .fast_get_mut_ref(neighbor_idx.i)
+            let prev = self.chunks[(neighbor_idx.i) as usize]
                 .replace(neighbor_idx.to_jk_vector(), Some(neighbor));
             debug_assert!(prev.is_none(), "Somehow this chunk was already replaced.");
         }
@@ -611,23 +599,16 @@ impl ElementGridDir {
     /// the size of one elementgrid.
     pub fn process(&mut self, current_time: Clock) {
         self.process_parallel(
-            self.process_targets
-                .standard_convolution
-                .fast_get_ref(self.process_count % 9)
-                .clone(),
+            self.process_targets.standard_convolution[(self.process_count % 9) as usize].clone(),
             current_time,
         );
         self.process_sequence(
-            self.process_targets
-                .has_single_bottom_neighbor
-                .fast_get_ref(self.process_count % 9)
+            self.process_targets.has_single_bottom_neighbor[(self.process_count % 9) as usize]
                 .clone(),
             current_time,
         );
         self.process_parallel(
-            self.process_targets
-                .has_multi_bottom_neighbor
-                .fast_get_ref(self.process_count % 9)
+            self.process_targets.has_multi_bottom_neighbor[(self.process_count % 9) as usize]
                 .clone(),
             current_time,
         );
@@ -665,9 +646,7 @@ impl ElementGridDir {
         let mut conv = self
             .package_coordinate_neighbors(coord)
             .expect("In runtime, this should never fail.");
-        let mut chunk = self
-            .chunks
-            .fast_get_mut_ref(coord.i)
+        let mut chunk = self.chunks[(coord.i) as usize]
             .replace(coord.to_jk_vector(), None)
             .expect("Should not have been replaced already.");
         chunk.process(self.coordinate_dir(), &mut conv, current_time);
@@ -680,21 +659,12 @@ impl ElementGridDir {
     pub fn updated_target_textures(&self) -> HashMap<ChunkIjkVector, Textures> {
         // You should call this function only AFTER calling process
         let process_count = self.process_count - 1;
-        let targets1 = self
-            .process_targets
-            .standard_convolution
-            .fast_get_ref(process_count % 9)
-            .clone();
-        let targets2 = self
-            .process_targets
-            .has_single_bottom_neighbor
-            .fast_get_ref(process_count % 9)
-            .clone();
-        let targets3 = self
-            .process_targets
-            .has_multi_bottom_neighbor
-            .fast_get_ref(process_count % 9)
-            .clone();
+        let targets1 =
+            self.process_targets.standard_convolution[(process_count % 9) as usize].clone();
+        let targets2 =
+            self.process_targets.has_single_bottom_neighbor[(process_count % 9) as usize].clone();
+        let targets3 =
+            self.process_targets.has_multi_bottom_neighbor[(process_count % 9) as usize].clone();
         let all_targets: Vec<ChunkIjkVector> = targets1
             .0
             .into_iter()
@@ -725,9 +695,7 @@ impl ElementGridDir {
             let mut conv = self
                 .package_coordinate_neighbors(target)
                 .expect("In runtime, this should never fail.");
-            let mut chunk = self
-                .chunks
-                .fast_get_mut_ref(target.i)
+            let mut chunk = self.chunks[(target.i) as usize]
                 .replace(target.to_jk_vector(), None)
                 .expect("Should not have been replaced already.");
             chunk.process(self.coordinate_dir(), &mut conv, current_time);
@@ -836,8 +804,7 @@ impl ElementGridDir {
     /// Errors if it is currently borrowed
     #[must_use]
     pub fn chunk_at_chunk_ijk(&self, coord: ChunkIjkVector) -> &ElementGrid {
-        self.chunks
-            .fast_get_ref(coord.i)
+        self.chunks[(coord.i) as usize]
             .get(coord.to_jk_vector())
             .as_ref()
             .unwrap()
@@ -845,8 +812,7 @@ impl ElementGridDir {
     /// Gets the chunk at the given index mutably
     /// Errors if it is currently borrowed
     pub fn chunk_at_chunk_ijk_mut(&mut self, coord: ChunkIjkVector) -> &mut ElementGrid {
-        self.chunks
-            .fast_get_mut_ref(coord.i)
+        self.chunks[(coord.i) as usize]
             .get_mut(coord.to_jk_vector())
             .as_mut()
             .unwrap()
@@ -1149,20 +1115,13 @@ mod tests {
         }
 
         fn next_targets(this: &mut ElementGridDir) -> HashSet<ChunkIjkVector> {
-            let out1 = this
-                .process_targets
-                .standard_convolution
-                .fast_get_ref(this.process_count % 9)
+            let out1 = this.process_targets.standard_convolution[(this.process_count % 9) as usize]
                 .clone();
-            let out2 = this
-                .process_targets
-                .has_single_bottom_neighbor
-                .fast_get_ref(this.process_count % 9)
+            let out2 = this.process_targets.has_single_bottom_neighbor
+                [(this.process_count % 9) as usize]
                 .clone();
-            let out3 = this
-                .process_targets
-                .has_multi_bottom_neighbor
-                .fast_get_ref(this.process_count % 9)
+            let out3 = this.process_targets.has_multi_bottom_neighbor
+                [(this.process_count % 9) as usize]
                 .clone();
             this.process_count += 1;
             out1.0.into_iter().chain(out2.0).chain(out3.0).collect()
@@ -1268,9 +1227,7 @@ mod tests {
                     let conv = element_grid_dir
                         .package_coordinate_neighbors(*chunk_coord)
                         .unwrap();
-                    let chunk = element_grid_dir
-                        .chunks
-                        .fast_get_mut_ref(chunk_coord.i)
+                    let chunk = element_grid_dir.chunks[(chunk_coord.i) as usize]
                         .replace(chunk_coord.to_jk_vector(), None)
                         .unwrap();
                     element_grid_dir.unpackage_convolution(chunk, conv);

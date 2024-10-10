@@ -7,7 +7,6 @@
 use thiserror::Error;
 
 use super::vectors::JkVector;
-use crate::physics::util::fastmath::FastArray2Get;
 use conv::ValueFrom;
 
 /// A simple 2d grid type
@@ -94,7 +93,7 @@ impl<T> Grid<T> {
     #[must_use]
     pub fn get(&self, idx: JkVector) -> &T {
         let idx = self.transform_jk_coord_to_ndarray(idx);
-        self.0.fast_get_ref(idx)
+        &self.0[idx]
     }
     /// Gets the value at the given coordinate, or returns an error if the coordinate is out of bounds
     pub fn checked_get(&self, idx: JkVector) -> Result<&T, GridOutOfBoundsError> {
@@ -106,7 +105,7 @@ impl<T> Grid<T> {
     /// Gets the value at the given coordinate, mutably
     pub fn get_mut(&mut self, idx: JkVector) -> &mut T {
         let idx = self.transform_jk_coord_to_ndarray(idx);
-        self.0.fast_get_mut_ref(idx)
+        &mut self.0[idx]
     }
     /// Sets the value at the given coordinate, overwriting the old value
     pub fn set(&mut self, idx: JkVector, value: T) {
@@ -115,11 +114,14 @@ impl<T> Grid<T> {
     /// Like set, but gives you ownership of the original value
     pub fn replace(&mut self, idx: JkVector, replacement: T) -> T {
         let coord = self.transform_jk_coord_to_ndarray(idx);
-        std::mem::replace(self.0.fast_get_mut_ref(coord), replacement)
+        std::mem::replace(&mut self.0[coord], replacement)
     }
     /// Transforms the coordinate to the ndarray coordinate system using this grid's width and height
-    fn transform_jk_coord_to_ndarray(&self, idx: JkVector) -> [u32; 2] {
-        [self.width() - 1 - idx.k, self.height() - 1 - idx.j]
+    fn transform_jk_coord_to_ndarray(&self, idx: JkVector) -> [usize; 2] {
+        [
+            self.width() as usize - 1 - idx.k as usize,
+            self.height() as usize - 1 - idx.j as usize,
+        ]
     }
 }
 
