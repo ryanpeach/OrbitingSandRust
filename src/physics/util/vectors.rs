@@ -2,7 +2,6 @@
 //! This module contains all the vector types used in the game.
 
 #![expect(missing_docs)]
-#![expect(clippy::missing_docs_in_private_items)]
 use std::{
     fmt::Display,
     ops::{Add, Sub},

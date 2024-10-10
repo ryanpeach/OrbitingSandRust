@@ -1,7 +1,6 @@
 //! A collection of coordinate types and their conversions
 //! Mostly for the [`ChunkCoords`] [`crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir`]
 #![warn(missing_docs)]
-#![warn(clippy::missing_docs_in_private_items)]
 
 use bevy::{color::Color, math::Vec2};
 

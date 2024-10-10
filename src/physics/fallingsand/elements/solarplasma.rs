@@ -89,7 +89,7 @@ impl Element for SolarPlasma {
                     let mut rng = rand::thread_rng();
                     let rand_bool = rng.gen_bool(0.5);
                     match (element_l, element_r, rand_bool) {
-                        (Ok(element_l), Ok(_), false) => {
+                        (Ok(element_l), Ok(_), false) | (Ok(element_l), Err(_), _) => {
                             if element_l.state_of_matter() <= StateOfMatter::Gas {
                                 self.try_swap_me(
                                     new_idx_l.unwrap(),
@@ -101,31 +101,7 @@ impl Element for SolarPlasma {
                                 ElementTakeOptions::PutBack
                             }
                         }
-                        (Ok(_), Ok(element_r), true) => {
-                            if element_r.state_of_matter() <= StateOfMatter::Gas {
-                                self.try_swap_me(
-                                    new_idx_r.unwrap(),
-                                    target_chunk,
-                                    element_grid_conv,
-                                    current_time,
-                                )
-                            } else {
-                                ElementTakeOptions::PutBack
-                            }
-                        }
-                        (Ok(element_l), Err(_), _) => {
-                            if element_l.state_of_matter() <= StateOfMatter::Gas {
-                                self.try_swap_me(
-                                    new_idx_l.unwrap(),
-                                    target_chunk,
-                                    element_grid_conv,
-                                    current_time,
-                                )
-                            } else {
-                                ElementTakeOptions::PutBack
-                            }
-                        }
-                        (Err(_), Ok(element_r), _) => {
+                        (Ok(_), Ok(element_r), true) | (Err(_), Ok(element_r), _) => {
                             if element_r.state_of_matter() <= StateOfMatter::Gas {
                                 self.try_swap_me(
                                     new_idx_r.unwrap(),

@@ -26,7 +26,7 @@ lazy_static! {
 mod get_element_grid_dir {
     use orbiting_sand::entities::celestials::{earthlike, sun};
 
-    use super::*;
+    use super::{ElementGridDir, COORDINATE_DIR};
     /// The default element grid directory for testing
     pub fn empty() -> ElementGridDir {
         ElementGridDir::new_empty(COORDINATE_DIR.clone())

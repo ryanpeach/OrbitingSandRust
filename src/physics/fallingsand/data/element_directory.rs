@@ -459,7 +459,7 @@ impl ElementGridDir {
     ) -> Result<ElementGridConvolutionNeighbors> {
         let neighbors = self.chunk_neighbors(coord);
         let mut out = HashMap::new();
-        for neighbor in neighbors.iter() {
+        for neighbor in &neighbors {
             if let Some(chunk) = self.chunks[neighbor.i].replace(neighbor.to_jk_vector(), None) {
                 out.insert(neighbor, chunk);
             } else {
@@ -503,11 +503,11 @@ impl ElementGridDir {
                 }
             }
         }
-        if !failed_coords.is_empty() {
+        if failed_coords.is_empty() {
+            Ok((convolutions, target_chunks))
+        } else {
             self.unpackage_convolutions(convolutions, target_chunks);
             Err(failed_coords)
-        } else {
-            Ok((convolutions, target_chunks))
         }
     }
 

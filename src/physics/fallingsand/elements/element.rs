@@ -1,5 +1,4 @@
 #![expect(missing_docs)]
-#![expect(clippy::missing_docs_in_private_items)]
 //! This module contains the trait Element and associated types
 //! This is the trait that all elements must implement
 //! It also contains info about states of matter and other useful enums and components
@@ -168,7 +167,7 @@ pub trait Element: Send + Sync {
         let prev = element_grid_conv.replace(target_chunk, pos1, clone, current_time);
         match prev {
             Ok(prev) => ElementTakeOptions::ReplaceWith(prev),
-            Err(_) => panic!("Tried to swap with an invalid position"),
+            _ => panic!("Tried to swap with an invalid position"),
         }
     }
 

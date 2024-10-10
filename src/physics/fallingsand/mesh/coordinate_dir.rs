@@ -1,5 +1,4 @@
 #![expect(missing_docs)]
-#![expect(clippy::missing_docs_in_private_items)]
 //! The directory contains all the chunks of a celestial.
 
 use std::f32::consts::PI;

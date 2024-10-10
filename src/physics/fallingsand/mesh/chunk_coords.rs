@@ -210,7 +210,7 @@ impl ChunkCoords {
                 self.num_concentric_circles() + start_concentric_circle,
             ],
             VertexMode::Grid => (start_concentric
-                ..(self.num_concentric_circles() + start_concentric + 1))
+                ..=(self.num_concentric_circles() + start_concentric))
                 .step_by(settings.lod)
                 .collect(),
         };
@@ -226,7 +226,7 @@ impl ChunkCoords {
         );
 
         // Create the radial range with the appropriate level of detail and test it has the right bounds
-        let mut radial_range: Vec<usize> = (self.start_radial_line..(self.end_radial_line + 1))
+        let mut radial_range: Vec<usize> = (self.start_radial_line..=(self.end_radial_line))
             .step_by(settings.lod)
             .collect();
         debug_assert_eq!(radial_range[0], self.start_radial_line);
@@ -282,10 +282,10 @@ impl ChunkCoords {
 
             // Reverse if we are on the last element because we are going around the circle
             // This box method was the only way to make Range == Rev<Range> in type, very annoying.
-            let iter: Box<dyn Iterator<Item = _>> = if j != start_concentric_circle {
-                Box::new((start_radial_line..self.end_radial_line + 1).rev())
-            } else {
+            let iter: Box<dyn Iterator<Item = _>> = if j == start_concentric_circle {
                 Box::new(start_radial_line..=self.end_radial_line)
+            } else {
+                Box::new((start_radial_line..=self.end_radial_line).rev())
             };
 
             for k in iter {
@@ -331,7 +331,7 @@ impl ChunkCoords {
 
         let mut concentric_range: Vec<usize> = match settings.mode {
             VertexMode::Lines => vec![0, self.num_concentric_circles()],
-            VertexMode::Grid => (0..(self.num_concentric_circles() + 1))
+            VertexMode::Grid => (0..=self.num_concentric_circles())
                 .step_by(settings.lod)
                 .collect::<Vec<_>>(),
         };
@@ -345,7 +345,7 @@ impl ChunkCoords {
         );
 
         for j in concentric_range {
-            for k in (0..(self.num_radial_lines() + 1)).step_by(settings.lod) {
+            for k in (0..=self.num_radial_lines()).step_by(settings.lod) {
                 let new_vec = Vec2::new(
                     k as f32 / self.num_radial_lines() as f32,
                     j as f32 / self.num_concentric_circles() as f32,
@@ -365,7 +365,9 @@ impl ChunkCoords {
             VertexMode::Grid => self.num_concentric_circles() / settings.lod + 1,
         };
         j_count = j_count.max(2);
-        let k_iter = (0..(self.num_radial_lines() + 1)).step_by(settings.lod);
+        let k_iter: Vec<usize> = (0..=self.num_radial_lines())
+            .step_by(settings.lod)
+            .collect();
         let k_count = k_iter.len();
         let mut indices = Vec::with_capacity(j_count * k_count * 6);
         for j in 0..j_count - 1 {

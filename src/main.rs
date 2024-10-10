@@ -69,9 +69,11 @@ fn main() {
         .run();
 }
 
+/// The number of asteroids in [`solar_system_setup`]
+const NUM_ASTEROIDS: usize = 10000;
+
 /// Creates a solar system with a sun, earth, and a bunch of asteroids.
 #[allow(dead_code)]
-#[allow(clippy::needless_pass_by_value)]
 fn solar_system_setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -105,8 +107,7 @@ fn solar_system_setup(
         &asset_server,
     );
 
-    /// Create a bunch of asteroids
-    const NUM_ASTEROIDS: usize = 10000;
+    // Create a bunch of asteroids
     for i in 0..NUM_ASTEROIDS {
         // Put them in a circle around the sun
         // at radius 5000 with a tangent velocity of 600
@@ -132,7 +133,6 @@ fn solar_system_setup(
 
 /// Creates just a planet
 #[allow(dead_code)]
-#[allow(clippy::needless_pass_by_value)]
 fn planet_only_setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,

@@ -15,11 +15,7 @@ use bevy::{
         system::{Commands, Query, Res, ResMut},
     },
     hierarchy::{BuildChildren, Parent},
-    input::{
-        keyboard::KeyCode,
-        mouse::{MouseScrollUnit, MouseWheel},
-        ButtonInput,
-    },
+    input::{keyboard::KeyCode, mouse::MouseWheel, ButtonInput},
     math::{Rect, Vec2, Vec3},
     prelude::Entity,
     render::view::Visibility,
@@ -172,14 +168,7 @@ impl CameraPlugin {
     ) {
         let mut delta = 0.;
         for ev in scroll_evr.read() {
-            match ev.unit {
-                MouseScrollUnit::Line => {
-                    delta += ev.y;
-                }
-                MouseScrollUnit::Pixel => {
-                    delta += ev.y;
-                }
-            }
+            delta += ev.y;
         }
         if delta != 0. {
             for (mut transform, _) in &mut query {
@@ -275,7 +264,7 @@ fn rect_add(this: &Rect, other: &Vec2) -> Rect {
 
 /// Celestial Focus Systems
 impl CameraPlugin {
-    /// If you press "[" or "]", you can cycle through the celestials
+    /// If you press "\[" or "\]", you can cycle through the celestials
     pub fn cycle_celestial_focus(
         mut commands: Commands,
         celestials: Query<(Entity, &CelestialIdx)>,

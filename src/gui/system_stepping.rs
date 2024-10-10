@@ -59,6 +59,7 @@ impl Default for SteppingEguiPlugin {
 
 impl SteppingEguiPlugin {
     /// add a schedule to be stepped when stepping is enabled
+    #[must_use]
     pub fn add_schedule(mut self, label: impl ScheduleLabel) -> SteppingEguiPlugin {
         self.schedule_labels.push(label.intern());
         self
@@ -170,8 +171,7 @@ fn draw_window(
                                 Some(SystemBehavior::AlwaysRun) => (true, true, false),
                                 Some(SystemBehavior::NeverRun) => (false, false, false),
                                 Some(SystemBehavior::Break) => (true, false, true),
-                                Some(SystemBehavior::Continue) => (true, false, false),
-                                None => (true, false, false),
+                                Some(SystemBehavior::Continue) | None => (true, false, false),
                             };
 
                         let mut update = None;

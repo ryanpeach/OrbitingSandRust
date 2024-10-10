@@ -1,5 +1,4 @@
 #![expect(missing_docs)]
-#![expect(clippy::missing_docs_in_private_items)]
 
 use bevy::math::Vec2;
 use conv::ValueFrom;

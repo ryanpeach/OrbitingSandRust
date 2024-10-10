@@ -61,6 +61,14 @@ impl Iterator for ElementGridConvolutionNeighborIdxsIter {
     }
 }
 
+impl IntoIterator for &ElementGridConvolutionNeighborIdxs {
+    type IntoIter = ElementGridConvolutionNeighborIdxsIter;
+    type Item = ChunkIjkVector;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 impl ElementGridConvolutionNeighborIdxs {
     /// Get the iterator for the neighbor indexes
     #[must_use]
@@ -120,6 +128,14 @@ impl Iterator for LeftRightNeighborIdxsIter {
             }
             _ => None,
         }
+    }
+}
+
+impl IntoIterator for &LeftRightNeighborIdxs {
+    type IntoIter = LeftRightNeighborIdxsIter;
+    type Item = ChunkIjkVector;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
     }
 }
 
@@ -198,9 +214,16 @@ impl Iterator for TopNeighborIdxsIter {
                     _ => None,
                 }
             }
-            Some(TopNeighborIdxs::TopOfGrid) => None,
-            None => None,
+            Some(TopNeighborIdxs::TopOfGrid) | None => None,
         }
+    }
+}
+
+impl IntoIterator for &TopNeighborIdxs {
+    type IntoIter = TopNeighborIdxsIter;
+    type Item = ChunkIjkVector;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
     }
 }
 
@@ -278,8 +301,7 @@ impl Iterator for BottomNeighborIdxsIter {
                     _ => None,
                 }
             }
-            Some(BottomNeighborIdxs::BottomOfGrid) => None,
-            None => None,
+            Some(BottomNeighborIdxs::BottomOfGrid) | None => None,
         }
     }
 }
@@ -287,10 +309,18 @@ impl Iterator for BottomNeighborIdxsIter {
 impl BottomNeighborIdxs {
     /// Get the iterator for the bottom neighbor indexes
     #[must_use]
-    pub fn iter(&self) -> BottomNeighborIdxsIter {
+    fn iter(&self) -> BottomNeighborIdxsIter {
         BottomNeighborIdxsIter {
             bottom: Some(self.clone()),
             index: 0,
         }
+    }
+}
+
+impl IntoIterator for &BottomNeighborIdxs {
+    type IntoIter = BottomNeighborIdxsIter;
+    type Item = ChunkIjkVector;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
     }
 }
