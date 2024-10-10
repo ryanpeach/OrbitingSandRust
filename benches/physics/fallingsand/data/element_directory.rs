@@ -39,15 +39,6 @@ mod get_element_grid_dir {
     }
 }
 
-fn bench_get_textures(c: &mut Criterion) {
-    let element_grid_dir = get_element_grid_dir();
-    c.bench_function("get_textures", |b| {
-        b.iter(|| {
-            element_grid_dir.textures();
-        });
-    });
-}
-
 // This one really does not change depending on the type of element grid directory
 #[library_benchmark(config = LibraryBenchmarkConfig::default().valgrind_args(["--num-callers=10"]))]
 fn bench_get_textures() {
