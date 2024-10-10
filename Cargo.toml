@@ -77,7 +77,7 @@ module_name_repetitions = "allow"
 needless_pass_by_value = "allow"
 trivially_copy_pass_by_ref = "allow"
 unwrap_used = "allow"
-panic = "allow"
+panic = "deny"
 
 # Allow these lints
 expect_used = { level="allow", priority = 1 }

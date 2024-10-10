@@ -1,3 +1,4 @@
+#![expect(clippy::panic)]
 //! The convolution module contains the logic for getting elements from locations relative to another element
 //! in a way that is convienient for parallel processing of chunks.
 //!

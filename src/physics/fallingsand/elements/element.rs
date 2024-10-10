@@ -164,11 +164,10 @@ pub trait Element: Send + Sync {
         // Its important we set the last processed time to the current time
         // here because self wont yet have been updated by the process function
         clone._set_last_processed(current_time);
-        let prev = element_grid_conv.replace(target_chunk, pos1, clone, current_time);
-        match prev {
-            Ok(prev) => ElementTakeOptions::ReplaceWith(prev),
-            _ => panic!("Tried to swap with an invalid position"),
-        }
+        let prev = element_grid_conv
+            .replace(target_chunk, pos1, clone, current_time)
+            .expect("Tried to swap with an invalid position");
+        ElementTakeOptions::ReplaceWith(prev)
     }
 
     // Private elements
