@@ -72,7 +72,8 @@ impl ElementGrid {
                 chunk_coords.num_radial_lines(),
                 chunk_coords.num_concentric_circles(),
                 grid,
-            ),
+            )
+            .expect("We made this grid ourselves"),
             coords: chunk_coords,
             already_processed: false,
             last_set: Clock::default(),
@@ -216,7 +217,6 @@ impl ElementGrid {
 /// Handle processing
 impl ElementGrid {
     /// Do one iteration of processing on the grid
-    #[allow(clippy::mem_replace_with_default)]
     pub fn process(
         &mut self,
         coord_dir: &CoordinateDir,
@@ -229,7 +229,6 @@ impl ElementGrid {
     }
 
     /// Run each elements process method
-    #[allow(clippy::mem_replace_with_default)]
     fn process_elements(
         &mut self,
         coord_dir: &CoordinateDir,

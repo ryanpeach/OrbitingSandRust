@@ -4,13 +4,14 @@
 //! has a convolution function that is helpful for the physics simulation.
 //! So some of this code is now redundant, but is maintained for legacy reasons
 
+use ndarray::ShapeError;
 use thiserror::Error;
 
 use super::vectors::JkVector;
 use conv::ValueFrom;
 
 /// A simple 2d grid type
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Grid<T>(ndarray::Array2<T>);
 
 /* =================
@@ -28,9 +29,11 @@ impl<T> Grid<T> {
         ))
     }
     /// Create a new grid with the given width and height, and fill it with the given data
-    #[must_use]
-    pub fn new_from_vec(width: u32, height: u32, data: Vec<T>) -> Self {
-        Self(ndarray::Array2::from_shape_vec((width as usize, height as usize), data).unwrap())
+    pub fn new_from_vec(width: u32, height: u32, data: Vec<T>) -> Result<Self, ShapeError> {
+        Ok(Self(ndarray::Array2::from_shape_vec(
+            (width as usize, height as usize),
+            data,
+        )?))
     }
     /// Create a new grid with the given width and height, and fill it with default values
     #[must_use]
@@ -42,7 +45,10 @@ impl<T> Grid<T> {
         for _ in 0..width * height {
             data.push(Default::default());
         }
-        Self(ndarray::Array2::from_shape_vec((width as usize, height as usize), data).unwrap())
+        Self(
+            ndarray::Array2::from_shape_vec((width as usize, height as usize), data)
+                .expect("We made data ourselves."),
+        )
     }
 }
 
@@ -69,7 +75,9 @@ impl<T> Grid<T> {
     /// Get the data as a slice
     #[must_use]
     pub fn data_slice(&self) -> &[T] {
-        self.0.as_slice().unwrap()
+        self.0
+            .as_slice()
+            .expect("TODO: In what case is a slice non-standard?")
     }
     /// Get the data as an ndarray
     #[must_use]
@@ -90,12 +98,20 @@ pub struct GridOutOfBoundsError(pub JkVector);
 /// Access data using JK coordinates, which are height and width respectively
 impl<T> Grid<T> {
     /// Gets the value at the given coordinate
+    ///
+    /// # Panics
+    /// - if idx is out of index
+    ///
+    /// TODO: More to convention, use square brackets
+    /// TODO: Get should return Option
     #[must_use]
     pub fn get(&self, idx: JkVector) -> &T {
         let idx = self.transform_jk_coord_to_ndarray(idx);
         &self.0[idx]
     }
     /// Gets the value at the given coordinate, or returns an error if the coordinate is out of bounds
+    ///
+    /// TODO: Rename to get, and change to option
     pub fn checked_get(&self, idx: JkVector) -> Result<&T, GridOutOfBoundsError> {
         if idx.k >= self.width() || idx.j >= self.height() {
             return Err(GridOutOfBoundsError(idx));
@@ -129,12 +145,18 @@ impl<T> Grid<T> {
 impl<T> Grid<T> {
     /// Get an iterator over the grid
     pub fn iter(&self) -> std::slice::Iter<T> {
-        self.0.as_slice().unwrap().iter()
+        self.0
+            .as_slice()
+            .expect("TODO: In what cases is a slice non-standard?")
+            .iter()
     }
 
     /// Get a mutable iterator over the grid
     pub fn iter_mut(&mut self) -> std::slice::IterMut<T> {
-        self.0.as_slice_mut().unwrap().iter_mut()
+        self.0
+            .as_slice_mut()
+            .expect("TODO: In what cases is a slice non-standard?")
+            .iter_mut()
     }
 }
 
@@ -191,7 +213,7 @@ mod tests {
 
     #[test]
     fn test_iter() {
-        let grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]);
+        let grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]).unwrap();
         let mut iter = grid.iter();
 
         assert_eq!(*iter.next().unwrap(), 1);
@@ -205,7 +227,7 @@ mod tests {
 
     #[test]
     fn test_iter_mut() {
-        let mut grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]);
+        let mut grid = Grid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]).unwrap();
 
         for val in &mut grid {
             *val *= 2;

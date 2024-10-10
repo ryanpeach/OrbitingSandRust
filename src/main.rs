@@ -8,6 +8,7 @@ use bevy::asset::AssetServer;
 use bevy::asset::Assets;
 use bevy::color::palettes::css::PURPLE;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+use bevy::log::LogPlugin;
 use bevy::math::Vec2;
 use bevy::prelude::default;
 use bevy::prelude::BuildChildren;
@@ -23,14 +24,13 @@ use bevy::prelude::ResMut;
 use bevy::prelude::Transform;
 use bevy::prelude::With;
 use bevy::sprite::ColorMaterial;
-use bevy::DefaultPlugins;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
-
-use bevy::log::LogPlugin;
 use bevy::sprite::MaterialMesh2dBundle;
+use bevy::DefaultPlugins;
 use bevy_egui::EguiPlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_picking::low_latency_window_plugin;
 use bevy_mod_picking::DefaultPickingPlugins;
+use conv::ConvAsUtil;
 use orbiting_sand::entities::celestials::celestial;
 use orbiting_sand::entities::celestials::earthlike;
 use orbiting_sand::entities::celestials::sun;
@@ -73,7 +73,6 @@ fn main() {
 const NUM_ASTEROIDS: u32 = 10000;
 
 /// Creates a solar system with a sun, earth, and a bunch of asteroids.
-#[allow(dead_code)]
 fn solar_system_setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -111,8 +110,9 @@ fn solar_system_setup(
     for i in 0..NUM_ASTEROIDS {
         // Put them in a circle around the sun
         // at radius 5000 with a tangent velocity of 600
-        #[allow(clippy::cast_precision_loss)]
-        let angle = (i as f32 / NUM_ASTEROIDS as f32) * 2.0 * std::f32::consts::PI;
+        let angle: f32 = ((f64::from(i) / f64::from(NUM_ASTEROIDS)) * 2.0 * std::f64::consts::PI)
+            .approx()
+            .expect("This doesn't matter");
         // random radius between 5000.0 and 6000.0
         let r = 5000.0 + 1000.0 * rand::random::<f32>();
         let pos = r * Vec2::new(angle.cos(), angle.sin());
@@ -132,7 +132,6 @@ fn solar_system_setup(
 }
 
 /// Creates just a planet
-#[allow(dead_code)]
 fn planet_only_setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,

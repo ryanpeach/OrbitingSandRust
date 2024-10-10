@@ -2,6 +2,7 @@
     missing_docs,
     clippy::missing_docs_in_private_items,
     unused_must_use,
+    clippy::unwrap_used,
     clippy::float_cmp,
     clippy::cast_precision_loss
 )]

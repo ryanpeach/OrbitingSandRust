@@ -801,8 +801,15 @@ impl ElementGridDir {
     // }
 
     /// Gets the chunk at the given index
-    /// Errors if it is currently borrowed
+    ///
+    /// # Panics
+    /// - if it is currently borrowed
+    /// - if its out of index
+    ///
+    /// TODO: Return Result, `CurrentlyBorrowedError`, `OutOfIndexError`
+    /// TODO: Remove unwrap
     #[must_use]
+    #[allow(clippy::unwrap_used)]
     pub fn chunk_at_chunk_ijk(&self, coord: ChunkIjkVector) -> &ElementGrid {
         self.chunks[(coord.i) as usize]
             .get(coord.to_jk_vector())
@@ -810,7 +817,14 @@ impl ElementGridDir {
             .unwrap()
     }
     /// Gets the chunk at the given index mutably
-    /// Errors if it is currently borrowed
+    ///
+    /// # Panics
+    /// - if it is currently borrowed
+    /// - if its out of index
+    ///
+    /// TODO: Return Result, `CurrentlyBorrowedError`, `OutOfIndexError`
+    /// TODO: Remove Unwrap
+    #[allow(clippy::unwrap_used)]
     pub fn chunk_at_chunk_ijk_mut(&mut self, coord: ChunkIjkVector) -> &mut ElementGrid {
         self.chunks[(coord.i) as usize]
             .get_mut(coord.to_jk_vector())

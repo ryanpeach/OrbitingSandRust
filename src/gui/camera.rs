@@ -5,6 +5,7 @@
 
 use std::ops::Add;
 
+use bevy::log::error;
 use bevy::{
     app::{App, Plugin, Update},
     core_pipeline::core_2d::{Camera2d, Camera2dBundle},
@@ -18,17 +19,13 @@ use bevy::{
     input::{keyboard::KeyCode, mouse::MouseWheel, ButtonInput},
     math::{Rect, Vec2, Vec3},
     prelude::Entity,
-    render::view::Visibility,
     time::Time,
-    transform::components::{GlobalTransform, Transform},
-    window::Window,
+    transform::components::Transform,
 };
 use bevy_eventlistener::callbacks::ListenerInput;
 use bevy_mod_picking::events::{Down, Pointer};
 
-use crate::{
-    entities::celestials::celestial::ChunkIdk, physics::fallingsand::util::mesh::MeshBoundingBox,
-};
+use crate::{entities::celestials::celestial::ChunkIdk, errors::EmptyQueryResult};
 
 use conv::ValueFrom;
 
@@ -66,11 +63,10 @@ impl Add<u32> for CelestialIdx {
 
 impl CelestialIdx {
     /// Returns the selected celestials index
-    #[must_use]
     pub fn selected_celestial(
         celestials: &[(Entity, &CelestialIdx)],
         camera: (&Parent, Entity),
-    ) -> CelestialIdx {
+    ) -> Result<CelestialIdx, EmptyQueryResult> {
         if cfg!(debug_assertions) {
             let max_idx = celestials
                 .iter()
@@ -97,11 +93,14 @@ impl CelestialIdx {
             }
         }
         let parent = camera.0;
-        let celestial = celestials
-            .iter()
-            .find(|(entity, _)| *entity == **parent)
-            .unwrap();
-        *celestial.1
+        if let Some(celestial) = celestials.iter().find(|(entity, _)| *entity == **parent) {
+            Ok(*celestial.1)
+        } else {
+            Err(EmptyQueryResult {
+                err: None,
+                parameter_name: "selected_celestial".to_string(),
+            })
+        }
     }
 
     /// Gets the next index
@@ -207,45 +206,6 @@ impl CameraPlugin {
             }
         }
     }
-
-    /// Don't render entities that are not in the camera's frustum
-    /// Uses the Visibility component to hide and show entities
-    ///
-    /// **TODO**: This system is not currently working
-    #[expect(dead_code)]
-    fn frustum_culling_2d(
-        mut commands: Commands,
-        camera: Query<(&Camera2d, &GlobalTransform)>,
-        mut mesh_entities: Query<(Entity, &MeshBoundingBox, &Visibility, &Transform)>,
-        windows: Query<&Window>,
-    ) {
-        let (_, camera_transform) = camera.single();
-        let camera_transform = camera_transform.compute_transform();
-        let window = windows.single();
-
-        let width = window.resolution.width();
-        let height = window.resolution.height();
-
-        // Get the camera rect in world coordinates using the translation and scale
-        let camera_rect = Rect::new(
-            camera_transform.translation.x,
-            camera_transform.translation.y,
-            width * camera_transform.scale.x,
-            height * camera_transform.scale.y,
-        );
-
-        for (entity, mesh_bb, visible, transform) in &mut mesh_entities {
-            let overlaps = rect_overlaps(
-                &camera_rect,
-                &rect_add(&mesh_bb.0, &transform.translation.truncate()),
-            );
-            if overlaps && *visible == Visibility::Hidden {
-                commands.entity(entity).insert(Visibility::Visible);
-            } else if !overlaps && *visible == Visibility::Visible {
-                commands.entity(entity).insert(Visibility::Hidden);
-            }
-        }
-    }
 }
 
 /// Check if two rectangles overlap
@@ -269,15 +229,23 @@ fn rect_add(this: &Rect, other: &Vec2) -> Rect {
 /// Celestial Focus Systems
 impl CameraPlugin {
     /// If you press "\[" or "\]", you can cycle through the celestials
+    /// TODO: #[sysfail]
     pub fn cycle_celestial_focus(
         mut commands: Commands,
         celestials: Query<(Entity, &CelestialIdx)>,
         mut camera: Query<(&Parent, Entity, &mut Transform), With<MainCamera>>,
         mut input: ResMut<ButtonInput<KeyCode>>,
     ) {
+        // -> Result<(), Box<dyn std::error::Error>> {
         if let Ok((parent, camera, mut transform)) = camera.get_single_mut() {
             let celestials_vec = celestials.iter().collect::<Vec<_>>();
-            let idx = CelestialIdx::selected_celestial(&celestials_vec, (parent, camera));
+            let idx = match CelestialIdx::selected_celestial(&celestials_vec, (parent, camera)) {
+                Ok(idx) => idx,
+                Err(e) => {
+                    error!("{:?}", e);
+                    return;
+                }
+            };
             let next_idx = {
                 if input.just_pressed(KeyCode::BracketLeft) {
                     input.reset(KeyCode::BracketLeft);
@@ -298,38 +266,57 @@ impl CameraPlugin {
                             .collect::<Vec<_>>(),
                     )
                 } else {
+                    // return Ok(());
                     return;
                 }
             };
-            let next_celestial = celestials_vec
+            if let Some(next_celestial) = celestials_vec
                 .into_iter()
                 .find(|(_, idx)| idx.0 == next_idx.0)
-                .unwrap()
-                .0;
-            focus_celestial(&mut commands, (&camera, &mut transform), &next_celestial);
+            {
+                focus_celestial(&mut commands, (&camera, &mut transform), &next_celestial.0);
+            } else {
+                // Err(EmptyQueryResult{err: None, parameter_name: "next_celestial".to_string()})?;
+                error!(
+                    "{:?}",
+                    EmptyQueryResult {
+                        err: None,
+                        parameter_name: "next_celestial".to_string()
+                    }
+                );
+            }
         }
+        // Ok(())
     }
 
     /// Same as the above, but for when the camera doesn't have a parent yet
-    #[allow(clippy::type_complexity)]
+    /// TODO: #[sysfail]
     pub fn first_celestial_focus(
         mut commands: Commands,
         celestials: Query<(Entity, &CelestialIdx)>,
         mut camera: Query<(Entity, &mut Transform), (With<MainCamera>, Without<Parent>)>,
         mut input: ResMut<ButtonInput<KeyCode>>,
     ) {
+        // -> Result<(), Box<dyn std::error::Error>> {
         if input.just_pressed(KeyCode::BracketLeft) || input.just_pressed(KeyCode::BracketRight) {
             input.reset(KeyCode::BracketLeft);
             input.reset(KeyCode::BracketRight);
             if let Ok((camera, mut transform)) = camera.get_single_mut() {
-                let next_celestial = celestials
-                    .into_iter()
-                    .find(|(_, idx)| idx.0 == 0)
-                    .unwrap()
-                    .0;
-                focus_celestial(&mut commands, (&camera, &mut transform), &next_celestial);
+                if let Some(first_celestial) = celestials.into_iter().find(|(_, idx)| idx.0 == 0) {
+                    focus_celestial(&mut commands, (&camera, &mut transform), &first_celestial.0);
+                } else {
+                    // Err(EmptyQueryResult{err: None, parameter_name: "first_celestial".to_string()})?;
+                    error!(
+                        "{:?}",
+                        EmptyQueryResult {
+                            err: None,
+                            parameter_name: "first_celestial".to_string()
+                        }
+                    );
+                }
             }
         }
+        // Ok(())
     }
 }
 
@@ -350,21 +337,31 @@ impl CameraPlugin {
     ///   1. Parent the main camera to the celestial
     ///   2. Zero the camera's translation
     ///   3. Scale the camera to the celestial's radius
+    ///
+    /// TODO: #[sysfail]
     pub fn select_celestial_focus(
         mut commands: Commands,
         chunks: Query<(&Parent, Entity), With<ChunkIdk>>,
         mut camera: Query<(Entity, &mut Transform), With<MainCamera>>,
         mut click_events: EventReader<SelectCelestial>,
     ) {
+        // -> Result<(), Box<dyn std::error::Error>> {
         let mut camera = camera.single_mut();
         if let Some(event) = click_events.read().next() {
-            let parent = chunks
-                .iter()
-                .find(|(_, chunk_id)| *chunk_id == event.0)
-                .unwrap()
-                .0;
-            focus_celestial(&mut commands, (&camera.0, &mut camera.1), parent);
+            if let Some(parent) = chunks.iter().find(|(_, chunk_id)| *chunk_id == event.0) {
+                focus_celestial(&mut commands, (&camera.0, &mut camera.1), parent.0);
+            } else {
+                // Err(EmptyQueryResult{err: None, parameter_name: "selected_celestial".to_string()})?;
+                error!(
+                    "{:?}",
+                    EmptyQueryResult {
+                        err: None,
+                        parameter_name: "selected_celestial".to_string()
+                    }
+                );
+            }
         }
+        // Ok(())
     }
 }
 

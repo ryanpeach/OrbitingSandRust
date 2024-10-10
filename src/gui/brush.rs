@@ -6,6 +6,7 @@
 
 use crate::entities::celestials::celestial::Data;
 use crate::entities::components::Radius;
+use crate::errors::MissingParentError;
 use crate::physics::fallingsand::util::mesh::GizmoDrawableLoop;
 use crate::physics::util::clock::Clock;
 use crate::physics::util::vectors::{mouse_coord_to_world_coord, RelXyPoint};
@@ -21,6 +22,7 @@ use bevy::input::keyboard::KeyCode;
 use bevy::input::mouse::MouseButton;
 use bevy::input::ButtonInput;
 use bevy::log::debug;
+use bevy::log::error;
 use bevy::math::{Vec2, Vec3};
 use bevy::prelude::Window;
 
@@ -31,6 +33,7 @@ use bevy::{
     transform::components::Transform,
     window::CursorMoved,
 };
+// use bevy_mod_sysfail::sysfail;
 
 use super::camera::MainCamera;
 use super::element_picker::ElementSelection;
@@ -127,6 +130,7 @@ impl BrushPlugin {
 
     /// Based on the brush radius and the celestial cell size, return a list of
     /// points in relative xy coordinates that the brush will affect.
+    /// TODO: #[sysfail]
     pub fn apply_brush_system(
         mouse: Res<ButtonInput<MouseButton>>,
         mut brush: Query<(&Parent, &mut Transform, &Radius), With<BrushComponent>>,
@@ -140,12 +144,43 @@ impl BrushPlugin {
         frame_count: Res<FrameCount>,
     ) {
         if !mouse.pressed(MouseButton::Left) {
+            // return Ok(());
             return;
         }
         debug!("Applying brush");
+
+        // Get the camera the brush follows, and the celestial the camera follows
         let (brush_parent, brush_transform, radius) = brush.single_mut();
-        let (camera_parent, camera_transform, _, _) = camera.get_mut(brush_parent.get()).unwrap();
-        let mut celestial = celestial.get_mut(camera_parent.get()).unwrap();
+        let (camera_parent, camera_transform, _, _) = match camera.get_mut(brush_parent.get()) {
+            Ok(x) => x,
+            Err(e) => {
+                error!(
+                    "{:?}",
+                    MissingParentError {
+                        err: Some(Box::new(e)),
+                        entity_type: "Brush".to_string(),
+                        necessary_parent_type: "Camera".to_string()
+                    }
+                );
+                return;
+            }
+        };
+        let mut celestial = match celestial.get_mut(camera_parent.get()) {
+            Ok(x) => x,
+            Err(e) => {
+                error!(
+                    "{:?}",
+                    MissingParentError {
+                        err: Some(Box::new(e)),
+                        entity_type: "Camera".to_string(),
+                        necessary_parent_type: "Celestial".to_string(),
+                    }
+                );
+                return;
+            }
+        };
+
+        // Get the bounds of the brush in terms of the celestials cells
         let begin_at = RelXyPoint::new(
             radius.0 + brush_transform.translation.x + camera_transform.translation.x,
             radius.0 + brush_transform.translation.y + camera_transform.translation.y,

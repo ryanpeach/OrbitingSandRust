@@ -7,5 +7,6 @@
 compile_error!("This game is not supported on 32-bit systems.");
 
 pub mod entities;
+pub mod errors;
 pub mod gui;
 pub mod physics;

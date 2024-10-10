@@ -52,7 +52,6 @@ pub struct ConvOutOfBoundsError(pub ConvolutionIdx);
 /// Check out the  [`super::neighbor_identifiers::LeftRightNeighborIdentifier`] and
 ///  [`super::neighbor_indexes::LeftRightNeighborIdxs`] documentation for more information
 /// documentation for more information
-#[allow(clippy::large_enum_variant)]
 pub enum LeftRightNeighborGrids {
     /// The left and right elements
     /// TODO: Unecessary to have a struct for this, flatten into the enum
@@ -79,6 +78,7 @@ impl LeftRightNeighborGrids {
     }
 
     /// Converts a hashmap into a `LeftRightNeighborGrids`
+    #[allow(clippy::unwrap_used)]
     pub fn from_hashmap(
         idxs: &LeftRightNeighborIdxs,
         grids: &mut HashMap<ChunkIjkVector, ElementGrid>,
@@ -114,7 +114,6 @@ impl LeftRightNeighborGrids {
 /// Top neighbor grids in the convolution
 /// Check out the  [`super::neighbor_identifiers::TopNeighborIdentifier`] and
 ///  [`super::neighbor_indexes::TopNeighborIdxs`] documentation for more information
-#[allow(clippy::large_enum_variant)]
 pub enum TopNeighborGrids {
     /// Indicates that there are the same number of chunks above as you have
     /// However, the cells may still double tangentially
@@ -168,6 +167,7 @@ impl TopNeighborGrids {
     }
 
     /// Converts a hashmap into a `TopNeighborGrids`
+    #[allow(clippy::unwrap_used)]
     pub fn from_hashmap(
         idxs: &TopNeighborIdxs,
         grids: &mut HashMap<ChunkIjkVector, ElementGrid>,
@@ -418,7 +418,6 @@ impl TopNeighborGrids {
 /// Bottom neighbor grids in the convolution
 /// Check out the  [`super::neighbor_identifiers::BottomNeighborIdentifier`] and
 ///  [`super::neighbor_indexes::BottomNeighborIdxs`] documentation for more information
-#[allow(clippy::large_enum_variant)]
 pub enum BottomNeighborGrids {
     /// Indicates that there are the same number of chunks below as you have
     /// However, the cells may still half tangentially
@@ -471,6 +470,7 @@ impl BottomNeighborGrids {
     }
 
     /// Converts a hashmap into a `BottomNeighborGrids`
+    #[allow(clippy::unwrap_used)]
     pub fn from_hashmap(
         idxs: &BottomNeighborIdxs,
         grids: &mut HashMap<ChunkIjkVector, ElementGrid>,

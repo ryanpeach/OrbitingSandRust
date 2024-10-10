@@ -245,18 +245,26 @@ impl ChunkCoords {
                 if j == 0 && k % 2 == 1 {
                     let angle_next = f64::from(k + 1) * theta;
                     let radius = starting_r + diff;
-                    let v_last = vertexes.last().unwrap();
+                    let v_last = vertexes.last().expect("vertexes is non empty");
                     let v_next = Vec2::new(
-                        (angle_next.cos() * radius).approx().unwrap(),
-                        (angle_next.sin() * radius).approx().unwrap(),
+                        (angle_next.cos() * radius)
+                            .approx()
+                            .expect("This is not a strange conversion"),
+                        (angle_next.sin() * radius)
+                            .approx()
+                            .expect("This is not a strange conversion"),
                     );
                     vertexes.push(interpolate_points(v_last, &v_next));
                 } else {
                     let angle_point = f64::from(*k) * theta;
                     let radius = starting_r + diff;
                     let new_coord = Vec2::new(
-                        (angle_point.cos() * radius).approx().unwrap(),
-                        (angle_point.sin() * radius).approx().unwrap(),
+                        (angle_point.cos() * radius)
+                            .approx()
+                            .expect("This is not a strange conversion"),
+                        (angle_point.sin() * radius)
+                            .approx()
+                            .expect("This is not a strange conversion"),
                     );
                     vertexes.push(new_coord);
                 }
@@ -298,18 +306,26 @@ impl ChunkCoords {
                 if j == 0 && k % 2 == 1 {
                     let angle_next = f64::from(k + 1) * theta;
                     let radius = starting_r + diff;
-                    let v_last = vertexes.last().unwrap();
+                    let v_last = vertexes.last().expect("vertexes is not empty");
                     let v_next = Vec2::new(
-                        (angle_next.cos() * radius).approx().unwrap(),
-                        (angle_next.sin() * radius).approx().unwrap(),
+                        (angle_next.cos() * radius)
+                            .approx()
+                            .expect("This is not a strange conversion."),
+                        (angle_next.sin() * radius)
+                            .approx()
+                            .expect("This is not a strange conversion."),
                     );
                     vertexes.push(interpolate_points(v_last, &v_next));
                 } else {
                     let angle_point = f64::from(k) * theta;
                     let radius = starting_r + diff;
                     let new_coord = Vec2::new(
-                        (angle_point.cos() * radius).approx().unwrap(),
-                        (angle_point.sin() * radius).approx().unwrap(),
+                        (angle_point.cos() * radius)
+                            .approx()
+                            .expect("This is not a strange conversion."),
+                        (angle_point.sin() * radius)
+                            .approx()
+                            .expect("This is not a strange conversion."),
                     );
                     vertexes.push(new_coord);
                 }
@@ -360,10 +376,10 @@ impl ChunkCoords {
                 let new_vec = Vec2::new(
                     (f64::from(k) / f64::from(self.num_radial_lines()))
                         .approx()
-                        .unwrap(),
+                        .expect("This is not a strange conversion."),
                     (f64::from(j) / f64::from(self.num_concentric_circles()))
                         .approx()
-                        .unwrap(),
+                        .expect("This is not a strange conversion."),
                 );
                 vertexes.push(new_vec);
             }
@@ -426,7 +442,7 @@ impl ChunkCoords {
     pub fn start_radius(&self) -> f32 {
         (f64::from(self.start_concentric_circle_absolute) * f64::from(self.cell_width.0))
             .approx()
-            .unwrap()
+            .expect("This is not a strange conversion.")
     }
     /// Get the radius of the largest concentric circle
     #[must_use]
@@ -434,7 +450,7 @@ impl ChunkCoords {
         (f64::from(self.start_radius())
             + f64::from(self.cell_width.0) * f64::from(self.num_concentric_circles))
         .approx()
-        .unwrap()
+        .expect("This is not a strange conversion.")
     }
     /// Get the number of radial lines in the chunk
     /// These go around the circle counter clockwise
@@ -451,12 +467,16 @@ impl ChunkCoords {
     #[must_use]
     pub fn end_theta(&self) -> f32 {
         let diff = (2.0 * PI) / f64::from(self.layer_num_radial_lines);
-        (f64::from(self.end_radial_line) * diff).approx().unwrap()
+        (f64::from(self.end_radial_line) * diff)
+            .approx()
+            .expect("This is not a strange conversion.")
     }
     #[must_use]
     pub fn start_theta(&self) -> f32 {
         let diff = (2.0 * PI) / f64::from(self.layer_num_radial_lines);
-        (f64::from(self.start_radial_line) * diff).approx().unwrap()
+        (f64::from(self.start_radial_line) * diff)
+            .approx()
+            .expect("This is not a strange conversion.")
     }
     /// Get the index of the first concentric circle starting from the beginning of the layer
     #[must_use]

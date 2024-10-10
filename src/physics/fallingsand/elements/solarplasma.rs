@@ -62,7 +62,7 @@ impl Element for SolarPlasma {
             Ok(element) => {
                 if element.state_of_matter() <= StateOfMatter::Gas {
                     self.try_swap_me(
-                        below.unwrap(),
+                        below.expect("If Ok(element) then Ok(below)"),
                         target_chunk,
                         element_grid_conv,
                         current_time,
@@ -92,7 +92,7 @@ impl Element for SolarPlasma {
                         (Ok(element_l), Ok(_), false) | (Ok(element_l), Err(_), _) => {
                             if element_l.state_of_matter() <= StateOfMatter::Gas {
                                 self.try_swap_me(
-                                    new_idx_l.unwrap(),
+                                    new_idx_l.expect("If Ok(element_l) then Ok(new_idx_l)"),
                                     target_chunk,
                                     element_grid_conv,
                                     current_time,
@@ -104,7 +104,7 @@ impl Element for SolarPlasma {
                         (Ok(_), Ok(element_r), true) | (Err(_), Ok(element_r), _) => {
                             if element_r.state_of_matter() <= StateOfMatter::Gas {
                                 self.try_swap_me(
-                                    new_idx_r.unwrap(),
+                                    new_idx_r.expect("If Ok(element_r) then Ok(new_idx_r)"),
                                     target_chunk,
                                     element_grid_conv,
                                     current_time,

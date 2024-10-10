@@ -368,8 +368,6 @@ impl DataPlugin {
     /// Run this system every frame to update the celestial
     /// # Panics
     /// Should never panic, but uses expect to handle the case where a texture or material is missing.
-    #[allow(clippy::type_complexity)]
-    #[allow(clippy::needless_pass_by_value)]
     pub fn process_system(
         mut celestial: Query<(Entity, &mut Data, &mut Mass)>,
         mut falling_sand_materials: Query<
@@ -408,7 +406,6 @@ impl DataPlugin {
         }
     }
     /// Draw the wireframe of the celestials cells
-    #[allow(clippy::needless_pass_by_value)]
     pub fn draw_wireframe_system(
         mut gizmos: Gizmos,
         query: Query<(&GizmoDrawableGrid, &Transform, &ViewVisibility), With<Wireframe>>,
@@ -420,7 +417,6 @@ impl DataPlugin {
         }
     }
     /// Draw the outline of the celestials chunks
-    #[allow(clippy::needless_pass_by_value)]
     pub fn draw_outline_system(
         mut gizmos: Gizmos,
         query: Query<(&GizmoDrawableLoop, &Transform, &ViewVisibility), With<Outline>>,
