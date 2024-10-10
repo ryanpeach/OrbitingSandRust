@@ -1,9 +1,14 @@
+#![expect(missing_docs)]
+#![expect(clippy::missing_docs_in_private_items)]
+
 use bevy::math::Vec2;
+use conv::ValueFrom;
 
 /// A modulo that works for negative numbers
 #[must_use]
 pub fn modulo(x: isize, y: usize) -> usize {
-    let y_isize = y as isize;
+    let y_isize =
+        isize::value_from(y).expect("usize should fit in isize, except at VERY large values");
     (((x % y_isize) + y_isize) % y_isize) as usize
 }
 
@@ -64,6 +69,12 @@ pub fn grid_iter(start: usize, end: usize, step: usize) -> Vec<usize> {
 
 #[cfg(test)]
 mod tests {
+    #![allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_possible_wrap,
+        clippy::unwrap_used,
+        clippy::panic
+    )]
     use super::*;
 
     #[test]

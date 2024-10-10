@@ -1,3 +1,5 @@
+#![expect(missing_docs)]
+#![expect(clippy::missing_docs_in_private_items)]
 //! The directory contains all the chunks of a celestial.
 
 use std::f32::consts::PI;
@@ -603,6 +605,12 @@ impl CoordinateDir {
 
 #[cfg(test)]
 mod tests {
+    #![allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_possible_wrap,
+        clippy::unwrap_used,
+        clippy::panic
+    )]
 
     use super::*;
 

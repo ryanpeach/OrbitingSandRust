@@ -1,3 +1,5 @@
+#![expect(missing_docs)]
+#![expect(clippy::missing_docs_in_private_items)]
 use crate::physics::fallingsand::util::functions::interpolate_points;
 
 use crate::physics::fallingsand::util::mesh::OwnedMeshData;
@@ -668,6 +670,12 @@ impl ChunkCoords {
 
 #[cfg(test)]
 mod tests {
+    #![allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_possible_wrap,
+        clippy::unwrap_used,
+        clippy::panic
+    )]
     use super::*;
 
     use crate::physics::fallingsand::mesh::coordinate_dir::Builder;

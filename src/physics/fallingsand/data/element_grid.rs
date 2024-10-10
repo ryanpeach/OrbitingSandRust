@@ -1,5 +1,8 @@
+#![expect(missing_docs)]
+#![expect(clippy::missing_docs_in_private_items)]
 use bevy::color::ColorToPacked;
-use bevy::math::Rect;
+use bevy::math::URect;
+use conv::ValueFrom;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -367,12 +370,17 @@ impl ElementGrid {
         }
         RawImage {
             pixels: out,
-            bounds: Rect::new(
-                self.coords.start_radial_line() as f32,
-                self.coords.start_concentric_circle_absolute() as f32,
-                self.coords.start_radial_line() as f32 + self.coords.num_radial_lines() as f32,
-                self.coords.start_concentric_circle_absolute() as f32
-                    + self.coords.num_concentric_circles() as f32,
+            bounds: URect::new(
+                u32::value_from(self.coords.start_radial_line()).expect("Very large number"),
+                u32::value_from(self.coords.start_concentric_circle_absolute())
+                    .expect("Very large number"),
+                u32::value_from(self.coords.start_radial_line() + self.coords.num_radial_lines())
+                    .expect("Very large number"),
+                u32::value_from(
+                    self.coords.start_concentric_circle_absolute()
+                        + self.coords.num_concentric_circles(),
+                )
+                .expect("Very large number."),
             ),
         }
     }

@@ -1,3 +1,5 @@
+#![expect(missing_docs)]
+#![expect(clippy::missing_docs_in_private_items)]
 //! This module contains the trait Element and associated types
 //! This is the trait that all elements must implement
 //! It also contains info about states of matter and other useful enums and components
@@ -197,6 +199,12 @@ pub trait Element: Send + Sync {
 
 #[cfg(test)]
 mod tests {
+    #![allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_possible_wrap,
+        clippy::unwrap_used,
+        clippy::panic
+    )]
     use bevy::color::Color;
     use strum::IntoEnumIterator;
 

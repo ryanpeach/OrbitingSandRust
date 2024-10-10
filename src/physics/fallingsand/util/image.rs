@@ -4,7 +4,7 @@
 
 use bevy::render::render_asset::RenderAssetUsages;
 use bevy::{
-    math::Rect,
+    math::URect,
     render::{
         render_resource::{Extent3d, TextureDimension, TextureFormat},
         texture::Image,
@@ -17,7 +17,9 @@ use bevy::{
 /// Context for an image to be created, so we use this instead
 #[derive(Clone)]
 pub struct RawImage {
-    pub bounds: Rect,
+    /// The bounds of the image in jk coordinates
+    pub bounds: URect,
+    /// The pixels in
     pub pixels: Vec<u8>,
 }
 
@@ -25,7 +27,7 @@ pub struct RawImage {
 impl Default for RawImage {
     fn default() -> Self {
         Self {
-            bounds: Rect::new(0.0, 0.0, 0.0, 0.0),
+            bounds: URect::new(0, 0, 0, 0),
             pixels: Vec::new(),
         }
     }
@@ -48,8 +50,8 @@ impl RawImage {
     #[must_use]
     pub fn to_bevy_image(self) -> Image {
         let size = Extent3d {
-            width: self.bounds.width() as u32,
-            height: self.bounds.height() as u32,
+            width: self.bounds.width(),
+            height: self.bounds.height(),
             depth_or_array_layers: 1,
         };
 

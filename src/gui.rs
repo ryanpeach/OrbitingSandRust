@@ -13,6 +13,7 @@ pub mod camera;
 pub mod element_picker;
 pub mod system_stepping;
 
+/// TODO: I'm not sure what this is for. Why is it seperate from [`GuiPluginGroup`]?
 pub struct GuiUnifiedPlugin;
 
 impl Plugin for GuiUnifiedPlugin {
@@ -22,12 +23,14 @@ impl Plugin for GuiUnifiedPlugin {
 }
 
 impl GuiUnifiedPlugin {
+    /// Runs the setup function for each gui plugin
     pub fn setup(mut commands: Commands) {
         let camera = CameraPlugin::setup_main_camera(&mut commands);
         BrushPlugin::create_brush(&mut commands, camera);
     }
 }
 
+/// All of our gui plugins
 pub struct GuiPluginGroup;
 
 impl PluginGroup for GuiPluginGroup {

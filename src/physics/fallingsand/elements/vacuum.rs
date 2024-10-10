@@ -1,3 +1,5 @@
+#![expect(missing_docs)]
+#![expect(clippy::missing_docs_in_private_items)]
 use bevy::color::Color;
 
 use super::element::{Density, Element, ElementTakeOptions, ElementType, StateOfMatter};

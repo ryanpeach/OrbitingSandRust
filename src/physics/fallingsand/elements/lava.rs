@@ -1,3 +1,5 @@
+#![expect(missing_docs)]
+#![expect(clippy::missing_docs_in_private_items)]
 use bevy::color::palettes::css::RED;
 use bevy::color::Color;
 

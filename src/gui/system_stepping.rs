@@ -1,3 +1,5 @@
+#![expect(missing_docs)]
+#![expect(clippy::missing_docs_in_private_items)]
 //! plugin for demonstrating bevy v0.13 system stepping using egui interface
 //! Released under the MIT License
 //! REF: <https://gist.github.com/dmlary/3fd57ebf1f88bb9afa8a6604737dac97#file-stepping_egui-rs>

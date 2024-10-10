@@ -1,3 +1,5 @@
+#![expect(missing_docs)]
+#![expect(clippy::missing_docs_in_private_items)]
 use bevy::{
     app::{App, Plugin, Update},
     ecs::system::{ResMut, Resource},

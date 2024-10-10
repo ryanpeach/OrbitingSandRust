@@ -9,6 +9,7 @@ pub mod util;
 /// The number of physics frames per second.
 pub const PHYSICS_FRAME_RATE: f64 = 30.0;
 
+/// The plugin group for all physics related code.
 pub struct PhysicsPluginGroup;
 
 impl PluginGroup for PhysicsPluginGroup {

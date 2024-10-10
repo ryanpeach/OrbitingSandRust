@@ -71,6 +71,12 @@ impl Element for DownFlier {
 
 #[cfg(test)]
 mod tests {
+    #![allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_possible_wrap,
+        clippy::unwrap_used,
+        clippy::panic
+    )]
     use crate::physics::{
         fallingsand::{data::element_directory::ElementGridDir, mesh::coordinate_dir::Builder},
         orbits::components::Length,

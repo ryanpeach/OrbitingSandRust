@@ -1,5 +1,7 @@
 //! A clock that can be passed to objects that need to know the last time they were updated.
 
+#![expect(missing_docs)]
+#![expect(clippy::missing_docs_in_private_items)]
 use std::{fmt::Debug, time::Duration};
 
 use bevy::{core::FrameCount, time::Time};
