@@ -386,7 +386,7 @@ impl TopNeighborGrids {
 
     /// Gets the number of concentric circles in the top layer of the convolution
     #[must_use]
-    pub fn num_concentric_circles(&self) -> usize {
+    pub fn num_concentric_circles(&self) -> u32 {
         match self {
             TopNeighborGrids::Normal { tl: _, t, tr: _ } => t.coords().num_concentric_circles(),
             TopNeighborGrids::ChunkDoubling {
@@ -401,7 +401,7 @@ impl TopNeighborGrids {
 
     /// Gets the number of radial lines in the top layer of the convolution
     #[must_use]
-    pub fn num_radial_lines(&self) -> usize {
+    pub fn num_radial_lines(&self) -> u32 {
         match self {
             TopNeighborGrids::Normal { tl: _, t, tr: _ } => t.coords().num_radial_lines(),
             TopNeighborGrids::ChunkDoubling {
@@ -545,7 +545,7 @@ impl BottomNeighborGrids {
 
     /// Gets the number of radial lines in the bottom layer of the convolution
     #[must_use]
-    pub fn num_radial_lines(&self) -> usize {
+    pub fn num_radial_lines(&self) -> u32 {
         match self {
             BottomNeighborGrids::Normal { bl: _, b, br: _ } => b.coords().num_radial_lines(),
             BottomNeighborGrids::ChunkDoubling { bl, br: _ } => bl.coords().num_radial_lines(),
@@ -555,7 +555,7 @@ impl BottomNeighborGrids {
 
     /// Gets the number of concentric circles in the bottom layer of the convolution
     #[must_use]
-    pub fn num_concentric_circles(&self) -> usize {
+    pub fn num_concentric_circles(&self) -> u32 {
         match self {
             BottomNeighborGrids::Normal { bl: _, b, br: _ } => b.coords().num_concentric_circles(),
             BottomNeighborGrids::ChunkDoubling { bl, br: _ } => {

@@ -52,12 +52,12 @@ pub struct BackgroundLayer1;
 
 /// A component that allows us to enumerate over all the celestials
 #[derive(Component, Debug, Clone, Copy)]
-pub struct CelestialIdx(pub usize);
+pub struct CelestialIdx(pub u32);
 
-impl Add<usize> for CelestialIdx {
+impl Add<u32> for CelestialIdx {
     type Output = Self;
 
-    fn add(self, rhs: usize) -> Self::Output {
+    fn add(self, rhs: u32) -> Self::Output {
         CelestialIdx(self.0 + rhs)
     }
 }
@@ -91,7 +91,7 @@ impl CelestialIdx {
             // Check that the indices start at 0 and end at len - 1
             let indices = indices.into_iter();
             for (idx, i) in indices.enumerate() {
-                assert_eq!(i, idx);
+                assert_eq!(i, idx as u32);
             }
         }
         let parent = camera.0;
@@ -106,7 +106,7 @@ impl CelestialIdx {
     #[must_use]
     pub fn next(&self, celestials: Vec<&CelestialIdx>) -> CelestialIdx {
         let mut idx = self.0 + 1;
-        if idx >= celestials.len() {
+        if idx >= celestials.len() as u32 {
             idx = 0;
         }
         CelestialIdx(idx)
@@ -119,7 +119,7 @@ impl CelestialIdx {
         if idx < 0 {
             idx = celestials.len() as i32 - 1;
         }
-        CelestialIdx(idx as usize)
+        CelestialIdx(idx as u32)
     }
 }
 

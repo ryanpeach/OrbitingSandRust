@@ -18,6 +18,7 @@ use super::super::elements::vacuum::Vacuum;
 use super::super::mesh::coordinate_dir::CoordinateDir;
 use super::super::util::grid::{Grid, GridOutOfBoundsError};
 use super::super::util::image::RawImage;
+use crate::physics::util::fastmath::{FastArrayGet, FastVecGet};
 use anyhow::{bail, Result};
 use itertools::iproduct;
 
@@ -61,7 +62,8 @@ impl ElementGrid {
     /// Creates a new element grid with the given chunk coords and fills it with the given element
     pub fn new_filled(chunk_coords: ChunkCoords, fill: &dyn Element) -> Self {
         let mut grid: Vec<Box<dyn Element>> = Vec::with_capacity(
-            chunk_coords.num_radial_lines() * chunk_coords.num_concentric_circles(),
+            chunk_coords.num_radial_lines() as usize
+                * chunk_coords.num_concentric_circles() as usize,
         );
         for _ in 0..chunk_coords.num_radial_lines() * chunk_coords.num_concentric_circles() {
             grid.push(fill.box_clone());
@@ -241,7 +243,7 @@ impl ElementGrid {
         // By randomly shuffling the order we process the elements
         // we can avoid creating a "favorite direction" for the elements to move
         let mut rng = thread_rng();
-        let mut iter: Vec<(usize, usize)> = iproduct!(
+        let mut iter: Vec<(u32, u32)> = iproduct!(
             0..self.coords.num_concentric_circles(),
             0..self.coords.num_radial_lines()
         )
@@ -356,7 +358,9 @@ impl ElementGrid {
     #[must_use]
     pub fn texture(&self) -> RawImage {
         let mut out = Vec::with_capacity(
-            self.coords.num_radial_lines() * self.coords.num_concentric_circles() * 4,
+            self.coords.num_radial_lines() as usize
+                * self.coords.num_concentric_circles() as usize
+                * 4,
         );
         for j in 0..self.coords.num_concentric_circles() {
             for k in 0..self.coords.num_radial_lines() {

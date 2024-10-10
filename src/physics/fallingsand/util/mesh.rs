@@ -20,6 +20,7 @@ use bevy::{
     transform::components::Transform,
 };
 
+use crate::physics::util::fastmath::FastVecGet;
 use bevy::render::render_asset::RenderAssetUsages;
 
 use crate::physics::util::vectors::Vertex;
@@ -52,14 +53,14 @@ impl GizmoDrawableLoop {
     /// This draw mode "loops" like you would for an enclosed shape
     pub fn draw_bevy_gizmo_loop(&self, gizmos: &mut Gizmos, transform: &Transform) {
         for idx in 0..(self.mesh.indices.len() - 1) {
-            let idx0 = self.mesh.indices[idx] as usize;
-            let idx1 = self.mesh.indices[idx + 1] as usize;
+            let idx0 = self.mesh.indices[idx] as u32;
+            let idx1 = self.mesh.indices[idx + 1] as u32;
             self.mesh
                 .draw_bevy_gizmo_line(idx0, idx1, transform, gizmos, self.color);
         }
         // Now the final line to close the loop
-        let idx0 = self.mesh.indices[self.mesh.indices.len() - 1] as usize;
-        let idx1 = self.mesh.indices[0] as usize;
+        let idx0 = self.mesh.indices[self.mesh.indices.len() - 1] as u32;
+        let idx1 = self.mesh.indices[0] as u32;
         self.mesh
             .draw_bevy_gizmo_line(idx0, idx1, transform, gizmos, self.color);
     }
@@ -88,9 +89,9 @@ impl GizmoDrawableGrid {
     /// This draw mode draws each triangle (triple) individually
     pub fn draw_bevy_gizmo_grid(&self, gizmos: &mut Gizmos, transform: &Transform) {
         for idx in (0..self.mesh.indices.len()).step_by(3) {
-            let idx0 = self.mesh.indices[idx] as usize;
-            let idx1 = self.mesh.indices[idx + 1] as usize;
-            let idx2 = self.mesh.indices[idx + 2] as usize;
+            let idx0 = self.mesh.indices[idx] as u32;
+            let idx1 = self.mesh.indices[idx + 1] as u32;
+            let idx2 = self.mesh.indices[idx + 2] as u32;
             if idx % 2 == 0 {
                 self.mesh
                     .draw_bevy_gizmo_line(idx0, idx1, transform, gizmos, self.color);
@@ -202,14 +203,14 @@ impl OwnedMeshData {
     /// Simply draws a line from an index to another but applies the transform first
     fn draw_bevy_gizmo_line(
         &self,
-        idx0: usize,
-        idx1: usize,
+        idx0: u32,
+        idx1: u32,
         transform: &Transform,
         gizmos: &mut Gizmos,
         color: Color,
     ) {
-        let mut pos0 = self.vertices[idx0].position;
-        let mut pos1 = self.vertices[idx1].position;
+        let mut pos0 = self.vertices.fast_get_ref(idx0).position;
+        let mut pos1 = self.vertices.fast_get_ref(idx1).position;
         pos0.x += transform.translation.x;
         pos0.y += transform.translation.y;
         pos1.x += transform.translation.x;

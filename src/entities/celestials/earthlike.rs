@@ -18,17 +18,17 @@ pub struct Builder {
     /// See [`coordinate_dir::Builder::cell_width`]
     cell_width: Length,
     /// See [`coordinate_dir::Builder::num_layers`]
-    num_layers: usize,
+    num_layers: u32,
     /// See [`coordinate_dir::Builder::first_num_radial_lines`]
-    first_num_radial_lines: usize,
+    first_num_radial_lines: u32,
     /// See [`coordinate_dir::Builder::second_num_concentric_circles`]
-    second_num_concentric_circles: usize,
+    second_num_concentric_circles: u32,
     /// See [`coordinate_dir::Builder::first_num_tangential_chunks`]
-    first_num_tangential_chunks: usize,
+    first_num_tangential_chunks: u32,
     /// See [`coordinate_dir::Builder::max_radial_lines_per_chunk`]
-    max_radial_lines_per_chunk: usize,
+    max_radial_lines_per_chunk: u32,
     /// See [`coordinate_dir::Builder::max_concentric_circles_per_chunk`]
-    max_concentric_circles_per_chunk: usize,
+    max_concentric_circles_per_chunk: u32,
 }
 
 impl Default for Builder {
@@ -61,35 +61,35 @@ impl Builder {
 
     /// Set [`Builder::num_layers`]
     #[must_use]
-    pub fn num_layers(mut self, num_layers: usize) -> Self {
+    pub fn num_layers(mut self, num_layers: u32) -> Self {
         self.num_layers = num_layers;
         self
     }
 
     /// Set [`Builder::first_num_radial_lines`]
     #[must_use]
-    pub fn first_num_radial_lines(mut self, first_num_radial_lines: usize) -> Self {
+    pub fn first_num_radial_lines(mut self, first_num_radial_lines: u32) -> Self {
         self.first_num_radial_lines = first_num_radial_lines;
         self
     }
 
     /// Set [`Builder::second_num_concentric_circles`]
     #[must_use]
-    pub fn second_num_concentric_circles(mut self, second_num_concentric_circles: usize) -> Self {
+    pub fn second_num_concentric_circles(mut self, second_num_concentric_circles: u32) -> Self {
         self.second_num_concentric_circles = second_num_concentric_circles;
         self
     }
 
     /// Set [`Builder::first_num_tangential_chunks`]
     #[must_use]
-    pub fn first_num_tangential_chunkss(mut self, first_num_tangential_chunkss: usize) -> Self {
+    pub fn first_num_tangential_chunkss(mut self, first_num_tangential_chunkss: u32) -> Self {
         self.first_num_tangential_chunks = first_num_tangential_chunkss;
         self
     }
 
     /// Set [`Builder::max_radial_lines_per_chunk`]
     #[must_use]
-    pub fn max_radial_lines_per_chunk(mut self, max_radial_lines_per_chunk: usize) -> Self {
+    pub fn max_radial_lines_per_chunk(mut self, max_radial_lines_per_chunk: u32) -> Self {
         self.max_radial_lines_per_chunk = max_radial_lines_per_chunk;
         self
     }
@@ -98,7 +98,7 @@ impl Builder {
     #[must_use]
     pub fn max_concentric_circles_per_chunk(
         mut self,
-        max_concentric_circles_per_chunk: usize,
+        max_concentric_circles_per_chunk: u32,
     ) -> Self {
         self.max_concentric_circles_per_chunk = max_concentric_circles_per_chunk;
         self

@@ -53,7 +53,7 @@ fn bench_get_textures() {
     (get_element_grid_dir::sun(), 1),
     (get_element_grid_dir::earthlike(), 10),
 )]
-fn bench_process(mut element_grid_dir: ElementGridDir, nb_iterations: usize) {
+fn bench_process(mut element_grid_dir: ElementGridDir, nb_iterations: u32) {
     let mut current_time = Clock::new(Time::default(), FrameCount(0));
     for _ in 0..nb_iterations {
         element_grid_dir.process_full(current_time);

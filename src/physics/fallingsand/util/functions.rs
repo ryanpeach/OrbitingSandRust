@@ -5,16 +5,16 @@ use conv::ValueFrom;
 
 /// A modulo that works for negative numbers
 #[must_use]
-pub fn modulo(x: isize, y: usize) -> usize {
+pub fn modulo(x: isize, y: u32) -> u32 {
     let y_isize =
-        isize::value_from(y).expect("usize should fit in isize, except at VERY large values");
-    (((x % y_isize) + y_isize) % y_isize) as usize
+        isize::value_from(y).expect("u32 should fit in isize, except at VERY large values");
+    (((x % y_isize) + y_isize) % y_isize) as u32
 }
 
 /// Tests if a number is a power of 2
 /// I found it's important that some values are powers of two in order to enable `grid_iter` to work
 #[must_use]
-pub fn is_pow_2(n: usize) -> bool {
+pub fn is_pow_2(n: u32) -> bool {
     n != 0 && (n & (n - 1)) == 0
 }
 
@@ -22,7 +22,7 @@ pub fn is_pow_2(n: usize) -> bool {
 /// A valid step is 1, len - 1, or a factor of len - 1
 /// We convert things less than 1 to 1, or things greater than len - 1 to len - 1
 #[must_use]
-pub fn valid_step(len: usize, step: usize) -> bool {
+pub fn valid_step(len: u32, step: u32) -> bool {
     step <= 1 || step >= len - 1 || (len - 1) % step == 0
 }
 
@@ -36,7 +36,7 @@ pub fn interpolate_points(p1: &Vec2, p2: &Vec2) -> Vec2 {
 /// If it is larger than the number of items, it will just return the first and last item
 /// If the step is not a multiple of the number of items, it will round down to the previous multiple
 #[must_use]
-pub fn grid_iter(start: usize, end: usize, step: usize) -> Vec<usize> {
+pub fn grid_iter(start: u32, end: u32, step: u32) -> Vec<u32> {
     let len = end - start;
     if len <= 1 {
         // Return [0]
@@ -57,7 +57,7 @@ pub fn grid_iter(start: usize, end: usize, step: usize) -> Vec<usize> {
 
     let mut out = Vec::new();
     out.push(start_item);
-    for i in (start_item + step..end_item).step_by(step) {
+    for i in (start_item + step..end_item).step_by(step as usize) {
         if i % step == 0 && i != 0 && i != len - 1 {
             out.push(i);
         }

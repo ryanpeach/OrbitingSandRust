@@ -7,6 +7,8 @@
 use thiserror::Error;
 
 use super::vectors::JkVector;
+use crate::physics::util::fastmath::FastArray2Get;
+use conv::ValueFrom;
 
 /// A simple 2d grid type
 #[derive(Clone)]
@@ -17,28 +19,31 @@ pub struct Grid<T>(ndarray::Array2<T>);
  * ================= */
 impl<T> Grid<T> {
     /// Create a new grid filled with one value
-    pub fn new_fill(width: usize, height: usize, value: T) -> Self
+    pub fn new_fill(width: u32, height: u32, value: T) -> Self
     where
         T: Clone,
     {
-        Self(ndarray::Array2::from_elem((width, height), value))
+        Self(ndarray::Array2::from_elem(
+            (width as usize, height as usize),
+            value,
+        ))
     }
     /// Create a new grid with the given width and height, and fill it with the given data
     #[must_use]
-    pub fn new_from_vec(width: usize, height: usize, data: Vec<T>) -> Self {
-        Self(ndarray::Array2::from_shape_vec((width, height), data).unwrap())
+    pub fn new_from_vec(width: u32, height: u32, data: Vec<T>) -> Self {
+        Self(ndarray::Array2::from_shape_vec((width as usize, height as usize), data).unwrap())
     }
     /// Create a new grid with the given width and height, and fill it with default values
     #[must_use]
-    pub fn new_empty(width: usize, height: usize) -> Self
+    pub fn new_empty(width: u32, height: u32) -> Self
     where
         T: Default,
     {
-        let mut data = Vec::with_capacity(width * height);
+        let mut data = Vec::with_capacity((width * height) as usize);
         for _ in 0..width * height {
             data.push(Default::default());
         }
-        Self(ndarray::Array2::from_shape_vec((width, height), data).unwrap())
+        Self(ndarray::Array2::from_shape_vec((width as usize, height as usize), data).unwrap())
     }
 }
 
@@ -49,13 +54,13 @@ impl<T> Grid<T> {
 impl<T> Grid<T> {
     /// Get the width of the grid
     #[must_use]
-    pub fn width(&self) -> usize {
-        self.0.shape()[0]
+    pub fn width(&self) -> u32 {
+        u32::value_from(self.0.shape()[0]).expect("Initialization uses u32")
     }
     /// Get the height of the grid
     #[must_use]
-    pub fn height(&self) -> usize {
-        self.0.shape()[1]
+    pub fn height(&self) -> u32 {
+        u32::value_from(self.0.shape()[1]).expect("Initialization uses u32")
     }
     /// Get the total size of the grid
     #[must_use]
@@ -89,7 +94,7 @@ impl<T> Grid<T> {
     #[must_use]
     pub fn get(&self, idx: JkVector) -> &T {
         let idx = self.transform_jk_coord_to_ndarray(idx);
-        &self.0[idx]
+        self.0.fast_get_ref(idx)
     }
     /// Gets the value at the given coordinate, or returns an error if the coordinate is out of bounds
     pub fn checked_get(&self, idx: JkVector) -> Result<&T, GridOutOfBoundsError> {
@@ -101,7 +106,7 @@ impl<T> Grid<T> {
     /// Gets the value at the given coordinate, mutably
     pub fn get_mut(&mut self, idx: JkVector) -> &mut T {
         let idx = self.transform_jk_coord_to_ndarray(idx);
-        &mut self.0[idx]
+        self.0.fast_get_mut_ref(idx)
     }
     /// Sets the value at the given coordinate, overwriting the old value
     pub fn set(&mut self, idx: JkVector, value: T) {
@@ -110,10 +115,10 @@ impl<T> Grid<T> {
     /// Like set, but gives you ownership of the original value
     pub fn replace(&mut self, idx: JkVector, replacement: T) -> T {
         let coord = self.transform_jk_coord_to_ndarray(idx);
-        std::mem::replace(&mut self.0[coord], replacement)
+        std::mem::replace(self.0.fast_get_mut_ref(coord), replacement)
     }
     /// Transforms the coordinate to the ndarray coordinate system using this grid's width and height
-    fn transform_jk_coord_to_ndarray(&self, idx: JkVector) -> [usize; 2] {
+    fn transform_jk_coord_to_ndarray(&self, idx: JkVector) -> [u32; 2] {
         [self.width() - 1 - idx.k, self.height() - 1 - idx.j]
     }
 }

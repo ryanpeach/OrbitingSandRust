@@ -12,13 +12,13 @@ use derive_more::{Add, AddAssign, Sub, SubAssign};
 /// Top left is (0, 0)
 /// ![ndarray coords](../../../../../assets/docs/wireframe/ndarray_coords.png)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct NdArrayCoords([usize; 2]);
+pub struct NdArrayCoords([u32; 2]);
 
 /// Instantiation
 impl NdArrayCoords {
     /// Create a new  [`NdArrayCoords`]
     #[must_use]
-    pub fn new(x: usize, y: usize) -> Self {
+    pub fn new(x: u32, y: u32) -> Self {
         Self([x, y])
     }
 }
@@ -37,18 +37,18 @@ impl NdArrayCoords {
 
     /// Get the column index
     #[must_use]
-    pub fn x(&self) -> usize {
+    pub fn x(&self) -> u32 {
         self.0[0]
     }
 
     /// Get the row index
     #[must_use]
-    pub fn y(&self) -> usize {
+    pub fn y(&self) -> u32 {
         self.0[1]
     }
 }
 
-impl From<NdArrayCoords> for [usize; 2] {
+impl From<NdArrayCoords> for [u32; 2] {
     fn from(val: NdArrayCoords) -> Self {
         val.0
     }
@@ -79,9 +79,9 @@ impl NdArrayCoords {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
 pub struct JkVector {
     /// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
-    pub j: usize,
+    pub j: u32,
     /// The k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
-    pub k: usize,
+    pub k: u32,
 }
 
 /// To  [`NdArrayCoords`]
@@ -109,7 +109,7 @@ impl JkVector {
 impl JkVector {
     /// Create a new  [`JkVector`]
     #[must_use]
-    pub fn new(j: usize, k: usize) -> Self {
+    pub fn new(j: u32, k: u32) -> Self {
         Self { j, k }
     }
 }
@@ -181,11 +181,11 @@ impl FullIdx {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct IjkVector {
     /// The i coordinate, as in the layer number, the core is 0
-    pub i: usize,
+    pub i: u32,
     /// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
-    pub j: usize,
+    pub j: u32,
     /// The k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
-    pub k: usize,
+    pub k: u32,
 }
 
 impl IjkVector {
@@ -193,7 +193,7 @@ impl IjkVector {
     pub const ZERO: Self = Self { i: 0, j: 0, k: 0 };
     /// Instantiation
     #[must_use]
-    pub fn new(i: usize, j: usize, k: usize) -> Self {
+    pub fn new(i: u32, j: u32, k: u32) -> Self {
         Self { i, j, k }
     }
     /// Convert to a [`JkVector`]
@@ -226,17 +226,17 @@ pub struct Vertex {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct ChunkIjkVector {
     /// The i coordinate, as in the layer number, the core is 0
-    pub i: usize,
+    pub i: u32,
     /// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
-    pub j: usize,
+    pub j: u32,
     /// The k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
-    pub k: usize,
+    pub k: u32,
 }
 
 impl ChunkIjkVector {
     /// Instantiation
     #[must_use]
-    pub fn new(i: usize, j: usize, k: usize) -> Self {
+    pub fn new(i: u32, j: u32, k: u32) -> Self {
         Self { i, j, k }
     }
     /// The zero vector

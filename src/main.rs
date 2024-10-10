@@ -70,7 +70,7 @@ fn main() {
 }
 
 /// The number of asteroids in [`solar_system_setup`]
-const NUM_ASTEROIDS: usize = 10000;
+const NUM_ASTEROIDS: u32 = 10000;
 
 /// Creates a solar system with a sun, earth, and a bunch of asteroids.
 #[allow(dead_code)]

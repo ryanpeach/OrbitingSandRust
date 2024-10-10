@@ -34,6 +34,8 @@ use crate::physics::{
     util::clock::Clock,
 };
 
+use conv::ValueFrom;
+
 use super::{
     neighbor_grids::{
         BottomNeighborGrids, ConvOutOfBoundsError, ElementGridConvolutionNeighborGrids,
@@ -85,8 +87,9 @@ impl ElementGridConvolutionNeighbors {
 
     /// Get the number of chunks
     #[must_use]
-    pub fn len(&self) -> usize {
-        self.chunk_idxs.iter().count()
+    pub fn len(&self) -> u32 {
+        u32::value_from(self.chunk_idxs.iter().count())
+            .expect("No way there are more that u32 chunks")
     }
     /// Checks if there are no chunks
     #[must_use]
@@ -142,7 +145,7 @@ impl ElementGridConvolutionNeighbors {
         target_chunk: &ElementGrid,
         _coord_dir: &CoordinateDir,
         pos: &JkVector,
-        n: usize,
+        n: u32,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
         // Handle naive case where you don't change your chunk
         if pos.j >= n {
