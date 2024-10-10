@@ -706,7 +706,8 @@ mod tests {
         clippy::cast_possible_truncation,
         clippy::cast_possible_wrap,
         clippy::unwrap_used,
-        clippy::panic
+        clippy::panic,
+        clippy::float_cmp
     )]
     use super::*;
 

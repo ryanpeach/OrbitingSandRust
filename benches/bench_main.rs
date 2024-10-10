@@ -1,3 +1,11 @@
+#![allow(
+    missing_docs,
+    clippy::missing_docs_in_private_items,
+    unused_must_use,
+    clippy::float_cmp,
+    clippy::cast_precision_loss
+)]
+
 use iai_callgrind::{main, EventKind, LibraryBenchmarkConfig, RegressionConfig};
 pub mod physics;
 
