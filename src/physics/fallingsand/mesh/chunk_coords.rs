@@ -9,7 +9,7 @@ use crate::physics::util::vectors::{RelXyPoint, Vertex};
 use anyhow::{bail, Result};
 use bevy::color::Color;
 use bevy::math::{Rect, Vec2};
-use conv::{ConvAsUtil, ConvUtil, UnwrapOrSaturate, ValueFrom};
+use conv::{ConvAsUtil, ValueFrom};
 use std::f64::consts::PI;
 
 /// The settings for generating the vertexes
@@ -197,11 +197,11 @@ impl ChunkCoords {
 
         let start_concentric_circle = self.start_concentric_circle_layer_relative;
 
-        let starting_r = self.start_radius() as f64;
-        let ending_r = self.end_radius() as f64;
+        let starting_r = f64::from(self.start_radius());
+        let ending_r = f64::from(self.end_radius());
         let circle_separation_distance =
-            (ending_r - starting_r) / self.num_concentric_circles() as f64;
-        let theta = (-2.0 * PI) / self.layer_num_radial_lines as f64;
+            (ending_r - starting_r) / f64::from(self.num_concentric_circles());
+        let theta = (-2.0 * PI) / f64::from(self.layer_num_radial_lines);
 
         // Create the concentric range with the appropriate level of detail and test it has the right bounds
         let start_concentric = self.start_concentric_circle_layer_relative;
@@ -238,12 +238,12 @@ impl ChunkCoords {
 
         // Run our double loop
         for j in concentric_range {
-            let diff = (j - self.start_concentric_circle_layer_relative) as f64
+            let diff = f64::from(j - self.start_concentric_circle_layer_relative)
                 * circle_separation_distance;
 
             for k in &radial_range {
                 if j == 0 && k % 2 == 1 {
-                    let angle_next = (k + 1) as f64 * theta;
+                    let angle_next = f64::from(k + 1) * theta;
                     let radius = starting_r + diff;
                     let v_last = vertexes.last().unwrap();
                     let v_next = Vec2::new(
@@ -252,7 +252,7 @@ impl ChunkCoords {
                     );
                     vertexes.push(interpolate_points(v_last, &v_next));
                 } else {
-                    let angle_point = (*k as f64) * theta;
+                    let angle_point = f64::from(*k) * theta;
                     let radius = starting_r + diff;
                     let new_coord = Vec2::new(
                         (angle_point.cos() * radius).approx().unwrap(),
@@ -274,17 +274,17 @@ impl ChunkCoords {
         let start_concentric_circle = self.start_concentric_circle_layer_relative;
         let start_radial_line = self.start_radial_line;
 
-        let starting_r = self.start_radius() as f64;
-        let ending_r = self.end_radius() as f64;
+        let starting_r = f64::from(self.start_radius());
+        let ending_r = f64::from(self.end_radius());
         let circle_separation_distance =
-            (ending_r - starting_r) / self.num_concentric_circles() as f64;
-        let theta = (-2.0 * PI) / self.layer_num_radial_lines as f64;
+            (ending_r - starting_r) / f64::from(self.num_concentric_circles());
+        let theta = (-2.0 * PI) / f64::from(self.layer_num_radial_lines);
 
         for j in [
             start_concentric_circle,
             self.num_concentric_circles() + start_concentric_circle,
         ] {
-            let diff = (j - start_concentric_circle) as f64 * circle_separation_distance;
+            let diff = f64::from(j - start_concentric_circle) * circle_separation_distance;
 
             // Reverse if we are on the last element because we are going around the circle
             // This box method was the only way to make Range == Rev<Range> in type, very annoying.
@@ -296,7 +296,7 @@ impl ChunkCoords {
 
             for k in iter {
                 if j == 0 && k % 2 == 1 {
-                    let angle_next = (k + 1) as f64 * theta;
+                    let angle_next = f64::from(k + 1) * theta;
                     let radius = starting_r + diff;
                     let v_last = vertexes.last().unwrap();
                     let v_next = Vec2::new(
@@ -305,7 +305,7 @@ impl ChunkCoords {
                     );
                     vertexes.push(interpolate_points(v_last, &v_next));
                 } else {
-                    let angle_point = k as f64 * theta;
+                    let angle_point = f64::from(k) * theta;
                     let radius = starting_r + diff;
                     let new_coord = Vec2::new(
                         (angle_point.cos() * radius).approx().unwrap(),
@@ -358,10 +358,10 @@ impl ChunkCoords {
         for j in concentric_range {
             for k in (0..=self.num_radial_lines()).step_by(settings.lod as usize) {
                 let new_vec = Vec2::new(
-                    (k as f64 / self.num_radial_lines() as f64)
+                    (f64::from(k) / f64::from(self.num_radial_lines()))
                         .approx()
                         .unwrap(),
-                    (j as f64 / self.num_concentric_circles() as f64)
+                    (f64::from(j) / f64::from(self.num_concentric_circles()))
                         .approx()
                         .unwrap(),
                 );
@@ -395,14 +395,14 @@ impl ChunkCoords {
                 let v3 = v0 + k_count; // Bottom-left
 
                 // First triangle (top-left, bottom-left, top-right)
-                indices.push(v0 as u32);
-                indices.push(v3 as u32);
-                indices.push(v1 as u32);
+                indices.push(v0);
+                indices.push(v3);
+                indices.push(v1);
 
                 // Second triangle (top-right, bottom-left, bottom-right)
-                indices.push(v1 as u32);
-                indices.push(v3 as u32);
-                indices.push(v2 as u32);
+                indices.push(v1);
+                indices.push(v3);
+                indices.push(v2);
             }
         }
 
@@ -424,17 +424,17 @@ impl ChunkCoords {
     /// Get the radius of the smallest concentric circle
     #[must_use]
     pub fn start_radius(&self) -> f32 {
-        (self.start_concentric_circle_absolute as f64 * self.cell_width.0 as f64)
+        (f64::from(self.start_concentric_circle_absolute) * f64::from(self.cell_width.0))
             .approx()
             .unwrap()
     }
     /// Get the radius of the largest concentric circle
     #[must_use]
     pub fn end_radius(&self) -> f32 {
-        (self.start_radius() as f64
-            + self.cell_width.0 as f64 * (self.num_concentric_circles as f64))
-            .approx()
-            .unwrap()
+        (f64::from(self.start_radius())
+            + f64::from(self.cell_width.0) * f64::from(self.num_concentric_circles))
+        .approx()
+        .unwrap()
     }
     /// Get the number of radial lines in the chunk
     /// These go around the circle counter clockwise
@@ -450,13 +450,13 @@ impl ChunkCoords {
     }
     #[must_use]
     pub fn end_theta(&self) -> f32 {
-        let diff = (2.0 * PI) / self.layer_num_radial_lines as f64;
-        (self.end_radial_line as f64 * diff).approx().unwrap()
+        let diff = (2.0 * PI) / f64::from(self.layer_num_radial_lines);
+        (f64::from(self.end_radial_line) * diff).approx().unwrap()
     }
     #[must_use]
     pub fn start_theta(&self) -> f32 {
-        let diff = (2.0 * PI) / self.layer_num_radial_lines as f64;
-        (self.start_radial_line as f64 * diff).approx().unwrap()
+        let diff = (2.0 * PI) / f64::from(self.layer_num_radial_lines);
+        (f64::from(self.start_radial_line) * diff).approx().unwrap()
     }
     /// Get the index of the first concentric circle starting from the beginning of the layer
     #[must_use]
@@ -614,18 +614,19 @@ impl ChunkCoords {
 
         // Get the concentric circle we are on
         let circle_separation_distance =
-            (ending_r - starting_r) as f64 / num_concentric_circles as f64;
+            f64::from(ending_r - starting_r) / f64::from(num_concentric_circles);
 
         // Calculate 'j' directly without the while loop
-        let j_rel: u32 = ((norm_vertex_coord - starting_r) as f64 / circle_separation_distance)
+        let j_rel: u32 = (f64::from(norm_vertex_coord - starting_r) / circle_separation_distance)
             .floor()
             .approx()
             .expect("j_rel wont be larger than the number of concentric circles in a layer");
         let j = j_rel.min(end_concentric_circle - 1) + start_concentric_circle;
 
         // Get the radial line to the left of the vertex
-        let angle = ((xy_coord.0.y as f64).atan2(xy_coord.0.x as f64) + -2.0 * PI) % (2.0 * PI);
-        let theta = -(end_theta as f64 - start_theta as f64) / num_radial_lines as f64;
+        let angle =
+            (f64::from(xy_coord.0.y).atan2(f64::from(xy_coord.0.x)) + -2.0 * PI) % (2.0 * PI);
+        let theta = -(f64::from(end_theta) - f64::from(start_theta)) / f64::from(num_radial_lines);
 
         // Calculate 'k' directly without the while loop
         let k_rel: u32 = (angle / theta)
@@ -734,8 +735,8 @@ mod tests {
             core_chunks.width() * core_chunks.get(JkVector::ZERO).num_radial_lines();
         for k in 0..num_radial_lines {
             // This radius and theta should define the midpoint of each cell
-            let radius = coordinate_dir.cell_width().0 as f64 / 2.0;
-            let theta = -2.0 * PI / num_radial_lines as f64 * (k as f64 + 0.5);
+            let radius = f64::from(coordinate_dir.cell_width().0) / 2.0;
+            let theta = -2.0 * PI / f64::from(num_radial_lines) * (f64::from(k) + 0.5);
             let xycoord = RelXyPoint(Vec2 {
                 x: (radius * theta.cos()) as f32,
                 y: (radius * theta.sin()) as f32,
@@ -757,12 +758,12 @@ mod tests {
             for j in 0..num_concentric_circles {
                 for k in 0..num_radial_lines {
                     // This radius and theta should define the midpoint of each cell
-                    let radius: f64 = coordinate_dir.layer_start_radius(i) as f64
-                        + (coordinate_dir.layer_end_radius(i) as f64
-                            - coordinate_dir.layer_start_radius(i) as f64)
-                            / num_concentric_circles as f64
-                            * (j as f64 + 0.5);
-                    let theta = -2.0 * PI / num_radial_lines as f64 * (k as f64 + 0.5);
+                    let radius: f64 = f64::from(coordinate_dir.layer_start_radius(i))
+                        + (f64::from(coordinate_dir.layer_end_radius(i))
+                            - f64::from(coordinate_dir.layer_start_radius(i)))
+                            / f64::from(num_concentric_circles)
+                            * (f64::from(j) + 0.5);
+                    let theta = -2.0 * PI / f64::from(num_radial_lines) * (f64::from(k) + 0.5);
                     let xycoord = RelXyPoint(Vec2 {
                         x: (radius * theta.cos()).approx().unwrap(),
                         y: (radius * theta.sin()).approx().unwrap(),
@@ -893,10 +894,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[2],
                 Vec2::new(
-                    (radius * (2.0 * PI * -2.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -2.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -2.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -2.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -905,10 +906,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[4],
                 Vec2::new(
-                    (radius * (2.0 * PI * -4.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -4.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -4.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -4.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -917,10 +918,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[6],
                 Vec2::new(
-                    (radius * (2.0 * PI * -6.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -6.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -6.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -6.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -929,10 +930,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[8],
                 Vec2::new(
-                    (radius * (2.0 * PI * -8.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -8.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -8.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -8.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -941,10 +942,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[10],
                 Vec2::new(
-                    (radius * (2.0 * PI * -10.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -10.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -10.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -10.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -956,10 +957,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[12],
                 Vec2::new(
-                    (radius * (2.0 * PI * -12.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -12.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -12.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -12.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -972,10 +973,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[14],
                 Vec2::new(
-                    (radius * (2.0 * PI * -1.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -1.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -1.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -1.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -983,10 +984,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[15],
                 Vec2::new(
-                    (radius * (2.0 * PI * -2.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -2.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -2.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -2.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -994,10 +995,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[16],
                 Vec2::new(
-                    (radius * (2.0 * PI * -3.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -3.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -3.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -3.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1005,10 +1006,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[17],
                 Vec2::new(
-                    (radius * (2.0 * PI * -4.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -4.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -4.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -4.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1016,10 +1017,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[18],
                 Vec2::new(
-                    (radius * (2.0 * PI * -5.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -5.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -5.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -5.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1027,10 +1028,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[19],
                 Vec2::new(
-                    (radius * (2.0 * PI * -6.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -6.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -6.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -6.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1038,10 +1039,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[20],
                 Vec2::new(
-                    (radius * (2.0 * PI * -7.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -7.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -7.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -7.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1049,10 +1050,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[21],
                 Vec2::new(
-                    (radius * (2.0 * PI * -8.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -8.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -8.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -8.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1060,10 +1061,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[22],
                 Vec2::new(
-                    (radius * (2.0 * PI * -9.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -9.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -9.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -9.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1071,10 +1072,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[23],
                 Vec2::new(
-                    (radius * (2.0 * PI * -10.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -10.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -10.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -10.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1082,10 +1083,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[24],
                 Vec2::new(
-                    (radius * (2.0 * PI * -11.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -11.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -11.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -11.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1093,10 +1094,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[25],
                 Vec2::new(
-                    (radius * (2.0 * PI * -12.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -12.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -12.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -12.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1232,10 +1233,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[0],
                 Vec2::new(
-                    (radius * (2.0 * PI * -6.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -6.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -6.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -6.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1243,10 +1244,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[1],
                 Vec2::new(
-                    (radius * (2.0 * PI * -7.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -7.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -7.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -7.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1254,10 +1255,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[2],
                 Vec2::new(
-                    (radius * (2.0 * PI * -8.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -8.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -8.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -8.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1265,10 +1266,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[3],
                 Vec2::new(
-                    (radius * (2.0 * PI * -9.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -9.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -9.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -9.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1276,10 +1277,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[4],
                 Vec2::new(
-                    (radius * (2.0 * PI * -10.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -10.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -10.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -10.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1287,10 +1288,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[5],
                 Vec2::new(
-                    (radius * (2.0 * PI * -11.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -11.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -11.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -11.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1298,10 +1299,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[6],
                 Vec2::new(
-                    (radius * (2.0 * PI * -12.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -12.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -12.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -12.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1311,10 +1312,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[7],
                 Vec2::new(
-                    (radius * (2.0 * PI * -6.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -6.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -6.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -6.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1322,10 +1323,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[8],
                 Vec2::new(
-                    (radius * (2.0 * PI * -7.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -7.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -7.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -7.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1333,10 +1334,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[9],
                 Vec2::new(
-                    (radius * (2.0 * PI * -8.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -8.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -8.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -8.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1344,10 +1345,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[10],
                 Vec2::new(
-                    (radius * (2.0 * PI * -9.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -9.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -9.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -9.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1355,10 +1356,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[11],
                 Vec2::new(
-                    (radius * (2.0 * PI * -10.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -10.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -10.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -10.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1366,10 +1367,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[12],
                 Vec2::new(
-                    (radius * (2.0 * PI * -11.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -11.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -11.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -11.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1377,10 +1378,10 @@ mod tests {
             assert_approx_eq_v2!(
                 vertices[13],
                 Vec2::new(
-                    (radius * (2.0 * PI * -12.0 / num_radial_lines as f64).cos())
+                    (radius * (2.0 * PI * -12.0 / f64::from(num_radial_lines)).cos())
                         .approx()
                         .unwrap(),
-                    (radius * (2.0 * PI * -12.0 / num_radial_lines as f64).sin())
+                    (radius * (2.0 * PI * -12.0 / f64::from(num_radial_lines)).sin())
                         .approx()
                         .unwrap(),
                 )
@@ -1489,8 +1490,8 @@ mod tests {
                 assert_eq!(vertices.len(), 26);
 
                 // The core
-                let radius: f64 = CORE.end_radius() as f64;
-                let diff_theta = 2.0 * PI / CORE.num_radial_lines() as f64;
+                let radius: f64 = f64::from(CORE.end_radius());
+                let diff_theta = 2.0 * PI / f64::from(CORE.num_radial_lines());
                 assert_approx_eq_v2!(vertices[0], Vec2::new(0.0, 0.0));
                 assert_approx_eq_v2!(vertices[1], Vec2::new(0.0, 0.0));
                 assert_approx_eq_v2!(vertices[2], Vec2::new(0.0, 0.0));
@@ -1600,8 +1601,8 @@ mod tests {
                 assert_eq!(vertices.len(), 14);
 
                 // The core
-                let radius = CORE.end_radius() as f64;
-                let diff_theta = 2.0 * PI / CORE.num_radial_lines() as f64 * 2.0;
+                let radius = f64::from(CORE.end_radius());
+                let diff_theta = 2.0 * PI / f64::from(CORE.num_radial_lines()) * 2.0;
                 assert_approx_eq_v2!(vertices[0], Vec2::new(0.0, 0.0));
                 assert_approx_eq_v2!(vertices[1], Vec2::new(0.0, 0.0));
                 assert_approx_eq_v2!(vertices[2], Vec2::new(0.0, 0.0));

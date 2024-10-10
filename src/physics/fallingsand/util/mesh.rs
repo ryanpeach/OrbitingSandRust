@@ -53,14 +53,14 @@ impl GizmoDrawableLoop {
     /// This draw mode "loops" like you would for an enclosed shape
     pub fn draw_bevy_gizmo_loop(&self, gizmos: &mut Gizmos, transform: &Transform) {
         for idx in 0..(self.mesh.indices.len() - 1) {
-            let idx0 = self.mesh.indices[idx] as u32;
-            let idx1 = self.mesh.indices[idx + 1] as u32;
+            let idx0 = self.mesh.indices[idx];
+            let idx1 = self.mesh.indices[idx + 1];
             self.mesh
                 .draw_bevy_gizmo_line(idx0, idx1, transform, gizmos, self.color);
         }
         // Now the final line to close the loop
-        let idx0 = self.mesh.indices[self.mesh.indices.len() - 1] as u32;
-        let idx1 = self.mesh.indices[0] as u32;
+        let idx0 = self.mesh.indices[self.mesh.indices.len() - 1];
+        let idx1 = self.mesh.indices[0];
         self.mesh
             .draw_bevy_gizmo_line(idx0, idx1, transform, gizmos, self.color);
     }
@@ -89,9 +89,9 @@ impl GizmoDrawableGrid {
     /// This draw mode draws each triangle (triple) individually
     pub fn draw_bevy_gizmo_grid(&self, gizmos: &mut Gizmos, transform: &Transform) {
         for idx in (0..self.mesh.indices.len()).step_by(3) {
-            let idx0 = self.mesh.indices[idx] as u32;
-            let idx1 = self.mesh.indices[idx + 1] as u32;
-            let idx2 = self.mesh.indices[idx + 2] as u32;
+            let idx0 = self.mesh.indices[idx];
+            let idx1 = self.mesh.indices[idx + 1];
+            let idx2 = self.mesh.indices[idx + 2];
             if idx % 2 == 0 {
                 self.mesh
                     .draw_bevy_gizmo_line(idx0, idx1, transform, gizmos, self.color);

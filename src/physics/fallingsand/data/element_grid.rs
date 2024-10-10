@@ -18,7 +18,6 @@ use super::super::elements::vacuum::Vacuum;
 use super::super::mesh::coordinate_dir::CoordinateDir;
 use super::super::util::grid::{Grid, GridOutOfBoundsError};
 use super::super::util::image::RawImage;
-use crate::physics::util::fastmath::{FastArrayGet, FastVecGet};
 use anyhow::{bail, Result};
 use itertools::iproduct;
 
