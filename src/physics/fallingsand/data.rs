@@ -2,4 +2,4 @@
 //! These are where the actual grids of elements are stored.
 
 pub mod element_directory;
-pub mod element_grid;
+pub(super) mod element_grid;

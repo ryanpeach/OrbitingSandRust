@@ -2,10 +2,11 @@
 #![expect(clippy::missing_docs_in_private_items)]
 use crate::physics::fallingsand::util::functions::interpolate_points;
 
-use crate::physics::fallingsand::util::mesh::OwnedMeshData;
+use crate::common::util::mesh::OwnedMeshData;
+use crate::common::util::mesh::Vertex;
+use crate::common::util::vectors::ModelCoord;
 use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use crate::physics::orbits::components::Length;
-use crate::physics::util::vectors::{RelXyPoint, Vertex};
 use anyhow::{bail, Result};
 use bevy::color::Color;
 use bevy::math::{Rect, Vec2};
@@ -619,7 +620,7 @@ impl ChunkCoords {
 
     /// Converts a position relative to the origin of the circle to a cell index
     /// Returns an Err if the position is not on the circle
-    pub fn rel_pos_to_cell_idx(&self, xy_coord: RelXyPoint) -> Result<IjkVector> {
+    pub fn rel_pos_to_cell_idx(&self, xy_coord: ModelCoord) -> Result<IjkVector> {
         let norm_vertex_coord = (xy_coord.0.x * xy_coord.0.x + xy_coord.0.y * xy_coord.0.y).sqrt();
         let start_concentric_circle = self.start_concentric_circle_layer_relative();
         let end_concentric_circle = self.end_concentric_circle_layer_relative();
@@ -758,7 +759,7 @@ mod tests {
             // This radius and theta should define the midpoint of each cell
             let radius = f64::from(coordinate_dir.cell_width().0) / 2.0;
             let theta = -2.0 * PI / f64::from(num_radial_lines) * (f64::from(k) + 0.5);
-            let xycoord = RelXyPoint(Vec2 {
+            let xycoord = ModelCoord(Vec2 {
                 x: (radius * theta.cos()) as f32,
                 y: (radius * theta.sin()) as f32,
             });
@@ -785,7 +786,7 @@ mod tests {
                             / f64::from(num_concentric_circles)
                             * (f64::from(j) + 0.5);
                     let theta = -2.0 * PI / f64::from(num_radial_lines) * (f64::from(k) + 0.5);
-                    let xycoord = RelXyPoint(Vec2 {
+                    let xycoord = ModelCoord(Vec2 {
                         x: (radius * theta.cos()).approx().unwrap(),
                         y: (radius * theta.sin()).approx().unwrap(),
                     });

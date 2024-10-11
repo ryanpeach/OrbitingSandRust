@@ -60,7 +60,6 @@ fn main() {
                 .set(low_latency_window_plugin()),
             FrameTimeDiagnosticsPlugin,
             EguiPlugin,
-            DefaultPickingPlugins,
         ))
         .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
         .add_plugins(GuiPluginGroup)

@@ -4,18 +4,18 @@
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
-use crate::entities::celestials::celestial::Data;
-use crate::entities::components::Radius;
-use crate::errors::MissingParentError;
-use crate::physics::fallingsand::util::mesh::GizmoDrawableLoop;
-use crate::physics::util::clock::Clock;
-use crate::physics::util::vectors::{mouse_coord_to_world_coord, RelXyPoint};
+use crate::bevy::components::mesh::GizmoDrawableLoop;
+use crate::bevy::entities::celestials::celestial::Data;
+use crate::bevy::entities::components::Radius;
+use crate::bevy::errors::MissingParentError;
+use crate::common::util::clock::Clock;
+use crate::common::util::transforms::window_to_model_centered;
+use crate::common::util::vectors::ModelCoord;
 use bevy::app::{App, Plugin, Update};
 use bevy::color::palettes::css::WHITE;
 use bevy::core::FrameCount;
 use bevy::core_pipeline::core_2d::Camera2d;
 use bevy::ecs::entity::Entity;
-use bevy::ecs::query::Without;
 use bevy::ecs::system::{Commands, Res};
 use bevy::hierarchy::{BuildChildren, Parent};
 use bevy::input::keyboard::KeyCode;
@@ -53,7 +53,7 @@ impl Plugin for BrushPlugin {
                 Self::move_brush_system,
                 Self::draw_brush_system,
                 Self::resize_brush_system,
-                // Self::apply_brush_system,
+                Self::apply_brush_system,
             ),
         );
     }
@@ -86,15 +86,16 @@ impl BrushPlugin {
     /// Move the brush with the mouse
     pub fn move_brush_system(
         windows: Query<&mut Window>,
+        camera: Query<(&Parent, &mut Transform, &mut Camera2d, &MainCamera)>,
         mut cursor_moved_events: EventReader<CursorMoved>,
         mut query: Query<&mut Transform, With<BrushComponent>>,
     ) {
         for event in cursor_moved_events.read() {
-            let mouse_transform = mouse_coord_to_world_coord(&windows, event);
+            let mouse_transform = window_to_model_centered(&windows, event.position);
 
             query.iter_mut().for_each(|mut brush_transform| {
-                brush_transform.translation.x = mouse_transform.translation.x;
-                brush_transform.translation.y = mouse_transform.translation.y; // Invert y-axis to match Bevy's coordinate system
+                brush_transform.translation.x = mouse_transform.0.x;
+                brush_transform.translation.y = mouse_transform.0.y;
             });
         }
     }
@@ -134,10 +135,7 @@ impl BrushPlugin {
     pub fn apply_brush_system(
         mouse: Res<ButtonInput<MouseButton>>,
         mut brush: Query<(&Parent, &mut Transform, &Radius), With<BrushComponent>>,
-        mut camera: Query<
-            (&Parent, &mut Transform, &mut Camera2d, &MainCamera),
-            Without<BrushComponent>,
-        >,
+        mut camera: Query<(&Parent, &mut Transform, &mut Camera2d, &MainCamera)>,
         mut celestial: Query<&mut Data>,
         element_picker: Res<ElementSelection>,
         current_time: Res<Time>,
@@ -147,7 +145,6 @@ impl BrushPlugin {
             // return Ok(());
             return;
         }
-        debug!("Applying brush");
 
         // Get the camera the brush follows, and the celestial the camera follows
         let (brush_parent, brush_transform, radius) = brush.single_mut();
@@ -181,21 +178,22 @@ impl BrushPlugin {
         };
 
         // Get the bounds of the brush in terms of the celestials cells
-        let begin_at = RelXyPoint::new(
+        let begin_at = ModelCoord::new(
+            brush_transform.translation.x + camera_transform.translation.x - radius.0,
+            brush_transform.translation.y + camera_transform.translation.y - radius.0,
+        );
+        let end_at = ModelCoord::new(
             radius.0 + brush_transform.translation.x + camera_transform.translation.x,
             radius.0 + brush_transform.translation.y + camera_transform.translation.y,
         );
-        let end_at = RelXyPoint::new(
-            radius.0 + brush_transform.translation.x + camera_transform.translation.x,
-            radius.0 + brush_transform.translation.y + camera_transform.translation.y,
-        );
+        debug!("Applying brush");
         let mut positions = Vec::new();
         let mut x = begin_at.0.x + celestial.element_grid_dir.coordinate_dir().cell_width().0 / 2.0;
         while x < end_at.0.x {
             let mut y =
                 begin_at.0.y + celestial.element_grid_dir.coordinate_dir().cell_width().0 / 2.0;
             while y < end_at.0.y {
-                let pos = RelXyPoint::new(x, y);
+                let pos = ModelCoord::new(x, y);
                 if pos.0.distance(Vec2::new(0., 0.)) < radius.0 {
                     positions.push(pos);
                 }

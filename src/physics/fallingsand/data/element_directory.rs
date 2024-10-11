@@ -14,7 +14,7 @@ use super::super::convolution::neighbor_indexes::{
 use super::super::elements::element::Element;
 use super::super::mesh::coordinate_dir::CoordinateDir;
 use super::super::util::functions::modulo;
-use super::super::util::grid::Grid;
+use super::super::util::grid::JkGrid;
 use super::super::util::image::RawImage;
 use super::super::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use super::element_grid::ElementGrid;
@@ -236,7 +236,7 @@ fn pregen_process_targets(coords: &CoordinateDir) -> ProcessTargets {
 /// copy of the chunk coordinates associated with it for convenience
 pub struct ElementGridDir {
     coords: CoordinateDir,
-    chunks: Vec<Grid<Option<ElementGrid>>>,
+    chunks: Vec<JkGrid<Option<ElementGrid>>>,
     process_targets: ProcessTargets,
     process_count: u32,
     total_mass: Mass,
@@ -247,12 +247,12 @@ pub struct ElementGridDir {
 impl ElementGridDir {
     #[must_use]
     pub fn new_empty(coords: CoordinateDir) -> Self {
-        let mut chunks: Vec<Grid<Option<ElementGrid>>> =
+        let mut chunks: Vec<JkGrid<Option<ElementGrid>>> =
             Vec::with_capacity(coords.num_layers() as usize);
         for i in 0..coords.num_layers() {
             let j_size = coords.layer_num_concentric_chunks(i);
             let k_size = coords.layer_num_tangential_chunkss(i);
-            let mut layer = Grid::new_empty(k_size, j_size);
+            let mut layer = JkGrid::new_empty(k_size, j_size);
             for j in 0..j_size {
                 for k in 0..k_size {
                     let element_grid =
@@ -280,13 +280,13 @@ impl ElementGridDir {
         fill0: &dyn Element,
         fill1: &dyn Element,
     ) -> Self {
-        let mut chunks: Vec<Grid<Option<ElementGrid>>> =
+        let mut chunks: Vec<JkGrid<Option<ElementGrid>>> =
             Vec::with_capacity(coords.num_layers() as usize);
         for i in 0..coords.num_layers() {
             let i: u32 = u32::value_from(i).expect("Number of layers is usually very small");
             let j_size = coords.layer_num_concentric_chunks(i);
             let k_size = coords.layer_num_tangential_chunkss(i);
-            let mut layer = Grid::new_empty(k_size, j_size);
+            let mut layer = JkGrid::new_empty(k_size, j_size);
             for j in 0..j_size {
                 for k in 0..k_size {
                     let fill: &dyn Element = if (j + k) % 2 == 0 { fill0 } else { fill1 };
@@ -754,7 +754,7 @@ impl ElementGridDir {
     }
 
     /// Calculate the maximum temperature in the directory
-    pub fn calc_total_mass(chunks: &mut Vec<Grid<Option<ElementGrid>>>) -> Mass {
+    pub fn calc_total_mass(chunks: &mut Vec<JkGrid<Option<ElementGrid>>>) -> Mass {
         let mut out = Mass(0.0);
         for layer in chunks {
             for chunk in layer.into_iter().flatten() {
@@ -867,11 +867,11 @@ impl ElementGridDir {
     #[must_use]
     pub fn textures(&self) -> HashMap<ChunkIjkVector, Textures> {
         // Create a filter with all true
-        let mut filter: Vec<Grid<bool>> = Vec::with_capacity(self.coords.num_layers() as usize);
+        let mut filter: Vec<JkGrid<bool>> = Vec::with_capacity(self.coords.num_layers() as usize);
         for i in 0..self.coords.num_layers() {
             let j_size = self.coords.layer_num_concentric_chunks(i);
             let k_size = self.coords.layer_num_tangential_chunkss(i);
-            let layer = Grid::new_fill(k_size, j_size, true);
+            let layer = JkGrid::new_fill(k_size, j_size, true);
             filter.push(layer);
         }
 
@@ -880,7 +880,7 @@ impl ElementGridDir {
     }
 
     /// Where filter is true, get the textures
-    fn textures_filtered(&self, filter: &[Grid<bool>]) -> HashMap<ChunkIjkVector, Textures> {
+    fn textures_filtered(&self, filter: &[JkGrid<bool>]) -> HashMap<ChunkIjkVector, Textures> {
         let mut out = HashMap::new();
         // let (max_temp, min_temp) = self.get_max_min_temp();
         for (i, item) in filter.iter().enumerate() {

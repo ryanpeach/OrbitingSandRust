@@ -5,3 +5,4 @@
 * Functions that return bool should start with `is_` or `has_`.
 * Always use `hasbrown` for `HashMap` and `HashSet`.
 * It's better to use  .expect` than to use `if let Some/Ok` unless you have an else. This is because `if let` without an `else` could hide a `None` or `Err` without panicing.
+* You should not import `bevy` from `physics` except `bevy::math`

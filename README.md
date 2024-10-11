@@ -17,6 +17,14 @@ Orbits should be offloadable into memory so that we can support thousands of sim
 They are multi-body orbits, meaning that all large bodies emit gravity, but not all bodies are large. This is a good balance between realism and playability.
 ![Orbits](assets/progress/orbits.png)
 
+# Controls
+
+- `wasd` Move Camera
+- `left click` over celestial will follow that celestial
+- `+-` Make brush bigger smaller
+- `scroll up/down` zoom in/out
+- `left click` when brush is visible, apply material
+
 # Inspirations
 
 * [Noita](https://www.youtube.com/watch?v=prXuyMCgbTc) - A falling sand on steriods game that proves the concept is possible.

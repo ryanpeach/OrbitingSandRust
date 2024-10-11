@@ -3,11 +3,10 @@
 
 use std::f64::consts::PI;
 
-use crate::entities::components::Radius;
-use crate::physics::fallingsand::util::grid::Grid;
-use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
+use crate::common::util::vectors::ModelCoord;
+use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, IjkVector, LayerJkVector};
+use crate::physics::fallingsand::util::grid::JkGrid;
 use crate::physics::orbits::components::Length;
-use crate::physics::util::vectors::RelXyPoint;
 use bevy::math::Rect;
 use conv::{ConvAsUtil, ValueFrom};
 
@@ -33,7 +32,7 @@ pub struct CoordinateDir {
     /// Layers on top of the core
     /// Every index in the vec represents a layer
     /// The Grid then represents the chunks in that layer
-    partial_chunks: Vec<Grid<ChunkCoords>>,
+    partial_chunks: Vec<JkGrid<ChunkCoords>>,
 }
 
 /// A builder for [`CoordinateDir`]
@@ -154,7 +153,7 @@ impl Builder {
         );
 
         // These will be all the chunks
-        let mut partial_chunks: Vec<Grid<ChunkCoords>> = Vec::new();
+        let mut partial_chunks: Vec<JkGrid<ChunkCoords>> = Vec::new();
 
         // Create the core
         let mut layer_num_radial_lines = self.first_num_radial_lines;
@@ -164,7 +163,7 @@ impl Builder {
         let mut total_concentric_circle_chunks = 0;
         let mut num_tangential_chunkss = self.first_num_tangential_chunks;
         let mut num_concentric_chunks = 1;
-        let mut core_chunks = Grid::new_empty(num_tangential_chunkss, num_concentric_chunks);
+        let mut core_chunks = JkGrid::new_empty(num_tangential_chunkss, num_concentric_chunks);
         for k in 0..num_tangential_chunkss {
             let next_layer = PartialLayerChunkCoordsBuilder::new()
                 .cell_width(self.cell_width)
@@ -182,7 +181,7 @@ impl Builder {
                 .build();
             debug_assert!(layer_num_radial_lines % num_tangential_chunkss == 0);
             debug_assert!(num_concentric_circles % num_concentric_chunks == 0);
-            core_chunks.replace(JkVector { j: 0, k }, next_layer);
+            core_chunks.replace(ChunkJkVector { j: 0, k }, next_layer);
         }
         partial_chunks.push(core_chunks);
 
@@ -199,7 +198,7 @@ impl Builder {
 
             // TODO: Check this
             let mut layer_partial_chunks =
-                Grid::new_empty(num_tangential_chunkss, num_concentric_chunks);
+                JkGrid::new_empty(num_tangential_chunkss, num_concentric_chunks);
             for j in 0..num_concentric_chunks {
                 for k in 0..num_tangential_chunkss {
                     let next_layer = PartialLayerChunkCoordsBuilder::new()
@@ -218,7 +217,7 @@ impl Builder {
                         .build();
                     debug_assert!(layer_num_radial_lines % num_tangential_chunkss == 0);
                     debug_assert!(num_concentric_circles % num_concentric_chunks == 0);
-                    layer_partial_chunks.replace(JkVector { j, k }, next_layer);
+                    layer_partial_chunks.replace(ChunkJkVector { j, k }, next_layer);
                 }
                 start_concentric_circle_absolute += num_concentric_circles / num_concentric_chunks;
                 debug_assert!(num_concentric_circles % num_concentric_chunks == 0);
@@ -445,12 +444,12 @@ impl CoordinateDir {
     }
     /// Get the core chunk coordinates, useful for getting its shape
     #[must_use]
-    pub fn core_chunks(&self) -> &Grid<ChunkCoords> {
+    pub fn core_chunks(&self) -> &JkGrid<ChunkCoords> {
         &self.partial_chunks[0]
     }
     /// Useful for getting all the partial chunks, useful for getting their shapes
     #[must_use]
-    pub fn partial_chunks(&self, _layer_num: u32) -> &Vec<Grid<ChunkCoords>> {
+    pub fn partial_chunks(&self, _layer_num: u32) -> &Vec<JkGrid<ChunkCoords>> {
         &self.partial_chunks
     }
     /// The number of concentric circles in a given layer
@@ -508,8 +507,8 @@ impl CoordinateDir {
 
     /// Gets the radius of the entire coordinate directory
     #[must_use]
-    pub fn radius(&self) -> Radius {
-        Radius(self.layer_end_radius(self.num_layers() - 1))
+    pub fn radius(&self) -> f32 {
+        self.layer_end_radius(self.num_layers() - 1)
     }
 }
 
@@ -518,7 +517,7 @@ impl CoordinateDir {
  * =================== */
 impl CoordinateDir {
     /// Converts a position relative to the origin of the circle to a cell index
-    pub fn rel_pos_to_cell_idx(&self, xy_coord: RelXyPoint) -> Result<IjkVector, IjkVector> {
+    pub fn rel_pos_to_cell_idx(&self, xy_coord: ModelCoord) -> Result<IjkVector, IjkVector> {
         let norm_vertex_coord = (xy_coord.0.x * xy_coord.0.x + xy_coord.0.y * xy_coord.0.y).sqrt();
 
         // Get the layer we are on
@@ -822,7 +821,7 @@ mod tests {
                     // This radius and theta should define the midpoint of each cell
                     let radius = f64::from(coordinate_dir.cell_width().0) / 2.0;
                     let theta = -2.0 * PI / f64::from(num_radial_lines) * (f64::from(k) + 0.5);
-                    let xycoord = RelXyPoint(Vec2 {
+                    let xycoord = ModelCoord(Vec2 {
                         x: (radius * theta.cos()).approx().unwrap(),
                         y: (radius * theta.sin()).approx().unwrap(),
                     });
@@ -865,7 +864,7 @@ mod tests {
                                     * (f64::from(j) + 0.5);
                             let theta =
                                 -2.0 * PI / f64::from(num_radial_lines) * (f64::from(k) + 0.5);
-                            let xycoord = RelXyPoint(Vec2 {
+                            let xycoord = ModelCoord(Vec2 {
                                 x: (radius * theta.cos()).approx().unwrap(),
                                 y: (radius * theta.sin()).approx().unwrap(),
                             });

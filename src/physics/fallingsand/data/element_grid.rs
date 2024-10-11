@@ -16,14 +16,14 @@ use crate::physics::util::clock::Clock;
 use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
 use super::super::elements::vacuum::Vacuum;
 use super::super::mesh::coordinate_dir::CoordinateDir;
-use super::super::util::grid::{Grid, GridOutOfBoundsError};
+use super::super::util::grid::{GridOutOfBoundsError, JkGrid};
 use super::super::util::image::RawImage;
 use anyhow::{bail, Result};
 use itertools::iproduct;
 
 /// An element grid is a 2D grid of elements tied to a chunk
 pub struct ElementGrid {
-    grid: Grid<Box<dyn Element>>,
+    grid: JkGrid<Box<dyn Element>>,
     coords: ChunkCoords,
 
     /// Some low resolution data about the world
@@ -68,7 +68,7 @@ impl ElementGrid {
             grid.push(fill.box_clone());
         }
         Self {
-            grid: Grid::new_from_vec(
+            grid: JkGrid::new_from_vec(
                 chunk_coords.num_radial_lines(),
                 chunk_coords.num_concentric_circles(),
                 grid,
@@ -108,7 +108,7 @@ impl ElementGrid {
         &self.coords
     }
     #[must_use]
-    pub fn grid(&self) -> &Grid<Box<dyn Element>> {
+    pub fn grid(&self) -> &JkGrid<Box<dyn Element>> {
         &self.grid
     }
     /// Does not calculate the total mass, just gets the set value of it

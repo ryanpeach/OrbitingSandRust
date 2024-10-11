@@ -40,14 +40,14 @@ use bevy::transform::components::{GlobalTransform, Transform};
 
 use hashbrown::HashMap;
 
-use crate::gui::camera::{CelestialIdx, OverlayLayer2, OverlayLayer3, SelectCelestial};
+use crate::bevy::gui::camera::{CelestialIdx, OverlayLayer2, OverlayLayer3, SelectCelestial};
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
+use crate::bevy::components::mesh::{GizmoDrawableGrid, GizmoDrawableLoop};
+use crate::common::util::clock::Clock;
+use crate::common::util::vectors::ChunkIjkVector;
 use crate::physics::fallingsand::mesh::chunk_coords::{VertexMode, VertexSettings};
-use crate::physics::fallingsand::util::mesh::{GizmoDrawableGrid, GizmoDrawableLoop};
-use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
-use crate::physics::util::clock::Clock;
 use crate::physics::PHYSICS_FRAME_RATE;
 
 /// Identifies the mesh which draws the celestials chunk outlines

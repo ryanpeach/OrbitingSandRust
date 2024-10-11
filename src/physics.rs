@@ -4,7 +4,6 @@ use bevy::app::{PluginGroup, PluginGroupBuilder};
 
 pub mod fallingsand;
 pub mod orbits;
-pub mod util;
 
 /// The number of physics frames per second.
 pub const PHYSICS_FRAME_RATE: f64 = 60.0;

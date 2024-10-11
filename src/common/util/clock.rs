@@ -8,8 +8,6 @@ use bevy::{core::FrameCount, time::Time};
 
 /// A clock that can be passed to objects that need to know the last time they were updated.
 /// Combines the frame count and the time structs from the engine.
-/// WARNING: We are reusing the frame count and Time structs from the engine.
-///          however, since we are using getters this should be flexible if we change engines.
 #[derive(Default, Clone, Copy)]
 pub struct Clock {
     time: Time,
