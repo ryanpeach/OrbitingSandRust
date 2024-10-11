@@ -16,7 +16,7 @@ use bevy::gizmos::gizmos::Gizmos;
 use bevy::ecs::event::EventReader;
 use bevy::prelude::Resource;
 use bevy::render::texture::Image;
-use bevy::render::view::{ViewVisibility, Visibility, VisibilityBundle};
+use bevy::render::view::{Visibility, VisibilityBundle};
 use bevy_mod_picking::prelude::*;
 
 // use bevy_mod_picking::PickableBundle;
@@ -56,7 +56,7 @@ pub struct Outline;
 
 /// Identifies the mesh which draws the celestial cell wireframes
 #[derive(Component)]
-pub struct Wireframe;
+pub struct Grid;
 
 /// A component that represents a chunk by its index in the directory
 #[derive(Component, Debug, Clone, Copy)]
@@ -256,7 +256,7 @@ impl Builder {
                     // Now create the gizmos
                     let wireframe_entity = commands
                         .spawn((
-                            Name::new(format!("Wireframe {chunk_ijk:?}")),
+                            Name::new(format!("Cell Grid {chunk_ijk:?}")),
                             GizmoDrawableGrid::new(
                                 wireframe,
                                 Srgba {
@@ -274,19 +274,19 @@ impl Builder {
                                 visibility: Visibility::Visible,
                                 ..Default::default()
                             },
-                            Wireframe,
+                            Grid,
                             OverlayLayer2,
                         ))
                         .id();
                     let outline_entity = commands
                         .spawn((
-                            Name::new(format!("Outline {chunk_ijk:?}")),
+                            Name::new(format!("Chunk Outline {chunk_ijk:?}")),
                             GizmoDrawableLoop::new(outline, RED.into()),
                             SpatialBundle {
                                 transform: Transform::from_translation(
                                     self.translation.extend(3.0),
                                 ),
-                                visibility: Visibility::Inherited,
+                                visibility: Visibility::Hidden,
                                 ..Default::default()
                             },
                             Outline,
@@ -315,6 +315,7 @@ impl Builder {
                     self.celestial_idx,
                     SpatialBundle {
                         transform: Transform::from_translation(self.translation.extend(0.0)),
+                        visibility: Visibility::Visible,
                         ..Default::default()
                     },
                 ))
@@ -330,9 +331,9 @@ impl Builder {
         // and cleans up the hierarchy
         let wireframe_id = commands
             .spawn((
-                Name::new("Wireframes"),
+                Name::new("Cell Grids"),
                 VisibilityBundle {
-                    visibility: Visibility::Hidden,
+                    visibility: Visibility::Visible,
                     ..Default::default()
                 },
                 GlobalTransform::default(),
@@ -347,9 +348,9 @@ impl Builder {
         // and cleans up the hierarchy
         let outline = commands
             .spawn((
-                Name::new("Outlines"),
+                Name::new("Chunk Outlines"),
                 VisibilityBundle {
-                    visibility: Visibility::Hidden,
+                    visibility: Visibility::Visible,
                     ..Default::default()
                 },
                 GlobalTransform::default(),
@@ -456,10 +457,10 @@ impl DataPlugin {
     /// Draw the wireframe of the celestials cells
     pub fn draw_wireframe_system(
         mut gizmos: Gizmos,
-        query: Query<(&GizmoDrawableGrid, &Transform, &ViewVisibility), With<Wireframe>>,
+        query: Query<(&GizmoDrawableGrid, &Transform, &Visibility), With<Grid>>,
     ) {
         for (drawable, transform, visibility) in query.iter() {
-            if visibility.get() {
+            if Visibility::Visible == visibility {
                 drawable.draw_bevy_gizmo_grid(&mut gizmos, transform);
             }
         }
@@ -467,10 +468,10 @@ impl DataPlugin {
     /// Draw the outline of the celestials chunks
     pub fn draw_outline_system(
         mut gizmos: Gizmos,
-        query: Query<(&GizmoDrawableLoop, &Transform, &ViewVisibility), With<Outline>>,
+        query: Query<(&GizmoDrawableLoop, &Transform, &Visibility), With<Outline>>,
     ) {
         for (drawable, transform, visibility) in query.iter() {
-            if visibility.get() {
+            if Visibility::Visible == visibility {
                 drawable.draw_bevy_gizmo_loop(&mut gizmos, transform);
             }
         }
