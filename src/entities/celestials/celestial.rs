@@ -408,17 +408,15 @@ impl DataPlugin {
                 .get_mut(&celestial_id.get())
                 .expect("Expected to find textures for the given celestial ID");
 
-            let mut texture = textures_by_chunk_ijk
-                .remove(&chunk_ijk.0)
-                .expect("Expected to find texture for the given chunk");
+            if let Some(mut texture) = textures_by_chunk_ijk.remove(&chunk_ijk.0) {
+                let bevy_image = texture
+                    .texture
+                    .take()
+                    .expect("Expected the texture to contain an image");
 
-            let bevy_image = texture
-                .texture
-                .take()
-                .expect("Expected the texture to contain an image");
-
-            let handle = asset_server.add(bevy_image.to_bevy_image());
-            asset_updates.insert(handle.id(), (chunk_id, handle));
+                let handle = asset_server.add(bevy_image.to_bevy_image());
+                asset_updates.insert(handle.id(), (chunk_id, handle));
+            }
         }
         commands.insert_resource(UpdatedTextures(asset_updates));
     }
@@ -438,22 +436,19 @@ impl DataPlugin {
         for event in asset_events.read() {
             if let AssetEvent::<Image>::LoadedWithDependencies { id } = event {
                 // Expect that the event id is present in asset_updates
-                let (chunk_id, image_handle) = asset_updates
-                    .0
-                    .remove(id)
-                    .expect("Expected asset update for the given ID");
+                if let Some((chunk_id, image_handle)) = asset_updates.0.remove(id) {
+                    // Expect to retrieve the material handle for the chunk
+                    let material_handle = falling_sand_materials
+                        .get(chunk_id)
+                        .expect("Expected to find material handle for the given chunk ID");
 
-                // Expect to retrieve the material handle for the chunk
-                let material_handle = falling_sand_materials
-                    .get(chunk_id)
-                    .expect("Expected to find material handle for the given chunk ID");
+                    // Expect to get the material, and set the texture
+                    let material = materials
+                        .get_mut(material_handle)
+                        .expect("Expected to find material and set the texture");
 
-                // Expect to get the material, and set the texture
-                let material = materials
-                    .get_mut(material_handle)
-                    .expect("Expected to find material and set the texture");
-
-                material.texture = Some(image_handle);
+                    material.texture = Some(image_handle);
+                }
             }
         }
     }
