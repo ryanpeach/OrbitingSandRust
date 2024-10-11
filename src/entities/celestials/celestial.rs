@@ -60,7 +60,7 @@ pub struct Wireframe;
 
 /// A component that represents a chunk by its index in the directory
 #[derive(Component, Debug, Clone, Copy)]
-pub struct ChunkIdk(ChunkIjkVector);
+pub struct ChunkIjk(ChunkIjkVector);
 
 /// Put this alongside the mesh that represents the falling sand itself
 #[derive(Component, Debug, Clone, Copy)]
@@ -206,7 +206,7 @@ impl Builder {
             for j in 0..coordinate_dir.layer_num_concentric_chunks(i) {
                 for k in 0..coordinate_dir.layer_num_tangential_chunkss(i) {
                     let chunk_ijk = ChunkIjkVector::new(i, j, k);
-                    let celestial_chunk_id = ChunkIdk(chunk_ijk);
+                    let celestial_chunk_id = ChunkIjk(chunk_ijk);
                     let mesh = coordinate_dir
                         .chunk_at_idx(chunk_ijk)
                         .chunk_meshdata(VertexSettings::default());
@@ -383,41 +383,34 @@ impl DataPlugin {
     pub fn process_system(
         mut commands: Commands,
         mut celestial_query: Query<(Entity, &mut Data, &mut Mass)>,
-        falling_sand_materials: Query<(Entity, &Parent, &ChunkIdk)>,
+        falling_sand_materials: Query<(Entity, &Parent, &ChunkIjk)>,
         asset_server: Res<AssetServer>,
         time: Res<Time>,
         frame: Res<FrameCount>,
     ) {
-        let mut asset_updates = HashMap::new();
-
-        // Build a mapping from celestial entities to their materials
-        let mut chunks_by_celestial: HashMap<Entity, Vec<(Entity, ChunkIjkVector)>> =
-            HashMap::new();
-        for (chunk_id, parent, chunk_ijk) in &falling_sand_materials {
-            let celestial_id = parent.get();
-            chunks_by_celestial
-                .entry(celestial_id)
-                .or_insert_with(Vec::new)
-                .push((chunk_id, chunk_ijk.0));
-        }
-
         // Process each celestial
+        let mut new_textures_by_celestial: HashMap<Entity, HashMap<ChunkIjkVector, Textures>> =
+            HashMap::new();
         for (celestial_id, mut celestial, mut mass) in &mut celestial_query {
-            let mut new_textures: HashMap<ChunkIjkVector, Textures> =
-                celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
+            new_textures_by_celestial.insert(
+                celestial_id,
+                celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned())),
+            );
 
             // Update the mass
             mass.0 = celestial.element_dir().total_mass().0;
+        }
 
-            // Retrieve materials associated with this celestial
-            if let Some(material_chunks) = chunks_by_celestial.get(&celestial_id) {
-                for (chunk_id, chunk_ijk) in material_chunks {
-                    if let Some(texture_data) = new_textures.get_mut(chunk_ijk) {
-                        if let Some(texture) = texture_data.texture.take() {
-                            let bevy_image = texture.to_bevy_image();
-                            let handle = asset_server.add(bevy_image);
-                            asset_updates.insert(handle.id(), (*chunk_id, handle));
-                        }
+        // Process each chunk
+        let mut asset_updates: HashMap<AssetId<Image>, (Entity, Handle<Image>)> = HashMap::new();
+        for (chunk_id, celestial_id, chunk_ijk) in &falling_sand_materials {
+            if let Some(textures_by_chunk_ijk) =
+                new_textures_by_celestial.get_mut(&celestial_id.get())
+            {
+                if let Some(mut texture) = textures_by_chunk_ijk.remove(&chunk_ijk.0) {
+                    if let Some(bevy_image) = texture.texture.take() {
+                        let handle = asset_server.add(bevy_image.to_bevy_image());
+                        asset_updates.insert(handle.id(), (chunk_id, handle));
                     }
                 }
             }

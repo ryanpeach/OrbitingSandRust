@@ -25,7 +25,7 @@ use bevy::{
 use bevy_eventlistener::callbacks::ListenerInput;
 use bevy_mod_picking::events::{Down, Pointer};
 
-use crate::{entities::celestials::celestial::ChunkIdk, errors::EmptyQueryResult};
+use crate::{entities::celestials::celestial::ChunkIjk, errors::EmptyQueryResult};
 
 use conv::ValueFrom;
 
@@ -341,7 +341,7 @@ impl CameraPlugin {
     /// TODO: #[sysfail]
     pub fn select_celestial_focus(
         mut commands: Commands,
-        chunks: Query<(&Parent, Entity), With<ChunkIdk>>,
+        chunks: Query<(&Parent, Entity), With<ChunkIjk>>,
         mut camera: Query<(Entity, &mut Transform), With<MainCamera>>,
         mut click_events: EventReader<SelectCelestial>,
     ) {
