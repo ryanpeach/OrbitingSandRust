@@ -373,7 +373,7 @@ impl Builder {
 
 /// The entire list of textures created after each call to [`DataPlugin::process_system`]
 #[derive(Resource, Debug, Default)]
-pub struct UpdatedTextures(HashMap<AssetId<Image>, (Entity, ChunkIjkVector, Handle<Image>)>);
+pub struct UpdatedTextures(HashMap<AssetId<Image>, (Entity, Handle<Image>)>);
 
 /// Bevy Systems
 impl DataPlugin {
@@ -383,7 +383,7 @@ impl DataPlugin {
     pub fn process_system(
         mut commands: Commands,
         mut celestial_query: Query<(Entity, &mut Data, &mut Mass)>,
-        falling_sand_materials: Query<(&Parent, &ChunkIdk)>,
+        falling_sand_materials: Query<(Entity, &Parent, &ChunkIdk)>,
         asset_server: Res<AssetServer>,
         time: Res<Time>,
         frame: Res<FrameCount>,
@@ -391,13 +391,14 @@ impl DataPlugin {
         let mut asset_updates = HashMap::new();
 
         // Build a mapping from celestial entities to their materials
-        let mut celestial_materials: HashMap<Entity, Vec<ChunkIjkVector>> = HashMap::new();
-        for (parent, chunk_ijk) in &falling_sand_materials {
+        let mut chunks_by_celestial: HashMap<Entity, Vec<(Entity, ChunkIjkVector)>> =
+            HashMap::new();
+        for (chunk_id, parent, chunk_ijk) in &falling_sand_materials {
             let celestial_id = parent.get();
-            celestial_materials
+            chunks_by_celestial
                 .entry(celestial_id)
                 .or_insert_with(Vec::new)
-                .push(chunk_ijk.0);
+                .push((chunk_id, chunk_ijk.0));
         }
 
         // Process each celestial
@@ -409,13 +410,13 @@ impl DataPlugin {
             mass.0 = celestial.element_dir().total_mass().0;
 
             // Retrieve materials associated with this celestial
-            if let Some(material_chunks) = celestial_materials.get(&celestial_id) {
-                for chunk_ijk in material_chunks {
+            if let Some(material_chunks) = chunks_by_celestial.get(&celestial_id) {
+                for (chunk_id, chunk_ijk) in material_chunks {
                     if let Some(texture_data) = new_textures.get_mut(chunk_ijk) {
                         if let Some(texture) = texture_data.texture.take() {
                             let bevy_image = texture.to_bevy_image();
                             let handle = asset_server.add(bevy_image);
-                            asset_updates.insert(handle.id(), (celestial_id, *chunk_ijk, handle));
+                            asset_updates.insert(handle.id(), (*chunk_id, handle));
                         }
                     }
                 }
@@ -425,26 +426,21 @@ impl DataPlugin {
     }
 
     /// Actually draw the updated textures on the materials after they are loaded by the asset
-    /// server
+    /// server.
+    /// WARNING: When developing, make sure this is always O(1) for each event. I don't know how
+    /// many times its called per update. Do all events come in at once or one in each call?
+    /// Preprocessing could happen many times.
     pub fn draw_materials_system(
-        falling_sand_materials: Query<(&Parent, &ChunkIdk, &Handle<ColorMaterial>)>,
+        falling_sand_materials: Query<&Handle<ColorMaterial>>,
         mut materials: ResMut<Assets<ColorMaterial>>,
         mut asset_events: EventReader<AssetEvent<Image>>,
         mut asset_updates: ResMut<UpdatedTextures>,
     ) {
-        // Build a mapping from (celestial_id, chunk_ijk) to material_handle
-        let mut material_map: HashMap<(Entity, ChunkIjkVector), Handle<ColorMaterial>> =
-            HashMap::new();
-        for (parent, chunk_ijk, material_handle) in &falling_sand_materials {
-            let celestial_id = parent.get();
-            material_map.insert((celestial_id, chunk_ijk.0), material_handle.clone());
-        }
-
         // Process asset events
         for event in asset_events.read() {
             if let AssetEvent::<Image>::LoadedWithDependencies { id } = event {
-                if let Some((celestial_id, chunk_ijk, image_handle)) = asset_updates.0.remove(id) {
-                    if let Some(material_handle) = material_map.get(&(celestial_id, chunk_ijk)) {
+                if let Some((chunk_id, image_handle)) = asset_updates.0.remove(id) {
+                    if let Ok(material_handle) = falling_sand_materials.get(chunk_id) {
                         if let Some(material) = materials.get_mut(material_handle) {
                             material.texture = Some(image_handle);
                         }
