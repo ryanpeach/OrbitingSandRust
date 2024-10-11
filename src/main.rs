@@ -23,6 +23,7 @@ use bevy::prelude::Res;
 use bevy::prelude::ResMut;
 use bevy::prelude::Transform;
 use bevy::prelude::With;
+use bevy::render::camera::ClearColor;
 use bevy::sprite::ColorMaterial;
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy::DefaultPlugins;
@@ -61,6 +62,7 @@ fn main() {
             EguiPlugin,
             DefaultPickingPlugins,
         ))
+        .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
         .add_plugins(GuiPluginGroup)
         .add_plugins(PhysicsPluginGroup)
         .add_plugins(orbiting_sand::entities::PluginGroup)
