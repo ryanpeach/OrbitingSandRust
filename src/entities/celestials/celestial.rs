@@ -4,7 +4,7 @@
 #![warn(clippy::missing_docs_in_private_items)]
 
 use bevy::app::{App, FixedUpdate, Plugin, Update};
-use bevy::asset::{AssetServer, Assets, Handle};
+use bevy::asset::{AssetEvent, AssetId, AssetServer, Assets, Handle};
 use bevy::color::Srgba;
 use bevy::core::{FrameCount, Name};
 use bevy::ecs::component::Component;
@@ -13,6 +13,9 @@ use bevy::color::palettes::css::RED;
 use bevy::ecs::entity::Entity;
 use bevy::gizmos::gizmos::Gizmos;
 
+use bevy::ecs::event::EventReader;
+use bevy::prelude::Resource;
+use bevy::render::texture::Image;
 use bevy::render::view::{ViewVisibility, Visibility, VisibilityBundle};
 use bevy_mod_picking::prelude::*;
 
@@ -68,8 +71,13 @@ pub struct DataPlugin;
 
 impl Plugin for DataPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(FixedUpdate, Self::process_system);
+        app.add_systems(
+            FixedUpdate,
+            (Self::process_system, DataPlugin::draw_materials_system),
+        );
+
         app.insert_resource(Time::<Fixed>::from_seconds(1.0 / PHYSICS_FRAME_RATE));
+        app.insert_resource(UpdatedTextures::default());
         app.add_systems(
             Update,
             (
@@ -363,22 +371,24 @@ impl Builder {
     }
 }
 
+/// The entire list of textures created after each call to [`DataPlugin::process_system`]
+#[derive(Resource, Debug, Default)]
+pub struct UpdatedTextures(HashMap<AssetId<Image>, (Entity, ChunkIjkVector, Handle<Image>)>);
+
 /// Bevy Systems
 impl DataPlugin {
     /// Run this system every frame to update the celestial
     /// # Panics
     /// Should never panic, but uses expect to handle the case where a texture or material is missing.
     pub fn process_system(
+        mut commands: Commands,
         mut celestial: Query<(Entity, &mut Data, &mut Mass)>,
-        mut falling_sand_materials: Query<
-            (&Parent, &mut Handle<ColorMaterial>, &ChunkIdk),
-            With<FallingSandMaterial>,
-        >,
-        mut materials: ResMut<Assets<ColorMaterial>>,
+        falling_sand_materials: Query<(&Parent, &ChunkIdk), With<FallingSandMaterial>>,
         asset_server: Res<AssetServer>,
         time: Res<Time>,
         frame: Res<FrameCount>,
     ) {
+        let mut asset_updates = HashMap::new();
         for (celestial_id, mut celestial, mut mass) in &mut celestial {
             let mut new_textures: HashMap<ChunkIjkVector, Textures> =
                 celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
@@ -388,11 +398,8 @@ impl DataPlugin {
             mass.0 = celestial.element_dir().total_mass().0;
 
             // Update the falling sand materials
-            for (parent, material_handle, chunk_ijk) in &mut falling_sand_materials {
+            for (parent, chunk_ijk) in &falling_sand_materials {
                 if parent.get() == celestial_id && new_textures.contains_key(&chunk_ijk.0) {
-                    let material = materials
-                        .get_mut(&*material_handle)
-                        .expect("We definitely have a material");
                     let new_texture = new_textures
                         .get_mut(&chunk_ijk.0)
                         .expect("We definitely have a texture")
@@ -400,11 +407,42 @@ impl DataPlugin {
                         .take()
                         .expect("We definitely have a texture")
                         .to_bevy_image();
-                    material.texture = Some(asset_server.add(new_texture));
+                    let handle = asset_server.add(new_texture);
+                    asset_updates.insert(handle.id(), (celestial_id, chunk_ijk.0, handle));
+                }
+            }
+        }
+        commands.insert_resource(UpdatedTextures(asset_updates));
+    }
+
+    /// Actually draw the updated textures on the materials after they are loaded by the asset
+    /// server
+    pub fn draw_materials_system(
+        falling_sand_materials: Query<
+            (&Parent, &mut Handle<ColorMaterial>, &ChunkIdk),
+            With<FallingSandMaterial>,
+        >,
+        mut materials: ResMut<Assets<ColorMaterial>>,
+        mut asset_event: EventReader<AssetEvent<Image>>,
+        mut asset_updates: ResMut<UpdatedTextures>,
+    ) {
+        for ev in asset_event.read() {
+            if let AssetEvent::<Image>::LoadedWithDependencies { id } = ev {
+                if let Some((celestial_id, chunk_ijk, handle)) = asset_updates.0.remove(id) {
+                    for (parent, material_handle, chunk_idk) in falling_sand_materials.iter() {
+                        if parent.get() == celestial_id && chunk_idk.0 == chunk_ijk {
+                            let material = materials
+                                .get_mut(material_handle)
+                                .expect("We definitely have a material");
+                            material.texture = Some(handle);
+                            break;
+                        }
+                    }
                 }
             }
         }
     }
+
     /// Draw the wireframe of the celestials cells
     pub fn draw_wireframe_system(
         mut gizmos: Gizmos,
