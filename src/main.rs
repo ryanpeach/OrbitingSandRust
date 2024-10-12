@@ -32,16 +32,16 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_picking::low_latency_window_plugin;
 use bevy_mod_picking::DefaultPickingPlugins;
 use conv::ConvAsUtil;
-use orbiting_sand::entities::celestials::celestial;
-use orbiting_sand::entities::celestials::earthlike;
-use orbiting_sand::entities::celestials::sun;
-use orbiting_sand::gui::camera::MainCamera;
+use orbiting_sand::bevy::entities::celestials::celestial;
+use orbiting_sand::bevy::entities::celestials::earthlike;
+use orbiting_sand::bevy::entities::celestials::sun;
+use orbiting_sand::bevy::gui::camera::MainCamera;
 
 use bevy::prelude::PluginGroup;
 
-use orbiting_sand::gui::camera::{BackgroundLayer1, CelestialIdx};
-use orbiting_sand::gui::GuiPluginGroup;
-use orbiting_sand::physics::orbits::components::{Mass, Velocity};
+use orbiting_sand::bevy::gui::camera::{BackgroundLayer1, CelestialIdx};
+use orbiting_sand::bevy::gui::GuiPluginGroup;
+use orbiting_sand::common::util::uom::{Mass, Velocity};
 
 use orbiting_sand::physics::PhysicsPluginGroup;
 
@@ -64,7 +64,7 @@ fn main() {
         .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
         .add_plugins(GuiPluginGroup)
         .add_plugins(PhysicsPluginGroup)
-        .add_plugins(orbiting_sand::entities::PluginGroup)
+        .add_plugins(orbiting_sand::bevy::entities::PluginGroup)
         .add_plugins(WorldInspectorPlugin::new())
         .add_systems(PostStartup, planet_only_setup)
         .run();

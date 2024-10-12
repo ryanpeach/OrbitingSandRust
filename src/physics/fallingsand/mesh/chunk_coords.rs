@@ -2,11 +2,13 @@
 #![expect(clippy::missing_docs_in_private_items)]
 use crate::physics::fallingsand::util::functions::interpolate_points;
 
-use crate::common::util::vectors::{JkVector, ChunkIjkVector, ChunkJkVector, InChunkJkVector, IjkVector};
 use crate::common::util::mesh::OwnedMeshData;
 use crate::common::util::mesh::Vertex;
+use crate::common::util::uom::Length;
 use crate::common::util::vectors::ModelCoord;
-use crate::physics::orbits::components::Length;
+use crate::common::util::vectors::{
+    ChunkIjkVector, ChunkJkVector, IjkVector, InChunkJkVector, JkVector,
+};
 use anyhow::{bail, Result};
 use bevy::color::Color;
 use bevy::math::{Rect, Vec2};
@@ -92,7 +94,7 @@ impl PartialLayerChunkCoordsBuilder {
     pub fn new() -> PartialLayerChunkCoordsBuilder {
         PartialLayerChunkCoordsBuilder {
             cell_width: Length(1.0),
-            chunk_idx: ChunkIjkVector::ZERO,
+            chunk_idx: ChunkIjkVector::default(),
             start_concentric_circle_layer_relative: 0,
             start_concentric_circle_absolute: 0,
             start_radial_line: 0,
@@ -684,7 +686,10 @@ impl ChunkCoords {
 
     /// Convert a cell coordinate "on the circle" to a position "on the chunk"
     /// Return an Err if this is not on the chunk
-    pub fn absolute_cell_idx_to_in_chunk_cell_idx(&self, cell_idx: IjkVector) -> Result<InChunkJkVector> {
+    pub fn absolute_cell_idx_to_in_chunk_cell_idx(
+        &self,
+        cell_idx: IjkVector,
+    ) -> Result<InChunkJkVector> {
         if cell_idx.i != self.layer_num() {
             bail!(
                 "Cell index i {:?} is not in chunk {:?}",
@@ -762,8 +767,8 @@ mod tests {
                 y: (radius * theta.sin()) as f32,
             });
             let cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
-            let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(cell_idx);
-            let chunk = coordinate_dir.chunk_at_idx(chunk_idx.0);
+            let full_idx = coordinate_dir.cell_idx_to_full_idx(cell_idx);
+            let chunk = coordinate_dir.chunk_at_idx(full_idx.chunk_idx);
             assert_eq!(
                 chunk.rel_pos_to_cell_idx(xycoord).unwrap(),
                 IjkVector { i, j, k },
@@ -789,8 +794,8 @@ mod tests {
                         y: (radius * theta.sin()).approx().unwrap(),
                     });
                     let cell_idx = coordinate_dir.rel_pos_to_cell_idx(xycoord).unwrap();
-                    let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(cell_idx);
-                    let chunk = coordinate_dir.chunk_at_idx(chunk_idx.0);
+                    let full_idx = coordinate_dir.cell_idx_to_full_idx(cell_idx);
+                    let chunk = coordinate_dir.chunk_at_idx(full_idx.chunk_idx);
                     assert_eq!(
                         chunk.rel_pos_to_cell_idx(xycoord).unwrap(),
                         IjkVector { i, j, k }
@@ -824,11 +829,11 @@ mod tests {
                 j,
                 k: k % core_chunks.get(ChunkJkVector::default()).num_radial_lines(),
             };
-            let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
-            let chunk = coordinate_dir.chunk_at_idx(chunk_idx.0);
+            let full_idx = coordinate_dir.cell_idx_to_full_idx(coord);
+            let chunk = coordinate_dir.chunk_at_idx(full_idx.chunk_idx);
             assert_eq!(
                 chunk.absolute_cell_idx_to_in_chunk_cell_idx(coord).unwrap(),
-                coord.to_jk_vector()
+                InChunkJkVector { j, k: coord.k }
             );
         }
 
@@ -849,13 +854,13 @@ mod tests {
                     {
                         for k in total_radial_lines..total_radial_lines + chunk_num_radial_lines {
                             let absolute_coord = IjkVector { i, j, k };
-                            let in_chunk_coord = JkVector {
+                            let in_chunk_coord = InChunkJkVector {
                                 j: j - total_concentric_circles,
                                 k: k - total_radial_lines,
                             };
-                            let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(absolute_coord);
+                            let full_idx = coordinate_dir.cell_idx_to_full_idx(absolute_coord);
                             // assert_eq!(chunk_idx, ChunkIjkVector { i, j: cj, k: ck });
-                            let chunk = coordinate_dir.chunk_at_idx(chunk_idx.0);
+                            let chunk = coordinate_dir.chunk_at_idx(full_idx.chunk_idx);
                             assert_eq!(
                                 chunk
                                     .absolute_cell_idx_to_in_chunk_cell_idx(absolute_coord)
@@ -1483,12 +1488,12 @@ mod tests {
 
             use bevy::math::Vec2;
 
+            use crate::common::util::uom::Length;
+            use crate::common::util::vectors::ChunkIjkVector;
             use crate::physics::fallingsand::mesh::chunk_coords::tests::vec2_approx_eq;
             use crate::physics::fallingsand::mesh::chunk_coords::{
                 ChunkCoords, VertexMode, VertexSettings,
             };
-            use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
-            use crate::physics::orbits::components::Length;
 
             pub const CORE: ChunkCoords = ChunkCoords {
                 cell_width: Length(1.0),

@@ -48,17 +48,17 @@ use bevy::{
     ecs::{
         entity::Entity,
         query::{With, Without},
-        schedule::IntoSystemConfigs,
         system::{Query, Res},
     },
     math::{Vec2, Vec3Swizzles},
+    prelude::{Component, IntoSystemConfigs},
     time::{Fixed, Time},
     transform::components::Transform,
 };
 
-use crate::physics::PHYSICS_FRAME_RATE;
+use crate::{common::util::uom::Force, physics::PHYSICS_FRAME_RATE};
 
-use super::components::{ForceVec, GravitationalField, Mass, Velocity};
+use crate::common::util::uom::{ForceVec, Mass, Velocity};
 
 /// It's important that we don't compute the gravitational force between two bodies that are too
 /// close together, because the force will be very large and the simulation will be unstable.
@@ -73,6 +73,28 @@ pub const MIN_DISTANCE_SQUARED: f32 = 100.0;
 /// factor to make the simulation
 /// act at the scale of gravity we want.
 pub const G: f32 = 1.0e3;
+
+/// Indicates that an entity emits a gravitational field.
+#[derive(Component, Default, Debug, Clone, Copy)]
+pub struct GravitationalField;
+
+/// The acceleration due to gravity
+#[derive(Component, Debug, Clone, Copy)]
+pub struct GravitationalAcceleration(pub f32);
+
+impl GravitationalAcceleration {
+    /// Returns the acceleration due to gravity towards a mass
+    #[must_use]
+    pub fn from_total_mass(total_mass: Mass) -> Self {
+        GravitationalAcceleration(G * total_mass.0)
+    }
+
+    /// To force
+    #[must_use]
+    pub fn into_force(self, mass: Mass) -> Force {
+        Force(mass.0 * self.0)
+    }
+}
 
 /// Returns the gravitational force between two entities
 fn compute_gravitational_force(
@@ -104,7 +126,7 @@ fn half_step_velocity_update(
     other_bodies: &[(Entity, Transform, Velocity, Mass)],
     dt: f32,
 ) {
-    let mut net_force = Vec2::ZERO;
+    let mut net_force = Vec2::default();
     for other_body in other_bodies {
         if this_body.0 == other_body.0 {
             continue;

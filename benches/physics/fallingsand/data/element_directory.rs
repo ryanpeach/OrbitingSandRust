@@ -4,12 +4,12 @@ use bevy::core::FrameCount;
 use bevy::time::Time;
 use iai_callgrind::{library_benchmark, library_benchmark_group, LibraryBenchmarkConfig};
 use lazy_static::lazy_static;
+use orbiting_sand::common::util::clock::Clock;
+use orbiting_sand::common::util::uom::Length;
 use orbiting_sand::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
 use orbiting_sand::physics::fallingsand::{
     data::element_directory::ElementGridDir, mesh::coordinate_dir::Builder,
 };
-use orbiting_sand::physics::orbits::components::Length;
-use orbiting_sand::physics::util::clock::Clock;
 
 lazy_static! {
     static ref COORDINATE_DIR: CoordinateDir = Builder::new()
@@ -24,7 +24,7 @@ lazy_static! {
 
 /// All the element grid directories that need processing
 mod get_element_grid_dir {
-    use orbiting_sand::entities::celestials::{earthlike, sun};
+    use orbiting_sand::bevy::entities::celestials::{earthlike, sun};
 
     use super::{ElementGridDir, COORDINATE_DIR};
     /// The default element grid directory for testing

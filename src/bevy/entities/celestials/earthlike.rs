@@ -3,15 +3,10 @@
 use bevy::log::info;
 
 use crate::bevy::entities::celestials::celestial::Data;
+use crate::common::util::uom::Length;
 use crate::common::util::vectors::ChunkIjkVector;
-use crate::{
-    physics::{
-        fallingsand::{
-            data::element_directory::ElementGridDir, elements::element::ElementType,
-            mesh::coordinate_dir, 
-        },
-        orbits::components::Length,
-    },
+use crate::physics::fallingsand::{
+    data::element_directory::ElementGridDir, elements::element::ElementType, mesh::coordinate_dir,
 };
 
 /// Builds an earthlike celestial body

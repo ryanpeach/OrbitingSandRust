@@ -28,7 +28,6 @@ pub struct Vertex {
     pub color: Color,
 }
 
-
 /// Represents a mesh that is owned by this object
 /// For some reason a `MeshData` in ggez object has a lifetime and is a set of borrows.
 /// This is a workaround for that.

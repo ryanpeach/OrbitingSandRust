@@ -4,6 +4,8 @@
 //! has a convolution function that is helpful for the physics simulation.
 //! So some of this code is now redundant, but is maintained for legacy reasons
 
+use std::marker::PhantomData;
+
 use ndarray::{Array2, ShapeError};
 use thiserror::Error;
 
@@ -11,13 +13,13 @@ use crate::common::util::vectors::JkVector;
 use conv::ValueFrom;
 
 /// A simple 2d grid type
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct JkGrid<T, V>
 where
     T: JkVector,
-    V: Sized,
 {
     data: Array2<V>,
+    phantom: PhantomData<T>,
 }
 
 /* =================
@@ -26,7 +28,7 @@ where
 impl<T, V> JkGrid<T, V>
 where
     T: JkVector,
-    V: Sized,
+    V: Clone,
 {
     /// Create a new grid filled with one value
     pub fn new_fill(width: u32, height: u32, value: V) -> Self
@@ -35,14 +37,28 @@ where
     {
         Self {
             data: ndarray::Array2::from_elem((width as usize, height as usize), value),
+            phantom: PhantomData,
         }
     }
+}
+impl<T, V> JkGrid<T, V>
+where
+    T: JkVector,
+{
     /// Create a new grid with the given width and height, and fill it with the given data
     pub fn new_from_vec(width: u32, height: u32, data: Vec<V>) -> Result<Self, ShapeError> {
         Ok(Self {
             data: ndarray::Array2::from_shape_vec((width as usize, height as usize), data)?,
+            phantom: PhantomData,
         })
     }
+}
+
+impl<T, V> JkGrid<T, V>
+where
+    T: JkVector,
+    V: Default,
+{
     /// Create a new grid with the given width and height, and fill it with default values
     #[must_use]
     pub fn new_empty(width: u32, height: u32) -> Self
@@ -56,6 +72,7 @@ where
         Self {
             data: ndarray::Array2::from_shape_vec((width as usize, height as usize), data)
                 .expect("We made data ourselves."),
+            phantom: PhantomData,
         }
     }
 }
@@ -67,7 +84,6 @@ where
 impl<T, V> JkGrid<T, V>
 where
     T: JkVector,
-    V: Sized,
 {
     /// Get the width of the grid
     #[must_use]
@@ -128,7 +144,6 @@ impl JkVector for GridOutOfBoundsError {
 impl<T, V> JkGrid<T, V>
 where
     T: JkVector,
-    V: Sized,
 {
     /// Gets the value at the given coordinate
     ///
@@ -138,14 +153,14 @@ where
     /// TODO: More to convention, use square brackets
     /// TODO: Get should return Option
     #[must_use]
-    pub fn get(&self, idx: impl JkVector) -> &V {
+    pub fn get(&self, idx: T) -> &V {
         let idx = self.transform_jk_coord_to_ndarray(idx);
         &self.data[idx]
     }
     /// Gets the value at the given coordinate, or returns an error if the coordinate is out of bounds
     ///
     /// TODO: Rename to get, and change to option
-    pub fn checked_get(&self, idx: impl JkVector) -> Result<&V, GridOutOfBoundsError> {
+    pub fn checked_get(&self, idx: T) -> Result<&V, GridOutOfBoundsError> {
         if idx.k() >= self.width() || idx.j() >= self.height() {
             return Err(GridOutOfBoundsError {
                 j: idx.j(),
@@ -155,21 +170,21 @@ where
         Ok(self.get(idx))
     }
     /// Gets the value at the given coordinate, mutably
-    pub fn get_mut(&mut self, idx: impl JkVector) -> &mut V {
+    pub fn get_mut(&mut self, idx: T) -> &mut V {
         let idx = self.transform_jk_coord_to_ndarray(idx);
         &mut self.data[idx]
     }
     /// Sets the value at the given coordinate, overwriting the old value
-    pub fn set(&mut self, idx: impl JkVector, value: V) {
+    pub fn set(&mut self, idx: T, value: V) {
         self.replace(idx, value);
     }
     /// Like set, but gives you ownership of the original value
-    pub fn replace(&mut self, idx: impl JkVector, replacement: V) -> V {
+    pub fn replace(&mut self, idx: T, replacement: V) -> V {
         let coord = self.transform_jk_coord_to_ndarray(idx);
         std::mem::replace(&mut self.data[coord], replacement)
     }
     /// Transforms the coordinate to the ndarray coordinate system using this grid's width and height
-    fn transform_jk_coord_to_ndarray(&self, idx: impl JkVector) -> [usize; 2] {
+    fn transform_jk_coord_to_ndarray(&self, idx: T) -> [usize; 2] {
         [
             self.width() as usize - 1 - idx.k() as usize,
             self.height() as usize - 1 - idx.j() as usize,
@@ -181,7 +196,6 @@ where
 impl<T, V> JkGrid<T, V>
 where
     T: JkVector,
-    V: Sized,
 {
     /// Get an iterator over the grid
     pub fn iter(&self) -> std::slice::Iter<V> {
@@ -200,7 +214,10 @@ where
     }
 }
 
-impl<'a, T, V> IntoIterator for &'a JkGrid<T, V> {
+impl<'a, T, V> IntoIterator for &'a JkGrid<T, V>
+where
+    T: JkVector,
+{
     type Item = &'a V;
     type IntoIter = std::slice::Iter<'a, V>;
 
@@ -209,7 +226,10 @@ impl<'a, T, V> IntoIterator for &'a JkGrid<T, V> {
     }
 }
 
-impl<'a, T, V> IntoIterator for &'a mut JkGrid<T, V> {
+impl<'a, T, V> IntoIterator for &'a mut JkGrid<T, V>
+where
+    T: JkVector,
+{
     type Item = &'a mut V;
     type IntoIter = std::slice::IterMut<'a, V>;
 
@@ -222,21 +242,19 @@ impl<'a, T, V> IntoIterator for &'a mut JkGrid<T, V> {
 #[must_use]
 pub fn filter_vecgrid<T, V>(grid: &[JkGrid<T, V>], filter: &[JkGrid<T, bool>]) -> Vec<JkGrid<T, V>>
 where
-    T: Default + Clone + JkVector,
+    T: JkVector + Default,
+    V: Default + Clone,
 {
     let mut out = Vec::new();
     for (i, item) in filter.iter().enumerate() {
         let j_size = item.height();
         let k_size = item.width();
-        let mut layer = JkGrid::new_empty(k_size, j_size);
+        let mut layer = JkGrid::<T, V>::new_empty(k_size, j_size);
         for j in 0..j_size {
             for k in 0..k_size {
                 // Doesn't actually matter what impl JkVector type you use for this
                 if *item.get(T::new(j, k)) {
-                    layer.set(
-                        T::new(j, k),
-                        grid[i].get(T::new(j, k)).clone(),
-                    );
+                    layer.set(T::new(j, k), grid[i].get(T::new(j, k)).clone());
                 }
             }
         }
@@ -259,7 +277,8 @@ mod tests {
 
     #[test]
     fn test_iter() {
-        let grid = JkGrid::<ChunkJkVector, usize>::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]).unwrap();
+        let grid =
+            JkGrid::<ChunkJkVector, usize>::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]).unwrap();
         let mut iter = grid.iter();
 
         assert_eq!(*iter.next().unwrap(), 1);
@@ -273,7 +292,8 @@ mod tests {
 
     #[test]
     fn test_iter_mut() {
-        let mut grid = JkGrid::<ChunkJkVector, usize>::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]).unwrap();
+        let mut grid =
+            JkGrid::<ChunkJkVector, usize>::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]).unwrap();
 
         for val in &mut grid {
             *val *= 2;

@@ -25,7 +25,6 @@ use bevy::{
 use bevy_eventlistener::callbacks::ListenerInput;
 use bevy_mod_picking::events::{Down, Pointer};
 
-
 use conv::ValueFrom;
 
 use crate::bevy::entities::celestials::celestial::ChunkIjkComponent;
@@ -188,7 +187,7 @@ impl CameraPlugin {
         keyboard_input: Res<ButtonInput<KeyCode>>,
         mut query: Query<(&mut Transform, &mut Camera2d)>,
     ) {
-        let mut delta = Vec3::ZERO;
+        let mut delta = Vec3::default();
         if keyboard_input.pressed(KeyCode::KeyA) {
             delta.x -= 1.;
         }
@@ -201,7 +200,7 @@ impl CameraPlugin {
         if keyboard_input.pressed(KeyCode::KeyS) {
             delta.y -= 1.;
         }
-        if delta != Vec3::ZERO {
+        if delta != Vec3::default() {
             for (mut transform, _) in &mut query {
                 let scale = transform.scale;
                 transform.translation += delta * time.delta_seconds() * scale * 100.;

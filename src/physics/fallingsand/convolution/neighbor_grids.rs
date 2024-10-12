@@ -2,13 +2,8 @@
 use hashbrown::HashMap;
 use thiserror::Error;
 
-use crate::physics::fallingsand::{
-    data::element_grid::ElementGrid,
-    elements::element::Element,
-};
+use crate::physics::fallingsand::{data::element_grid::ElementGrid, elements::element::Element};
 
-use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
-use crate::common::util::clock::Clock;
 use super::{
     neighbor_identifiers::{
         BottomNeighborIdentifier, BottomNeighborIdentifierChunkDoubling,
@@ -18,6 +13,8 @@ use super::{
     },
     neighbor_indexes::{BottomNeighborIdxs, LeftRightNeighborIdxs, TopNeighborIdxs},
 };
+use crate::common::util::clock::Clock;
+use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
 
 /// The main type exported by this module
 /// Contains all the neighbor grids for the convolution

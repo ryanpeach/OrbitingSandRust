@@ -2,9 +2,9 @@
 #![expect(clippy::missing_docs_in_private_items)]
 use bevy::color::Color;
 
-use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
-use crate::common::util::clock::Clock;
 use super::element::{Density, Element, ElementTakeOptions, ElementType, StateOfMatter};
+use crate::common::util::clock::Clock;
+use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
@@ -60,9 +60,9 @@ mod tests {
         clippy::unwrap_used,
         clippy::panic
     )]
-    use crate::physics::{
-        fallingsand::{data::element_directory::ElementGridDir, mesh::coordinate_dir::Builder},
-        orbits::components::Length,
+    use crate::common::util::uom::Length;
+    use crate::physics::fallingsand::{
+        data::element_directory::ElementGridDir, mesh::coordinate_dir::Builder,
     };
 
     use super::*;
@@ -85,19 +85,19 @@ mod tests {
         use std::time::Duration;
 
         use super::*;
-        use crate::physics::fallingsand::{
-            elements::element::ElementType,
+        use crate::common::util::vectors::{
+            ChunkIjkVector, ChunkJkVector, FullIdx, IjkVector, InChunkJkVector, JkVector,
         };
-        use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, IjkVector, InChunkJkVector as JkVector};
+        use crate::physics::fallingsand::elements::element::ElementType;
 
-        fn assert_movement(mut element_grid_dir: ElementGridDir, loc1: (ChunkIjkVector, JkVector)) {
+        fn assert_movement(mut element_grid_dir: ElementGridDir, loc1: FullIdx) {
             let mut clock = Clock::default();
 
             // Set the bottom right to sand
             {
-                let chunk = element_grid_dir.chunk_at_chunk_ijk_mut(loc1.0);
+                let chunk = element_grid_dir.chunk_at_chunk_ijk_mut(loc1.chunk_idx);
                 let sand = Stone::default();
-                chunk.set(loc1.1, Box::new(sand), clock);
+                chunk.set(loc1.pos, Box::new(sand), clock);
             }
 
             // Now process one frame
@@ -106,8 +106,8 @@ mod tests {
 
             // Now check that the chunk still has stone
             {
-                let below_chunk = element_grid_dir.chunk_at_chunk_ijk_mut(loc1.0);
-                let below_location_type = below_chunk.get(loc1.1).element_type();
+                let below_chunk = element_grid_dir.chunk_at_chunk_ijk_mut(loc1.chunk_idx);
+                let below_location_type = below_chunk.get(loc1.pos).element_type();
                 assert_eq!(below_location_type, ElementType::Stone);
             }
         }
@@ -119,7 +119,7 @@ mod tests {
                     let element_grid_dir = element_grid_dir();
                     let pos1 = element_grid_dir
                         .coordinate_dir()
-                        .cell_idx_to_chunk_idx(IjkVector::new($pos1.0, $pos1.1, $pos1.2));
+                        .cell_idx_to_full_idx(IjkVector::new($pos1.0, $pos1.1, $pos1.2));
                     assert_movement(element_grid_dir, pos1);
                 }
             };

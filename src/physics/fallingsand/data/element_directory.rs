@@ -1,13 +1,15 @@
 #![expect(missing_docs)]
 #![expect(clippy::missing_docs_in_private_items)]
 use hashbrown::{HashMap, HashSet};
-use itertools::multizip;
+use itertools::{multizip, Chunk};
 
-use crate::physics::orbits::components::Mass;
+use crate::common::util::uom::Mass;
 
-use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, IjkVector, InChunkJkVector, LayerJkVector};
-use crate::common::util::clock::Clock;
 use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
+use crate::common::util::clock::Clock;
+use crate::common::util::vectors::{
+    ChunkIjkVector, ChunkJkVector, IjkVector, InChunkJkVector, JkVector, LayerJkVector,
+};
 
 use super::super::convolution::neighbor_indexes::{
     BottomNeighborIdxs, ElementGridConvolutionNeighborIdxs, LeftRightNeighborIdxs, TopNeighborIdxs,
@@ -16,8 +18,8 @@ use super::super::elements::element::Element;
 use super::super::mesh::coordinate_dir::CoordinateDir;
 use super::super::util::functions::modulo;
 use super::super::util::grid::JkGrid;
-use crate::common::util::image::RawImage;
 use super::element_grid::ElementGrid;
+use crate::common::util::image::RawImage;
 use anyhow::{bail, Result};
 use conv::ValueFrom;
 use rayon::prelude::*;
@@ -236,7 +238,7 @@ fn pregen_process_targets(coords: &CoordinateDir) -> ProcessTargets {
 /// copy of the chunk coordinates associated with it for convenience
 pub struct ElementGridDir {
     coords: CoordinateDir,
-    chunks: Vec<JkGrid<LayerJkVector, Option<ElementGrid>>>,
+    chunks: Vec<JkGrid<ChunkJkVector, Option<ElementGrid>>>,
     process_targets: ProcessTargets,
     process_count: u32,
     total_mass: Mass,
@@ -247,7 +249,7 @@ pub struct ElementGridDir {
 impl ElementGridDir {
     #[must_use]
     pub fn new_empty(coords: CoordinateDir) -> Self {
-        let mut chunks: Vec<JkGrid<LayerJkVector, Option<ElementGrid>>> =
+        let mut chunks: Vec<JkGrid<ChunkJkVector, Option<ElementGrid>>> =
             Vec::with_capacity(coords.num_layers() as usize);
         for i in 0..coords.num_layers() {
             let j_size = coords.layer_num_concentric_chunks(i);
@@ -257,7 +259,7 @@ impl ElementGridDir {
                 for k in 0..k_size {
                     let element_grid =
                         ElementGrid::new_empty(coords.chunk_at_idx(ChunkIjkVector { i, j, k }));
-                    layer.replace(LayerJkVector { j, k }, Some(element_grid));
+                    layer.replace(ChunkJkVector { j, k }, Some(element_grid));
                 }
             }
             chunks.push(layer);
@@ -280,7 +282,7 @@ impl ElementGridDir {
         fill0: &dyn Element,
         fill1: &dyn Element,
     ) -> Self {
-        let mut chunks: Vec<JkGrid<LayerJkVector, Option<ElementGrid>>> =
+        let mut chunks: Vec<JkGrid<ChunkJkVector, Option<ElementGrid>>> =
             Vec::with_capacity(coords.num_layers() as usize);
         for i in 0..coords.num_layers() {
             let i: u32 = u32::value_from(i).expect("Number of layers is usually very small");
@@ -294,7 +296,7 @@ impl ElementGridDir {
                         coords.chunk_at_idx(ChunkIjkVector { i, j, k }),
                         fill,
                     );
-                    layer.replace(LayerJkVector { j, k }, Some(element_grid));
+                    layer.replace(ChunkJkVector { j, k }, Some(element_grid));
                 }
             }
             chunks.push(layer);
@@ -754,7 +756,7 @@ impl ElementGridDir {
     }
 
     /// Calculate the maximum temperature in the directory
-    pub fn calc_total_mass(chunks: &mut Vec<JkGrid<LayerJkVector, Option<ElementGrid>>>) -> Mass {
+    pub fn calc_total_mass(chunks: &mut Vec<JkGrid<ChunkJkVector, Option<ElementGrid>>>) -> Mass {
         let mut out = Mass(0.0);
         for layer in chunks {
             for chunk in layer.into_iter().flatten() {
@@ -834,9 +836,9 @@ impl ElementGridDir {
 
     #[must_use]
     pub fn element(&self, coord: IjkVector) -> &dyn Element {
-        let chunk_idx = self.coordinate_dir().cell_idx_to_chunk_idx(coord);
-        let chunk = self.chunk_at_chunk_ijk(chunk_idx.0);
-        chunk.get(chunk_idx.1)
+        let full_idx = self.coordinate_dir().cell_idx_to_full_idx(coord);
+        let chunk = self.chunk_at_chunk_ijk(full_idx.chunk_idx);
+        chunk.get(full_idx.pos)
     }
 
     pub fn set_element(
@@ -845,9 +847,9 @@ impl ElementGridDir {
         element: Box<dyn Element>,
         current_time: Clock,
     ) {
-        let chunk_idx = self.coordinate_dir().cell_idx_to_chunk_idx(coord);
-        let chunk = self.chunk_at_chunk_ijk_mut(chunk_idx.0);
-        chunk.set(chunk_idx.1, element, current_time);
+        let full_idx = self.coordinate_dir().cell_idx_to_full_idx(coord);
+        let chunk = self.chunk_at_chunk_ijk_mut(full_idx.chunk_idx);
+        chunk.set(full_idx.pos, element, current_time);
     }
 
     #[must_use]
@@ -867,7 +869,8 @@ impl ElementGridDir {
     #[must_use]
     pub fn textures(&self) -> HashMap<ChunkIjkVector, Textures> {
         // Create a filter with all true
-        let mut filter: Vec<JkGrid<LayerJkVector, bool>> = Vec::with_capacity(self.coords.num_layers() as usize);
+        let mut filter: Vec<JkGrid<ChunkJkVector, bool>> =
+            Vec::with_capacity(self.coords.num_layers() as usize);
         for i in 0..self.coords.num_layers() {
             let j_size = self.coords.layer_num_concentric_chunks(i);
             let k_size = self.coords.layer_num_tangential_chunkss(i);
@@ -880,7 +883,10 @@ impl ElementGridDir {
     }
 
     /// Where filter is true, get the textures
-    fn textures_filtered(&self, filter: &[JkGrid<LayerJkVector, bool>]) -> HashMap<ChunkIjkVector, Textures> {
+    fn textures_filtered(
+        &self,
+        filter: &[JkGrid<ChunkJkVector, bool>],
+    ) -> HashMap<ChunkIjkVector, Textures> {
         let mut out = HashMap::new();
         // let (max_temp, min_temp) = self.get_max_min_temp();
         for (i, item) in filter.iter().enumerate() {
@@ -890,7 +896,7 @@ impl ElementGridDir {
             let k_size = self.coords.layer_num_tangential_chunkss(i);
             for j in 0..j_size {
                 for k in 0..k_size {
-                    if !item.get(LayerJkVector { j, k }) {
+                    if !item.get(ChunkJkVector { j, k }) {
                         continue;
                     }
                     let coord = ChunkIjkVector { i, j, k };
@@ -911,7 +917,8 @@ mod tests {
         clippy::unwrap_used,
         clippy::panic
     )]
-    use crate::physics::{fallingsand::mesh::coordinate_dir::Builder, orbits::components::Length};
+    use crate::common::util::uom::Length;
+    use crate::physics::fallingsand::mesh::coordinate_dir::Builder;
 
     use super::*;
 

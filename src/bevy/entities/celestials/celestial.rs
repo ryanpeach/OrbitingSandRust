@@ -44,10 +44,11 @@ use crate::bevy::components::mesh::{GizmoDrawableGrid, GizmoDrawableLoop};
 use crate::bevy::gui::camera::{CelestialIdx, OverlayLayer2, OverlayLayer3, SelectCelestial};
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
-use crate::common::util::vectors::ChunkIjkVector;
 use crate::common::util::clock::Clock;
+use crate::common::util::uom::{Mass, Velocity};
+use crate::common::util::vectors::ChunkIjkVector;
 use crate::physics::fallingsand::mesh::chunk_coords::{VertexMode, VertexSettings};
-use crate::physics::orbits::components::{GravitationalField, Mass, Velocity};
+use crate::physics::orbits::nbody::GravitationalField;
 use crate::physics::PHYSICS_FRAME_RATE;
 
 /// Identifies the mesh which draws the celestials chunk outlines
@@ -308,8 +309,8 @@ impl Builder {
                 .spawn((
                     // Physics
                     Name::new(self.name.clone()),
-                    Radius(self.celestial_data.element_dir().coordinate_dir().radius()),
-                    Mass(self.celestial_data.element_dir().total_mass()),
+                    self.celestial_data.element_dir().coordinate_dir().radius(),
+                    self.celestial_data.element_dir().total_mass(),
                     self.velocity,
                     self.celestial_data,
                     self.celestial_idx,

@@ -7,17 +7,17 @@ use rand::seq::SliceRandom;
 use rand::thread_rng;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
+use crate::common::util::uom::Mass;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
-use crate::physics::orbits::components::Mass;
 
-use crate::common::util::vectors::{JkVector, ChunkIjkVector, ChunkJkVector, InChunkJkVector};
-use crate::common::util::clock::Clock;
 use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
 use super::super::elements::vacuum::Vacuum;
 use super::super::mesh::coordinate_dir::CoordinateDir;
 use super::super::util::grid::{GridOutOfBoundsError, JkGrid};
+use crate::common::util::clock::Clock;
 use crate::common::util::image::RawImage;
+use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector, JkVector};
 use anyhow::{bail, Result};
 use itertools::iproduct;
 
@@ -248,7 +248,7 @@ impl ElementGrid {
         .collect();
         iter.shuffle(&mut rng);
         for (j, k) in iter {
-            let pos = JkVector { j, k };
+            let pos = InChunkJkVector { j, k };
 
             // We have to take the element out of our grid to call it with a reference to self
             // Otherwise we would have a reference to it, and process would have a reference to it through target_chunk

@@ -21,17 +21,11 @@
 use hashbrown::HashMap;
 use thiserror::Error;
 
-use crate::common::util::vectors::{JkVector, ChunkIjkVector, ChunkJkVector, InChunkJkVector};
 use crate::common::util::clock::Clock;
-use crate::physics::{
-    fallingsand::{
-        data::element_grid::ElementGrid,
-        elements::element::Element,
-        mesh::coordinate_dir::CoordinateDir,
-        util::{
-            functions::modulo,
-        },
-    },
+use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector, JkVector};
+use crate::physics::fallingsand::{
+    data::element_grid::ElementGrid, elements::element::Element,
+    mesh::coordinate_dir::CoordinateDir, util::functions::modulo,
 };
 
 use conv::ValueFrom;
@@ -590,7 +584,7 @@ mod tests {
 
     mod get_below_idx_from_center {
         use super::*;
-        use crate::{common::util::vectors::IjkVector, physics::orbits::components::Length};
+        use crate::{common::util::uom::Length, common::util::vectors::IjkVector};
 
         /// The default element grid directory for testing
         fn element_grid_dir() -> ElementGridDir {
@@ -607,30 +601,36 @@ mod tests {
 
         fn _test_get_below_idx_from_center(pos1: IjkVector, pos2: IjkVector) {
             let mut element_dir = element_grid_dir();
-            let chunk_pos1 = element_dir.coordinate_dir().cell_idx_to_chunk_idx(pos1);
-            let chunk_pos2 = element_dir.coordinate_dir().cell_idx_to_chunk_idx(pos2);
+            let chunk_pos1 = element_dir.coordinate_dir().cell_idx_to_full_idx(pos1);
+            let chunk_pos2 = element_dir.coordinate_dir().cell_idx_to_full_idx(pos2);
             let mut package = element_dir
-                .package_coordinate_neighbors(chunk_pos1.0)
+                .package_coordinate_neighbors(chunk_pos1.chunk_idx)
                 .unwrap();
-            let chunk = element_dir.chunk_at_chunk_ijk(chunk_pos1.0);
+            let chunk = element_dir.chunk_at_chunk_ijk(chunk_pos1.chunk_idx);
             let should_eq_pos2 = package
-                .idx_below_idx_from_center(chunk, element_dir.coordinate_dir(), &chunk_pos1.1, 1)
+                .idx_below_idx_from_center(chunk, element_dir.coordinate_dir(), &chunk_pos1.pos, 1)
                 .unwrap();
-            assert_eq!(chunk_pos2.1, should_eq_pos2.0, "The position is incorrect");
+            assert_eq!(
+                chunk_pos2.pos, should_eq_pos2.0,
+                "The position is incorrect"
+            );
 
             // Check that the get_chunk method also works
             let should_eq_chunk2 = match package.chunk(should_eq_pos2.1) {
                 Ok(chunk) => chunk.coords().chunk_idx(),
-                Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+                Err(GetChunkErr::CenterChunk) => chunk_pos2.chunk_idx,
             };
             // Test the mut version too
             let should_eq_chunk2_mut = match package.chunk_mut(should_eq_pos2.1) {
                 Ok(chunk) => chunk.coords().chunk_idx(),
-                Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+                Err(GetChunkErr::CenterChunk) => chunk_pos2.chunk_idx,
             };
-            assert_eq!(chunk_pos2.0, should_eq_chunk2, "get_chunk is not working");
             assert_eq!(
-                chunk_pos2.0, should_eq_chunk2_mut,
+                chunk_pos2.chunk_idx, should_eq_chunk2,
+                "get_chunk is not working"
+            );
+            assert_eq!(
+                chunk_pos2.chunk_idx, should_eq_chunk2_mut,
                 "get_chunk_mut is not working"
             );
         }
@@ -686,7 +686,7 @@ mod tests {
 
     mod get_left_right_idx_from_center {
         use super::*;
-        use crate::{common::util::vectors::IjkVector, physics::orbits::components::Length};
+        use crate::{common::util::uom::Length, common::util::vectors::IjkVector};
 
         /// The default element grid directory for testing
         fn element_grid_dir() -> ElementGridDir {
@@ -704,30 +704,36 @@ mod tests {
 
         fn _test_get_left_right_idx_from_center(pos1: IjkVector, n: isize, pos2: IjkVector) {
             let mut element_dir = element_grid_dir();
-            let chunk_pos1 = element_dir.coordinate_dir().cell_idx_to_chunk_idx(pos1);
-            let chunk_pos2 = element_dir.coordinate_dir().cell_idx_to_chunk_idx(pos2);
+            let chunk_pos1 = element_dir.coordinate_dir().cell_idx_to_full_idx(pos1);
+            let chunk_pos2 = element_dir.coordinate_dir().cell_idx_to_full_idx(pos2);
             let mut package = element_dir
-                .package_coordinate_neighbors(chunk_pos1.0)
+                .package_coordinate_neighbors(chunk_pos1.chunk_idx)
                 .unwrap();
-            let chunk = element_dir.chunk_at_chunk_ijk(chunk_pos1.0);
+            let chunk = element_dir.chunk_at_chunk_ijk(chunk_pos1.chunk_idx);
             let should_eq_pos2 = package
-                .idx_left_right_idx_from_center(chunk, &chunk_pos1.1, n)
+                .idx_left_right_idx_from_center(chunk, &chunk_pos1.pos, n)
                 .unwrap();
-            assert_eq!(chunk_pos2.1, should_eq_pos2.0, "The position is incorrect");
+            assert_eq!(
+                chunk_pos2.pos, should_eq_pos2.0,
+                "The position is incorrect"
+            );
 
             // Check that the get_chunk method also works
             let should_eq_chunk2 = match package.chunk(should_eq_pos2.1) {
                 Ok(chunk) => chunk.coords().chunk_idx(),
-                Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+                Err(GetChunkErr::CenterChunk) => chunk_pos2.chunk_idx,
             };
             // Test the mut version too
             let should_eq_chunk2_mut = match package.chunk_mut(should_eq_pos2.1) {
                 Ok(chunk) => chunk.coords().chunk_idx(),
-                Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+                Err(GetChunkErr::CenterChunk) => chunk_pos2.chunk_idx,
             };
-            assert_eq!(chunk_pos2.0, should_eq_chunk2, "get_chunk is not working");
             assert_eq!(
-                chunk_pos2.0, should_eq_chunk2_mut,
+                chunk_pos2.chunk_idx, should_eq_chunk2,
+                "get_chunk is not working"
+            );
+            assert_eq!(
+                chunk_pos2.chunk_idx, should_eq_chunk2_mut,
                 "get_chunk_mut is not working"
             );
         }

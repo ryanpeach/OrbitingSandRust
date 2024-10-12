@@ -1,22 +1,21 @@
 use bevy::math::Vec2;
 use iai_callgrind::{library_benchmark, library_benchmark_group};
-use orbiting_sand::physics::{
-    fallingsand::{
-        mesh::coordinate_dir::{Builder, CoordinateDir},
-        util::vectors::JkVector,
+use orbiting_sand::{
+    common::util::{
+        uom::Length,
+        vectors::{ChunkJkVector, ModelCoord},
     },
-    orbits::components::Length,
-    util::vectors::RelXyPoint,
+    physics::fallingsand::mesh::coordinate_dir::{Builder, CoordinateDir},
 };
 
 /// Iterate around the circle in every direction, targetting each cells midpoint, and return all
-fn get_rel_pos_to_cell_idx_input_coords(coordinate_dir: &CoordinateDir) -> Vec<RelXyPoint> {
+fn get_rel_pos_to_cell_idx_input_coords(coordinate_dir: &CoordinateDir) -> Vec<ModelCoord> {
     let mut out = Vec::new();
 
     // Iterate around the core
     for k in 0..coordinate_dir
         .core_chunks()
-        .get(JkVector::ZERO)
+        .get(ChunkJkVector::default())
         .num_radial_lines()
     {
         // This radius and theta should define the midpoint of each cell
@@ -24,10 +23,10 @@ fn get_rel_pos_to_cell_idx_input_coords(coordinate_dir: &CoordinateDir) -> Vec<R
         let theta = 2.0 * std::f32::consts::PI
             / coordinate_dir
                 .core_chunks()
-                .get(JkVector::ZERO)
+                .get(ChunkJkVector::default())
                 .num_radial_lines() as f32
             * (k as f32 + 0.5);
-        let xycoord = RelXyPoint(Vec2 {
+        let xycoord = ModelCoord(Vec2 {
             x: radius * theta.cos(),
             y: radius * theta.sin(),
         });
@@ -46,7 +45,7 @@ fn get_rel_pos_to_cell_idx_input_coords(coordinate_dir: &CoordinateDir) -> Vec<R
                         / num_concentric_circles as f32
                         * (j as f32 + 0.5);
                 let theta = 2.0 * std::f32::consts::PI / num_radial_lines as f32 * (k as f32 + 0.5);
-                let xycoord = RelXyPoint(Vec2 {
+                let xycoord = ModelCoord(Vec2 {
                     x: radius * theta.cos(),
                     y: radius * theta.sin(),
                 });

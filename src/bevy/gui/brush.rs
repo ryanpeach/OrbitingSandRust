@@ -24,7 +24,7 @@ use bevy::input::ButtonInput;
 use bevy::log::debug;
 use bevy::log::error;
 use bevy::math::{Vec2, Vec3};
-use bevy::prelude::Window;
+use bevy::prelude::{Window, Without};
 
 use bevy::time::Time;
 use bevy::{
@@ -86,7 +86,7 @@ impl BrushPlugin {
     /// Move the brush with the mouse
     pub fn move_brush_system(
         windows: Query<&mut Window>,
-        camera: Query<(&Parent, &mut Transform, &mut Camera2d, &MainCamera)>,
+        // camera: Query<(&Parent, &mut Transform, &mut Camera2d, &MainCamera)>,
         mut cursor_moved_events: EventReader<CursorMoved>,
         mut query: Query<&mut Transform, With<BrushComponent>>,
     ) {
@@ -135,7 +135,10 @@ impl BrushPlugin {
     pub fn apply_brush_system(
         mouse: Res<ButtonInput<MouseButton>>,
         mut brush: Query<(&Parent, &mut Transform, &Radius), With<BrushComponent>>,
-        mut camera: Query<(&Parent, &mut Transform, &mut Camera2d, &MainCamera)>,
+        mut camera: Query<
+            (&Parent, &mut Transform, &mut Camera2d, &MainCamera),
+            Without<BrushComponent>,
+        >,
         mut celestial: Query<&mut Data>,
         element_picker: Res<ElementSelection>,
         current_time: Res<Time>,

@@ -1,7 +1,7 @@
 //! Indexes in [`ChunkIjkVector`]s for all the neighbors of a chunk
 
-use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector};
 use crate::common::util::clock::Clock;
+use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector};
 /// The main type exported by this module
 /// Contains all the  [`ChunkIjkVector`] indexes for the convolution
 /// Check out the  [`super::neighbor_identifiers::ConvolutionIdentifier`] and

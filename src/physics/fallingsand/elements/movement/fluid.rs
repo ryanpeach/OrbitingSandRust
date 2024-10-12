@@ -1,15 +1,15 @@
 use rand::Rng;
 
-use crate::physics::{
-    fallingsand::{
-        convolution::behaviors::ElementGridConvolutionNeighbors,
-        data::element_grid::ElementGrid,
-        elements::element::{Element, ElementTakeOptions, StateOfMatter},
-        mesh::coordinate_dir::CoordinateDir,
-    },
-};
-use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, IjkVector, InChunkJkVector as JkVector};
 use crate::common::util::clock::Clock;
+use crate::common::util::vectors::{
+    ChunkIjkVector, ChunkJkVector, IjkVector, InChunkJkVector as JkVector,
+};
+use crate::physics::fallingsand::{
+    convolution::behaviors::ElementGridConvolutionNeighbors,
+    data::element_grid::ElementGrid,
+    elements::element::{Element, ElementTakeOptions, StateOfMatter},
+    mesh::coordinate_dir::CoordinateDir,
+};
 
 /// Default fluid behavior
 pub fn fluid_process(

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [profile.dev]
-opt-level = 0
+opt-level = 1
 debug = true
 
 [profile.release]
@@ -52,7 +52,7 @@ channel = "stable"
 components = ["clippy"]
 
 [lints.rust]
-missing_docs = "deny"
+missing_docs = "warn"
 dead_code = "allow"
 
 [lints.rustdoc]

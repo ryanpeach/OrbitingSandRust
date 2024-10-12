@@ -85,6 +85,29 @@ where
     }
 }
 
+/// The difference between this and [`InChunkJkVector`]
+/// is that this assumes you are indexing within the entire layer.
+/// This is a cell index, NOT a chunk index
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
+pub struct LayerJkVector {
+    /// See [`JkVector::j`]
+    pub j: u32,
+    /// See [`JkVector::k`]
+    pub k: u32,
+}
+
+impl JkVector for LayerJkVector {
+    fn new(j: u32, k: u32) -> Self {
+        Self { j, k }
+    }
+    fn j(&self) -> u32 {
+        self.j
+    }
+    fn k(&self) -> u32 {
+        self.k
+    }
+}
+
 /// This is for the coordinates of the **chunk itself** within a layer.
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
 pub struct ChunkJkVector {
@@ -175,7 +198,7 @@ impl FullIdx {
 /// The core is layer 0
 ///
 /// This particular class is in reference to an actual **cell** inside a [`crate::physics::fallingsand::data::element_directory::ElementGridDir`]
-/// or [`crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir`], 
+/// or [`crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir`],
 /// NOT the index of the chunk itself, that is a [`ChunkIjkVector`]
 ///
 /// You can consider this the "Absolute coordinates" of a celestial
@@ -199,14 +222,6 @@ impl IjkVector {
     #[must_use]
     pub fn to_chunk_jk_vector(self) -> ChunkJkVector {
         ChunkJkVector {
-            j: self.j,
-            k: self.k,
-        }
-    }
-    /// Convert to a [`LayerJkVector`]
-    #[must_use]
-    pub fn to_layer_jk_vector(self) -> LayerJkVector {
-        LayerJkVector {
             j: self.j,
             k: self.k,
         }

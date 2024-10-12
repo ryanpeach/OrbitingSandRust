@@ -3,11 +3,13 @@
 
 use std::f64::consts::PI;
 
-use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, IjkVector, InChunkJkVector};
-use crate::common::util::clock::Clock;
+use crate::bevy::entities::components::Radius;
+use crate::common::util::uom::Length;
 use crate::common::util::vectors::ModelCoord;
+use crate::common::util::vectors::{
+    ChunkIjkVector, ChunkJkVector, FullIdx, IjkVector, InChunkJkVector, JkVector,
+};
 use crate::physics::fallingsand::util::grid::JkGrid;
-use crate::physics::orbits::components::Length;
 use bevy::math::Rect;
 use conv::{ConvAsUtil, ValueFrom};
 
@@ -33,7 +35,7 @@ pub struct CoordinateDir {
     /// Layers on top of the core
     /// Every index in the vec represents a layer
     /// The Grid then represents the chunks in that layer
-    partial_chunks: Vec<JkGrid<ChunkCoords>>,
+    partial_chunks: Vec<JkGrid<ChunkJkVector, ChunkCoords>>,
 }
 
 /// A builder for [`CoordinateDir`]
@@ -154,7 +156,7 @@ impl Builder {
         );
 
         // These will be all the chunks
-        let mut partial_chunks: Vec<JkGrid<ChunkCoords>> = Vec::new();
+        let mut partial_chunks: Vec<JkGrid<ChunkJkVector, ChunkCoords>> = Vec::new();
 
         // Create the core
         let mut layer_num_radial_lines = self.first_num_radial_lines;
@@ -348,7 +350,7 @@ impl CoordinateDir {
     #[must_use]
     pub fn layer_start_concentric_circle_absolute(&self, layer_num: u32) -> u32 {
         self.partial_chunks[(layer_num) as usize]
-            .get(JkVector::ZERO)
+            .get(ChunkJkVector::default())
             .start_concentric_circle_absolute()
     }
 
@@ -356,7 +358,7 @@ impl CoordinateDir {
     #[must_use]
     pub fn layer_chunk_num_concentric_circles(&self, layer_num: u32) -> u32 {
         self.partial_chunks[(layer_num) as usize]
-            .get(JkVector::ZERO)
+            .get(ChunkJkVector::default())
             .num_concentric_circles()
     }
 
@@ -364,7 +366,7 @@ impl CoordinateDir {
     #[must_use]
     pub fn layer_chunk_num_radial_lines(&self, layer_num: u32) -> u32 {
         self.partial_chunks[(layer_num) as usize]
-            .get(JkVector::ZERO)
+            .get(ChunkJkVector::default())
             .num_radial_lines()
     }
 }
@@ -435,7 +437,9 @@ impl CoordinateDir {
     /// Cell radius is constant for all chunks
     #[must_use]
     pub fn cell_width(&self) -> Length {
-        self.core_chunks().get(JkVector::ZERO).cell_width()
+        self.core_chunks()
+            .get(ChunkJkVector::default())
+            .cell_width()
     }
     /// The number of layers in the circle
     #[must_use]
@@ -445,12 +449,12 @@ impl CoordinateDir {
     }
     /// Get the core chunk coordinates, useful for getting its shape
     #[must_use]
-    pub fn core_chunks(&self) -> &JkGrid<ChunkCoords> {
+    pub fn core_chunks(&self) -> &JkGrid<ChunkJkVector, ChunkCoords> {
         &self.partial_chunks[0]
     }
     /// Useful for getting all the partial chunks, useful for getting their shapes
     #[must_use]
-    pub fn partial_chunks(&self, _layer_num: u32) -> &Vec<JkGrid<ChunkCoords>> {
+    pub fn partial_chunks(&self, _layer_num: u32) -> &Vec<JkGrid<ChunkJkVector, ChunkCoords>> {
         &self.partial_chunks
     }
     /// The number of concentric circles in a given layer
@@ -460,7 +464,7 @@ impl CoordinateDir {
         let mut total_height = 0;
         for j in 0..self.partial_chunks[(layer_num) as usize].height() {
             total_height += self.partial_chunks[(layer_num) as usize]
-                .get(JkVector { j, k: 0 })
+                .get(ChunkJkVector { j, k: 0 })
                 .num_concentric_circles();
         }
         total_height
@@ -472,7 +476,7 @@ impl CoordinateDir {
         let mut total_width = 0;
         for k in 0..self.partial_chunks[(layer_num) as usize].width() {
             total_width += self.partial_chunks[(layer_num) as usize]
-                .get(JkVector { j: 0, k })
+                .get(ChunkJkVector { j: 0, k })
                 .num_radial_lines();
         }
         total_width
@@ -491,7 +495,7 @@ impl CoordinateDir {
     #[must_use]
     pub fn layer_start_radius(&self, layer_num: u32) -> f32 {
         self.partial_chunks[(layer_num) as usize]
-            .get(JkVector { j: 0, k: 0 })
+            .get(ChunkJkVector { j: 0, k: 0 })
             .start_radius()
     }
 
@@ -499,7 +503,7 @@ impl CoordinateDir {
     #[must_use]
     pub fn layer_end_radius(&self, layer_num: u32) -> f32 {
         self.partial_chunks[(layer_num) as usize]
-            .get(JkVector {
+            .get(ChunkJkVector {
                 j: self.partial_chunks[(layer_num) as usize].height() - 1,
                 k: 0,
             })
@@ -508,8 +512,8 @@ impl CoordinateDir {
 
     /// Gets the radius of the entire coordinate directory
     #[must_use]
-    pub fn radius(&self) -> f32 {
-        self.layer_end_radius(self.num_layers() - 1)
+    pub fn radius(&self) -> Radius {
+        Radius(self.layer_end_radius(self.num_layers() - 1))
     }
 }
 
@@ -577,7 +581,7 @@ impl CoordinateDir {
     }
 
     #[must_use]
-    pub fn cell_idx_to_chunk_idx(&self, cell_idx: IjkVector) -> (ChunkIjkVector, JkVector) {
+    pub fn cell_idx_to_full_idx(&self, cell_idx: IjkVector) -> FullIdx {
         let chunk_layer_num_concentric_circles =
             self.layer_chunk_num_concentric_circles(cell_idx.i);
         let chunk_layer_num_radial_lines = self.layer_chunk_num_radial_lines(cell_idx.i);
@@ -595,17 +599,17 @@ impl CoordinateDir {
             ck,
             self.layer_num_tangential_chunkss(cell_idx.i)
         );
-        (
-            ChunkIjkVector {
+        FullIdx {
+            chunk_idx: ChunkIjkVector {
                 i: cell_idx.i,
                 j: cj,
                 k: ck,
             },
-            JkVector {
+            pos: InChunkJkVector {
                 j: cell_idx.j % chunk_layer_num_concentric_circles,
                 k: cell_idx.k % chunk_layer_num_radial_lines,
             },
-        )
+        }
     }
 }
 
@@ -815,10 +819,10 @@ mod tests {
                 let i = 0;
                 let j = 0;
                 let core_chunks = coordinate_dir.core_chunks();
-                let num_radial_lines =
-                    core_chunks.width() * core_chunks.get(JkVector::ZERO).num_radial_lines();
+                let num_radial_lines = core_chunks.width()
+                    * core_chunks.get(ChunkJkVector::default()).num_radial_lines();
                 for k in 0..num_radial_lines {
-                    let chunk_k = k / core_chunks.get(JkVector::ZERO).num_radial_lines();
+                    let chunk_k = k / core_chunks.get(ChunkJkVector::default()).num_radial_lines();
                     // This radius and theta should define the midpoint of each cell
                     let radius = f64::from(coordinate_dir.cell_width().0) / 2.0;
                     let theta = -2.0 * PI / f64::from(num_radial_lines) * (f64::from(k) + 0.5);
@@ -834,7 +838,7 @@ mod tests {
                     );
 
                     // now test that the chunks own rel_pos_to_cell_idx returns the same thing
-                    let chunk = coordinate_dir.cell_idx_to_chunk_idx(cell_idx).0;
+                    let chunk = coordinate_dir.cell_idx_to_full_idx(cell_idx).chunk_idx;
                     assert_eq!(
                         chunk,
                         ChunkIjkVector {
@@ -845,7 +849,7 @@ mod tests {
                     );
                     let chunk_cell_idx = coordinate_dir
                         .core_chunks()
-                        .get(JkVector { j: 0, k: chunk_k })
+                        .get(ChunkJkVector { j: 0, k: chunk_k })
                         .rel_pos_to_cell_idx(xycoord)
                         .unwrap();
                     assert_eq!(chunk_cell_idx, cell_idx);
@@ -873,7 +877,7 @@ mod tests {
                             assert_eq!(cell_idx, IjkVector { i, j, k });
 
                             // now test that the chunks own rel_pos_to_cell_idx returns the same thing
-                            let chunk = coordinate_dir.cell_idx_to_chunk_idx(cell_idx).0;
+                            let chunk = coordinate_dir.cell_idx_to_full_idx(cell_idx).chunk_idx;
                             let chunk_cell_idx = coordinate_dir
                                 .chunk_at_idx(chunk)
                                 .rel_pos_to_cell_idx(xycoord)
@@ -899,25 +903,25 @@ mod tests {
                 let i = 0;
                 let j = 0;
                 let core_chunks = coordinate_dir.core_chunks();
-                let num_radial_lines =
-                    core_chunks.width() * core_chunks.get(JkVector::ZERO).num_radial_lines();
+                let num_radial_lines = core_chunks.width()
+                    * core_chunks.get(ChunkJkVector::default()).num_radial_lines();
                 for k in 0..num_radial_lines {
                     // This radius and theta should define the midpoint of each cell
                     let coord = IjkVector { i, j, k };
-                    let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
+                    let chunk_idx = coordinate_dir.cell_idx_to_full_idx(coord);
                     assert_eq!(
-                        chunk_idx.0,
+                        chunk_idx.chunk_idx,
                         ChunkIjkVector {
                             i: 0,
                             j: 0,
-                            k: k / core_chunks.get(JkVector::ZERO).num_radial_lines()
+                            k: k / core_chunks.get(ChunkJkVector::default()).num_radial_lines()
                         }
                     );
                     assert_eq!(
-                        chunk_idx.1,
-                        JkVector {
+                        chunk_idx.pos,
+                        InChunkJkVector {
                             j: 0,
-                            k: k % core_chunks.get(JkVector::ZERO).num_radial_lines()
+                            k: k % core_chunks.get(ChunkJkVector::default()).num_radial_lines()
                         }
                     );
                 }
@@ -941,11 +945,14 @@ mod tests {
                                     total_radial_lines..total_radial_lines + chunk_num_radial_lines
                                 {
                                     let coord = IjkVector { i, j, k };
-                                    let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
-                                    assert_eq!(chunk_idx.0, ChunkIjkVector { i, j: cj, k: ck });
+                                    let chunk_idx = coordinate_dir.cell_idx_to_full_idx(coord);
                                     assert_eq!(
-                                        chunk_idx.1,
-                                        JkVector {
+                                        chunk_idx.chunk_idx,
+                                        ChunkIjkVector { i, j: cj, k: ck }
+                                    );
+                                    assert_eq!(
+                                        chunk_idx.pos,
+                                        InChunkJkVector {
                                             j: j - total_concentric_circles,
                                             k: k - total_radial_lines
                                         }
@@ -975,19 +982,28 @@ mod tests {
         // Layer 0
         // Test that the first chunk is 1x6
         assert_eq!(
-            coordinate_dir.chunk_num_radial_lines(ChunkIjkVector::ZERO),
+            coordinate_dir.chunk_num_radial_lines(ChunkIjkVector::default()),
             2
         );
         assert_eq!(
-            coordinate_dir.chunk_num_concentric_circles(ChunkIjkVector::ZERO),
+            coordinate_dir.chunk_num_concentric_circles(ChunkIjkVector::default()),
             1
         );
         // The start_radius x end_radius x start_theta x end_theta should be 0 x 1 x 0 x 2pi
-        assert_eq!(coordinate_dir.chunk_start_radius(ChunkIjkVector::ZERO), 0.0);
-        assert_eq!(coordinate_dir.chunk_end_radius(ChunkIjkVector::ZERO), 1.0);
-        assert_eq!(coordinate_dir.chunk_start_theta(ChunkIjkVector::ZERO), 0.0);
+        assert_eq!(
+            coordinate_dir.chunk_start_radius(ChunkIjkVector::default()),
+            0.0
+        );
+        assert_eq!(
+            coordinate_dir.chunk_end_radius(ChunkIjkVector::default()),
+            1.0
+        );
+        assert_eq!(
+            coordinate_dir.chunk_start_theta(ChunkIjkVector::default()),
+            0.0
+        );
         assert_approx_eq!(
-            coordinate_dir.chunk_end_theta(ChunkIjkVector::ZERO),
+            coordinate_dir.chunk_end_theta(ChunkIjkVector::default()),
             2.0 * PI / 3.0
         );
 

@@ -3,14 +3,13 @@
 use bevy::color::palettes::css::BLUE;
 use bevy::color::Color;
 
-use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
-use crate::common::util::clock::Clock;
 use super::element::{Density, Element, ElementTakeOptions, ElementType, StateOfMatter};
 use super::movement::fluid::fluid_process;
+use crate::common::util::clock::Clock;
+use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
-
 
 /// Literally nothing
 #[derive(Default, Copy, Clone, Debug)]

@@ -3,17 +3,15 @@
 //! This is the trait that all elements must implement
 //! It also contains info about states of matter and other useful enums and components
 
+use crate::common::util::uom::{Length, Mass};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::convolution::neighbor_identifiers::ConvolutionIdx;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
-use crate::physics::orbits::components::{Length, Mass};
 use bevy::color::Color;
 use ndarray::Array2;
 use strum_macros::EnumIter;
 
-use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
-use crate::common::util::clock::Clock;
 use super::fliers::down::DownFlier;
 use super::fliers::left::LeftFlier;
 use super::fliers::right::RightFlier;
@@ -23,6 +21,8 @@ use super::solarplasma::SolarPlasma;
 use super::stone::Stone;
 use super::vacuum::Vacuum;
 use super::water::Water;
+use crate::common::util::clock::Clock;
+use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
 use derive_more::{Add, Sub};
 
 /// The density of the element relative to the cell width

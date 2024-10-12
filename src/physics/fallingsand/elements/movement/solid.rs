@@ -1,17 +1,17 @@
 use rand::Rng;
 
-use crate::physics::{
-    fallingsand::{
-        convolution::{
-            behaviors::ElementGridConvolutionNeighbors, neighbor_identifiers::ConvolutionIdentifier,
-        },
-        data::element_grid::ElementGrid,
-        elements::element::{Element, ElementTakeOptions, StateOfMatter},
-        mesh::coordinate_dir::CoordinateDir,
-    },
-};
 use crate::common::util::clock::Clock;
-use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, IjkVector, InChunkJkVector as JkVector};
+use crate::common::util::vectors::{
+    ChunkIjkVector, ChunkJkVector, IjkVector, InChunkJkVector as JkVector,
+};
+use crate::physics::fallingsand::{
+    convolution::{
+        behaviors::ElementGridConvolutionNeighbors, neighbor_identifiers::ConvolutionIdentifier,
+    },
+    data::element_grid::ElementGrid,
+    elements::element::{Element, ElementTakeOptions, StateOfMatter},
+    mesh::coordinate_dir::CoordinateDir,
+};
 
 /// Default solid element behavior
 pub fn solid_process(
