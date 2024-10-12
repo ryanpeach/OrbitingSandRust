@@ -60,7 +60,7 @@ pub struct Grid;
 
 /// A component that represents a chunk by its index in the directory
 #[derive(Component, Debug, Clone, Copy)]
-pub struct ChunkIjk(ChunkIjkVector);
+pub struct ChunkIjkComponent(ChunkIjkVector);
 
 /// Put this alongside the mesh that represents the falling sand itself
 #[derive(Component, Debug, Clone, Copy)]
@@ -206,7 +206,7 @@ impl Builder {
             for j in 0..coordinate_dir.layer_num_concentric_chunks(i) {
                 for k in 0..coordinate_dir.layer_num_tangential_chunkss(i) {
                     let chunk_ijk = ChunkIjkVector::new(i, j, k);
-                    let celestial_chunk_id = ChunkIjk(chunk_ijk);
+                    let celestial_chunk_id = ChunkIjkComponent(chunk_ijk);
                     let mesh = coordinate_dir
                         .chunk_at_idx(chunk_ijk)
                         .chunk_meshdata(VertexSettings::default());
@@ -308,8 +308,8 @@ impl Builder {
                 .spawn((
                     // Physics
                     Name::new(self.name.clone()),
-                    self.celestial_data.element_dir().coordinate_dir().radius(),
-                    self.celestial_data.element_dir().total_mass(),
+                    Radius(self.celestial_data.element_dir().coordinate_dir().radius()),
+                    Mass(self.celestial_data.element_dir().total_mass()),
                     self.velocity,
                     self.celestial_data,
                     self.celestial_idx,
@@ -384,7 +384,7 @@ impl DataPlugin {
     pub fn process_system(
         mut commands: Commands,
         mut celestial_query: Query<(Entity, &mut Data, &mut Mass)>,
-        falling_sand_materials: Query<(Entity, &Parent, &ChunkIjk)>,
+        falling_sand_materials: Query<(Entity, &Parent, &ChunkIjkComponent)>,
         asset_server: Res<AssetServer>,
         time: Res<Time>,
         frame: Res<FrameCount>,

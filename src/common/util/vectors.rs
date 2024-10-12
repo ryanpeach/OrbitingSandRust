@@ -43,6 +43,22 @@ impl From<NdArrayCoords> for [u32; 2] {
     }
 }
 
+/// My personal coordinate type for the circular grids
+/// basically radius-theta coordinates, with integer radius and theta
+/// "counter clockwise" is positive just like in the unit circle
+///
+/// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
+///
+/// j is the "concentric circle" or "radial" axis, kinda like y,
+///   towards the core is 0
+/// k is the "tangential" axis, kinda like x,
+///   positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
+///
+/// Can also be used to describe a grid, like a chunk taken from the circle
+/// In this case j is the height and k is the width
+/// Bottom right is (0, 0)
+/// If you need to also know the layer number, use  [`IjkVector`]
+/// If you need a relative vector, use  [`RelJkVector`]
 /// Gives all the different kinds of jk vectors some common functions
 pub trait JkVector
 where
@@ -69,45 +85,7 @@ where
     }
 }
 
-/// My personal coordinate type for the circular grids
-/// basically radius-theta coordinates, with integer radius and theta
-/// "counter clockwise" is positive just like in the unit circle
-///
-/// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
-///
-/// j is the "concentric circle" or "radial" axis, kinda like y,
-///   towards the core is 0
-/// k is the "tangential" axis, kinda like x,
-///   positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
-///
-/// Can also be used to describe a grid, like a chunk taken from the circle
-/// In this case j is the height and k is the width
-/// Bottom right is (0, 0)
-/// If you need to also know the layer number, use  [`IjkVector`]
-/// If you need a relative vector, use  [`RelJkVector`]
-///
-/// This vector applies for the coordinates of a chunk inside a layer.
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
-pub struct LayerJkVector {
-    /// See [`JkVector::j`]
-    pub j: u32,
-    /// See [`JkVector::k`]
-    pub k: u32,
-}
-
-impl JkVector for LayerJkVector {
-    fn new(j: u32, k: u32) -> Self {
-        Self { j, k }
-    }
-    fn j(&self) -> u32 {
-        self.j
-    }
-    fn k(&self) -> u32 {
-        self.k
-    }
-}
-
-/// See [`LayerJkVector`] but this is for the coordinates of the **chunk itself** inside a layer.
+/// This is for the coordinates of the **chunk itself** within a layer.
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
 pub struct ChunkJkVector {
     /// See [`JkVector::j`]
@@ -139,7 +117,7 @@ impl JkVector for ChunkJkVector {
     }
 }
 
-/// See [`ChunkJkVector`] but this is for **within** a chunk.
+/// See [`ChunkJkVector`] but this is for coordinates of a **cell** within a chunk.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
 pub struct InChunkJkVector {
     /// See [`JkVector::j`]
@@ -193,8 +171,14 @@ impl FullIdx {
 }
 
 /// Same as  [`JkVector`] but with i indicating the "layer number"
+///
 /// The core is layer 0
-/// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
+///
+/// This particular class is in reference to an actual **cell** inside a [`crate::physics::fallingsand::data::element_directory::ElementGridDir`]
+/// or [`crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir`], 
+/// NOT the index of the chunk itself, that is a [`ChunkIjkVector`]
+///
+/// You can consider this the "Absolute coordinates" of a celestial
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct IjkVector {
     /// The i coordinate, as in the layer number, the core is 0
@@ -229,9 +213,9 @@ impl IjkVector {
     }
 }
 
-/// The  [`IjkVector`]of a chunk within an [`crate::physics::fallingsand::data::element_directory::ElementGridDir`]
+/// The  [`IjkVector`] of a chunk within a [`crate::physics::fallingsand::data::element_directory::ElementGridDir`]
 /// In this case Ijk relate to the index of the chunk itself, not
-/// perportional to the cells within the chunk
+/// perportional to the cells within the chunk. That would be a standard [`IjkVector`]
 /// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct ChunkIjkVector {
