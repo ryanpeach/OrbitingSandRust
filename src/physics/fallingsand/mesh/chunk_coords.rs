@@ -2,10 +2,10 @@
 #![expect(clippy::missing_docs_in_private_items)]
 use crate::physics::fallingsand::util::functions::interpolate_points;
 
+use crate::common::util::vectors::{JkVector, ChunkIjkVector, ChunkJkVector, InChunkJkVector, IjkVector};
 use crate::common::util::mesh::OwnedMeshData;
 use crate::common::util::mesh::Vertex;
 use crate::common::util::vectors::ModelCoord;
-use crate::physics::fallingsand::util::vectors::{ChunkIjkVector, IjkVector, JkVector};
 use crate::physics::orbits::components::Length;
 use anyhow::{bail, Result};
 use bevy::color::Color;
@@ -536,16 +536,16 @@ impl ChunkCoords {
     /// Converts a coordinate from anywhere on the circle, assuming it is in the chunk
     /// to a coordinate inside the grid of this chunk
     #[must_use]
-    pub fn internal_coord_from_external_coord(&self, external_coord: IjkVector) -> JkVector {
+    pub fn internal_coord_from_external_coord(&self, external_coord: IjkVector) -> InChunkJkVector {
         debug_assert!(self.contains(external_coord));
-        JkVector {
+        InChunkJkVector {
             j: external_coord.j - self.start_radial_line(),
             k: external_coord.k - self.start_concentric_circle_absolute(),
         }
     }
     /// Converts a coordinate from inside this chunk to a coordinate on the circle
     #[must_use]
-    pub fn external_coord_from_internal_coord(&self, internal_coord: JkVector) -> IjkVector {
+    pub fn external_coord_from_internal_coord(&self, internal_coord: InChunkJkVector) -> IjkVector {
         debug_assert!(internal_coord.j < self.num_radial_lines());
         debug_assert!(internal_coord.k < self.num_concentric_circles());
         IjkVector {
@@ -684,7 +684,7 @@ impl ChunkCoords {
 
     /// Convert a cell coordinate "on the circle" to a position "on the chunk"
     /// Return an Err if this is not on the chunk
-    pub fn absolute_cell_idx_to_in_chunk_cell_idx(&self, cell_idx: IjkVector) -> Result<JkVector> {
+    pub fn absolute_cell_idx_to_in_chunk_cell_idx(&self, cell_idx: IjkVector) -> Result<InChunkJkVector> {
         if cell_idx.i != self.layer_num() {
             bail!(
                 "Cell index i {:?} is not in chunk {:?}",
@@ -714,7 +714,7 @@ impl ChunkCoords {
                 end_radial_line,
             );
         }
-        Ok(JkVector {
+        Ok(InChunkJkVector {
             j: cell_idx.j - start_concentric_circle,
             k: cell_idx.k - start_radial_line,
         })
@@ -733,8 +733,6 @@ mod tests {
     use super::*;
 
     use crate::physics::fallingsand::mesh::coordinate_dir::Builder;
-    use crate::physics::fallingsand::util::vectors::{IjkVector, JkVector};
-    use crate::physics::util::vectors::RelXyPoint;
 
     /// Iterate around the circle in every direction, targetting each cells midpoint, and make sure
     /// the cell index is correct returned by `rel_pos_to_cell_idx`
@@ -754,7 +752,7 @@ mod tests {
         let j = 0;
         let core_chunks = coordinate_dir.core_chunks();
         let num_radial_lines =
-            core_chunks.width() * core_chunks.get(JkVector::ZERO).num_radial_lines();
+            core_chunks.width() * core_chunks.get(ChunkJkVector::default()).num_radial_lines();
         for k in 0..num_radial_lines {
             // This radius and theta should define the midpoint of each cell
             let radius = f64::from(coordinate_dir.cell_width().0) / 2.0;
@@ -818,13 +816,13 @@ mod tests {
         let j = 0;
         let core_chunks = coordinate_dir.core_chunks();
         let num_radial_lines =
-            core_chunks.width() * core_chunks.get(JkVector::ZERO).num_radial_lines();
+            core_chunks.width() * core_chunks.get(ChunkJkVector::default()).num_radial_lines();
         for k in 0..num_radial_lines {
             // This radius and theta should define the midpoint of each cell
             let coord = IjkVector {
                 i,
                 j,
-                k: k % core_chunks.get(JkVector::ZERO).num_radial_lines(),
+                k: k % core_chunks.get(ChunkJkVector::default()).num_radial_lines(),
             };
             let chunk_idx = coordinate_dir.cell_idx_to_chunk_idx(coord);
             let chunk = coordinate_dir.chunk_at_idx(chunk_idx.0);

@@ -86,8 +86,8 @@ where
 /// If you need to also know the layer number, use  [`IjkVector`]
 /// If you need a relative vector, use  [`RelJkVector`]
 ///
-/// This vector applies for the coordinates of a layer.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
+/// This vector applies for the coordinates of a chunk inside a layer.
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
 pub struct LayerJkVector {
     /// See [`JkVector::j`]
     pub j: u32,
@@ -108,7 +108,7 @@ impl JkVector for LayerJkVector {
 }
 
 /// See [`LayerJkVector`] but this is for the coordinates of the **chunk itself** inside a layer.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
 pub struct ChunkJkVector {
     /// See [`JkVector::j`]
     pub j: u32,
@@ -229,19 +229,6 @@ impl IjkVector {
     }
 }
 
-/// A vertex in a mesh
-/// Originally from ggez
-/// TODO: move to bevy's types
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Vertex {
-    /// The position of the vertex
-    pub position: Vec2,
-    /// The texture coordinates of the vertex
-    pub uv: Vec2,
-    /// The color of the vertex
-    pub color: Color,
-}
-
 /// The  [`IjkVector`]of a chunk within an [`crate::physics::fallingsand::data::element_directory::ElementGridDir`]
 /// In this case Ijk relate to the index of the chunk itself, not
 /// perportional to the cells within the chunk
@@ -261,6 +248,11 @@ impl ChunkIjkVector {
     #[must_use]
     pub fn new(i: u32, j: u32, k: u32) -> Self {
         Self { i, j, k }
+    }
+
+    #[must_use]
+    pub fn to_jk_vector(&self) -> ChunkJkVector {
+        ChunkJkVector::new(self.j, self.k)
     }
 }
 

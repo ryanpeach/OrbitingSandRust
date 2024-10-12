@@ -9,21 +9,21 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
-use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::orbits::components::Mass;
-use crate::physics::util::clock::Clock;
 
+use crate::common::util::vectors::{JkVector, ChunkIjkVector, ChunkJkVector, InChunkJkVector};
+use crate::common::util::clock::Clock;
 use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
 use super::super::elements::vacuum::Vacuum;
 use super::super::mesh::coordinate_dir::CoordinateDir;
 use super::super::util::grid::{GridOutOfBoundsError, JkGrid};
-use super::super::util::image::RawImage;
+use crate::common::util::image::RawImage;
 use anyhow::{bail, Result};
 use itertools::iproduct;
 
 /// An element grid is a 2D grid of elements tied to a chunk
 pub struct ElementGrid {
-    grid: JkGrid<Box<dyn Element>>,
+    grid: JkGrid<InChunkJkVector, Box<dyn Element>>,
     coords: ChunkCoords,
 
     /// Some low resolution data about the world
@@ -108,7 +108,7 @@ impl ElementGrid {
         &self.coords
     }
     #[must_use]
-    pub fn grid(&self) -> &JkGrid<Box<dyn Element>> {
+    pub fn grid(&self) -> &JkGrid<InChunkJkVector, Box<dyn Element>> {
         &self.grid
     }
     /// Does not calculate the total mass, just gets the set value of it
@@ -175,24 +175,24 @@ impl ElementGrid {
 /// Public modifiers for the element grid
 impl ElementGrid {
     #[must_use]
-    pub fn get(&self, jk: JkVector) -> &dyn Element {
+    pub fn get(&self, jk: InChunkJkVector) -> &dyn Element {
         self.grid.get(jk).as_ref()
     }
-    pub fn checked_get(&self, jk: JkVector) -> Result<&dyn Element, GridOutOfBoundsError> {
+    pub fn checked_get(&self, jk: InChunkJkVector) -> Result<&dyn Element, GridOutOfBoundsError> {
         match self.grid.checked_get(jk) {
             Ok(e) => Ok(e.as_ref()),
             Err(e) => Err(e),
         }
     }
-    pub fn get_mut(&mut self, jk: JkVector) -> &mut dyn Element {
+    pub fn get_mut(&mut self, jk: InChunkJkVector) -> &mut dyn Element {
         self.grid.get_mut(jk).as_mut()
     }
-    pub fn set(&mut self, jk: JkVector, element: Box<dyn Element>, time: Clock) {
+    pub fn set(&mut self, jk: InChunkJkVector, element: Box<dyn Element>, time: Clock) {
         self.replace(jk, element, time);
     }
     pub fn replace(
         &mut self,
-        jk: JkVector,
+        jk: InChunkJkVector,
         element: Box<dyn Element>,
         time: Clock,
     ) -> Box<dyn Element> {
@@ -207,7 +207,7 @@ impl ElementGrid {
     pub fn fill(&mut self, element: ElementType) {
         for j in 0..self.coords().num_concentric_circles() {
             for k in 0..self.coords().num_radial_lines() {
-                let pos = JkVector { j, k };
+                let pos = InChunkJkVector { j, k };
                 self.grid.replace(pos, element.element());
             }
         }
@@ -333,7 +333,7 @@ impl ElementGrid {
                 (0..self.coords.num_radial_lines())
                     .into_par_iter()
                     .map(|k| {
-                        let pos = JkVector { j, k };
+                        let pos = InChunkJkVector { j, k };
                         let element = self.grid.get(pos);
 
                         element.mass(self.coords.cell_width())
@@ -362,7 +362,7 @@ impl ElementGrid {
         );
         for j in 0..self.coords.num_concentric_circles() {
             for k in 0..self.coords.num_radial_lines() {
-                let element = self.grid.get(JkVector { j, k });
+                let element = self.grid.get(InChunkJkVector { j, k });
                 let color = element.color().to_srgba().to_u8_array();
                 out.push(color[0]);
                 out.push(color[1]);

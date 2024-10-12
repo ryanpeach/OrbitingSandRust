@@ -7,13 +7,13 @@ use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionN
 use crate::physics::fallingsand::convolution::neighbor_identifiers::ConvolutionIdx;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
-use crate::physics::fallingsand::util::vectors::JkVector;
 use crate::physics::orbits::components::{Length, Mass};
-use crate::physics::util::clock::Clock;
 use bevy::color::Color;
 use ndarray::Array2;
 use strum_macros::EnumIter;
 
+use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
+use crate::common::util::clock::Clock;
 use super::fliers::down::DownFlier;
 use super::fliers::left::LeftFlier;
 use super::fliers::right::RightFlier;

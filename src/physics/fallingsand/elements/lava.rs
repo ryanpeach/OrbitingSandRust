@@ -8,8 +8,8 @@ use super::movement::fluid::fluid_process;
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
-use crate::physics::fallingsand::util::vectors::JkVector;
-use crate::physics::util::clock::Clock;
+use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
+use crate::common::util::clock::Clock;
 
 #[derive(Copy, Default, Clone, Debug)]
 pub struct Lava {

@@ -3,15 +3,14 @@
 use bevy::color::palettes::css::YELLOW;
 use bevy::color::Color;
 
+use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
+use crate::common::util::clock::Clock;
 use super::element::{Density, Element, ElementTakeOptions, ElementType, StateOfMatter};
 use super::movement::solid::solid_process;
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
-use crate::physics::fallingsand::util::vectors::JkVector;
-
-use crate::physics::util::clock::Clock;
 
 /// Literally nothing
 #[derive(Default, Copy, Clone, Debug)]
@@ -96,8 +95,8 @@ mod tests {
         use super::*;
         use crate::physics::fallingsand::{
             elements::element::ElementType,
-            util::vectors::{ChunkIjkVector, IjkVector, JkVector},
         };
+        use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, IjkVector, InChunkJkVector as JkVector};
 
         fn assert_movement(
             mut element_grid_dir: ElementGridDir,

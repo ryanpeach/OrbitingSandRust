@@ -6,10 +6,10 @@ use crate::physics::{
         data::element_grid::ElementGrid,
         elements::element::{Element, ElementTakeOptions, StateOfMatter},
         mesh::coordinate_dir::CoordinateDir,
-        util::vectors::JkVector,
     },
-    util::clock::Clock,
 };
+use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, IjkVector, InChunkJkVector as JkVector};
+use crate::common::util::clock::Clock;
 
 /// Default fluid behavior
 pub fn fluid_process(

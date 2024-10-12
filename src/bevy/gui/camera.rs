@@ -25,7 +25,7 @@ use bevy::{
 use bevy_eventlistener::callbacks::ListenerInput;
 use bevy_mod_picking::events::{Down, Pointer};
 
-use crate::{entities::celestials::celestial::ChunkIjk, errors::EmptyQueryResult};
+use crate::{entities::celestials::celestial::ChunkIjk, bevy::errors::EmptyQueryResult};
 
 use conv::ValueFrom;
 

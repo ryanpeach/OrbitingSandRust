@@ -2,7 +2,8 @@
 
 use bevy::{color::Color, ecs::component::Component, math::Vec2};
 
-use crate::physics::{fallingsand::util::mesh::OwnedMeshData, util::vectors::Vertex};
+use crate::common::util::mesh::Vertex;
+use crate::common::util::mesh::OwnedMeshData;
 
 /// Radius for circular entities
 #[derive(Component, Debug, Clone, Copy)]

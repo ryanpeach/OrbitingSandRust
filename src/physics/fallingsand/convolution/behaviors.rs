@@ -21,6 +21,8 @@
 use hashbrown::HashMap;
 use thiserror::Error;
 
+use crate::common::util::vectors::{JkVector, ChunkIjkVector, ChunkJkVector, InChunkJkVector};
+use crate::common::util::clock::Clock;
 use crate::physics::{
     fallingsand::{
         data::element_grid::ElementGrid,
@@ -28,10 +30,8 @@ use crate::physics::{
         mesh::coordinate_dir::CoordinateDir,
         util::{
             functions::modulo,
-            vectors::{ChunkIjkVector, JkVector},
         },
     },
-    util::clock::Clock,
 };
 
 use conv::ValueFrom;
@@ -144,13 +144,13 @@ impl ElementGridConvolutionNeighbors {
         &self,
         target_chunk: &ElementGrid,
         _coord_dir: &CoordinateDir,
-        pos: &JkVector,
+        pos: &InChunkJkVector,
         n: u32,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
         // Handle naive case where you don't change your chunk
         if pos.j >= n {
             return Ok(ConvolutionIdx(
-                JkVector::new(pos.j - n, pos.k),
+                InChunkJkVector::new(pos.j - n, pos.k),
                 ConvolutionIdentifier::Center,
             ));
         }
@@ -163,7 +163,7 @@ impl ElementGridConvolutionNeighbors {
             < 0
         {
             return Err(ConvOutOfBoundsError(ConvolutionIdx(
-                JkVector { j: pos.j, k: pos.k },
+                InChunkJkVector { j: pos.j, k: pos.k },
                 ConvolutionIdentifier::Center,
             )));
         }
@@ -171,12 +171,12 @@ impl ElementGridConvolutionNeighbors {
         match self.chunk_idxs.bottom {
             // If there is no layer below you, error out
             BottomNeighborIdxs::BottomOfGrid => Err(ConvOutOfBoundsError(ConvolutionIdx(
-                JkVector { j: pos.j, k: pos.k },
+                InChunkJkVector { j: pos.j, k: pos.k },
                 ConvolutionIdentifier::Center,
             ))),
             // TODO: Unit test
             BottomNeighborIdxs::ChunkDoubling { .. } => {
-                let mut new_coords = JkVector {
+                let mut new_coords = InChunkJkVector {
                     j: pos.j + b_concentric_circles - n,
                     k: pos.k / 2,
                 };
@@ -198,7 +198,7 @@ impl ElementGridConvolutionNeighbors {
                 ))
             }
             BottomNeighborIdxs::Normal { .. } => {
-                let mut new_coords = JkVector {
+                let mut new_coords = InChunkJkVector {
                     j: pos.j + b_concentric_circles - n,
                     k: pos.k,
                 };
@@ -226,7 +226,7 @@ impl ElementGridConvolutionNeighbors {
     pub fn idx_left_right_idx_from_center(
         &self,
         target_chunk: &ElementGrid,
-        pos: &JkVector,
+        pos: &InChunkJkVector,
         rk: isize,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
         // In the left right direction, unlike up down, every chunk has the same number of radial lines
@@ -236,7 +236,7 @@ impl ElementGridConvolutionNeighbors {
         // You should not be doing any loops that might make you re-target yourself
         if rk.abs() >= radial_lines_i {
             return Err(ConvOutOfBoundsError(ConvolutionIdx(
-                JkVector {
+                InChunkJkVector {
                     j: pos.j,
                     k: modulo(pos_k + rk, radial_lines),
                 },
@@ -248,17 +248,17 @@ impl ElementGridConvolutionNeighbors {
 
         if pos_k + rk >= radial_lines_i {
             Ok(ConvolutionIdx(
-                JkVector { j: pos.j, k: new_k },
+                InChunkJkVector { j: pos.j, k: new_k },
                 ConvolutionIdentifier::LR(LeftRightNeighborIdentifier::Left),
             ))
         } else if pos_k + rk < 0 {
             Ok(ConvolutionIdx(
-                JkVector { j: pos.j, k: new_k },
+                InChunkJkVector { j: pos.j, k: new_k },
                 ConvolutionIdentifier::LR(LeftRightNeighborIdentifier::Right),
             ))
         } else {
             Ok(ConvolutionIdx(
-                JkVector { j: pos.j, k: new_k },
+                InChunkJkVector { j: pos.j, k: new_k },
                 ConvolutionIdentifier::Center,
             ))
         }
@@ -590,7 +590,7 @@ mod tests {
 
     mod get_below_idx_from_center {
         use super::*;
-        use crate::physics::{fallingsand::util::vectors::IjkVector, orbits::components::Length};
+        use crate::{common::util::vectors::IjkVector, physics::orbits::components::Length};
 
         /// The default element grid directory for testing
         fn element_grid_dir() -> ElementGridDir {
@@ -686,7 +686,7 @@ mod tests {
 
     mod get_left_right_idx_from_center {
         use super::*;
-        use crate::physics::{fallingsand::util::vectors::IjkVector, orbits::components::Length};
+        use crate::{common::util::vectors::IjkVector, physics::orbits::components::Length};
 
         /// The default element grid directory for testing
         fn element_grid_dir() -> ElementGridDir {

@@ -26,7 +26,7 @@ where
 impl<T, V> JkGrid<T, V>
 where
     T: JkVector,
-    V: Sized + Clone + Default,
+    V: Sized,
 {
     /// Create a new grid filled with one value
     pub fn new_fill(width: u32, height: u32, value: V) -> Self
@@ -67,7 +67,7 @@ where
 impl<T, V> JkGrid<T, V>
 where
     T: JkVector,
-    V: Sized + Clone + Default,
+    V: Sized,
 {
     /// Get the width of the grid
     #[must_use]
@@ -128,7 +128,7 @@ impl JkVector for GridOutOfBoundsError {
 impl<T, V> JkGrid<T, V>
 where
     T: JkVector,
-    V: Sized + Clone + Default,
+    V: Sized,
 {
     /// Gets the value at the given coordinate
     ///
@@ -181,7 +181,7 @@ where
 impl<T, V> JkGrid<T, V>
 where
     T: JkVector,
-    V: Sized + Clone + Default,
+    V: Sized,
 {
     /// Get an iterator over the grid
     pub fn iter(&self) -> std::slice::Iter<V> {
@@ -232,10 +232,10 @@ where
         for j in 0..j_size {
             for k in 0..k_size {
                 // Doesn't actually matter what impl JkVector type you use for this
-                if *item.get(ChunkJkVector { j, k }) {
+                if *item.get(T::new(j, k)) {
                     layer.set(
-                        ChunkJkVector { j, k },
-                        grid[i].get(ChunkJkVector { j, k }).clone(),
+                        T::new(j, k),
+                        grid[i].get(T::new(j, k)).clone(),
                     );
                 }
             }
@@ -253,11 +253,13 @@ mod tests {
         clippy::unwrap_used,
         clippy::panic
     )]
+    use crate::common::util::vectors::ChunkJkVector;
+
     use super::*;
 
     #[test]
     fn test_iter() {
-        let grid = JkGrid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]).unwrap();
+        let grid = JkGrid::<ChunkJkVector, usize>::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]).unwrap();
         let mut iter = grid.iter();
 
         assert_eq!(*iter.next().unwrap(), 1);
@@ -271,7 +273,7 @@ mod tests {
 
     #[test]
     fn test_iter_mut() {
-        let mut grid = JkGrid::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]).unwrap();
+        let mut grid = JkGrid::<ChunkJkVector, usize>::new_from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]).unwrap();
 
         for val in &mut grid {
             *val *= 2;

@@ -17,12 +17,17 @@ pub struct MeshBoundingBox(pub Rect);
 
 /// A vertex in a mesh
 /// Originally from ggez
+/// TODO: move to bevy's types
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Vertex {
+    /// The position of the vertex
     pub position: Vec2,
+    /// The texture coordinates of the vertex
     pub uv: Vec2,
+    /// The color of the vertex
     pub color: Color,
 }
+
 
 /// Represents a mesh that is owned by this object
 /// For some reason a `MeshData` in ggez object has a lifetime and is a set of borrows.

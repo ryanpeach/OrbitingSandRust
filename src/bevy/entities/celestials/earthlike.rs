@@ -2,12 +2,13 @@
 
 use bevy::log::info;
 
+use crate::bevy::entities::celestials::celestial::Data;
+use crate::common::util::vectors::ChunkIjkVector;
 use crate::{
-    entities::celestials::celestial::Data,
     physics::{
         fallingsand::{
             data::element_directory::ElementGridDir, elements::element::ElementType,
-            mesh::coordinate_dir, util::vectors::ChunkIjkVector,
+            mesh::coordinate_dir, 
         },
         orbits::components::Length,
     },

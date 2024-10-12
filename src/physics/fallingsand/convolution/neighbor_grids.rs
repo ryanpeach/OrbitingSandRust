@@ -5,9 +5,10 @@ use thiserror::Error;
 use crate::physics::fallingsand::{
     data::element_grid::ElementGrid,
     elements::element::Element,
-    util::vectors::{ChunkIjkVector, JkVector},
 };
 
+use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
+use crate::common::util::clock::Clock;
 use super::{
     neighbor_identifiers::{
         BottomNeighborIdentifier, BottomNeighborIdentifierChunkDoubling,
