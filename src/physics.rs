@@ -1,4 +1,5 @@
 //! This module contains all the physics related code.
+//! Most of this code tries to be bevy-agnostic. But it's not a hard rule.
 
 use bevy::app::{PluginGroup, PluginGroupBuilder};
 

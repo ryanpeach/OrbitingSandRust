@@ -32,15 +32,15 @@ pub enum SystemBehavior {
     /// System will never run while stepping is enabled
     NeverRun,
 
-    /// When [`Action::Waiting`] this system will not be run
-    /// When [`Action::Step`] this system will be stepped
-    /// When [`Action::Continue`] system execution will stop before executing
+    /// When `Action::Waiting` this system will not be run
+    /// When `Action::Step` this system will be stepped
+    /// When `Action::Continue` system execution will stop before executing
     /// this system unless its the first system run when continuing
     Break,
 
-    /// When [`Action::Waiting`] this system will not be run
-    /// When [`Action::Step`] this system will be stepped
-    /// When [`Action::Continue`] this system will be run
+    /// When `Action::Waiting` this system will not be run
+    /// When `Action::Step` this system will be stepped
+    /// When `Action::Continue` this system will be run
     Continue,
 }
 

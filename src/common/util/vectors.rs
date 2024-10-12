@@ -64,6 +64,7 @@ pub trait JkVector
 where
     Self: Sized,
 {
+    /// Initialization
     #[must_use]
     fn new(j: u32, k: u32) -> Self;
     /// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
@@ -249,6 +250,7 @@ impl ChunkIjkVector {
         Self { i, j, k }
     }
 
+    /// Just cop off the layer
     #[must_use]
     pub fn to_jk_vector(&self) -> ChunkJkVector {
         ChunkJkVector::new(self.j, self.k)
@@ -272,6 +274,7 @@ impl From<ModelCoord> for Transform {
 }
 
 impl ModelCoord {
+    /// Initialization
     #[must_use]
     pub fn new(x: f32, y: f32) -> Self {
         Self(Vec2::new(x, y))
@@ -296,6 +299,7 @@ impl From<ViewCoord> for Transform {
 }
 
 impl ViewCoord {
+    /// Initialization
     #[must_use]
     pub fn new(x: f32, y: f32) -> Self {
         Self(Vec2::new(x, y))
@@ -320,6 +324,7 @@ impl From<WorldCoord> for Transform {
 }
 
 impl WorldCoord {
+    /// Initialization
     #[must_use]
     pub fn new(x: f32, y: f32) -> Self {
         Self(Vec2::new(x, y))

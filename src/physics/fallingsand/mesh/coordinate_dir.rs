@@ -7,7 +7,7 @@ use crate::bevy::entities::components::Radius;
 use crate::common::util::uom::Length;
 use crate::common::util::vectors::ModelCoord;
 use crate::common::util::vectors::{
-    ChunkIjkVector, ChunkJkVector, FullIdx, IjkVector, InChunkJkVector, JkVector,
+    ChunkIjkVector, ChunkJkVector, FullIdx, IjkVector, InChunkJkVector,
 };
 use crate::physics::fallingsand::util::grid::JkGrid;
 use bevy::math::Rect;

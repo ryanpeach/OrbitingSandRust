@@ -4,7 +4,7 @@
 //!
 //! ![wireframe](../../../../assets/docs/wireframe/wireframe.png)
 //!
-//! This is the wireframe layout of a Celestial ([`crate::entities::celestials`]).
+//! This is the wireframe layout of a Celestial ([`crate::bevy::entities::celestials`]).
 //! Each cell in this wireframe is a "pixel"
 //! in the simulation, represented in code as an
 //! [`crate::physics::fallingsand::elements::element::Element`] in

@@ -18,7 +18,10 @@ pub struct JkGrid<T, V>
 where
     T: JkVector,
 {
+    /// The actual array/grid/data
     data: Array2<V>,
+    /// This is a trick to give [T] a definite use in "data"
+    /// When really, [T] is just there to set our index type.
     phantom: PhantomData<T>,
 }
 

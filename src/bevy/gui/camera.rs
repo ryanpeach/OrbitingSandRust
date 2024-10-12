@@ -230,7 +230,7 @@ fn rect_add(this: &Rect, other: &Vec2) -> Rect {
 /// Celestial Focus Systems
 impl CameraPlugin {
     /// If you press "\[" or "\]", you can cycle through the celestials
-    /// TODO: #[sysfail]
+    /// TODO: sysfail
     pub fn cycle_celestial_focus(
         mut commands: Commands,
         celestials: Query<(Entity, &CelestialIdx)>,
@@ -291,7 +291,7 @@ impl CameraPlugin {
     }
 
     /// Same as the above, but for when the camera doesn't have a parent yet
-    /// TODO: #[sysfail]
+    /// TODO: sysfail
     pub fn first_celestial_focus(
         mut commands: Commands,
         celestials: Query<(Entity, &CelestialIdx)>,
@@ -339,7 +339,7 @@ impl CameraPlugin {
     ///   2. Zero the camera's translation
     ///   3. Scale the camera to the celestial's radius
     ///
-    /// TODO: #[sysfail]
+    /// TODO: sysfail
     pub fn select_celestial_focus(
         mut commands: Commands,
         chunks: Query<(&Parent, Entity), With<ChunkIjkComponent>>,

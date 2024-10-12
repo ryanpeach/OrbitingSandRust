@@ -6,7 +6,7 @@ use crate::common::util::mesh::OwnedMeshData;
 use crate::common::util::mesh::Vertex;
 use crate::common::util::uom::Length;
 use crate::common::util::vectors::ModelCoord;
-use crate::common::util::vectors::{ChunkIjkVector, IjkVector, InChunkJkVector, JkVector};
+use crate::common::util::vectors::{ChunkIjkVector, IjkVector, InChunkJkVector};
 use anyhow::{bail, Result};
 use bevy::color::Color;
 use bevy::math::{Rect, Vec2};

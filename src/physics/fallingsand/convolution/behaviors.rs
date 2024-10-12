@@ -217,6 +217,7 @@ impl ElementGridConvolutionNeighbors {
 
     /// Positive k is left, counter clockwise
     /// Negative k is right, clockwise
+    #[allow(clippy::unused_self)]
     pub fn idx_left_right_idx_from_center(
         &self,
         target_chunk: &ElementGrid,

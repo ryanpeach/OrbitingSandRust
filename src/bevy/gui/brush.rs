@@ -131,7 +131,7 @@ impl BrushPlugin {
 
     /// Based on the brush radius and the celestial cell size, return a list of
     /// points in relative xy coordinates that the brush will affect.
-    /// TODO: #[sysfail]
+    /// TODO: sysfail
     pub fn apply_brush_system(
         mouse: Res<ButtonInput<MouseButton>>,
         mut brush: Query<(&Parent, &mut Transform, &Radius), With<BrushComponent>>,

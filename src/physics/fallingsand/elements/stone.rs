@@ -85,7 +85,7 @@ mod tests {
         use std::time::Duration;
 
         use super::*;
-        use crate::common::util::vectors::{FullIdx, IjkVector, JkVector};
+        use crate::common::util::vectors::{FullIdx, IjkVector};
         use crate::physics::fallingsand::elements::element::ElementType;
 
         fn assert_movement(mut element_grid_dir: ElementGridDir, loc1: FullIdx) {

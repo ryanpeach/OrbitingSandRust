@@ -1,5 +1,4 @@
-#![expect(missing_docs)]
-
+//! Mostly math functions
 use bevy::math::Vec2;
 use conv::ValueFrom;
 

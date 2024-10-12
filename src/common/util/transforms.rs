@@ -4,7 +4,7 @@ use super::vectors::ModelCoord;
 
 /// Take a mouse coordinate and translate it into a position relative to the center of the window
 /// It's a [`ModelCoord`] because it's relative to the center of the window, not relative to the
-/// camera. You would then add this to a cameras translation to get [`ViewCoord`]
+/// camera. You would then add this to a cameras translation to get `ViewCoord`
 #[must_use]
 pub fn window_to_model_centered(
     windows: &Query<'_, '_, &mut Window>,
