@@ -17,7 +17,7 @@ use super::super::mesh::coordinate_dir::CoordinateDir;
 use super::super::util::grid::{GridOutOfBoundsError, JkGrid};
 use crate::common::util::clock::Clock;
 use crate::common::util::image::RawImage;
-use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector, JkVector};
+use crate::common::util::vectors::{InChunkJkVector, JkVector};
 use anyhow::{bail, Result};
 use itertools::iproduct;
 

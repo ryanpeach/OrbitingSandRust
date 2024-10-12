@@ -4,24 +4,14 @@
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
-use bevy::color::{Color, ColorToComponents};
+use bevy::color::Color;
 use bevy::ecs::component::Component;
 
-use bevy::math::{Rect, Vec2};
+use bevy::math::Rect;
 
-use bevy::{
-    asset::{Assets, Handle},
-    ecs::system::ResMut,
-    gizmos::gizmos::Gizmos,
-    render::{
-        mesh::{Indices, Mesh, VertexAttributeValues},
-        render_resource::PrimitiveTopology,
-    },
-    transform::components::Transform,
-};
+use bevy::{gizmos::gizmos::Gizmos, transform::components::Transform};
 
 use crate::common::util::mesh::OwnedMeshData;
-use crate::common::util::mesh::Vertex;
 
 /// Useful for frustum culling
 /// The bounding box of the mesh to determine if it is visible on the screen

@@ -6,7 +6,7 @@ use bevy::color::Color;
 use super::element::{Density, Element, ElementTakeOptions, ElementType, StateOfMatter};
 use super::movement::solid::solid_process;
 use crate::common::util::clock::Clock;
-use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
+use crate::common::util::vectors::InChunkJkVector as JkVector;
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
@@ -93,9 +93,7 @@ mod tests {
         use std::time::Duration;
 
         use super::*;
-        use crate::common::util::vectors::{
-            ChunkIjkVector, ChunkJkVector, FullIdx, IjkVector, InChunkJkVector as JkVector,
-        };
+        use crate::common::util::vectors::{FullIdx, IjkVector};
         use crate::physics::fallingsand::elements::element::ElementType;
 
         fn assert_movement(mut element_grid_dir: ElementGridDir, loc1: FullIdx, loc2: FullIdx) {

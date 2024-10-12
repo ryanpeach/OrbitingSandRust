@@ -30,7 +30,6 @@ use bevy::DefaultPlugins;
 use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_picking::low_latency_window_plugin;
-use bevy_mod_picking::DefaultPickingPlugins;
 use conv::ConvAsUtil;
 use orbiting_sand::bevy::entities::celestials::celestial;
 use orbiting_sand::bevy::entities::celestials::earthlike;

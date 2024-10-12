@@ -1,9 +1,7 @@
 use rand::Rng;
 
 use crate::common::util::clock::Clock;
-use crate::common::util::vectors::{
-    ChunkIjkVector, ChunkJkVector, IjkVector, InChunkJkVector as JkVector,
-};
+use crate::common::util::vectors::InChunkJkVector as JkVector;
 use crate::physics::fallingsand::{
     convolution::behaviors::ElementGridConvolutionNeighbors,
     data::element_grid::ElementGrid,

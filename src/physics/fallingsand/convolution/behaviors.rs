@@ -22,7 +22,7 @@ use hashbrown::HashMap;
 use thiserror::Error;
 
 use crate::common::util::clock::Clock;
-use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector, JkVector};
+use crate::common::util::vectors::{ChunkIjkVector, InChunkJkVector, JkVector};
 use crate::physics::fallingsand::{
     data::element_grid::ElementGrid, elements::element::Element,
     mesh::coordinate_dir::CoordinateDir, util::functions::modulo,
@@ -550,17 +550,11 @@ impl ElementGridConvolutionNeighbors {
         idx: ConvolutionIdx,
         element: Box<dyn Element>,
         current_time: Clock,
-    ) -> Result<Box<dyn Element>, ConvOutOfBoundsError> {
+    ) -> Box<dyn Element> {
         match idx.1 {
-            ConvolutionIdentifier::Center => {
-                let out = target_grid.replace(idx.0, element, current_time);
-                Ok(out)
-            }
+            ConvolutionIdentifier::Center => target_grid.replace(idx.0, element, current_time),
             _ => match self.chunk_mut(idx.1) {
-                Ok(chunk) => {
-                    let out = chunk.replace(idx.0, element, current_time);
-                    Ok(out)
-                }
+                Ok(chunk) => chunk.replace(idx.0, element, current_time),
                 Err(GetChunkErr::CenterChunk) => {
                     unreachable!("This should never happen because we are checking for it in the match idx.1 statement")
                 }

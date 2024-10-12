@@ -13,8 +13,7 @@ use super::{
     },
     neighbor_indexes::{BottomNeighborIdxs, LeftRightNeighborIdxs, TopNeighborIdxs},
 };
-use crate::common::util::clock::Clock;
-use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
+use crate::common::util::vectors::{ChunkIjkVector, InChunkJkVector as JkVector};
 
 /// The main type exported by this module
 /// Contains all the neighbor grids for the convolution
@@ -34,9 +33,9 @@ impl ElementGridConvolutionNeighborGrids {
     #[must_use]
     pub fn into_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
         let mut map = HashMap::new();
-        map.extend(self.top.to_hashmap());
-        map.extend(self.left_right.to_hashmap());
-        map.extend(self.bottom.to_hashmap());
+        map.extend(self.top.into_hashmap());
+        map.extend(self.left_right.into_hashmap());
+        map.extend(self.bottom.into_hashmap());
         map
     }
 }
@@ -64,7 +63,7 @@ pub enum LeftRightNeighborGrids {
 impl LeftRightNeighborGrids {
     /// Converts the `LeftRightNeighborGrids` into a hashmap
     #[must_use]
-    pub fn to_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
+    pub fn into_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
         match self {
             LeftRightNeighborGrids::LR { l, r } => {
                 let mut map = HashMap::new();
@@ -143,7 +142,7 @@ pub enum TopNeighborGrids {
 impl TopNeighborGrids {
     /// Converts the `TopNeighborGrids` into a hashmap
     #[must_use]
-    pub fn to_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
+    pub fn into_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
         match self {
             TopNeighborGrids::Normal { tl, t, tr } => {
                 let mut map = HashMap::new();
@@ -448,7 +447,7 @@ pub enum BottomNeighborGrids {
 impl BottomNeighborGrids {
     /// Converts the `BottomNeighborGrids` into a hashmap
     #[must_use]
-    pub fn to_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
+    pub fn into_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
         match self {
             BottomNeighborGrids::Normal { bl, b, br } => {
                 let mut map = HashMap::new();

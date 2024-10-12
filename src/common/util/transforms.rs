@@ -1,6 +1,6 @@
 use bevy::{math::Vec2, prelude::Query, window::Window};
 
-use super::vectors::{ModelCoord, ViewCoord};
+use super::vectors::ModelCoord;
 
 /// Take a mouse coordinate and translate it into a position relative to the center of the window
 /// It's a [`ModelCoord`] because it's relative to the center of the window, not relative to the

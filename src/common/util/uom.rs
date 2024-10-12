@@ -4,8 +4,6 @@
 use bevy::{ecs::component::Component, math::Vec2};
 use derive_more::{Add, AddAssign, Sub, SubAssign, Sum};
 
-use crate::physics::orbits::nbody::GravitationalAcceleration;
-
 /// The mass of an entity in kilograms.
 #[derive(Component, Debug, Clone, Copy, Add, Sub, AddAssign, SubAssign, Sum)]
 pub struct Mass(pub f32);

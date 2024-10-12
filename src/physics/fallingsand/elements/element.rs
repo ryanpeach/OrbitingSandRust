@@ -22,7 +22,7 @@ use super::stone::Stone;
 use super::vacuum::Vacuum;
 use super::water::Water;
 use crate::common::util::clock::Clock;
-use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
+use crate::common::util::vectors::InChunkJkVector as JkVector;
 use derive_more::{Add, Sub};
 
 /// The density of the element relative to the cell width
@@ -164,9 +164,7 @@ pub trait Element: Send + Sync {
         // Its important we set the last processed time to the current time
         // here because self wont yet have been updated by the process function
         clone._set_last_processed(current_time);
-        let prev = element_grid_conv
-            .replace(target_chunk, pos1, clone, current_time)
-            .expect("Tried to swap with an invalid position");
+        let prev = element_grid_conv.replace(target_chunk, pos1, clone, current_time);
         ElementTakeOptions::ReplaceWith(prev)
     }
 

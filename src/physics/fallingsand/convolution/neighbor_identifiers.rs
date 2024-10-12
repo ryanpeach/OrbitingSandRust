@@ -1,8 +1,7 @@
 //! Identifiers for the different locations chunks can be in the convolution
 use strum_macros::EnumIter;
 
-use crate::common::util::clock::Clock;
-use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
+use crate::common::util::vectors::InChunkJkVector as JkVector;
 
 /// The main type exported by this module
 /// An enum that identifies the location in the structure of the convolution

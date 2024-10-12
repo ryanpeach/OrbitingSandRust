@@ -6,9 +6,7 @@ use crate::common::util::mesh::OwnedMeshData;
 use crate::common::util::mesh::Vertex;
 use crate::common::util::uom::Length;
 use crate::common::util::vectors::ModelCoord;
-use crate::common::util::vectors::{
-    ChunkIjkVector, ChunkJkVector, IjkVector, InChunkJkVector, JkVector,
-};
+use crate::common::util::vectors::{ChunkIjkVector, IjkVector, InChunkJkVector, JkVector};
 use anyhow::{bail, Result};
 use bevy::color::Color;
 use bevy::math::{Rect, Vec2};
@@ -737,7 +735,9 @@ mod tests {
     )]
     use super::*;
 
-    use crate::physics::fallingsand::mesh::coordinate_dir::Builder;
+    use crate::{
+        common::util::vectors::ChunkJkVector, physics::fallingsand::mesh::coordinate_dir::Builder,
+    };
 
     /// Iterate around the circle in every direction, targetting each cells midpoint, and make sure
     /// the cell index is correct returned by `rel_pos_to_cell_idx`

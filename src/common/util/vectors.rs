@@ -2,7 +2,7 @@
 //! Mostly for the [`ChunkCoords`] [`crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir`]
 #![warn(missing_docs)]
 
-use bevy::{color::Color, math::Vec2, transform::components::Transform};
+use bevy::{math::Vec2, transform::components::Transform};
 
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use derive_more::{Add, AddAssign, Sub, SubAssign};
@@ -261,17 +261,18 @@ impl ChunkIjkVector {
 #[derive(Debug, Copy, Clone, PartialEq, Sub, Add)]
 pub struct ModelCoord(pub Vec2);
 
-impl Into<Transform> for ModelCoord {
-    fn into(self) -> Transform {
+impl From<ModelCoord> for Transform {
+    fn from(val: ModelCoord) -> Self {
         Transform::from_translation(bevy::math::Vec3 {
-            x: self.0.x,
-            y: self.0.y,
+            x: val.0.x,
+            y: val.0.y,
             z: 0.0,
         })
     }
 }
 
 impl ModelCoord {
+    #[must_use]
     pub fn new(x: f32, y: f32) -> Self {
         Self(Vec2::new(x, y))
     }
@@ -284,17 +285,18 @@ impl ModelCoord {
 #[derive(Debug, Copy, Clone, PartialEq, Sub, Add)]
 pub struct ViewCoord(pub Vec2);
 
-impl Into<Transform> for ViewCoord {
-    fn into(self) -> Transform {
+impl From<ViewCoord> for Transform {
+    fn from(val: ViewCoord) -> Self {
         Transform::from_translation(bevy::math::Vec3 {
-            x: self.0.x,
-            y: self.0.y,
+            x: val.0.x,
+            y: val.0.y,
             z: 0.0,
         })
     }
 }
 
 impl ViewCoord {
+    #[must_use]
     pub fn new(x: f32, y: f32) -> Self {
         Self(Vec2::new(x, y))
     }
@@ -307,17 +309,18 @@ impl ViewCoord {
 #[derive(Debug, Copy, Clone, PartialEq, Sub, Add)]
 pub struct WorldCoord(pub Vec2);
 
-impl Into<Transform> for WorldCoord {
-    fn into(self) -> Transform {
+impl From<WorldCoord> for Transform {
+    fn from(val: WorldCoord) -> Self {
         Transform::from_translation(bevy::math::Vec3 {
-            x: self.0.x,
-            y: self.0.y,
+            x: val.0.x,
+            y: val.0.y,
             z: 0.0,
         })
     }
 }
 
 impl WorldCoord {
+    #[must_use]
     pub fn new(x: f32, y: f32) -> Self {
         Self(Vec2::new(x, y))
     }

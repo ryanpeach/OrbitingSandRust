@@ -6,7 +6,7 @@ use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
 
 use crate::common::util::clock::Clock;
-use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, InChunkJkVector as JkVector};
+use crate::common::util::vectors::InChunkJkVector as JkVector;
 use bevy::color::palettes::css::ORANGE;
 use bevy::color::Color;
 use rand::Rng;

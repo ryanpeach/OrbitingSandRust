@@ -1,15 +1,13 @@
 #![expect(missing_docs)]
 #![expect(clippy::missing_docs_in_private_items)]
 use hashbrown::{HashMap, HashSet};
-use itertools::{multizip, Chunk};
+use itertools::multizip;
 
 use crate::common::util::uom::Mass;
 
 use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::common::util::clock::Clock;
-use crate::common::util::vectors::{
-    ChunkIjkVector, ChunkJkVector, IjkVector, InChunkJkVector, JkVector, LayerJkVector,
-};
+use crate::common::util::vectors::{ChunkIjkVector, ChunkJkVector, IjkVector, JkVector};
 
 use super::super::convolution::neighbor_indexes::{
     BottomNeighborIdxs, ElementGridConvolutionNeighborIdxs, LeftRightNeighborIdxs, TopNeighborIdxs,
