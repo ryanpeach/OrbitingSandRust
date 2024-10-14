@@ -54,7 +54,7 @@ components = ["clippy"]
 
 [lints.rust]
 missing_docs = "warn"
-dead_code = "allow"
+dead_code = "warn"
 
 [lints.rustdoc]
 missing_crate_level_docs = "warn"
