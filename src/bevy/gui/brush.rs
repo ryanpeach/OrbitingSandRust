@@ -9,9 +9,9 @@ use crate::bevy::entities::celestials::celestial::Data;
 use crate::bevy::entities::components::Radius;
 use crate::bevy::errors::MissingParentError;
 use crate::common::util::clock::Clock;
-use crate::common::util::transforms::get_mouse_world_position;
+use crate::common::util::transforms::{get_mouse_model_position, get_mouse_world_position};
 use crate::common::util::vectors::ModelCoord;
-use bevy::app::{App, Plugin, Update};
+use bevy::app::{App, FixedPostUpdate, FixedPreUpdate, FixedUpdate, Plugin, PostUpdate, Update};
 use bevy::color::palettes::css::WHITE;
 use bevy::core::FrameCount;
 use bevy::core_pipeline::core_2d::Camera2d;
@@ -24,9 +24,10 @@ use bevy::input::ButtonInput;
 use bevy::log::debug;
 use bevy::log::error;
 use bevy::math::{Vec2, Vec3};
-use bevy::prelude::{Window, Without};
+use bevy::prelude::{IntoSystemConfigs, SpatialBundle, Window, Without};
 
 use bevy::render::camera::{Camera, OrthographicProjection};
+use bevy::state::state::OnExit;
 use bevy::time::Time;
 use bevy::transform::components::GlobalTransform;
 use bevy::window::PrimaryWindow;
@@ -53,12 +54,19 @@ impl Plugin for BrushPlugin {
         app.add_systems(
             Update,
             (
-                Self::move_brush_system,
-                Self::draw_brush_system,
                 Self::resize_brush_system,
                 Self::apply_brush_system,
             ),
         );
+        app.add_systems(FixedPreUpdate,  Self::draw_brush_system);
+        app.add_systems(
+            FixedPostUpdate,
+            (
+                Self::move_brush_system,
+            )
+        );
+        app.add_systems(FixedPostUpdate,  Self::draw_brush_system.after(Self::move_brush_system));
+
     }
 }
 
@@ -73,7 +81,10 @@ impl BrushPlugin {
             .spawn((
                 Radius(0.5),
                 BrushComponent,
-                Transform::from_translation(Vec3::new(0., 0., 0.)),
+                SpatialBundle {
+                    transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
+                    ..Default::default()
+                },
             ))
             .id();
 
@@ -88,13 +99,13 @@ impl BrushPlugin {
 impl BrushPlugin {
     /// Move the brush with the mouse
     pub fn move_brush_system(
-        mut query: Query<&mut Transform, With<BrushComponent>>,
+        mut query: Query<&mut Transform, (With<BrushComponent>, Without<MainCamera>)>,
         windows: Query<&Window, With<PrimaryWindow>>,
-        cameras: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+        cameras: Query<(&Camera, &Transform), (With<MainCamera>, Without<BrushComponent>)>,
     ) {
         let window = windows.single();
         let camera = cameras.single();
-        if let Some(mouse_transform) = get_mouse_world_position(window, camera) {
+        if let Some(mouse_transform) = get_mouse_model_position(window, camera) {
             query.iter_mut().for_each(|mut brush_transform| {
                 brush_transform.translation.x = mouse_transform.0.x;
                 brush_transform.translation.y = mouse_transform.0.y;
@@ -104,12 +115,15 @@ impl BrushPlugin {
 
     /// Draw the brush circle
     pub fn draw_brush_system(
-        query: Query<(&Transform, &Radius), With<BrushComponent>>,
+        query: Query<(&GlobalTransform, &Radius), With<BrushComponent>>,
         mut gizmos: Gizmos,
     ) {
         for (transform, brush_radius) in query.iter() {
             let mesh = brush_radius.mesh();
-            GizmoDrawableLoop::new(mesh, WHITE.into()).draw_bevy_gizmo_loop(&mut gizmos, transform);
+            GizmoDrawableLoop::new(mesh, WHITE.into()).draw_bevy_gizmo_loop(
+                &mut gizmos,
+                &Transform::from_translation(transform.translation()),
+            );
         }
     }
 
@@ -136,11 +150,11 @@ impl BrushPlugin {
     /// TODO: sysfail
     pub fn apply_brush_system(
         mouse: Res<ButtonInput<MouseButton>>,
-        mut brush: Query<(&Parent, &mut Transform, &Radius), With<BrushComponent>>,
-        mut camera: Query<
-            (&Parent, &mut Transform, &mut Camera2d, &MainCamera),
-            Without<BrushComponent>,
+        mut brush: Query<
+            (&Parent, &Transform, &Radius),
+            (With<BrushComponent>, Without<MainCamera>),
         >,
+        mut camera: Query<&Parent, (With<MainCamera>, Without<BrushComponent>)>,
         mut celestial: Query<&mut Data>,
         element_picker: Res<ElementSelection>,
         current_time: Res<Time>,
@@ -153,7 +167,7 @@ impl BrushPlugin {
 
         // Get the camera the brush follows, and the celestial the camera follows
         let (brush_parent, brush_transform, radius) = brush.single_mut();
-        let (camera_parent, camera_transform, _, _) = match camera.get_mut(brush_parent.get()) {
+        let camera_parent = match camera.get_mut(brush_parent.get()) {
             Ok(x) => x,
             Err(e) => {
                 error!(
@@ -183,15 +197,15 @@ impl BrushPlugin {
         };
 
         // Get the bounds of the brush in terms of the celestials cells
+        let brush_translation = brush_transform.translation;
         let begin_at = ModelCoord::new(
-            brush_transform.translation.x + camera_transform.translation.x - radius.0,
-            brush_transform.translation.y + camera_transform.translation.y - radius.0,
+            brush_translation.x - radius.0,
+            brush_translation.y - radius.0,
         );
         let end_at = ModelCoord::new(
-            radius.0 + brush_transform.translation.x + camera_transform.translation.x,
-            radius.0 + brush_transform.translation.y + camera_transform.translation.y,
+            brush_translation.x + radius.0,
+            brush_translation.y + radius.0,
         );
-        debug!("Applying brush");
         let mut positions = Vec::new();
         let mut x = begin_at.0.x + celestial.element_grid_dir.coordinate_dir().cell_width().0 / 2.0;
         while x < end_at.0.x {
@@ -199,7 +213,7 @@ impl BrushPlugin {
                 begin_at.0.y + celestial.element_grid_dir.coordinate_dir().cell_width().0 / 2.0;
             while y < end_at.0.y {
                 let pos = ModelCoord::new(x, y);
-                if pos.0.distance(Vec2::new(0., 0.)) < radius.0 {
+                if pos.0.distance(brush_translation.truncate()) < radius.0 {
                     positions.push(pos);
                 }
                 y += celestial.element_grid_dir.coordinate_dir().cell_width().0;

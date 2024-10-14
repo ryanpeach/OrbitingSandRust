@@ -342,6 +342,18 @@ impl From<Vec2> for WorldCoord {
     }
 }
 
+impl From<ModelCoord> for WorldCoord {
+    fn from(val: ModelCoord) -> Self {
+        Self(val.0)
+    }
+}
+
+impl From<WorldCoord> for ModelCoord {
+    fn from(val: WorldCoord) -> Self {
+        Self(val.0)
+    }
+}
+
 impl WorldCoord {
     /// Initialization
     #[must_use]

@@ -24,6 +24,7 @@ They are multi-body orbits, meaning that all large bodies emit gravity, but not 
 - `+-` Make brush bigger smaller
 - `scroll up/down` zoom in/out
 - `left click` when brush is visible, apply material
+- `[]` to cycle celestials
 
 # Inspirations
 
