@@ -2,7 +2,10 @@
 //! Mostly for the [`ChunkCoords`] [`crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir`]
 #![warn(missing_docs)]
 
-use bevy::{math::Vec2, transform::components::Transform};
+use bevy::{
+    math::Vec2,
+    transform::components::{GlobalTransform, Transform},
+};
 
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
 use derive_more::{Add, AddAssign, Sub, SubAssign};
@@ -315,11 +318,27 @@ pub struct WorldCoord(pub Vec2);
 
 impl From<WorldCoord> for Transform {
     fn from(val: WorldCoord) -> Self {
-        Transform::from_translation(bevy::math::Vec3 {
+        Self::from_translation(bevy::math::Vec3 {
             x: val.0.x,
             y: val.0.y,
             z: 0.0,
         })
+    }
+}
+
+impl From<WorldCoord> for GlobalTransform {
+    fn from(val: WorldCoord) -> Self {
+        Self::from_translation(bevy::math::Vec3 {
+            x: val.0.x,
+            y: val.0.y,
+            z: 0.0,
+        })
+    }
+}
+
+impl From<Vec2> for WorldCoord {
+    fn from(val: Vec2) -> Self {
+        Self(val)
     }
 }
 

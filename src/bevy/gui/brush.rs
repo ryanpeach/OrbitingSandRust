@@ -9,7 +9,7 @@ use crate::bevy::entities::celestials::celestial::Data;
 use crate::bevy::entities::components::Radius;
 use crate::bevy::errors::MissingParentError;
 use crate::common::util::clock::Clock;
-use crate::common::util::transforms::window_to_model_centered;
+use crate::common::util::transforms::get_mouse_world_position;
 use crate::common::util::vectors::ModelCoord;
 use bevy::app::{App, Plugin, Update};
 use bevy::color::palettes::css::WHITE;
@@ -26,7 +26,10 @@ use bevy::log::error;
 use bevy::math::{Vec2, Vec3};
 use bevy::prelude::{Window, Without};
 
+use bevy::render::camera::{Camera, OrthographicProjection};
 use bevy::time::Time;
+use bevy::transform::components::GlobalTransform;
+use bevy::window::PrimaryWindow;
 use bevy::{
     ecs::{component::Component, event::EventReader, query::With, system::Query},
     gizmos::gizmos::Gizmos,
@@ -85,14 +88,13 @@ impl BrushPlugin {
 impl BrushPlugin {
     /// Move the brush with the mouse
     pub fn move_brush_system(
-        windows: Query<&mut Window>,
-        // camera: Query<(&Parent, &mut Transform, &mut Camera2d, &MainCamera)>,
-        mut cursor_moved_events: EventReader<CursorMoved>,
         mut query: Query<&mut Transform, With<BrushComponent>>,
+        windows: Query<&Window, With<PrimaryWindow>>,
+        cameras: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     ) {
-        for event in cursor_moved_events.read() {
-            let mouse_transform = window_to_model_centered(&windows, event.position);
-
+        let window = windows.single();
+        let camera = cameras.single();
+        if let Some(mouse_transform) = get_mouse_world_position(window, camera) {
             query.iter_mut().for_each(|mut brush_transform| {
                 brush_transform.translation.x = mouse_transform.0.x;
                 brush_transform.translation.y = mouse_transform.0.y;
