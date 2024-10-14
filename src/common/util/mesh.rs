@@ -1,7 +1,7 @@
 use bevy::{
     asset::{Assets, Handle},
     color::{Color, ColorToComponents},
-    math::{Rect, Vec2},
+    math::{Rect, Vec2, Vec3},
     prelude::{Component, Gizmos, ResMut},
     render::{
         mesh::{Indices, Mesh, PrimitiveTopology, VertexAttributeValues},
@@ -123,25 +123,5 @@ impl OwnedMeshData {
         mesh.insert_indices(Indices::U32(self.indices.clone()));
 
         meshes.add(mesh)
-    }
-
-    /// Simply draws a line from an index to another but applies the transform first
-    pub fn draw_bevy_gizmo_line(
-        &self,
-        idx0: u32,
-        idx1: u32,
-        transform: &Transform,
-        gizmos: &mut Gizmos,
-        color: Color,
-    ) {
-        let mut pos0 = self.vertices[(idx0) as usize].position;
-        let mut pos1 = self.vertices[(idx1) as usize].position;
-        pos0.x += transform.translation.x;
-        pos0.y += transform.translation.y;
-        pos1.x += transform.translation.x;
-        pos1.y += transform.translation.y;
-        pos0.x *= transform.scale.x;
-        pos0.y *= transform.scale.y;
-        gizmos.line_2d(Vec2::new(pos0.x, pos0.y), Vec2::new(pos1.x, pos1.y), color);
     }
 }

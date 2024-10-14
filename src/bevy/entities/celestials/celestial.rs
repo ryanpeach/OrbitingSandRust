@@ -38,9 +38,10 @@ use bevy::time::{Fixed, Time};
 
 use bevy::transform::components::{GlobalTransform, Transform};
 
+use bevy_polyline::material::PolylineMaterial;
+use bevy_polyline::polyline::{Polyline, PolylineBundle};
 use hashbrown::HashMap;
 
-use crate::bevy::components::mesh::{GizmoDrawableGrid, GizmoDrawableLoop};
 use crate::bevy::gui::camera::{CelestialIdx, OverlayLayer2, OverlayLayer3, SelectCelestial};
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 
@@ -79,18 +80,11 @@ impl Plugin for DataPlugin {
 
         app.insert_resource(Time::<Fixed>::from_seconds(1.0 / PHYSICS_FRAME_RATE));
         app.insert_resource(UpdatedTextures::default());
-        app.add_systems(
-            Update,
-            (
-                DataPlugin::draw_wireframe_system,
-                DataPlugin::draw_outline_system,
-            ),
-        );
         app.add_event::<SelectCelestial>();
     }
 }
 
-/// Acts as a cache for a polar mesh's meshes and textures
+/// Acts as a cache for a celestials meshes and textures
 #[derive(Component)]
 pub struct Data {
     /// The elements in this celestial
@@ -195,6 +189,8 @@ impl Builder {
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<ColorMaterial>>,
         asset_server: &Res<AssetServer>,
+        mut polylines: &mut ResMut<Assets<Polyline>>,
+        mut polyline_materials: &mut ResMut<Assets<PolylineMaterial>>,
     ) -> Entity {
         // Create all the chunk meshes as pairs of ChunkIjkVector and Mesh2dBundle
         let mut chunks = Vec::new();
@@ -258,21 +254,30 @@ impl Builder {
                     let wireframe_entity = commands
                         .spawn((
                             Name::new(format!("Cell Grid {chunk_ijk:?}")),
-                            GizmoDrawableGrid::new(
-                                wireframe,
-                                Srgba {
-                                    red: 0.1,
-                                    green: 0.1,
-                                    blue: 0.1,
-                                    alpha: 0.1,
-                                }
-                                .into(),
-                            ),
-                            SpatialBundle {
+                            PolylineBundle {
+                                polyline: polylines.add(Polyline {
+                                    vertices: wireframe
+                                        .vertices
+                                        .iter()
+                                        .map(|x| x.position.extend(0.0))
+                                        .collect(),
+                                }),
+                                material: polyline_materials.add(PolylineMaterial {
+                                    width: 10.0,
+                                    color: Srgba {
+                                        red: 0.1,
+                                        green: 0.1,
+                                        blue: 0.1,
+                                        alpha: 0.1,
+                                    }
+                                    .into(),
+                                    perspective: false,
+                                    ..Default::default()
+                                }),
                                 transform: Transform::from_translation(
                                     self.translation.extend(2.0),
                                 ),
-                                visibility: Visibility::Visible,
+                                visibility: Visibility::Inherited,
                                 ..Default::default()
                             },
                             Grid,
@@ -282,12 +287,24 @@ impl Builder {
                     let outline_entity = commands
                         .spawn((
                             Name::new(format!("Chunk Outline {chunk_ijk:?}")),
-                            GizmoDrawableLoop::new(outline, RED.into()),
-                            SpatialBundle {
+                            PolylineBundle {
+                                polyline: polylines.add(Polyline {
+                                    vertices: outline
+                                        .vertices
+                                        .iter()
+                                        .map(|x| x.position.extend(0.0))
+                                        .collect(),
+                                }),
+                                material: polyline_materials.add(PolylineMaterial {
+                                    width: 10.0,
+                                    color: RED.into(),
+                                    perspective: false,
+                                    ..Default::default()
+                                }),
                                 transform: Transform::from_translation(
                                     self.translation.extend(3.0),
                                 ),
-                                visibility: Visibility::Hidden,
+                                visibility: Visibility::Inherited,
                                 ..Default::default()
                             },
                             Outline,
@@ -451,29 +468,6 @@ impl DataPlugin {
 
                     material.texture = Some(image_handle);
                 }
-            }
-        }
-    }
-
-    /// Draw the wireframe of the celestials cells
-    pub fn draw_wireframe_system(
-        mut gizmos: Gizmos,
-        query: Query<(&GizmoDrawableGrid, &Transform, &Visibility), With<Grid>>,
-    ) {
-        for (drawable, transform, visibility) in query.iter() {
-            if Visibility::Visible == visibility {
-                drawable.draw_bevy_gizmo_grid(&mut gizmos, transform);
-            }
-        }
-    }
-    /// Draw the outline of the celestials chunks
-    pub fn draw_outline_system(
-        mut gizmos: Gizmos,
-        query: Query<(&GizmoDrawableLoop, &Transform, &Visibility), With<Outline>>,
-    ) {
-        for (drawable, transform, visibility) in query.iter() {
-            if Visibility::Visible == visibility {
-                drawable.draw_bevy_gizmo_loop(&mut gizmos, transform);
             }
         }
     }

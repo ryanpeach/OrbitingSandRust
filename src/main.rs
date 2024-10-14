@@ -30,6 +30,9 @@ use bevy::DefaultPlugins;
 use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_picking::low_latency_window_plugin;
+use bevy_polyline::material::PolylineMaterial;
+use bevy_polyline::polyline::Polyline;
+use bevy_polyline::PolylinePlugin;
 use conv::ConvAsUtil;
 use orbiting_sand::bevy::entities::celestials::celestial;
 use orbiting_sand::bevy::entities::celestials::earthlike;
@@ -61,11 +64,12 @@ fn main() {
             EguiPlugin,
         ))
         .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
+        .add_plugins(PolylinePlugin)
         .add_plugins(GuiPluginGroup)
         .add_plugins(PhysicsPluginGroup)
         .add_plugins(orbiting_sand::bevy::entities::PluginGroup)
         .add_plugins(WorldInspectorPlugin::new())
-        .add_systems(PostStartup, solar_system_setup)
+        .add_systems(PostStartup, planet_only_setup)
         .run();
 }
 
@@ -78,6 +82,8 @@ fn solar_system_setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
+    mut polylines: ResMut<Assets<Polyline>>,
+    mut polyline_materials: ResMut<Assets<PolylineMaterial>>,
 ) {
     // This indexes our created entities
     // The "new" functions will index it for you
@@ -88,14 +94,28 @@ fn solar_system_setup(
     celestial::Builder::new(&mut idx, "Earth1".to_string(), planet_data)
         .translation(Vec2::new(-10000., 0.))
         .velocity(Velocity(Vec2::new(0., 1200.)))
-        .build(&mut commands, &mut meshes, &mut materials, &asset_server);
+        .build(
+            &mut commands,
+            &mut meshes,
+            &mut materials,
+            &asset_server,
+            &mut polylines,
+            &mut polyline_materials,
+        );
 
     // Create earth2
     let planet_data = earthlike::Builder::new().build();
     celestial::Builder::new(&mut idx, "Earth2".to_string(), planet_data)
         .translation(Vec2::new(10000., 0.))
         .velocity(Velocity(Vec2::new(0., -1200.)))
-        .build(&mut commands, &mut meshes, &mut materials, &asset_server);
+        .build(
+            &mut commands,
+            &mut meshes,
+            &mut materials,
+            &asset_server,
+            &mut polylines,
+            &mut polyline_materials,
+        );
 
     // Create a sun
     let sun_data = sun::Builder::new().build();
@@ -104,6 +124,8 @@ fn solar_system_setup(
         &mut meshes,
         &mut materials,
         &asset_server,
+        &mut polylines,
+        &mut polyline_materials,
     );
 
     // Create a bunch of asteroids
@@ -138,11 +160,20 @@ fn planet_only_setup(
     mut materials: ResMut<Assets<ColorMaterial>>,
     camera: Query<Entity, With<MainCamera>>,
     asset_server: Res<AssetServer>,
+    mut polylines: ResMut<Assets<Polyline>>,
+    mut polyline_materials: ResMut<Assets<PolylineMaterial>>,
 ) {
     // Create earth
     let planet_data = earthlike::Builder::new().build();
     let planet_id = celestial::Builder::new(&mut CelestialIdx(0), "Earth".to_string(), planet_data)
-        .build(&mut commands, &mut meshes, &mut materials, &asset_server);
+        .build(
+            &mut commands,
+            &mut meshes,
+            &mut materials,
+            &asset_server,
+            &mut polylines,
+            &mut polyline_materials,
+        );
 
     // Parent the camera to the sun
     commands.entity(planet_id).push_children(&[camera.single()]);

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [profile.dev]
-opt-level = 1
+opt-level = 3
 debug = true
 
 [profile.release]
@@ -18,6 +18,7 @@ bevy-inspector-egui = "0.26.0"
 bevy_egui = "0.29.0"
 bevy_eventlistener = "0.8.1"
 bevy_mod_picking = { version = "0.20.1", features = ["bevy_picking_raycast"] }
+bevy_polyline = "0.10.0"
 conv = "0.3.3"
 # bytemuck = "1.14.0"
 derive_more = { version = "1.0.0", features = ["full"] }

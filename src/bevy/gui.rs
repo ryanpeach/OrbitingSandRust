@@ -3,8 +3,11 @@
 
 use bevy::{
     app::{Plugin, PluginGroup, PluginGroupBuilder, Startup},
+    asset::Assets,
     ecs::system::Commands,
+    prelude::ResMut,
 };
+use bevy_polyline::{material::PolylineMaterial, polyline::Polyline, PolylinePlugin};
 
 use self::{brush::BrushPlugin, camera::CameraPlugin, system_stepping::SteppingEguiPlugin};
 
@@ -24,9 +27,13 @@ impl Plugin for GuiUnifiedPlugin {
 
 impl GuiUnifiedPlugin {
     /// Runs the setup function for each gui plugin
-    pub fn setup(mut commands: Commands) {
+    pub fn setup(
+        mut commands: Commands,
+        mut polyline_materials: ResMut<Assets<PolylineMaterial>>,
+        mut polylines: ResMut<Assets<Polyline>>,
+    ) {
         let camera = CameraPlugin::setup_main_camera(&mut commands);
-        BrushPlugin::create_brush(&mut commands, camera);
+        BrushPlugin::create_brush(&mut commands, camera, polyline_materials, polylines);
     }
 }
 

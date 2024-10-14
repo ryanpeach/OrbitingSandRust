@@ -7,6 +7,7 @@ use std::ops::Add;
 
 use bevy::log::error;
 use bevy::render::camera::OrthographicProjection;
+use bevy::render::view::Visibility;
 use bevy::{
     app::{App, Plugin, Update},
     core_pipeline::core_2d::{Camera2d, Camera2dBundle},
@@ -46,6 +47,10 @@ pub struct OverlayLayer2;
 /// A layer in front of the game. Z-index = 3
 #[derive(Component, Debug, Default)]
 pub struct OverlayLayer3;
+
+/// A layer in front of the game. Z-index = 3
+#[derive(Component, Debug, Default)]
+pub struct OverlayLayer4;
 
 /// A layer behind the game. Z-index = -1
 #[derive(Component, Debug, Default)]
@@ -154,6 +159,7 @@ impl CameraPlugin {
             .spawn((
                 Camera2dBundle {
                     camera_2d: Camera2d,
+                    transform: Transform::from_translation(Vec2::ZERO.extend(100.0)),
                     ..Default::default()
                 },
                 MainCamera,
@@ -373,5 +379,5 @@ fn focus_celestial(commands: &mut Commands, camera: (&Entity, &mut Transform), p
     commands.entity(*camera.0).set_parent(*parent);
     // Zero the camera's translation
     // Scale the camera to the celestial's radius
-    camera.1.translation = Vec3::new(0.0, 0.0, 0.0);
+    camera.1.translation = Vec3::new(0.0, 0.0, 100.0);
 }
