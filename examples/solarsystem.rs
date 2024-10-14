@@ -69,7 +69,7 @@ fn main() {
         .add_plugins(PhysicsPluginGroup)
         .add_plugins(orbiting_sand::bevy::entities::PluginGroup)
         .add_plugins(WorldInspectorPlugin::new())
-        .add_systems(PostStartup, planet_only_setup)
+        .add_systems(PostStartup, solar_system_setup)
         .run();
 }
 
@@ -151,30 +151,4 @@ fn solar_system_setup(
             },
         ));
     }
-}
-
-/// Creates just a planet
-fn planet_only_setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    camera: Query<Entity, With<MainCamera>>,
-    asset_server: Res<AssetServer>,
-    mut polylines: ResMut<Assets<Polyline>>,
-    mut polyline_materials: ResMut<Assets<PolylineMaterial>>,
-) {
-    // Create earth
-    let planet_data = earthlike::Builder::new().build();
-    let planet_id = celestial::Builder::new(&mut CelestialIdx(0), "Earth".to_string(), planet_data)
-        .build(
-            &mut commands,
-            &mut meshes,
-            &mut materials,
-            &asset_server,
-            &mut polylines,
-            &mut polyline_materials,
-        );
-
-    // Parent the camera to the sun
-    commands.entity(planet_id).push_children(&[camera.single()]);
 }
