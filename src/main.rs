@@ -65,7 +65,7 @@ fn main() {
         .add_plugins(PhysicsPluginGroup)
         .add_plugins(orbiting_sand::bevy::entities::PluginGroup)
         .add_plugins(WorldInspectorPlugin::new())
-        .add_systems(PostStartup, planet_only_setup)
+        .add_systems(PostStartup, solar_system_setup)
         .run();
 }
 

@@ -6,6 +6,7 @@
 use std::ops::Add;
 
 use bevy::log::error;
+use bevy::render::camera::OrthographicProjection;
 use bevy::{
     app::{App, Plugin, Update},
     core_pipeline::core_2d::{Camera2d, Camera2dBundle},
@@ -153,7 +154,6 @@ impl CameraPlugin {
             .spawn((
                 Camera2dBundle {
                     camera_2d: Camera2d,
-                    transform: Transform::from_scale(Vec3::new(1.0, 1.0, 1.0) * 100.0),
                     ..Default::default()
                 },
                 MainCamera,
@@ -168,7 +168,7 @@ impl CameraPlugin {
     fn zoom_camera_system(
         time: Res<Time>,
         mut scroll_evr: EventReader<MouseWheel>,
-        mut query: Query<(&mut Transform, &mut Camera2d)>,
+        mut query: Query<(&mut Transform, &mut OrthographicProjection), With<MainCamera>>,
     ) {
         let mut delta = 0.;
         for ev in scroll_evr.read() {
