@@ -1,13 +1,6 @@
 use super::vectors::{ModelCoord, WorldCoord};
-use bevy::log::info;
 use bevy::transform::components::Transform;
-use bevy::{
-    math::Vec2,
-    prelude::{Camera2d, Query},
-    render::camera::{Camera, OrthographicProjection},
-    transform::components::GlobalTransform,
-    window::Window,
-};
+use bevy::{render::camera::Camera, transform::components::GlobalTransform, window::Window};
 
 /// Take a mouse coordinate and translate it into a [`WorldCoord`] based on the [`Camera2d`]'s
 /// [`GlobalTransform`]
@@ -39,9 +32,5 @@ pub fn get_mouse_model_position(
     window: &Window,
     camera: (&Camera, &Transform),
 ) -> Option<ModelCoord> {
-    if let Some(out) = get_mouse_world_position(window, (camera.0, &((*camera.1).into()))) {
-        Some(out.into())
-    } else {
-        None
-    }
+    get_mouse_world_position(window, (camera.0, &((*camera.1).into()))).map(derive_more::Into::into)
 }

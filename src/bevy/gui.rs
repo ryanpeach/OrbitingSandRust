@@ -2,18 +2,21 @@
 //! Things that are drawn to via screen coordinates rather than world coordinates.
 
 use bevy::{
-    app::{Plugin, PluginGroup, PluginGroupBuilder, Startup},
+    app::{Plugin, Startup},
+    asset::Assets,
     ecs::system::Commands,
+    prelude::ResMut,
+    render::mesh::Mesh,
+    sprite::ColorMaterial,
 };
 
-use self::{brush::BrushPlugin, camera::CameraPlugin, system_stepping::SteppingEguiPlugin};
+use self::{brush::BrushPlugin, camera::CameraPlugin};
 
 pub mod brush;
 pub mod camera;
 pub mod element_picker;
 pub mod system_stepping;
 
-/// TODO: I'm not sure what this is for. Why is it seperate from [`GuiPluginGroup`]?
 pub struct GuiUnifiedPlugin;
 
 impl Plugin for GuiUnifiedPlugin {
@@ -24,22 +27,12 @@ impl Plugin for GuiUnifiedPlugin {
 
 impl GuiUnifiedPlugin {
     /// Runs the setup function for each gui plugin
-    pub fn setup(mut commands: Commands) {
-        let camera = CameraPlugin::setup_main_camera(&mut commands);
-        BrushPlugin::create_brush(&mut commands, camera);
-    }
-}
-
-/// All of our gui plugins
-pub struct GuiPluginGroup;
-
-impl PluginGroup for GuiPluginGroup {
-    fn build(self) -> PluginGroupBuilder {
-        PluginGroupBuilder::start::<Self>()
-            .add(camera::CameraPlugin)
-            .add(brush::BrushPlugin)
-            .add(element_picker::ElementPickerPlugin)
-            .add(GuiUnifiedPlugin)
-            .add(SteppingEguiPlugin::default())
+    pub fn setup(
+        mut commands: Commands,
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<ColorMaterial>>,
+    ) {
+        CameraPlugin::setup_main_camera(&mut commands);
+        BrushPlugin::create_brush(&mut commands, &mut meshes, &mut materials);
     }
 }

@@ -5,7 +5,9 @@
 
 use std::ops::Add;
 
-use bevy::log::error;
+use bevy::input::common_conditions::input_just_pressed;
+use bevy::log::{debug, error};
+use bevy::prelude::IntoSystemConfigs;
 use bevy::render::camera::OrthographicProjection;
 use bevy::{
     app::{App, Plugin, Update},
@@ -14,7 +16,7 @@ use bevy::{
         component::Component,
         event::{Event, EventReader},
         query::{With, Without},
-        system::{Commands, Query, Res, ResMut},
+        system::{Commands, Query, Res},
     },
     hierarchy::{BuildChildren, Parent},
     input::{keyboard::KeyCode, mouse::MouseWheel, ButtonInput},
@@ -136,11 +138,23 @@ impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, Self::zoom_camera_system);
         app.add_systems(Update, Self::move_camera_system);
-        // Not currently working
-        // app.add_systems(Update, Self::frustum_culling_2d);
         app.add_systems(Update, Self::select_celestial_focus);
-        app.add_systems(Update, Self::cycle_celestial_focus);
-        app.add_systems(Update, Self::first_celestial_focus);
+        app.add_systems(
+            Update,
+            Self::cycle_celestial_focus_up.run_if(input_just_pressed(KeyCode::BracketLeft)),
+        );
+        app.add_systems(
+            Update,
+            Self::cycle_celestial_focus_down.run_if(input_just_pressed(KeyCode::BracketRight)),
+        );
+        app.add_systems(
+            Update,
+            Self::first_celestial_focus.run_if(input_just_pressed(KeyCode::BracketLeft)),
+        );
+        app.add_systems(
+            Update,
+            Self::first_celestial_focus.run_if(input_just_pressed(KeyCode::BracketRight)),
+        );
     }
 }
 
@@ -168,14 +182,14 @@ impl CameraPlugin {
     fn zoom_camera_system(
         time: Res<Time>,
         mut scroll_evr: EventReader<MouseWheel>,
-        mut query: Query<(&mut OrthographicProjection), With<MainCamera>>,
+        mut query: Query<&mut OrthographicProjection, With<MainCamera>>,
     ) {
         let mut delta = 0.;
         for ev in scroll_evr.read() {
             delta += ev.y;
         }
         if delta != 0. {
-            for (mut proj) in &mut query {
+            for mut proj in &mut query {
                 proj.scale *= (1. + delta * time.delta_seconds() * 0.5).max(0.0001);
             }
         }
@@ -231,11 +245,10 @@ fn rect_add(this: &Rect, other: &Vec2) -> Rect {
 impl CameraPlugin {
     /// If you press "\[" or "\]", you can cycle through the celestials
     /// TODO: sysfail
-    pub fn cycle_celestial_focus(
+    pub fn cycle_celestial_focus_up(
         mut commands: Commands,
         celestials: Query<(Entity, &CelestialIdx)>,
         mut camera: Query<(&Parent, Entity, &mut Transform), With<MainCamera>>,
-        mut input: ResMut<ButtonInput<KeyCode>>,
     ) {
         // -> Result<(), Box<dyn std::error::Error>> {
         if let Ok((parent, camera, mut transform)) = camera.get_single_mut() {
@@ -248,34 +261,74 @@ impl CameraPlugin {
                 }
             };
             let next_idx = {
-                if input.just_pressed(KeyCode::BracketLeft) {
-                    input.reset(KeyCode::BracketLeft);
-                    idx.prev(
-                        celestials_vec
-                            .clone()
-                            .into_iter()
-                            .map(|(_, idx)| idx)
-                            .collect::<Vec<_>>(),
-                    )
-                } else if input.just_pressed(KeyCode::BracketRight) {
-                    input.reset(KeyCode::BracketRight);
-                    idx.next(
-                        celestials_vec
-                            .clone()
-                            .into_iter()
-                            .map(|(_, idx)| idx)
-                            .collect::<Vec<_>>(),
-                    )
-                } else {
-                    // return Ok(());
-                    return;
-                }
+                idx.prev(
+                    celestials_vec
+                        .clone()
+                        .into_iter()
+                        .map(|(_, idx)| idx)
+                        .collect::<Vec<_>>(),
+                )
             };
             if let Some(next_celestial) = celestials_vec
                 .into_iter()
                 .find(|(_, idx)| idx.0 == next_idx.0)
             {
-                focus_celestial(&mut commands, (&camera, &mut transform), &next_celestial.0);
+                focus_celestial(
+                    &mut commands,
+                    (&camera, &mut transform),
+                    &next_celestial.0,
+                    next_celestial.1,
+                );
+            } else {
+                // Err(EmptyQueryResult{err: None, parameter_name: "next_celestial".to_string()})?;
+                error!(
+                    "{:?}",
+                    EmptyQueryResult {
+                        err: None,
+                        parameter_name: "next_celestial".to_string()
+                    }
+                );
+            }
+        }
+        // Ok(())
+    }
+
+    /// If you press "\[" or "\]", you can cycle through the celestials
+    /// TODO: sysfail
+    pub fn cycle_celestial_focus_down(
+        mut commands: Commands,
+        celestials: Query<(Entity, &CelestialIdx)>,
+        mut camera: Query<(&Parent, Entity, &mut Transform), With<MainCamera>>,
+    ) {
+        // -> Result<(), Box<dyn std::error::Error>> {
+        if let Ok((parent, camera, mut transform)) = camera.get_single_mut() {
+            let celestials_vec = celestials.iter().collect::<Vec<_>>();
+            let idx = match CelestialIdx::selected_celestial(&celestials_vec, (parent, camera)) {
+                Ok(idx) => idx,
+                Err(e) => {
+                    error!("{:?}", e);
+                    return;
+                }
+            };
+            let next_idx = {
+                idx.next(
+                    celestials_vec
+                        .clone()
+                        .into_iter()
+                        .map(|(_, idx)| idx)
+                        .collect::<Vec<_>>(),
+                )
+            };
+            if let Some(next_celestial) = celestials_vec
+                .into_iter()
+                .find(|(_, idx)| idx.0 == next_idx.0)
+            {
+                focus_celestial(
+                    &mut commands,
+                    (&camera, &mut transform),
+                    &next_celestial.0,
+                    next_celestial.1,
+                );
             } else {
                 // Err(EmptyQueryResult{err: None, parameter_name: "next_celestial".to_string()})?;
                 error!(
@@ -295,27 +348,26 @@ impl CameraPlugin {
     pub fn first_celestial_focus(
         mut commands: Commands,
         celestials: Query<(Entity, &CelestialIdx)>,
-        mut camera: Query<(Entity, &mut Transform), (With<MainCamera>, Without<Parent>)>,
-        mut input: ResMut<ButtonInput<KeyCode>>,
+        mut camera: Query<(&Parent, Entity, &mut Transform), (With<MainCamera>, Without<Parent>)>,
     ) {
-        // -> Result<(), Box<dyn std::error::Error>> {
-        if input.just_pressed(KeyCode::BracketLeft) || input.just_pressed(KeyCode::BracketRight) {
-            input.reset(KeyCode::BracketLeft);
-            input.reset(KeyCode::BracketRight);
-            if let Ok((camera, mut transform)) = camera.get_single_mut() {
-                if let Some(first_celestial) = celestials.into_iter().find(|(_, idx)| idx.0 == 0) {
-                    focus_celestial(&mut commands, (&camera, &mut transform), &first_celestial.0);
-                } else {
-                    // Err(EmptyQueryResult{err: None, parameter_name: "first_celestial".to_string()})?;
-                    error!(
-                        "{:?}",
-                        EmptyQueryResult {
-                            err: None,
-                            parameter_name: "first_celestial".to_string()
-                        }
-                    );
-                }
+        if let Ok((camera_parent, camera, mut transform)) = camera.get_single_mut() {
+            if let Ok((celestial, celestial_idx)) = celestials.get(camera_parent.get()) {
+                focus_celestial(
+                    &mut commands,
+                    (&camera, &mut transform),
+                    &celestial,
+                    celestial_idx,
+                );
+                return;
             }
+
+            error!(
+                "{:?}",
+                EmptyQueryResult {
+                    err: None,
+                    parameter_name: "first_celestial".to_string()
+                }
+            );
         }
         // Ok(())
     }
@@ -342,17 +394,26 @@ impl CameraPlugin {
     /// TODO: sysfail
     pub fn select_celestial_focus(
         mut commands: Commands,
+        celestials: Query<&CelestialIdx>,
         chunks: Query<(&Parent, Entity), With<ChunkIjkComponent>>,
         mut camera: Query<(Entity, &mut Transform), With<MainCamera>>,
         mut click_events: EventReader<SelectCelestial>,
     ) {
         // -> Result<(), Box<dyn std::error::Error>> {
-        let mut camera = camera.single_mut();
-        if let Some(event) = click_events.read().next() {
-            if let Some(parent) = chunks.iter().find(|(_, chunk_id)| *chunk_id == event.0) {
-                focus_celestial(&mut commands, (&camera.0, &mut camera.1), parent.0);
-            } else {
-                // Err(EmptyQueryResult{err: None, parameter_name: "selected_celestial".to_string()})?;
+        if let Ok((camera, mut transform)) = camera.get_single_mut() {
+            if let Some(event) = click_events.read().next() {
+                if let Ok((parent_entity, _)) = chunks.get(event.0) {
+                    if let Ok(celestial_idx) = celestials.get(parent_entity.get()) {
+                        focus_celestial(
+                            &mut commands,
+                            (&camera, &mut transform),
+                            parent_entity,
+                            celestial_idx,
+                        );
+                        return;
+                    }
+                }
+
                 error!(
                     "{:?}",
                     EmptyQueryResult {
@@ -368,7 +429,13 @@ impl CameraPlugin {
 
 // Helper Functions
 /// Parent the camera to the celestial
-fn focus_celestial(commands: &mut Commands, camera: (&Entity, &mut Transform), parent: &Entity) {
+fn focus_celestial(
+    commands: &mut Commands,
+    camera: (&Entity, &mut Transform),
+    parent: &Entity,
+    celestial_idx: &CelestialIdx,
+) {
+    debug!("Focusing on celestial {:?}", celestial_idx.0);
     // Parent the camera to the celestial
     commands.entity(*camera.0).set_parent(*parent);
     // Zero the camera's translation
