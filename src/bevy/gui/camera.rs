@@ -6,8 +6,8 @@
 use std::ops::Add;
 
 use bevy::input::common_conditions::input_just_pressed;
-use bevy::log::{debug, error};
-use bevy::prelude::IntoSystemConfigs;
+use bevy::log::{debug, error, trace, trace_once};
+use bevy::prelude::{Condition, IntoSystemConfigs, MouseButton};
 use bevy::render::camera::OrthographicProjection;
 use bevy::{
     app::{App, Plugin, Update},
@@ -29,6 +29,7 @@ use bevy_eventlistener::callbacks::ListenerInput;
 use bevy_mod_picking::events::{Down, Pointer};
 
 use conv::ValueFrom;
+use macros::{call_log, call_log_once};
 
 use crate::bevy::entities::celestials::celestial::ChunkIjkComponent;
 use crate::bevy::errors::EmptyQueryResult;
@@ -137,8 +138,19 @@ impl Plugin for CameraPlugin {
     /// Build the camera plugin
     fn build(&self, app: &mut App) {
         app.add_systems(Update, Self::zoom_camera_system);
-        app.add_systems(Update, Self::move_camera_system);
-        app.add_systems(Update, Self::select_celestial_focus);
+        app.add_systems(
+            Update,
+            Self::move_camera_system.run_if(
+                input_just_pressed(KeyCode::KeyW)
+                    .or_else(input_just_pressed(KeyCode::KeyS))
+                    .or_else(input_just_pressed(KeyCode::KeyA))
+                    .or_else(input_just_pressed(KeyCode::KeyD)),
+            ),
+        );
+        app.add_systems(
+            Update,
+            Self::select_celestial_focus.run_if(input_just_pressed(MouseButton::Left)),
+        );
         app.add_systems(
             Update,
             Self::cycle_celestial_focus_up.run_if(input_just_pressed(KeyCode::BracketLeft)),
@@ -149,11 +161,10 @@ impl Plugin for CameraPlugin {
         );
         app.add_systems(
             Update,
-            Self::first_celestial_focus.run_if(input_just_pressed(KeyCode::BracketLeft)),
-        );
-        app.add_systems(
-            Update,
-            Self::first_celestial_focus.run_if(input_just_pressed(KeyCode::BracketRight)),
+            Self::first_celestial_focus.run_if(
+                input_just_pressed(KeyCode::BracketLeft)
+                    .or_else(input_just_pressed(KeyCode::BracketRight)),
+            ),
         );
     }
 }
@@ -179,6 +190,7 @@ impl CameraPlugin {
 /// Update functions
 impl CameraPlugin {
     /// Zoom the camera based on mouse wheel scroll
+    #[call_log_once]
     fn zoom_camera_system(
         time: Res<Time>,
         mut scroll_evr: EventReader<MouseWheel>,
@@ -189,6 +201,7 @@ impl CameraPlugin {
             delta += ev.y;
         }
         if delta != 0. {
+            trace_once!("Zooming camera");
             for mut proj in &mut query {
                 proj.scale *= (1. + delta * time.delta_seconds() * 0.5).max(0.0001);
             }
@@ -196,6 +209,7 @@ impl CameraPlugin {
     }
 
     /// Move the camera based on keyboard input
+    #[call_log]
     fn move_camera_system(
         time: Res<Time>,
         keyboard_input: Res<ButtonInput<KeyCode>>,
@@ -245,6 +259,7 @@ fn rect_add(this: &Rect, other: &Vec2) -> Rect {
 impl CameraPlugin {
     /// If you press "\[" or "\]", you can cycle through the celestials
     /// TODO: sysfail
+    #[call_log]
     pub fn cycle_celestial_focus_up(
         mut commands: Commands,
         celestials: Query<(Entity, &CelestialIdx)>,
@@ -295,6 +310,7 @@ impl CameraPlugin {
 
     /// If you press "\[" or "\]", you can cycle through the celestials
     /// TODO: sysfail
+    #[call_log]
     pub fn cycle_celestial_focus_down(
         mut commands: Commands,
         celestials: Query<(Entity, &CelestialIdx)>,
@@ -345,6 +361,7 @@ impl CameraPlugin {
 
     /// Same as the above, but for when the camera doesn't have a parent yet
     /// TODO: sysfail
+    #[call_log]
     pub fn first_celestial_focus(
         mut commands: Commands,
         celestials: Query<(Entity, &CelestialIdx)>,
@@ -392,6 +409,7 @@ impl CameraPlugin {
     ///   3. Scale the camera to the celestial's radius
     ///
     /// TODO: sysfail
+    #[call_log]
     pub fn select_celestial_focus(
         mut commands: Commands,
         celestials: Query<&CelestialIdx>,

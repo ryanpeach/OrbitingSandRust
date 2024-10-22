@@ -34,6 +34,7 @@ use bevy::{
     ecs::{component::Component, query::With, system::Query},
     transform::components::Transform,
 };
+use macros::{call_log, call_log_once};
 // use bevy_mod_sysfail::sysfail;
 
 use super::camera::{MainCamera, OverlayLayer3};
@@ -106,6 +107,7 @@ impl BrushPlugin {
 /// Update functions
 impl BrushPlugin {
     /// Move the brush with the mouse
+    #[call_log_once]
     pub fn move_brush_system(
         mut query: Query<&mut Transform, (With<BrushComponent>, Without<MainCamera>)>,
         windows: Query<&Window, With<PrimaryWindow>>,
@@ -121,6 +123,7 @@ impl BrushPlugin {
         }
     }
     /// Resize the brush with + and -
+    #[call_log]
     pub fn resize_up_brush_system(
         mut brushes: Query<(&mut Radius, &mut Transform), With<BrushComponent>>,
     ) {
@@ -131,6 +134,7 @@ impl BrushPlugin {
         }
     }
     /// Resize the brush with + and -
+    #[call_log]
     pub fn resize_down_brush_system(
         mut brushes: Query<(&mut Radius, &mut Transform), With<BrushComponent>>,
     ) {
@@ -145,10 +149,11 @@ impl BrushPlugin {
     }
 
     /// If the cameras parent changes, change this parent as well
+    #[call_log_once]
     pub fn reparent_brush_system(
         mut commands: Commands,
-        cameras: Query<&Parent, With<MainCamera>>,
-        brushes: Query<(&mut Parent, Entity), Without<MainCamera>>,
+        cameras: Query<&Parent, (With<MainCamera>, Without<BrushComponent>)>,
+        brushes: Query<(&mut Parent, Entity), (With<BrushComponent>, Without<MainCamera>)>,
     ) {
         if let Ok(camera_parent) = cameras.get_single() {
             if let Ok((brush_parent, brush)) = brushes.get_single() {
@@ -161,6 +166,7 @@ impl BrushPlugin {
     }
 
     /// If the brush is a child of a celestial, make it visible
+    #[call_log_once]
     pub fn brush_visibility_system(
         mut brushes: Query<(&Parent, &mut Visibility), (With<BrushComponent>, Without<Data>)>,
         celestials: Query<Entity, (Without<BrushComponent>, With<Data>)>,
@@ -179,8 +185,8 @@ impl BrushPlugin {
     /// Based on the brush radius and the celestial cell size, return a list of
     /// points in relative xy coordinates that the brush will affect.
     /// TODO: sysfail
+    #[call_log_once]
     pub fn apply_brush_system(
-        mouse: Res<ButtonInput<MouseButton>>,
         mut brush: Query<
             (&Parent, &Transform, &Radius, &Visibility),
             (With<BrushComponent>, Without<MainCamera>),

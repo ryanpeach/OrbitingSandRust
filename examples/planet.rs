@@ -24,6 +24,7 @@ use bevy::DefaultPlugins;
 use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_picking::low_latency_window_plugin;
+use orbiting_sand::add_common_plugins;
 use orbiting_sand::bevy::entities::celestials::celestial;
 use orbiting_sand::bevy::entities::celestials::earthlike;
 use orbiting_sand::bevy::gui::camera::MainCamera;
@@ -36,25 +37,9 @@ use orbiting_sand::OrbitingSandPluginGroup;
 
 /// Create the bevy app
 fn main() {
-    App::new()
-        .add_plugins((
-            DefaultPlugins
-                .set(LogPlugin {
-                    level: bevy::log::Level::DEBUG,
-                    filter: "wgpu=error,bevy_render=info,bevy_ecs=info,bevy_egui=info,naga=info"
-                        .to_string(),
-                    ..Default::default()
-                })
-                .set(ImagePlugin::default_nearest())
-                .set(low_latency_window_plugin()),
-            FrameTimeDiagnosticsPlugin,
-            EguiPlugin,
-        ))
-        .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
-        .add_plugins(OrbitingSandPluginGroup)
-        .add_plugins(WorldInspectorPlugin::new())
-        .add_systems(PostStartup, planet_only_setup)
-        .run();
+    let mut app = App::new();
+    let app = add_common_plugins(&mut app);
+    app.add_systems(PostStartup, planet_only_setup).run();
 }
 
 /// Creates just a planet

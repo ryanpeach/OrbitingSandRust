@@ -13,7 +13,8 @@ debug = false
 
 [dependencies]
 anyhow = "1.0.86"
-bevy = { version = "0.14.2", features = ["bevy_debug_stepping"] }
+macros = { path = "./macros" }
+bevy = { version = "0.14.2", features = ["bevy_debug_stepping", "trace"] }
 bevy-inspector-egui = "0.26.0"
 bevy_egui = "0.29.0"
 bevy_eventlistener = "0.8.1"
@@ -69,14 +70,11 @@ doc_markdown = "warn"
 missing_fields_in_debug = "warn"
 redundant_clone = "warn"
 
-# TODO: Deny these lints
+# These are major
 cast_possible_truncation = "deny"
 cast_precision_loss = "deny"
 cast_possible_wrap = "deny"
 cast_sign_loss = "deny"
-module_name_repetitions = "allow"
-needless_pass_by_value = "allow"
-trivially_copy_pass_by_ref = "allow"
 unwrap_used = "deny"
 panic = "deny"
 
@@ -89,3 +87,10 @@ similar_names = "allow"
 type_complexity = "allow"
 large_enum_variant = "allow"
 mem_replace_with_default = "allow"
+
+# Just for this game
+module_name_repetitions = "allow"
+
+# Bevy doesn't work well with these
+needless_pass_by_value = "allow"
+trivially_copy_pass_by_ref = "allow"
