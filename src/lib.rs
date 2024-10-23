@@ -4,7 +4,7 @@
 //! a couple of setup functions for creating different scenes.
 
 use ::bevy::{
-    app::{App, FixedUpdate, PluginGroup, PluginGroupBuilder},
+    app::{App, FixedPostUpdate, FixedUpdate, PluginGroup, PluginGroupBuilder},
     color::Color,
     diagnostic::FrameTimeDiagnosticsPlugin,
     log::{Level, LogPlugin},
@@ -85,6 +85,14 @@ pub fn add_common_plugins(app: &mut App) -> &mut App {
     )
     .configure_sets(
         FixedUpdate,
+        (
+            MovementSet.after(ComputeSet),
+            SyncSet.after(MovementSet),
+            DrawSet.after(SyncSet),
+        ),
+    )
+    .configure_sets(
+        FixedPostUpdate,
         (
             MovementSet.after(ComputeSet),
             SyncSet.after(MovementSet),

@@ -3,9 +3,9 @@
 #![warn(missing_docs)]
 #![warn(clippy::missing_docs_in_private_items)]
 
-use bevy::app::{App, FixedUpdate, Plugin, Update};
+use bevy::app::{App, FixedPostUpdate, FixedUpdate, Plugin, Update};
 use bevy::asset::{AssetEvent, AssetId, AssetServer, Assets, Handle};
-use bevy::color::Srgba;
+use bevy::color::{Color, Srgba};
 use bevy::core::{FrameCount, Name};
 use bevy::ecs::component::Component;
 
@@ -17,7 +17,7 @@ use bevy::ecs::event::EventReader;
 use bevy::log::{debug, trace_once};
 use bevy::prelude::Resource;
 use bevy::render::texture::Image;
-use bevy::render::view::{InheritedVisibility, Visibility};
+use bevy::render::view::{InheritedVisibility, ViewVisibility, Visibility};
 use bevy_mod_picking::prelude::*;
 
 // use bevy_mod_picking::PickableBundle;
@@ -44,7 +44,7 @@ use crate::bevy::gui::camera::{
     CelestialIdx, MainCamera, OverlayLayer2, OverlayLayer3, SelectCelestial,
 };
 use crate::bevy::systemsets::{ComputeSet, DrawSet};
-use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
+use crate::physics::fallingsand::data::element_directory::ElementGridDir;
 use bevy::prelude::IntoSystemConfigs;
 use hashbrown::HashMap;
 use macros::call_log_once;
@@ -62,6 +62,10 @@ pub struct Outline;
 /// Identifies the mesh which draws the celestial cell wireframes
 #[derive(Component)]
 pub struct Grid;
+
+/// Identifies a chunk
+#[derive(Component)]
+pub struct Chunk;
 
 /// The bevy-egui container which groups all [`Outline`] components.
 #[derive(Component)]
@@ -89,14 +93,16 @@ impl Plugin for DataPlugin {
         app.add_systems(FixedUpdate, DataPlugin::draw_materials_system);
         app.add_systems(
             FixedUpdate,
+            ((DataPlugin::process_system,).in_set(ComputeSet),),
+        );
+        app.add_systems(
+            FixedPostUpdate,
             (
-                (DataPlugin::process_system,).in_set(ComputeSet),
-                (
-                    DataPlugin::draw_wireframe_system,
-                    DataPlugin::draw_outline_system,
-                )
-                    .in_set(DrawSet),
-            ),
+                DataPlugin::draw_wireframe_system,
+                DataPlugin::draw_outline_system,
+                DataPlugin::queue_materials_system,
+            )
+                .in_set(DrawSet),
         );
         // NOTE: Enable this to automatically show wireframes when you focus on a planet
         app.add_systems(
@@ -129,16 +135,14 @@ impl Data {
     /// Something to call every frame
     /// This calculates only 1/9th of the grid each frame
     /// for maximum performance
-    pub fn process(&mut self, current_time: Clock) -> HashMap<ChunkIjkVector, Textures> {
+    pub fn process(&mut self, current_time: Clock) {
         self.element_grid_dir.process(current_time);
-        self.element_grid_dir.updated_target_textures()
     }
 
     /// Something to call every frame
     /// This is the same as process, but it processes the entire grid
-    pub fn process_full(&mut self, current_time: Clock) -> HashMap<ChunkIjkVector, Textures> {
+    pub fn process_full(&mut self, current_time: Clock) {
         self.element_grid_dir.process_full(current_time);
-        self.element_grid_dir.textures()
     }
 
     /// Retrieves the element directory
@@ -232,7 +236,6 @@ impl Builder {
                     let mesh = coordinate_dir
                         .chunk_at_idx(chunk_ijk)
                         .chunk_meshdata(VertexSettings::default());
-                    let mesh_handle = mesh.load_bevy_mesh(meshes);
 
                     // Wireframes start to look weird unless you are at a certain level of detail at a certain chunk
                     let lod = if i > 1 {
@@ -264,13 +267,14 @@ impl Builder {
                             Name::new(format!("Chunk {chunk_ijk:?}")),
                             celestial_chunk_id,
                             MaterialMesh2dBundle {
-                                mesh: mesh_handle.into(),
+                                mesh: mesh.load_bevy_mesh(meshes).into(),
                                 material: materials.add(asset_server.add(sand_material)),
                                 visibility: Visibility::Inherited,
                                 ..Default::default()
                             },
                             // mesh.calc_bounds(),
                             PickableBundle::default(), // Makes the entity pickable
+                            Chunk,
                         ))
                         .id();
 
@@ -278,6 +282,7 @@ impl Builder {
                     let wireframe_entity = commands
                         .spawn((
                             Name::new(format!("Cell Grid {chunk_ijk:?}")),
+                            celestial_chunk_id,
                             GizmoDrawableGrid::new(
                                 wireframe,
                                 Srgba {
@@ -288,7 +293,14 @@ impl Builder {
                                 }
                                 .into(),
                             ),
-                            SpatialBundle {
+                            // This will enable frustum culling via ViewVisibility by making a
+                            // transparent mesh
+                            // which will enforce bounds
+                            MaterialMesh2dBundle {
+                                mesh: outline.load_bevy_mesh(meshes).into(),
+                                material: materials.add(ColorMaterial::from_color(
+                                    Color::linear_rgba(0., 0., 0., 0.),
+                                )),
                                 transform: Transform::from_translation(Vec2::ZERO.extend(2.0)),
                                 visibility: Visibility::Inherited,
                                 ..Default::default()
@@ -301,12 +313,20 @@ impl Builder {
                     let outline_entity = commands
                         .spawn((
                             Name::new(format!("Chunk Outline {chunk_ijk:?}")),
-                            GizmoDrawableLoop::new(outline, RED.into()),
-                            SpatialBundle {
+                            celestial_chunk_id,
+                            // This will enable frustum culling via ViewVisibility by making a
+                            // transparent mesh
+                            // which will enforce bounds
+                            MaterialMesh2dBundle {
+                                mesh: outline.load_bevy_mesh(meshes).into(),
+                                material: materials.add(ColorMaterial::from_color(
+                                    Color::linear_rgba(0., 0., 0., 0.),
+                                )),
                                 transform: Transform::from_translation(Vec2::ZERO.extend(3.0)),
                                 visibility: Visibility::Inherited,
                                 ..Default::default()
                             },
+                            GizmoDrawableLoop::new(outline, RED.into()),
                             Outline,
                             OverlayLayer3,
                         ))
@@ -416,50 +436,53 @@ impl DataPlugin {
     /// Should never panic, but uses expect to handle the case where a texture or material is missing.
     #[call_log_once]
     pub fn process_system(
-        mut commands: Commands,
-        mut celestial_query: Query<(Entity, &mut Data, &mut Mass), Without<ChunkGroup>>,
-        chunk_groups: Query<(Entity, &Parent), With<ChunkGroup>>,
-        falling_sand_materials: Query<(Entity, &Parent, &ChunkIjkComponent), Without<ChunkGroup>>,
-        asset_server: Res<AssetServer>,
+        mut celestial_query: Query<(&mut Data, &mut Mass), Without<ChunkGroup>>,
         time: Res<Time>,
         frame: Res<FrameCount>,
     ) {
         // Process each celestial
-        let mut new_textures_by_celestial: HashMap<Entity, HashMap<ChunkIjkVector, Textures>> =
-            HashMap::new();
-        for (celestial_id, mut celestial, mut mass) in &mut celestial_query {
+        for (mut celestial, mut mass) in &mut celestial_query {
             trace_once!("Processing celestial");
-            new_textures_by_celestial.insert(
-                celestial_id,
-                celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned())),
-            );
+            celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned()));
 
             // Update the mass
             mass.0 = celestial.element_dir().total_mass().0;
         }
+    }
 
-        // Process each chunk
+    #[call_log_once]
+    pub fn queue_materials_system(
+        mut commands: Commands,
+        mut celestial_query: Query<&mut Data, (Without<ChunkGroup>, Without<Chunk>)>,
+        chunk_groups: Query<&Parent, (With<ChunkGroup>, Without<Chunk>)>,
+        chunks: Query<
+            (Entity, &Parent, &ChunkIjkComponent, &ViewVisibility),
+            (Without<ChunkGroup>, With<Chunk>),
+        >,
+        asset_server: Res<AssetServer>,
+    ) {
         let mut asset_updates: HashMap<AssetId<Image>, (Entity, Handle<Image>)> = HashMap::new();
-        for (chunk_id, chunk_group_id, chunk_ijk) in &falling_sand_materials {
-            let (_, chunk_group_parent) = chunk_groups
-                .get(chunk_group_id.get())
-                .expect("Chunk groups are always parents of chunks");
-            let (celestial_id, _, _) = celestial_query
-                .get(chunk_group_parent.get())
-                .expect("Celestials are always parents of chunk groups");
-            let textures_by_chunk_ijk = new_textures_by_celestial
-                .get_mut(&celestial_id)
-                .expect("Expected to find textures for the given celestial ID");
+        for (chunk_id, chunk_group_id, chunk_ijk, visibility) in &chunks {
+            if visibility.get() {
+                let chunk_group_parent = chunk_groups
+                    .get(chunk_group_id.get())
+                    .expect("Chunk groups are always parents of chunks");
+                let mut celestial_data = celestial_query
+                    .get_mut(chunk_group_parent.get())
+                    .expect("Celestials are always parents of chunk groups");
+                if let Some(mut texture) = celestial_data
+                    .element_dir_mut()
+                    .get_new_texture(chunk_ijk.0)
+                {
+                    let bevy_image = texture
+                        .texture
+                        .take()
+                        .expect("Expected the texture to contain an image");
 
-            if let Some(mut texture) = textures_by_chunk_ijk.remove(&chunk_ijk.0) {
-                let bevy_image = texture
-                    .texture
-                    .take()
-                    .expect("Expected the texture to contain an image");
-
-                let handle = asset_server.add(bevy_image.to_bevy_image());
-                asset_updates.insert(handle.id(), (chunk_id, handle));
-                trace_once!("Updating material image");
+                    let handle = asset_server.add(bevy_image.to_bevy_image());
+                    asset_updates.insert(handle.id(), (chunk_id, handle));
+                    trace_once!("Updating material image");
+                }
             }
         }
         commands.insert_resource(UpdatedTextures(asset_updates));
@@ -503,10 +526,18 @@ impl DataPlugin {
     #[call_log_once]
     pub fn draw_wireframe_system(
         mut gizmos: Gizmos,
-        query: Query<(&GizmoDrawableGrid, &GlobalTransform, &InheritedVisibility), With<Grid>>,
+        query: Query<
+            (
+                &GizmoDrawableGrid,
+                &GlobalTransform,
+                &InheritedVisibility,
+                &ViewVisibility,
+            ),
+            With<Grid>,
+        >,
     ) {
-        for (drawable, transform, visibility) in query.iter() {
-            if visibility.get() {
+        for (drawable, transform, inherited_visibility, view_visibility) in query.iter() {
+            if inherited_visibility.get() && view_visibility.get() {
                 drawable.draw_bevy_gizmo_grid(&mut gizmos, &transform.compute_transform());
             }
         }
@@ -516,10 +547,18 @@ impl DataPlugin {
     #[call_log_once]
     pub fn draw_outline_system(
         mut gizmos: Gizmos,
-        query: Query<(&GizmoDrawableLoop, &GlobalTransform, &InheritedVisibility), With<Outline>>,
+        query: Query<
+            (
+                &GizmoDrawableLoop,
+                &GlobalTransform,
+                &InheritedVisibility,
+                &ViewVisibility,
+            ),
+            With<Outline>,
+        >,
     ) {
-        for (drawable, transform, visibility) in query.iter() {
-            if visibility.get() {
+        for (drawable, transform, inherited_visibility, view_visibility) in query.iter() {
+            if inherited_visibility.get() && view_visibility.get() {
                 drawable.draw_bevy_gizmo_loop(&mut gizmos, &transform.compute_transform());
             }
         }

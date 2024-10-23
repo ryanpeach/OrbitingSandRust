@@ -237,6 +237,7 @@ fn pregen_process_targets(coords: &CoordinateDir) -> ProcessTargets {
 pub struct ElementGridDir {
     coords: CoordinateDir,
     chunks: Vec<JkGrid<ChunkJkVector, Option<ElementGrid>>>,
+    has_updates: HashSet<ChunkIjkVector>,
     process_targets: ProcessTargets,
     process_count: u32,
     total_mass: Mass,
@@ -247,6 +248,7 @@ pub struct ElementGridDir {
 impl ElementGridDir {
     #[must_use]
     pub fn new_empty(coords: CoordinateDir) -> Self {
+        let mut has_updates = HashSet::new();
         let mut chunks: Vec<JkGrid<ChunkJkVector, Option<ElementGrid>>> =
             Vec::with_capacity(coords.num_layers() as usize);
         for i in 0..coords.num_layers() {
@@ -258,6 +260,7 @@ impl ElementGridDir {
                     let element_grid =
                         ElementGrid::new_empty(coords.chunk_at_idx(ChunkIjkVector { i, j, k }));
                     layer.replace(ChunkJkVector { j, k }, Some(element_grid));
+                    has_updates.insert(ChunkIjkVector { i, j, k });
                 }
             }
             chunks.push(layer);
@@ -269,6 +272,7 @@ impl ElementGridDir {
             process_targets,
             process_count: 0,
             total_mass: Self::calc_total_mass(&mut chunks),
+            has_updates,
             // max_temp,
             // min_temp,
             chunks,
@@ -280,6 +284,7 @@ impl ElementGridDir {
         fill0: &dyn Element,
         fill1: &dyn Element,
     ) -> Self {
+        let mut has_updates = HashSet::new();
         let mut chunks: Vec<JkGrid<ChunkJkVector, Option<ElementGrid>>> =
             Vec::with_capacity(coords.num_layers() as usize);
         for i in 0..coords.num_layers() {
@@ -295,6 +300,7 @@ impl ElementGridDir {
                         fill,
                     );
                     layer.replace(ChunkJkVector { j, k }, Some(element_grid));
+                    has_updates.insert(ChunkIjkVector { i, j, k });
                 }
             }
             chunks.push(layer);
@@ -306,6 +312,7 @@ impl ElementGridDir {
             process_targets,
             process_count: 0,
             total_mass: Self::calc_total_mass(&mut chunks),
+            has_updates,
             // max_temp,
             // min_temp,
             chunks,
@@ -652,38 +659,21 @@ impl ElementGridDir {
         chunk.process(self.coordinate_dir(), &mut conv, current_time);
         // Unpackage the convolution
         self.unpackage_convolution(chunk, conv);
+        self.has_updates.insert(coord);
     }
 
-    /// Gets the textures of the targets updated in the last call to process
+    /// If the chunk has updated since last call, returns the new texture,
+    /// Otherwise, returns None
     #[must_use]
-    pub fn updated_target_textures(&self) -> HashMap<ChunkIjkVector, Textures> {
-        // You should call this function only AFTER calling process
-        let process_count = self.process_count - 1;
-        let targets1 =
-            self.process_targets.standard_convolution[(process_count % 9) as usize].clone();
-        let targets2 =
-            self.process_targets.has_single_bottom_neighbor[(process_count % 9) as usize].clone();
-        let targets3 =
-            self.process_targets.has_multi_bottom_neighbor[(process_count % 9) as usize].clone();
-        let all_targets: Vec<ChunkIjkVector> = targets1
-            .0
-            .into_iter()
-            .chain(targets2.0)
-            .chain(targets3.0)
-            .collect();
-        // let (max_temp, min_temp) = self.get_max_min_temp();
-        all_targets
-            .into_par_iter()
-            .map(|target| {
-                let chunk = self.chunk_at_chunk_ijk(target);
-                (
-                    target,
-                    Textures {
-                        texture: Some(chunk.texture()),
-                    },
-                )
+    pub fn get_new_texture(&mut self, ijk: ChunkIjkVector) -> Option<Textures> {
+        if self.has_updates.remove(&ijk) {
+            let chunk = self.chunk_at_chunk_ijk(ijk);
+            Some(Textures {
+                texture: Some(chunk.texture()),
             })
-            .collect()
+        } else {
+            None
+        }
     }
 
     fn process_sequence(
@@ -691,9 +681,9 @@ impl ElementGridDir {
         targets: Sequential<HashSet<ChunkIjkVector>>,
         current_time: Clock,
     ) {
-        for target in targets.0 {
+        for target in &targets.0 {
             let mut conv = self
-                .package_coordinate_neighbors(target)
+                .package_coordinate_neighbors(*target)
                 .expect("In runtime, this should never fail.");
             let mut chunk = self.chunks[(target.i) as usize]
                 .replace(target.to_jk_vector(), None)
@@ -701,6 +691,9 @@ impl ElementGridDir {
             chunk.process(self.coordinate_dir(), &mut conv, current_time);
             // Unpackage the convolution
             self.unpackage_convolution(chunk, conv);
+            targets.0.iter().for_each(|x| {
+                self.has_updates.insert(*x);
+            });
         }
     }
     fn process_parallel(
@@ -709,7 +702,7 @@ impl ElementGridDir {
         current_time: Clock,
     ) {
         let (mut convolutions, mut target_chunks) = self
-            .package_convolutions(targets.0)
+            .package_convolutions(targets.0.clone())
             .expect("In runtime, this should never fail.");
         convolutions
             .par_iter_mut()
@@ -718,6 +711,9 @@ impl ElementGridDir {
                 target_chunk.process(self.coordinate_dir(), convolution, current_time);
             });
         self.unpackage_convolutions(convolutions, target_chunks);
+        targets.0.iter().for_each(|x| {
+            self.has_updates.insert(*x);
+        });
     }
 
     /// Get the number of chunks from the coordinate directory
