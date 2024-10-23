@@ -17,6 +17,7 @@ pub mod camera;
 pub mod element_picker;
 pub mod system_stepping;
 
+/// All GUI plugins are setup from this plugin
 pub struct GuiUnifiedPlugin;
 
 impl Plugin for GuiUnifiedPlugin {

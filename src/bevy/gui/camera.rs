@@ -6,7 +6,7 @@
 use std::ops::Add;
 
 use bevy::input::common_conditions::{input_just_pressed, input_pressed};
-use bevy::log::{debug, error, trace, trace_once};
+use bevy::log::{debug, error, trace_once};
 use bevy::prelude::{Condition, IntoSystemConfigs, MouseButton};
 use bevy::render::camera::OrthographicProjection;
 use bevy::{
@@ -15,12 +15,12 @@ use bevy::{
     ecs::{
         component::Component,
         event::{Event, EventReader},
-        query::{With, Without},
+        query::With,
         system::{Commands, Query, Res},
     },
     hierarchy::{BuildChildren, Parent},
     input::{keyboard::KeyCode, mouse::MouseWheel, ButtonInput},
-    math::{Rect, Vec2, Vec3},
+    math::Vec3,
     prelude::Entity,
     time::Time,
     transform::components::Transform,
@@ -235,23 +235,23 @@ impl CameraPlugin {
     }
 }
 
-/// Check if two rectangles overlap
-fn rect_overlaps(this: &Rect, other: &Rect) -> bool {
-    this.min.x < other.max.x
-        && this.max.x > other.min.x
-        && this.min.y < other.max.y
-        && this.max.y > other.min.y
-}
-
-/// Add a vector to every corner of a rectangle
-fn rect_add(this: &Rect, other: &Vec2) -> Rect {
-    Rect::new(
-        this.min.x + other.x,
-        this.min.y + other.y,
-        this.max.x + other.x,
-        this.max.y + other.y,
-    )
-}
+// /// Check if two rectangles overlap
+// fn rect_overlaps(this: &Rect, other: &Rect) -> bool {
+//     this.min.x < other.max.x
+//         && this.max.x > other.min.x
+//         && this.min.y < other.max.y
+//         && this.max.y > other.min.y
+// }
+//
+// /// Add a vector to every corner of a rectangle
+// fn rect_add(this: &Rect, other: &Vec2) -> Rect {
+//     Rect::new(
+//         this.min.x + other.x,
+//         this.min.y + other.y,
+//         this.max.x + other.x,
+//         this.max.y + other.y,
+//     )
+// }
 
 /// Celestial Focus Systems
 impl CameraPlugin {

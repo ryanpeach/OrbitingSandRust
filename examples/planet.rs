@@ -6,34 +6,21 @@ use bevy::app::App;
 use bevy::app::PostStartup;
 use bevy::asset::AssetServer;
 use bevy::asset::Assets;
-use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-use bevy::log::LogPlugin;
 use bevy::prelude::BuildChildren;
-use bevy::prelude::Color;
 use bevy::prelude::Commands;
 use bevy::prelude::Entity;
-use bevy::prelude::ImagePlugin;
 use bevy::prelude::Mesh;
 use bevy::prelude::Query;
 use bevy::prelude::Res;
 use bevy::prelude::ResMut;
 use bevy::prelude::With;
-use bevy::render::camera::ClearColor;
 use bevy::sprite::ColorMaterial;
-use bevy::DefaultPlugins;
-use bevy_egui::EguiPlugin;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use bevy_mod_picking::low_latency_window_plugin;
 use orbiting_sand::add_common_plugins;
 use orbiting_sand::bevy::entities::celestials::celestial;
 use orbiting_sand::bevy::entities::celestials::earthlike;
 use orbiting_sand::bevy::gui::camera::MainCamera;
 
-use bevy::prelude::PluginGroup;
-
 use orbiting_sand::bevy::gui::camera::CelestialIdx;
-
-use orbiting_sand::OrbitingSandPluginGroup;
 
 /// Create the bevy app
 fn main() {

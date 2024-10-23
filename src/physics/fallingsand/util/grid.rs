@@ -241,31 +241,6 @@ where
     }
 }
 
-/// Where filter is true, get the textures
-#[must_use]
-pub fn filter_vecgrid<T, V>(grid: &[JkGrid<T, V>], filter: &[JkGrid<T, bool>]) -> Vec<JkGrid<T, V>>
-where
-    T: JkVector + Default,
-    V: Default + Clone,
-{
-    let mut out = Vec::new();
-    for (i, item) in filter.iter().enumerate() {
-        let j_size = item.height();
-        let k_size = item.width();
-        let mut layer = JkGrid::<T, V>::new_empty(k_size, j_size);
-        for j in 0..j_size {
-            for k in 0..k_size {
-                // Doesn't actually matter what impl JkVector type you use for this
-                if *item.get(T::new(j, k)) {
-                    layer.set(T::new(j, k), grid[i].get(T::new(j, k)).clone());
-                }
-            }
-        }
-        out.push(layer);
-    }
-    out
-}
-
 #[cfg(test)]
 mod tests {
     #![allow(

@@ -19,8 +19,7 @@ use bevy::hierarchy::{BuildChildren, Parent};
 use bevy::input::common_conditions::{input_just_pressed, input_pressed};
 use bevy::input::keyboard::KeyCode;
 use bevy::input::mouse::MouseButton;
-use bevy::input::ButtonInput;
-use bevy::log::{debug, trace, trace_once};
+use bevy::log::debug;
 use bevy::math::{Vec2, Vec3};
 use bevy::prelude::{Circle, IntoSystemConfigs, ResMut, Window, Without};
 

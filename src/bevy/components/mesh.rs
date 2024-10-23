@@ -7,16 +7,9 @@
 use bevy::color::Color;
 use bevy::ecs::component::Component;
 
-use bevy::math::Rect;
-
 use bevy::{gizmos::gizmos::Gizmos, transform::components::Transform};
 
 use crate::common::util::mesh::OwnedMeshData;
-
-/// Useful for frustum culling
-/// The bounding box of the mesh to determine if it is visible on the screen
-#[derive(Component)]
-pub struct MeshBoundingBox(pub Rect);
 
 /// A mesh that can be drawn using bevy's gizmos (immediate mode renderer)
 /// This version draws the mesh using lines and assumes that the mesh is a loop

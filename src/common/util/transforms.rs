@@ -2,7 +2,7 @@ use super::vectors::{ModelCoord, WorldCoord};
 use bevy::transform::components::Transform;
 use bevy::{render::camera::Camera, transform::components::GlobalTransform, window::Window};
 
-/// Take a mouse coordinate and translate it into a [`WorldCoord`] based on the [`Camera2d`]'s
+/// Take a mouse coordinate and translate it into a [`WorldCoord`] based on the [`Camera`]'s
 /// [`GlobalTransform`]
 ///
 /// This is useful when the camera is free floating.
@@ -23,7 +23,7 @@ pub fn get_mouse_world_position(
     None
 }
 
-/// Take a mouse coordinate and translate it into a [`ModelCoord`] based on the [`Camera2d`]'s
+/// Take a mouse coordinate and translate it into a [`ModelCoord`] based on the [`Camera`]'s
 /// [`Transform`].
 ///
 /// This is useful when the camera is following something.
