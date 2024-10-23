@@ -8,15 +8,16 @@ use ::bevy::{
     color::Color,
     diagnostic::FrameTimeDiagnosticsPlugin,
     log::{Level, LogPlugin},
-    prelude::IntoSystemSetConfigs,
+    prelude::{IntoSystemConfigs, IntoSystemSetConfigs},
     render::{camera::ClearColor, texture::ImagePlugin},
     time::{Fixed, Time},
+    transform::systems::{propagate_transforms, sync_simple_transforms},
     DefaultPlugins,
 };
 use bevy::{
     entities::celestials::celestial::DataPlugin,
     gui::{brush, camera, element_picker, system_stepping::SteppingEguiPlugin, GuiUnifiedPlugin},
-    systemsets::{ComputeSet, DrawSet, MovementSet},
+    systemsets::{ComputeSet, DrawSet, MovementSet, SyncSet},
 };
 use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
@@ -78,8 +79,16 @@ pub fn add_common_plugins(app: &mut App) -> &mut App {
     .add_plugins(OrbitingSandPluginGroup)
     .add_plugins(WorldInspectorPlugin::new())
     .insert_resource(Time::<Fixed>::from_seconds(1.0 / PHYSICS_FRAME_RATE))
+    .add_systems(
+        FixedUpdate,
+        (propagate_transforms, sync_simple_transforms).in_set(SyncSet),
+    )
     .configure_sets(
         FixedUpdate,
-        (MovementSet.after(ComputeSet), DrawSet.after(MovementSet)),
+        (
+            MovementSet.after(ComputeSet),
+            SyncSet.after(MovementSet),
+            DrawSet.after(SyncSet),
+        ),
     )
 }
