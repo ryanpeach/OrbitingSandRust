@@ -35,7 +35,7 @@ use bevy_mod_picking::events::Pointer;
 use bevy_mod_picking::PickableBundle;
 
 use bevy::sprite::{ColorMaterial, MaterialMesh2dBundle};
-use bevy::time::{Fixed, Time};
+use bevy::time::Time;
 
 use bevy::transform::components::{GlobalTransform, Transform};
 
@@ -54,7 +54,6 @@ use crate::common::util::uom::{Mass, Velocity};
 use crate::common::util::vectors::ChunkIjkVector;
 use crate::physics::fallingsand::mesh::chunk_coords::{VertexMode, VertexSettings};
 use crate::physics::orbits::nbody::GravitationalField;
-use crate::physics::PHYSICS_FRAME_RATE;
 
 /// Identifies the mesh which draws the celestials chunk outlines
 #[derive(Component)]
@@ -107,7 +106,6 @@ impl Plugin for DataPlugin {
                 DataPlugin::outline_visibility_system,
             ),
         );
-        app.insert_resource(Time::<Fixed>::from_seconds(1.0 / PHYSICS_FRAME_RATE));
         app.insert_resource(UpdatedTextures::default());
         app.add_event::<SelectCelestial>();
     }

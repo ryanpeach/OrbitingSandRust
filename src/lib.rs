@@ -10,6 +10,7 @@ use ::bevy::{
     log::{Level, LogPlugin},
     prelude::IntoSystemSetConfigs,
     render::{camera::ClearColor, texture::ImagePlugin},
+    time::{Fixed, Time},
     DefaultPlugins,
 };
 use bevy::{
@@ -19,7 +20,7 @@ use bevy::{
 };
 use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use physics::orbits::nbody::NBodyPlugin;
+use physics::{orbits::nbody::NBodyPlugin, PHYSICS_FRAME_RATE};
 
 use bevy_mod_picking::low_latency_window_plugin;
 
@@ -76,6 +77,7 @@ pub fn add_common_plugins(app: &mut App) -> &mut App {
     .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
     .add_plugins(OrbitingSandPluginGroup)
     .add_plugins(WorldInspectorPlugin::new())
+    .insert_resource(Time::<Fixed>::from_seconds(1.0 / PHYSICS_FRAME_RATE))
     .configure_sets(
         FixedUpdate,
         (MovementSet.after(ComputeSet), DrawSet.after(MovementSet)),
