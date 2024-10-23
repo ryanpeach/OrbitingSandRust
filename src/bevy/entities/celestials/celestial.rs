@@ -14,13 +14,14 @@ use bevy::ecs::entity::Entity;
 use bevy::gizmos::gizmos::Gizmos;
 
 use bevy::ecs::event::EventReader;
+use bevy::log::{debug, trace_once};
 use bevy::prelude::Resource;
 use bevy::render::texture::Image;
-use bevy::render::view::{Visibility, VisibilityBundle};
+use bevy::render::view::{InheritedVisibility, Visibility};
 use bevy_mod_picking::prelude::*;
 
 // use bevy_mod_picking::PickableBundle;
-use bevy::ecs::query::With;
+use bevy::ecs::query::{With, Without};
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
@@ -38,11 +39,15 @@ use bevy::time::{Fixed, Time};
 
 use bevy::transform::components::{GlobalTransform, Transform};
 
-use hashbrown::HashMap;
-
 use crate::bevy::components::mesh::{GizmoDrawableGrid, GizmoDrawableLoop};
-use crate::bevy::gui::camera::{CelestialIdx, OverlayLayer2, OverlayLayer3, SelectCelestial};
+use crate::bevy::gui::camera::{
+    CelestialIdx, MainCamera, OverlayLayer2, OverlayLayer3, SelectCelestial,
+};
+use crate::bevy::systemsets::{ComputeSet, DrawSet};
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
+use bevy::prelude::IntoSystemConfigs;
+use hashbrown::HashMap;
+use macros::call_log_once;
 
 use crate::common::util::clock::Clock;
 use crate::common::util::uom::{Mass, Velocity};
@@ -59,33 +64,51 @@ pub struct Outline;
 #[derive(Component)]
 pub struct Grid;
 
+/// The bevy-egui container which groups all [`Outline`] components.
+#[derive(Component)]
+pub struct OutlineGroup;
+
+/// The bevy-egui container which groups all [`Grid`] components.
+#[derive(Component)]
+pub struct GridGroup;
+
 /// A component that represents a chunk by its index in the directory
 #[derive(Component, Debug, Clone, Copy)]
 pub struct ChunkIjkComponent(ChunkIjkVector);
 
-/// Put this alongside the mesh that represents the falling sand itself
-#[derive(Component, Debug, Clone, Copy)]
-pub struct FallingSandMaterial;
+/// The bevy-egui container which groups all [`ChunkIjkComponent`] components.
+#[derive(Component)]
+pub struct ChunkGroup;
 
 /// A plugin that adds the `CelestialData` system
 pub struct DataPlugin;
 
 impl Plugin for DataPlugin {
     fn build(&self, app: &mut App) {
+        // WARNING: you cant put this `.after` anything since it is event driven.
+        // That's why its not in the [`DrawSet`]
+        app.add_systems(FixedUpdate, DataPlugin::draw_materials_system);
         app.add_systems(
             FixedUpdate,
-            (Self::process_system, DataPlugin::draw_materials_system),
+            (
+                (DataPlugin::process_system,).in_set(ComputeSet),
+                (
+                    DataPlugin::draw_wireframe_system,
+                    DataPlugin::draw_outline_system,
+                )
+                    .in_set(DrawSet),
+            ),
         );
-
-        app.insert_resource(Time::<Fixed>::from_seconds(1.0 / PHYSICS_FRAME_RATE));
-        app.insert_resource(UpdatedTextures::default());
+        // NOTE: Enable this to automatically show wireframes when you focus on a planet
         app.add_systems(
             Update,
             (
-                DataPlugin::draw_wireframe_system,
-                DataPlugin::draw_outline_system,
+                DataPlugin::wireframe_visibility_system,
+                DataPlugin::outline_visibility_system,
             ),
         );
+        app.insert_resource(Time::<Fixed>::from_seconds(1.0 / PHYSICS_FRAME_RATE));
+        app.insert_resource(UpdatedTextures::default());
         app.add_event::<SelectCelestial>();
     }
 }
@@ -250,7 +273,6 @@ impl Builder {
                             },
                             // mesh.calc_bounds(),
                             PickableBundle::default(), // Makes the entity pickable
-                            FallingSandMaterial,
                         ))
                         .id();
 
@@ -269,25 +291,22 @@ impl Builder {
                                 .into(),
                             ),
                             SpatialBundle {
-                                transform: Transform::from_translation(
-                                    self.translation.extend(2.0),
-                                ),
-                                visibility: Visibility::Visible,
+                                transform: Transform::from_translation(Vec2::ZERO.extend(2.0)),
+                                visibility: Visibility::Inherited,
                                 ..Default::default()
                             },
                             Grid,
                             OverlayLayer2,
                         ))
                         .id();
+
                     let outline_entity = commands
                         .spawn((
                             Name::new(format!("Chunk Outline {chunk_ijk:?}")),
                             GizmoDrawableLoop::new(outline, RED.into()),
                             SpatialBundle {
-                                transform: Transform::from_translation(
-                                    self.translation.extend(3.0),
-                                ),
-                                visibility: Visibility::Hidden,
+                                transform: Transform::from_translation(Vec2::ZERO.extend(3.0)),
+                                visibility: Visibility::Inherited,
                                 ..Default::default()
                             },
                             Outline,
@@ -330,35 +349,39 @@ impl Builder {
         // which itself is the parent to all the other wireframe entities
         // this enables you to change their visibility easier with egui inspector
         // and cleans up the hierarchy
-        let wireframe_id = commands
+        let wireframe_group = commands
             .spawn((
                 Name::new("Cell Grids"),
-                VisibilityBundle {
-                    visibility: Visibility::Visible,
+                SpatialBundle {
+                    visibility: Visibility::Hidden,
                     ..Default::default()
                 },
-                GlobalTransform::default(),
+                GridGroup,
             ))
             .id();
-        commands.entity(wireframe_id).push_children(&wireframes);
-        commands.entity(celestial_id).push_children(&[wireframe_id]);
+        commands.entity(wireframe_group).push_children(&wireframes);
+        commands
+            .entity(celestial_id)
+            .push_children(&[wireframe_group]);
 
         // Create an outlines entity parented to the celestial
         // which itself is the parent to all the other outline entities
         // this enables you to change their visibility easier with egui inspector
         // and cleans up the hierarchy
-        let outline = commands
+        let outline_group = commands
             .spawn((
                 Name::new("Chunk Outlines"),
-                VisibilityBundle {
-                    visibility: Visibility::Visible,
+                SpatialBundle {
+                    visibility: Visibility::Hidden,
                     ..Default::default()
                 },
-                GlobalTransform::default(),
+                OutlineGroup,
             ))
             .id();
-        commands.entity(outline).push_children(&outlines);
-        commands.entity(celestial_id).push_children(&[outline]);
+        commands.entity(outline_group).push_children(&outlines);
+        commands
+            .entity(celestial_id)
+            .push_children(&[outline_group]);
 
         // And create events
         commands
@@ -366,7 +389,18 @@ impl Builder {
             .insert(On::<Pointer<Down>>::send_event::<SelectCelestial>());
 
         // Parent the chunks to the celestial
-        commands.entity(celestial_id).push_children(&chunks);
+        let chunk_group = commands
+            .spawn((
+                Name::new("Chunks"),
+                SpatialBundle {
+                    visibility: Visibility::Inherited,
+                    ..Default::default()
+                },
+                ChunkGroup,
+            ))
+            .id();
+        commands.entity(chunk_group).push_children(&chunks);
+        commands.entity(celestial_id).push_children(&[chunk_group]);
 
         // Return the celestial
         celestial_id
@@ -382,10 +416,12 @@ impl DataPlugin {
     /// Run this system every frame to update the celestial
     /// # Panics
     /// Should never panic, but uses expect to handle the case where a texture or material is missing.
+    #[call_log_once]
     pub fn process_system(
         mut commands: Commands,
-        mut celestial_query: Query<(Entity, &mut Data, &mut Mass)>,
-        falling_sand_materials: Query<(Entity, &Parent, &ChunkIjkComponent)>,
+        mut celestial_query: Query<(Entity, &mut Data, &mut Mass), Without<ChunkGroup>>,
+        chunk_groups: Query<(Entity, &Parent), With<ChunkGroup>>,
+        falling_sand_materials: Query<(Entity, &Parent, &ChunkIjkComponent), Without<ChunkGroup>>,
         asset_server: Res<AssetServer>,
         time: Res<Time>,
         frame: Res<FrameCount>,
@@ -394,6 +430,7 @@ impl DataPlugin {
         let mut new_textures_by_celestial: HashMap<Entity, HashMap<ChunkIjkVector, Textures>> =
             HashMap::new();
         for (celestial_id, mut celestial, mut mass) in &mut celestial_query {
+            trace_once!("Processing celestial");
             new_textures_by_celestial.insert(
                 celestial_id,
                 celestial.process(Clock::new(time.as_generic(), frame.as_ref().to_owned())),
@@ -405,9 +442,15 @@ impl DataPlugin {
 
         // Process each chunk
         let mut asset_updates: HashMap<AssetId<Image>, (Entity, Handle<Image>)> = HashMap::new();
-        for (chunk_id, celestial_id, chunk_ijk) in &falling_sand_materials {
+        for (chunk_id, chunk_group_id, chunk_ijk) in &falling_sand_materials {
+            let (_, chunk_group_parent) = chunk_groups
+                .get(chunk_group_id.get())
+                .expect("Chunk groups are always parents of chunks");
+            let (celestial_id, _, _) = celestial_query
+                .get(chunk_group_parent.get())
+                .expect("Celestials are always parents of chunk groups");
             let textures_by_chunk_ijk = new_textures_by_celestial
-                .get_mut(&celestial_id.get())
+                .get_mut(&celestial_id)
                 .expect("Expected to find textures for the given celestial ID");
 
             if let Some(mut texture) = textures_by_chunk_ijk.remove(&chunk_ijk.0) {
@@ -418,6 +461,7 @@ impl DataPlugin {
 
                 let handle = asset_server.add(bevy_image.to_bevy_image());
                 asset_updates.insert(handle.id(), (chunk_id, handle));
+                trace_once!("Updating material image");
             }
         }
         commands.insert_resource(UpdatedTextures(asset_updates));
@@ -428,6 +472,7 @@ impl DataPlugin {
     /// WARNING: When developing, make sure this is always O(1) for each event. I don't know how
     /// many times its called per update. Do all events come in at once or one in each call?
     /// Preprocessing could happen many times.
+    #[call_log_once]
     pub fn draw_materials_system(
         falling_sand_materials: Query<&Handle<ColorMaterial>>,
         mut materials: ResMut<Assets<ColorMaterial>>,
@@ -450,30 +495,88 @@ impl DataPlugin {
                         .expect("Expected to find material and set the texture");
 
                     material.texture = Some(image_handle);
+                    trace_once!("Updating material");
                 }
             }
         }
     }
 
     /// Draw the wireframe of the celestials cells
+    #[call_log_once]
     pub fn draw_wireframe_system(
         mut gizmos: Gizmos,
-        query: Query<(&GizmoDrawableGrid, &Transform, &Visibility), With<Grid>>,
+        query: Query<(&GizmoDrawableGrid, &GlobalTransform, &InheritedVisibility), With<Grid>>,
     ) {
         for (drawable, transform, visibility) in query.iter() {
-            if Visibility::Visible == visibility {
-                drawable.draw_bevy_gizmo_grid(&mut gizmos, transform);
+            if visibility.get() {
+                drawable.draw_bevy_gizmo_grid(&mut gizmos, &transform.compute_transform());
             }
         }
     }
+
     /// Draw the outline of the celestials chunks
+    #[call_log_once]
     pub fn draw_outline_system(
         mut gizmos: Gizmos,
-        query: Query<(&GizmoDrawableLoop, &Transform, &Visibility), With<Outline>>,
+        query: Query<(&GizmoDrawableLoop, &GlobalTransform, &InheritedVisibility), With<Outline>>,
     ) {
         for (drawable, transform, visibility) in query.iter() {
-            if Visibility::Visible == visibility {
-                drawable.draw_bevy_gizmo_loop(&mut gizmos, transform);
+            if visibility.get() {
+                drawable.draw_bevy_gizmo_loop(&mut gizmos, &transform.compute_transform());
+            }
+        }
+    }
+
+    /// If the [`Camera`] is a child of a celestial [`Data`], make the [`Grid`] visible
+    #[call_log_once]
+    pub fn wireframe_visibility_system(
+        mut wireframe_groups: Query<
+            (&Parent, &mut Visibility),
+            (Without<MainCamera>, With<GridGroup>, Without<Data>),
+        >,
+        celestials: Query<Entity, (Without<MainCamera>, Without<GridGroup>, With<Data>)>,
+        camera: Query<&Parent, (With<MainCamera>, Without<GridGroup>, Without<Data>)>,
+    ) {
+        if let Ok(camera_parent) = camera.get_single() {
+            for (wireframe_parent, mut wireframe_visibility) in &mut wireframe_groups {
+                if let Ok(celestial) = celestials.get(wireframe_parent.get()) {
+                    if camera_parent.get() == celestial {
+                        if *wireframe_visibility != Visibility::Visible {
+                            debug!("Wireframe changed to visible");
+                            *wireframe_visibility = Visibility::Visible;
+                        }
+                    } else if *wireframe_visibility != Visibility::Hidden {
+                        debug!("Wireframe changed to hidden");
+                        *wireframe_visibility = Visibility::Hidden;
+                    }
+                }
+            }
+        }
+    }
+
+    /// If the [`Camera`] is a child of a celestial [`Data`], make the [`Outline`] visible
+    #[call_log_once]
+    pub fn outline_visibility_system(
+        mut outline_groups: Query<
+            (&Parent, &mut Visibility),
+            (Without<MainCamera>, With<OutlineGroup>, Without<Data>),
+        >,
+        celestials: Query<Entity, (Without<MainCamera>, Without<OutlineGroup>, With<Data>)>,
+        camera: Query<&Parent, (With<MainCamera>, Without<OutlineGroup>, Without<Data>)>,
+    ) {
+        if let Ok(camera_parent) = camera.get_single() {
+            for (outline_parent, mut outline_visibility) in &mut outline_groups {
+                if let Ok(celestial) = celestials.get(outline_parent.get()) {
+                    if camera_parent.get() == celestial {
+                        if *outline_visibility != Visibility::Visible {
+                            debug!("Outline changed to visible");
+                            *outline_visibility = Visibility::Visible;
+                        }
+                    } else if *outline_visibility != Visibility::Hidden {
+                        debug!("Outline changed to hidden");
+                        *outline_visibility = Visibility::Hidden;
+                    }
+                }
             }
         }
     }

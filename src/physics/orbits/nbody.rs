@@ -56,7 +56,7 @@ use bevy::{
     transform::components::Transform,
 };
 
-use crate::{common::util::uom::Force, physics::PHYSICS_FRAME_RATE};
+use crate::{bevy::systemsets::MovementSet, common::util::uom::Force, physics::PHYSICS_FRAME_RATE};
 
 use crate::common::util::uom::{ForceVec, Mass, Velocity};
 
@@ -162,7 +162,8 @@ impl Plugin for NBodyPlugin {
             (
                 Self::grav_bodies_system,
                 Self::no_grav_bodies_system.after(Self::grav_bodies_system),
-            ),
+            )
+                .in_set(MovementSet),
         );
         app.insert_resource(Time::<Fixed>::from_seconds(1.0 / PHYSICS_FRAME_RATE));
     }

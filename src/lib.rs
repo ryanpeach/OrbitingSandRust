@@ -4,16 +4,18 @@
 //! a couple of setup functions for creating different scenes.
 
 use ::bevy::{
-    app::{App, PluginGroup, PluginGroupBuilder},
+    app::{App, FixedUpdate, PluginGroup, PluginGroupBuilder},
     color::Color,
     diagnostic::FrameTimeDiagnosticsPlugin,
     log::{Level, LogPlugin},
+    prelude::IntoSystemSetConfigs,
     render::{camera::ClearColor, texture::ImagePlugin},
     DefaultPlugins,
 };
 use bevy::{
     entities::celestials::celestial::DataPlugin,
     gui::{brush, camera, element_picker, system_stepping::SteppingEguiPlugin, GuiUnifiedPlugin},
+    systemsets::{ComputeSet, DrawSet, MovementSet},
 };
 use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
@@ -74,4 +76,8 @@ pub fn add_common_plugins(app: &mut App) -> &mut App {
     .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
     .add_plugins(OrbitingSandPluginGroup)
     .add_plugins(WorldInspectorPlugin::new())
+    .configure_sets(
+        FixedUpdate,
+        (MovementSet.after(ComputeSet), DrawSet.after(MovementSet)),
+    )
 }
