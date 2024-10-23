@@ -27,6 +27,7 @@ use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_picking::low_latency_window_plugin;
 use conv::ConvAsUtil;
+use orbiting_sand::add_common_plugins;
 use orbiting_sand::bevy::entities::celestials::celestial;
 use orbiting_sand::bevy::entities::celestials::earthlike;
 use orbiting_sand::bevy::entities::celestials::sun;

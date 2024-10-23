@@ -16,11 +16,11 @@ use bevy::core::FrameCount;
 use bevy::ecs::entity::Entity;
 use bevy::ecs::system::{Commands, Res};
 use bevy::hierarchy::{BuildChildren, Parent};
-use bevy::input::common_conditions::input_just_pressed;
+use bevy::input::common_conditions::{input_just_pressed, input_pressed};
 use bevy::input::keyboard::KeyCode;
 use bevy::input::mouse::MouseButton;
 use bevy::input::ButtonInput;
-use bevy::log::debug;
+use bevy::log::{debug, trace, trace_once};
 use bevy::math::{Vec2, Vec3};
 use bevy::prelude::{Circle, IntoSystemConfigs, ResMut, Window, Without};
 
@@ -54,7 +54,7 @@ impl Plugin for BrushPlugin {
             (
                 Self::resize_up_brush_system.run_if(input_just_pressed(KeyCode::Equal)),
                 Self::resize_down_brush_system.run_if(input_just_pressed(KeyCode::Minus)),
-                Self::apply_brush_system.run_if(input_just_pressed(MouseButton::Left)),
+                Self::apply_brush_system.run_if(input_pressed(MouseButton::Left)),
                 Self::move_brush_system,
                 Self::reparent_brush_system,
                 Self::brush_visibility_system,
@@ -153,12 +153,17 @@ impl BrushPlugin {
     pub fn reparent_brush_system(
         mut commands: Commands,
         cameras: Query<&Parent, (With<MainCamera>, Without<BrushComponent>)>,
-        brushes: Query<(&mut Parent, Entity), (With<BrushComponent>, Without<MainCamera>)>,
+        brushes: Query<(Option<&Parent>, Entity), (With<BrushComponent>, Without<MainCamera>)>,
     ) {
         if let Ok(camera_parent) = cameras.get_single() {
             if let Ok((brush_parent, brush)) = brushes.get_single() {
-                if camera_parent.get() != brush_parent.get() {
-                    debug!("Camera parent changed, changing brush parent to match.");
+                if let Some(brush_parent) = brush_parent {
+                    if camera_parent.get() != brush_parent.get() {
+                        debug!("Camera parent changed, changing brush parent to match.");
+                        commands.entity(brush).set_parent(camera_parent.get());
+                    }
+                } else {
+                    debug!("Brush has no parent, changing brush parent to match camera parent.");
                     commands.entity(brush).set_parent(camera_parent.get());
                 }
             }
@@ -173,9 +178,11 @@ impl BrushPlugin {
     ) {
         if let Ok((brush_parent, mut brush_visibility)) = brushes.get_single_mut() {
             if celestials.get(brush_parent.get()).is_ok() {
-                debug!("Brush changed to visible");
-                *brush_visibility = Visibility::Visible;
-            } else {
+                if *brush_visibility != Visibility::Visible {
+                    debug!("Brush changed to visible");
+                    *brush_visibility = Visibility::Visible;
+                }
+            } else if *brush_visibility != Visibility::Hidden {
                 debug!("Brush changed to hidden");
                 *brush_visibility = Visibility::Hidden;
             }
