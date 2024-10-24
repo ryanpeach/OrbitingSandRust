@@ -2,13 +2,18 @@
 use hashbrown::HashMap;
 use thiserror::Error;
 
-use crate::physics::fallingsand::{
-    data::element_grid::ElementGrid,
-    elements::element::Element,
-    util::vectors::{ChunkIjkVector, JkVector},
-};
+use crate::physics::fallingsand::{data::element_grid::ElementGrid, elements::element::Element};
 
-use super::{neighbor_identifiers::*, neighbor_indexes::*};
+use super::{
+    neighbor_identifiers::{
+        BottomNeighborIdentifier, BottomNeighborIdentifierChunkDoubling,
+        BottomNeighborIdentifierNormal, ConvolutionIdentifier, ConvolutionIdx,
+        LeftRightNeighborIdentifier, TopNeighborIdentifier, TopNeighborIdentifierChunkDoubling,
+        TopNeighborIdentifierNormal,
+    },
+    neighbor_indexes::{BottomNeighborIdxs, LeftRightNeighborIdxs, TopNeighborIdxs},
+};
+use crate::common::util::vectors::{ChunkIjkVector, InChunkJkVector as JkVector};
 
 /// The main type exported by this module
 /// Contains all the neighbor grids for the convolution
@@ -24,12 +29,13 @@ pub struct ElementGridConvolutionNeighborGrids {
 }
 
 impl ElementGridConvolutionNeighborGrids {
-    /// Converts the ElementGridConvolutionNeighborGrids into a hashmap
+    /// Converts the `ElementGridConvolutionNeighborGrids` into a hashmap
+    #[must_use]
     pub fn into_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
         let mut map = HashMap::new();
-        map.extend(self.top.to_hashmap());
-        map.extend(self.left_right.to_hashmap());
-        map.extend(self.bottom.to_hashmap());
+        map.extend(self.top.into_hashmap());
+        map.extend(self.left_right.into_hashmap());
+        map.extend(self.bottom.into_hashmap());
         map
     }
 }
@@ -43,7 +49,6 @@ pub struct ConvOutOfBoundsError(pub ConvolutionIdx);
 /// Check out the  [`super::neighbor_identifiers::LeftRightNeighborIdentifier`] and
 ///  [`super::neighbor_indexes::LeftRightNeighborIdxs`] documentation for more information
 /// documentation for more information
-#[allow(clippy::large_enum_variant)]
 pub enum LeftRightNeighborGrids {
     /// The left and right elements
     /// TODO: Unecessary to have a struct for this, flatten into the enum
@@ -56,8 +61,9 @@ pub enum LeftRightNeighborGrids {
 }
 
 impl LeftRightNeighborGrids {
-    /// Converts the LeftRightNeighborGrids into a hashmap
-    pub fn to_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
+    /// Converts the `LeftRightNeighborGrids` into a hashmap
+    #[must_use]
+    pub fn into_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
         match self {
             LeftRightNeighborGrids::LR { l, r } => {
                 let mut map = HashMap::new();
@@ -68,7 +74,8 @@ impl LeftRightNeighborGrids {
         }
     }
 
-    /// Converts a hashmap into a LeftRightNeighborGrids
+    /// Converts a hashmap into a `LeftRightNeighborGrids`
+    #[allow(clippy::unwrap_used)]
     pub fn from_hashmap(
         idxs: &LeftRightNeighborIdxs,
         grids: &mut HashMap<ChunkIjkVector, ElementGrid>,
@@ -82,6 +89,7 @@ impl LeftRightNeighborGrids {
     }
 
     /// Gets the chunk at the given chunk index
+    #[must_use]
     pub fn chunk_at_chunk_ijk(
         &self,
         idx: ChunkIjkVector,
@@ -103,7 +111,6 @@ impl LeftRightNeighborGrids {
 /// Top neighbor grids in the convolution
 /// Check out the  [`super::neighbor_identifiers::TopNeighborIdentifier`] and
 ///  [`super::neighbor_indexes::TopNeighborIdxs`] documentation for more information
-#[allow(clippy::large_enum_variant)]
 pub enum TopNeighborGrids {
     /// Indicates that there are the same number of chunks above as you have
     /// However, the cells may still double tangentially
@@ -133,8 +140,9 @@ pub enum TopNeighborGrids {
 }
 
 impl TopNeighborGrids {
-    /// Converts the TopNeighborGrids into a hashmap
-    pub fn to_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
+    /// Converts the `TopNeighborGrids` into a hashmap
+    #[must_use]
+    pub fn into_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
         match self {
             TopNeighborGrids::Normal { tl, t, tr } => {
                 let mut map = HashMap::new();
@@ -155,7 +163,8 @@ impl TopNeighborGrids {
         }
     }
 
-    /// Converts a hashmap into a TopNeighborGrids
+    /// Converts a hashmap into a `TopNeighborGrids`
+    #[allow(clippy::unwrap_used)]
     pub fn from_hashmap(
         idxs: &TopNeighborIdxs,
         grids: &mut HashMap<ChunkIjkVector, ElementGrid>,
@@ -309,6 +318,7 @@ impl TopNeighborGrids {
     }
 
     /// Gets the chunk at the given chunk index
+    #[must_use]
     pub fn chunk_at_chunk_ijk(
         &self,
         idx: ChunkIjkVector,
@@ -372,7 +382,8 @@ impl TopNeighborGrids {
     }
 
     /// Gets the number of concentric circles in the top layer of the convolution
-    pub fn num_concentric_circles(&self) -> usize {
+    #[must_use]
+    pub fn num_concentric_circles(&self) -> u32 {
         match self {
             TopNeighborGrids::Normal { tl: _, t, tr: _ } => t.coords().num_concentric_circles(),
             TopNeighborGrids::ChunkDoubling {
@@ -386,7 +397,8 @@ impl TopNeighborGrids {
     }
 
     /// Gets the number of radial lines in the top layer of the convolution
-    pub fn num_radial_lines(&self) -> usize {
+    #[must_use]
+    pub fn num_radial_lines(&self) -> u32 {
         match self {
             TopNeighborGrids::Normal { tl: _, t, tr: _ } => t.coords().num_radial_lines(),
             TopNeighborGrids::ChunkDoubling {
@@ -403,7 +415,6 @@ impl TopNeighborGrids {
 /// Bottom neighbor grids in the convolution
 /// Check out the  [`super::neighbor_identifiers::BottomNeighborIdentifier`] and
 ///  [`super::neighbor_indexes::BottomNeighborIdxs`] documentation for more information
-#[allow(clippy::large_enum_variant)]
 pub enum BottomNeighborGrids {
     /// Indicates that there are the same number of chunks below as you have
     /// However, the cells may still half tangentially
@@ -434,8 +445,9 @@ pub enum BottomNeighborGrids {
 }
 
 impl BottomNeighborGrids {
-    /// Converts the BottomNeighborGrids into a hashmap
-    pub fn to_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
+    /// Converts the `BottomNeighborGrids` into a hashmap
+    #[must_use]
+    pub fn into_hashmap(self) -> HashMap<ChunkIjkVector, ElementGrid> {
         match self {
             BottomNeighborGrids::Normal { bl, b, br } => {
                 let mut map = HashMap::new();
@@ -454,7 +466,8 @@ impl BottomNeighborGrids {
         }
     }
 
-    /// Converts a hashmap into a BottomNeighborGrids
+    /// Converts a hashmap into a `BottomNeighborGrids`
+    #[allow(clippy::unwrap_used)]
     pub fn from_hashmap(
         idxs: &BottomNeighborIdxs,
         grids: &mut HashMap<ChunkIjkVector, ElementGrid>,
@@ -474,6 +487,7 @@ impl BottomNeighborGrids {
     }
 
     /// Gets the element at the given index
+    #[must_use]
     pub fn chunk_at_chunk_ijk(
         &self,
         idx: ChunkIjkVector,
@@ -527,7 +541,8 @@ impl BottomNeighborGrids {
     }
 
     /// Gets the number of radial lines in the bottom layer of the convolution
-    pub fn num_radial_lines(&self) -> usize {
+    #[must_use]
+    pub fn num_radial_lines(&self) -> u32 {
         match self {
             BottomNeighborGrids::Normal { bl: _, b, br: _ } => b.coords().num_radial_lines(),
             BottomNeighborGrids::ChunkDoubling { bl, br: _ } => bl.coords().num_radial_lines(),
@@ -536,7 +551,8 @@ impl BottomNeighborGrids {
     }
 
     /// Gets the number of concentric circles in the bottom layer of the convolution
-    pub fn num_concentric_circles(&self) -> usize {
+    #[must_use]
+    pub fn num_concentric_circles(&self) -> u32 {
         match self {
             BottomNeighborGrids::Normal { bl: _, b, br: _ } => b.coords().num_concentric_circles(),
             BottomNeighborGrids::ChunkDoubling { bl, br: _ } => {

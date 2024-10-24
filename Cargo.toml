@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [profile.dev]
-opt-level = 0
+opt-level = 1
 debug = true
 
 [profile.release]
@@ -13,16 +13,19 @@ debug = false
 
 [dependencies]
 anyhow = "1.0.86"
-bevy = "0.14.2"
+macros = { path = "./macros" }
+bevy = { version = "0.14.2", features = ["bevy_debug_stepping", "trace"] }
 bevy-inspector-egui = "0.26.0"
 bevy_egui = "0.29.0"
 bevy_eventlistener = "0.8.1"
 bevy_mod_picking = { version = "0.20.1", features = ["bevy_picking_raycast"] }
+conv = "0.3.3"
 # bytemuck = "1.14.0"
 derive_more = { version = "1.0.0", features = ["full"] }
 getset = "0.1.2"
 hashbrown = { version = "0.15.0", features = ["rayon"] }
 itertools = "0.13.0"
+lazy_static = "1.5.0"
 # nabo = "0.3.0"
 ndarray = { version = "0.16.1", features = ["rayon", "serde", "blas"] }
 rand = "0.8.5"
@@ -32,12 +35,62 @@ strum_macros = "0.26.4"
 thiserror = "1.0.63"
 
 [dev-dependencies]
-criterion = { version = "0.5.1", features = ["html_reports"] }
+iai-callgrind = "0.14.0"
 just = "1.23.0"
 
 [[bench]]
 name    = "bench_main"
 harness = false
 
+[profile.bench]
+debug = true
+
 [net]
 git-fetch-with-cli = true
+
+[toolchain]
+channel = "stable"
+components = ["clippy"]
+
+[lints.rust]
+missing_docs = "warn"
+dead_code = "warn"
+
+[lints.rustdoc]
+missing_crate_level_docs = "warn"
+unescaped_backticks = "warn"
+private_intra_doc_links = "allow"
+
+[lints.clippy]
+# Enable specific Clippy lints
+pedantic = { level = "warn", priority = -1 }
+inefficient_to_string = "warn"
+missing_docs_in_private_items = "warn"
+doc_markdown = "warn"
+missing_fields_in_debug = "warn"
+redundant_clone = "warn"
+
+# These are major
+cast_possible_truncation = "deny"
+cast_precision_loss = "deny"
+cast_possible_wrap = "deny"
+cast_sign_loss = "deny"
+unwrap_used = "deny"
+panic = "deny"
+
+# Allow these lints
+expect_used = { level="allow", priority = 1 }
+too_many_lines = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+similar_names = "allow"
+type_complexity = "allow"
+large_enum_variant = "allow"
+mem_replace_with_default = "allow"
+
+# Just for this game
+module_name_repetitions = "allow"
+
+# Bevy doesn't work well with these
+needless_pass_by_value = "allow"
+trivially_copy_pass_by_ref = "allow"

@@ -1,14 +1,12 @@
 use rand::Rng;
 
-use crate::physics::{
-    fallingsand::{
-        convolution::behaviors::ElementGridConvolutionNeighbors,
-        data::element_grid::ElementGrid,
-        elements::element::{Element, ElementTakeOptions, StateOfMatter},
-        mesh::coordinate_dir::CoordinateDir,
-        util::vectors::JkVector,
-    },
-    util::clock::Clock,
+use crate::common::util::clock::Clock;
+use crate::common::util::vectors::InChunkJkVector as JkVector;
+use crate::physics::fallingsand::{
+    convolution::behaviors::ElementGridConvolutionNeighbors,
+    data::element_grid::ElementGrid,
+    elements::element::{Element, ElementTakeOptions, StateOfMatter},
+    mesh::coordinate_dir::CoordinateDir,
 };
 
 /// Default fluid behavior
@@ -39,7 +37,7 @@ pub fn fluid_process(
         Ok(element) => {
             if element.state_of_matter() <= StateOfMatter::Gas {
                 self_element.try_swap_me(
-                    below.unwrap(),
+                    below.expect("If Ok(element) then Ok(below)"),
                     target_chunk,
                     element_grid_conv,
                     current_time,
@@ -72,10 +70,10 @@ pub fn fluid_process(
                 let mut rng = rand::thread_rng();
                 let rand_bool = rng.gen_bool(0.5);
                 match (element_l, element_r, rand_bool) {
-                    (Ok(element_l), Ok(_), false) => {
+                    (Ok(element_l), Ok(_), false) | (Ok(element_l), Err(_), _) => {
                         if element_l.state_of_matter() <= StateOfMatter::Gas {
                             self_element.try_swap_me(
-                                new_idx_l.unwrap(),
+                                new_idx_l.expect("If Ok(element_l) then Ok(new_idx_l)"),
                                 target_chunk,
                                 element_grid_conv,
                                 current_time,
@@ -84,34 +82,10 @@ pub fn fluid_process(
                             ElementTakeOptions::PutBack
                         }
                     }
-                    (Ok(_), Ok(element_r), true) => {
+                    (Ok(_), Ok(element_r), true) | (Err(_), Ok(element_r), _) => {
                         if element_r.state_of_matter() <= StateOfMatter::Gas {
                             self_element.try_swap_me(
-                                new_idx_r.unwrap(),
-                                target_chunk,
-                                element_grid_conv,
-                                current_time,
-                            )
-                        } else {
-                            ElementTakeOptions::PutBack
-                        }
-                    }
-                    (Ok(element_l), Err(_), _) => {
-                        if element_l.state_of_matter() <= StateOfMatter::Gas {
-                            self_element.try_swap_me(
-                                new_idx_l.unwrap(),
-                                target_chunk,
-                                element_grid_conv,
-                                current_time,
-                            )
-                        } else {
-                            ElementTakeOptions::PutBack
-                        }
-                    }
-                    (Err(_), Ok(element_r), _) => {
-                        if element_r.state_of_matter() <= StateOfMatter::Gas {
-                            self_element.try_swap_me(
-                                new_idx_r.unwrap(),
+                                new_idx_r.expect("If Ok(element_r) then Ok(new_idx_r)"),
                                 target_chunk,
                                 element_grid_conv,
                                 current_time,

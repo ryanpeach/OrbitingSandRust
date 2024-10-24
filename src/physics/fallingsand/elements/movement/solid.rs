@@ -1,16 +1,14 @@
 use rand::Rng;
 
-use crate::physics::{
-    fallingsand::{
-        convolution::{
-            behaviors::ElementGridConvolutionNeighbors, neighbor_identifiers::ConvolutionIdentifier,
-        },
-        data::element_grid::ElementGrid,
-        elements::element::{Element, ElementTakeOptions, StateOfMatter},
-        mesh::coordinate_dir::CoordinateDir,
-        util::vectors::JkVector,
+use crate::common::util::clock::Clock;
+use crate::common::util::vectors::InChunkJkVector as JkVector;
+use crate::physics::fallingsand::{
+    convolution::{
+        behaviors::ElementGridConvolutionNeighbors, neighbor_identifiers::ConvolutionIdentifier,
     },
-    util::clock::Clock,
+    data::element_grid::ElementGrid,
+    elements::element::{Element, ElementTakeOptions, StateOfMatter},
+    mesh::coordinate_dir::CoordinateDir,
 };
 
 /// Default solid element behavior
@@ -125,29 +123,65 @@ pub fn solid_process(
                                     }
                                     (Err(_), Err(_), _) => ElementTakeOptions::PutBack,
                                 }
+                            };
+                            let element_r = {
+                                match new_idx_r {
+                                    Ok(new_idx_r) => element_grid_conv.get(target_chunk, new_idx_r),
+                                    Err(err) => Err(err),
+                                }
+                            };
+
+                            // Now decide if we go left or right
+                            let mut rng = rand::thread_rng();
+                            let rand_bool = rng.gen_bool(0.5);
+                            match (element_l, element_r, rand_bool) {
+                                (Ok(element_l), Ok(_), false) | (Ok(element_l), Err(_), _) => {
+                                    if element_l.state_of_matter() <= StateOfMatter::Liquid {
+                                        self_element.try_swap_me(
+                                            new_idx_l.expect("If Ok(element_l) then Ok(new_idx_l)"),
+                                            target_chunk,
+                                            element_grid_conv,
+                                            current_time,
+                                        )
+                                    } else {
+                                        ElementTakeOptions::PutBack
+                                    }
+                                }
+                                (Ok(_), Ok(element_r), true) | (Err(_), Ok(element_r), _) => {
+                                    if element_r.state_of_matter() <= StateOfMatter::Liquid {
+                                        self_element.try_swap_me(
+                                            new_idx_r.expect("If Ok(element_r) then Ok(new_idx_r)"),
+                                            target_chunk,
+                                            element_grid_conv,
+                                            current_time,
+                                        )
+                                    } else {
+                                        ElementTakeOptions::PutBack
+                                    }
+                                }
+                                (Err(_), Err(_), _) => ElementTakeOptions::PutBack,
                             }
                         }
-                        Err(_) => ElementTakeOptions::PutBack,
                     }
+                    Err(_) => ElementTakeOptions::PutBack,
                 }
-                _ => {
-                    // If we would not in the center chunk anymore, just swap with below
-                    let element = element_grid_conv.get(target_chunk, idx);
-                    match element {
-                        Ok(element) => {
-                            if element.state_of_matter() <= StateOfMatter::Liquid {
-                                self_element.try_swap_me(
-                                    idx,
-                                    target_chunk,
-                                    element_grid_conv,
-                                    current_time,
-                                )
-                            } else {
-                                ElementTakeOptions::PutBack
-                            }
+            } else {
+                // If we would not in the center chunk anymore, just swap with below
+                let element = element_grid_conv.get(target_chunk, idx);
+                match element {
+                    Ok(element) => {
+                        if element.state_of_matter() <= StateOfMatter::Liquid {
+                            self_element.try_swap_me(
+                                idx,
+                                target_chunk,
+                                element_grid_conv,
+                                current_time,
+                            )
+                        } else {
+                            ElementTakeOptions::PutBack
                         }
-                        Err(_) => ElementTakeOptions::PutBack,
                     }
+                    Err(_) => ElementTakeOptions::PutBack,
                 }
             }
         }

@@ -35,6 +35,8 @@ use crate::physics::{
     util::clock::Clock,
 };
 
+use conv::ValueFrom;
+
 use super::{
     neighbor_grids::{
         BottomNeighborGrids, ConvOutOfBoundsError, ElementGridConvolutionNeighborGrids,
@@ -65,7 +67,8 @@ pub struct ElementGridConvolutionNeighbors {
 
 /// Instantiation
 impl ElementGridConvolutionNeighbors {
-    /// Create a new ElementGridConvolutionNeighbors
+    /// Create a new `ElementGridConvolutionNeighbors`
+    #[must_use]
     pub fn new(
         chunk_idxs: ElementGridConvolutionNeighborIdxs,
         mut grids: HashMap<ChunkIjkVector, ElementGrid>,
@@ -84,10 +87,13 @@ impl ElementGridConvolutionNeighbors {
     }
 
     /// Get the number of chunks
-    pub fn len(&self) -> usize {
-        self.chunk_idxs.iter().count()
+    #[must_use]
+    pub fn len(&self) -> u32 {
+        u32::value_from(self.chunk_idxs.iter().count())
+            .expect("No way there are more that u32 chunks")
     }
     /// Checks if there are no chunks
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.chunk_idxs.iter().count() == 0
     }
@@ -95,7 +101,7 @@ impl ElementGridConvolutionNeighbors {
 
 /// Iteration
 /// We are going to implement into interation on the Neighbors so that unpackaging is easier
-/// To do this we will use the into_hashmap method on the neighbor grids
+/// To do this we will use the `into_hashmap` method on the neighbor grids
 /// and the iter method on the neighbor indexes
 /// taking from the hashmap on each iteration of the iter
 pub struct ElementGridConvolutionNeighborsIntoIter {
@@ -139,22 +145,26 @@ impl ElementGridConvolutionNeighbors {
         &self,
         target_chunk_coords: &ChunkCoords,
         _coord_dir: &CoordinateDir,
-        pos: &JkVector,
-        n: usize,
+        pos: &InChunkJkVector,
+        n: u32,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
         // Handle naive case where you don't change your chunk
         if pos.j >= n {
             return Ok(ConvolutionIdx(
-                JkVector::new(pos.j - n, pos.k),
+                InChunkJkVector::new(pos.j - n, pos.k),
                 ConvolutionIdentifier::Center,
             ));
         }
 
         // Handle error cases where you go beyond the chunk below you
         let b_concentric_circles = self.grids.bottom.num_concentric_circles();
-        if (pos.j as isize - n as isize + b_concentric_circles as isize) < 0 {
+        if (isize::value_from(pos.j).expect("32bit compilation disabled.")
+            - isize::value_from(n).expect("32bit compilation disabled.")
+            + isize::value_from(b_concentric_circles).expect("32bit compilation disabled."))
+            < 0
+        {
             return Err(ConvOutOfBoundsError(ConvolutionIdx(
-                JkVector { j: pos.j, k: pos.k },
+                InChunkJkVector { j: pos.j, k: pos.k },
                 ConvolutionIdentifier::Center,
             )));
         }
@@ -162,12 +172,12 @@ impl ElementGridConvolutionNeighbors {
         match self.chunk_idxs.bottom {
             // If there is no layer below you, error out
             BottomNeighborIdxs::BottomOfGrid => Err(ConvOutOfBoundsError(ConvolutionIdx(
-                JkVector { j: pos.j, k: pos.k },
+                InChunkJkVector { j: pos.j, k: pos.k },
                 ConvolutionIdentifier::Center,
             ))),
             // TODO: Unit test
             BottomNeighborIdxs::ChunkDoubling { .. } => {
-                let mut new_coords = JkVector {
+                let mut new_coords = InChunkJkVector {
                     j: pos.j + b_concentric_circles - n,
                     k: pos.k / 2,
                 };
@@ -189,7 +199,7 @@ impl ElementGridConvolutionNeighbors {
                 ))
             }
             BottomNeighborIdxs::Normal { .. } => {
-                let mut new_coords = JkVector {
+                let mut new_coords = InChunkJkVector {
                     j: pos.j + b_concentric_circles - n,
                     k: pos.k,
                 };
@@ -214,6 +224,7 @@ impl ElementGridConvolutionNeighbors {
 
     /// Positive k is left, counter clockwise
     /// Negative k is right, clockwise
+    #[allow(clippy::unused_self)]
     pub fn idx_left_right_idx_from_center(
         &self,
         target_chunk_coords: &ChunkCoords,
@@ -221,34 +232,35 @@ impl ElementGridConvolutionNeighbors {
         rk: isize,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
         // In the left right direction, unlike up down, every chunk has the same number of radial lines
-        let radial_lines = target_chunk_coords.num_radial_lines();
-
+        let radial_lines = target_chunk.coords().num_radial_lines();
+        let radial_lines_i = isize::value_from(radial_lines).expect("32bit compilation disabled.");
+        let pos_k = isize::value_from(pos.k).expect("32bit compilation disabled");
         // You should not be doing any loops that might make you re-target yourself
-        if rk.abs() >= radial_lines as isize {
+        if rk.abs() >= radial_lines_i {
             return Err(ConvOutOfBoundsError(ConvolutionIdx(
-                JkVector {
+                InChunkJkVector {
                     j: pos.j,
-                    k: modulo(pos.k as isize + rk, radial_lines),
+                    k: modulo(pos_k + rk, radial_lines),
                 },
                 ConvolutionIdentifier::Center,
             )));
         }
 
-        let new_k = modulo(pos.k as isize + rk, radial_lines);
+        let new_k = modulo(pos_k + rk, radial_lines);
 
-        if pos.k as isize + rk >= radial_lines as isize {
+        if pos_k + rk >= radial_lines_i {
             Ok(ConvolutionIdx(
-                JkVector { j: pos.j, k: new_k },
+                InChunkJkVector { j: pos.j, k: new_k },
                 ConvolutionIdentifier::LR(LeftRightNeighborIdentifier::Left),
             ))
-        } else if pos.k as isize + rk < 0 {
+        } else if pos_k + rk < 0 {
             Ok(ConvolutionIdx(
-                JkVector { j: pos.j, k: new_k },
+                InChunkJkVector { j: pos.j, k: new_k },
                 ConvolutionIdentifier::LR(LeftRightNeighborIdentifier::Right),
             ))
         } else {
             Ok(ConvolutionIdx(
-                JkVector { j: pos.j, k: new_k },
+                InChunkJkVector { j: pos.j, k: new_k },
                 ConvolutionIdentifier::Center,
             ))
         }
@@ -546,17 +558,11 @@ impl ElementGridConvolutionNeighbors {
         idx: ConvolutionIdx,
         element: Box<dyn Element>,
         current_time: Clock,
-    ) -> Result<Box<dyn Element>, ConvOutOfBoundsError> {
+    ) -> Box<dyn Element> {
         match idx.1 {
-            ConvolutionIdentifier::Center => {
-                let out = target_grid.replace(idx.0, element, current_time);
-                Ok(out)
-            }
+            ConvolutionIdentifier::Center => target_grid.replace(idx.0, element, current_time),
             _ => match self.chunk_mut(idx.1) {
-                Ok(chunk) => {
-                    let out = chunk.replace(idx.0, element, current_time);
-                    Ok(out)
-                }
+                Ok(chunk) => chunk.replace(idx.0, element, current_time),
                 Err(GetChunkErr::CenterChunk) => {
                     unreachable!("This should never happen because we are checking for it in the match idx.1 statement")
                 }
@@ -567,6 +573,12 @@ impl ElementGridConvolutionNeighbors {
 
 #[cfg(test)]
 mod tests {
+    #![allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_possible_wrap,
+        clippy::unwrap_used,
+        clippy::panic
+    )]
     use super::*;
     use crate::physics::fallingsand::{
         data::element_directory::ElementGridDir, mesh::coordinate_dir::Builder,
@@ -574,7 +586,7 @@ mod tests {
 
     mod get_below_idx_from_center {
         use super::*;
-        use crate::physics::{fallingsand::util::vectors::IjkVector, orbits::components::Length};
+        use crate::{common::util::uom::Length, common::util::vectors::IjkVector};
 
         /// The default element grid directory for testing
         fn element_grid_dir() -> ElementGridDir {
@@ -591,12 +603,12 @@ mod tests {
 
         fn _test_get_below_idx_from_center(pos1: IjkVector, pos2: IjkVector) {
             let mut element_dir = element_grid_dir();
-            let chunk_pos1 = element_dir.coordinate_dir().cell_idx_to_chunk_idx(pos1);
-            let chunk_pos2 = element_dir.coordinate_dir().cell_idx_to_chunk_idx(pos2);
+            let chunk_pos1 = element_dir.coordinate_dir().cell_idx_to_full_idx(pos1);
+            let chunk_pos2 = element_dir.coordinate_dir().cell_idx_to_full_idx(pos2);
             let mut package = element_dir
-                .package_coordinate_neighbors(chunk_pos1.0)
+                .package_coordinate_neighbors(chunk_pos1.chunk_idx)
                 .unwrap();
-            let chunk = element_dir.chunk_at_chunk_ijk(chunk_pos1.0);
+            let chunk = element_dir.chunk_at_chunk_ijk(chunk_pos1.chunk_idx);
             let should_eq_pos2 = package
                 .idx_below_idx_from_center(
                     chunk.coords(),
@@ -605,21 +617,27 @@ mod tests {
                     1,
                 )
                 .unwrap();
-            assert_eq!(chunk_pos2.1, should_eq_pos2.0, "The position is incorrect");
+            assert_eq!(
+                chunk_pos2.pos, should_eq_pos2.0,
+                "The position is incorrect"
+            );
 
             // Check that the get_chunk method also works
             let should_eq_chunk2 = match package.chunk(should_eq_pos2.1) {
                 Ok(chunk) => chunk.coords().chunk_idx(),
-                Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+                Err(GetChunkErr::CenterChunk) => chunk_pos2.chunk_idx,
             };
             // Test the mut version too
             let should_eq_chunk2_mut = match package.chunk_mut(should_eq_pos2.1) {
                 Ok(chunk) => chunk.coords().chunk_idx(),
-                Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+                Err(GetChunkErr::CenterChunk) => chunk_pos2.chunk_idx,
             };
-            assert_eq!(chunk_pos2.0, should_eq_chunk2, "get_chunk is not working");
             assert_eq!(
-                chunk_pos2.0, should_eq_chunk2_mut,
+                chunk_pos2.chunk_idx, should_eq_chunk2,
+                "get_chunk is not working"
+            );
+            assert_eq!(
+                chunk_pos2.chunk_idx, should_eq_chunk2_mut,
                 "get_chunk_mut is not working"
             );
         }
@@ -675,7 +693,7 @@ mod tests {
 
     mod get_left_right_idx_from_center {
         use super::*;
-        use crate::physics::{fallingsand::util::vectors::IjkVector, orbits::components::Length};
+        use crate::{common::util::uom::Length, common::util::vectors::IjkVector};
 
         /// The default element grid directory for testing
         fn element_grid_dir() -> ElementGridDir {
@@ -693,30 +711,36 @@ mod tests {
 
         fn _test_get_left_right_idx_from_center(pos1: IjkVector, n: isize, pos2: IjkVector) {
             let mut element_dir = element_grid_dir();
-            let chunk_pos1 = element_dir.coordinate_dir().cell_idx_to_chunk_idx(pos1);
-            let chunk_pos2 = element_dir.coordinate_dir().cell_idx_to_chunk_idx(pos2);
+            let chunk_pos1 = element_dir.coordinate_dir().cell_idx_to_full_idx(pos1);
+            let chunk_pos2 = element_dir.coordinate_dir().cell_idx_to_full_idx(pos2);
             let mut package = element_dir
-                .package_coordinate_neighbors(chunk_pos1.0)
+                .package_coordinate_neighbors(chunk_pos1.chunk_idx)
                 .unwrap();
-            let chunk = element_dir.chunk_at_chunk_ijk(chunk_pos1.0);
+            let chunk = element_dir.chunk_at_chunk_ijk(chunk_pos1.chunk_idx);
             let should_eq_pos2 = package
                 .idx_left_right_idx_from_center(chunk.coords(), &chunk_pos1.1, n)
                 .unwrap();
-            assert_eq!(chunk_pos2.1, should_eq_pos2.0, "The position is incorrect");
+            assert_eq!(
+                chunk_pos2.pos, should_eq_pos2.0,
+                "The position is incorrect"
+            );
 
             // Check that the get_chunk method also works
             let should_eq_chunk2 = match package.chunk(should_eq_pos2.1) {
                 Ok(chunk) => chunk.coords().chunk_idx(),
-                Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+                Err(GetChunkErr::CenterChunk) => chunk_pos2.chunk_idx,
             };
             // Test the mut version too
             let should_eq_chunk2_mut = match package.chunk_mut(should_eq_pos2.1) {
                 Ok(chunk) => chunk.coords().chunk_idx(),
-                Err(GetChunkErr::CenterChunk) => chunk_pos2.0,
+                Err(GetChunkErr::CenterChunk) => chunk_pos2.chunk_idx,
             };
-            assert_eq!(chunk_pos2.0, should_eq_chunk2, "get_chunk is not working");
             assert_eq!(
-                chunk_pos2.0, should_eq_chunk2_mut,
+                chunk_pos2.chunk_idx, should_eq_chunk2,
+                "get_chunk is not working"
+            );
+            assert_eq!(
+                chunk_pos2.chunk_idx, should_eq_chunk2_mut,
                 "get_chunk_mut is not working"
             );
         }

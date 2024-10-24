@@ -1,3 +1,4 @@
+#![expect(clippy::missing_docs_in_private_items)]
 use bevy::color::ColorToPacked;
 use bevy::math::Rect;
 use hashbrown::HashSet;
@@ -8,21 +9,20 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use crate::physics::fallingsand::dirtyrect::JkRect;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
-use crate::physics::fallingsand::util::vectors::JkVector;
-use crate::physics::orbits::components::Mass;
-use crate::physics::util::clock::Clock;
 
 use super::super::convolution::behaviors::ElementGridConvolutionNeighbors;
 use super::super::elements::vacuum::Vacuum;
 use super::super::mesh::coordinate_dir::CoordinateDir;
-use super::super::util::grid::{Grid, GridOutOfBoundsError};
-use super::super::util::image::RawImage;
+use super::super::util::grid::{GridOutOfBoundsError, JkGrid};
+use crate::common::util::clock::Clock;
+use crate::common::util::image::RawImage;
+use crate::common::util::vectors::InChunkJkVector;
 use anyhow::{bail, Result};
 use itertools::iproduct;
 
 /// An element grid is a 2D grid of elements tied to a chunk
 pub struct ElementGrid {
-    grid: Grid<Box<dyn Element>>,
+    grid: JkGrid<InChunkJkVector, Box<dyn Element>>,
     coords: ChunkCoords,
 
     /// Some low resolution data about the world
@@ -51,6 +51,7 @@ impl Default for ElementGrid {
 /* Initialization */
 impl ElementGrid {
     /// Creates a new element grid with the given chunk coords and fills it with vacuum
+    #[must_use]
     pub fn new_empty(chunk_coords: ChunkCoords) -> Self {
         let fill: &dyn Element = &Vacuum::default();
         ElementGrid::new_filled(chunk_coords, fill)
@@ -59,17 +60,19 @@ impl ElementGrid {
     /// Creates a new element grid with the given chunk coords and fills it with the given element
     pub fn new_filled(chunk_coords: ChunkCoords, fill: &dyn Element) -> Self {
         let mut grid: Vec<Box<dyn Element>> = Vec::with_capacity(
-            chunk_coords.num_radial_lines() * chunk_coords.num_concentric_circles(),
+            chunk_coords.num_radial_lines() as usize
+                * chunk_coords.num_concentric_circles() as usize,
         );
         for _ in 0..chunk_coords.num_radial_lines() * chunk_coords.num_concentric_circles() {
             grid.push(fill.box_clone());
         }
         Self {
-            grid: Grid::new_from_vec(
+            grid: JkGrid::new_from_vec(
                 chunk_coords.num_radial_lines(),
                 chunk_coords.num_concentric_circles(),
                 grid,
-            ),
+            )
+            .expect("We made this grid ourselves"),
             coords: chunk_coords,
             already_processed: false,
             last_set: Clock::default(),
@@ -80,6 +83,7 @@ impl ElementGrid {
 
 /* Getters & Setters */
 impl ElementGrid {
+    #[must_use]
     pub fn already_processed(&self) -> bool {
         self.already_processed
     }
@@ -94,16 +98,20 @@ impl ElementGrid {
         self.already_processed = already_processed;
         Ok(())
     }
+    #[must_use]
     pub fn last_set(&self) -> Clock {
         self.last_set
     }
+    #[must_use]
     pub fn coords(&self) -> &ChunkCoords {
         &self.coords
     }
-    pub fn grid(&self) -> &Grid<Box<dyn Element>> {
+    #[must_use]
+    pub fn grid(&self) -> &JkGrid<InChunkJkVector, Box<dyn Element>> {
         &self.grid
     }
     /// Does not calculate the total mass, just gets the set value of it
+    #[must_use]
     pub fn total_mass(&self) -> Mass {
         self.total_mass
     }
@@ -157,6 +165,7 @@ impl ElementGrid {
     //     self.total_mass_above
     // }
 
+    #[must_use]
     pub fn process_unneeded(&self, current_time: Clock) -> bool {
         self.last_set.current_frame() < current_time.current_frame() - 1
     }
@@ -164,24 +173,25 @@ impl ElementGrid {
 
 /// Public modifiers for the element grid
 impl ElementGrid {
-    pub fn get(&self, jk: JkVector) -> &dyn Element {
+    #[must_use]
+    pub fn get(&self, jk: InChunkJkVector) -> &dyn Element {
         self.grid.get(jk).as_ref()
     }
-    pub fn checked_get(&self, jk: JkVector) -> Result<&dyn Element, GridOutOfBoundsError> {
+    pub fn checked_get(&self, jk: InChunkJkVector) -> Result<&dyn Element, GridOutOfBoundsError> {
         match self.grid.checked_get(jk) {
             Ok(e) => Ok(e.as_ref()),
             Err(e) => Err(e),
         }
     }
-    pub fn get_mut(&mut self, jk: JkVector) -> &mut dyn Element {
+    pub fn get_mut(&mut self, jk: InChunkJkVector) -> &mut dyn Element {
         self.grid.get_mut(jk).as_mut()
     }
-    pub fn set(&mut self, jk: JkVector, element: Box<dyn Element>, time: Clock) {
+    pub fn set(&mut self, jk: InChunkJkVector, element: Box<dyn Element>, time: Clock) {
         self.replace(jk, element, time);
     }
     pub fn replace(
         &mut self,
-        jk: JkVector,
+        jk: InChunkJkVector,
         element: Box<dyn Element>,
         time: Clock,
     ) -> Box<dyn Element> {
@@ -196,7 +206,7 @@ impl ElementGrid {
     pub fn fill(&mut self, element: ElementType) {
         for j in 0..self.coords().num_concentric_circles() {
             for k in 0..self.coords().num_radial_lines() {
-                let pos = JkVector { j, k };
+                let pos = InChunkJkVector { j, k };
                 self.grid.replace(pos, element.element());
             }
         }
@@ -266,9 +276,14 @@ impl ElementGrid {
             }
         }
         let mut rng = thread_rng();
+        let mut iter: Vec<(u32, u32)> = iproduct!(
+            0..self.coords.num_concentric_circles(),
+            0..self.coords.num_radial_lines()
+        )
+        .collect();
         iter.shuffle(&mut rng);
-        for (j, k) in iter.into_iter() {
-            let pos = JkVector { j, k };
+        for (j, k) in iter {
+            let pos = InChunkJkVector { j, k };
 
             // We have to take the element out of our grid to call it with a reference to self
             // Otherwise we would have a reference to it, and process would have a reference to it through target_chunk
@@ -357,14 +372,14 @@ impl ElementGrid {
                 (0..self.coords.num_radial_lines())
                     .into_par_iter()
                     .map(|k| {
-                        let pos = JkVector { j, k };
+                        let pos = InChunkJkVector { j, k };
                         let element = self.grid.get(pos);
 
                         element.mass(self.coords.cell_width())
                     })
                     .sum()
             })
-            .sum()
+            .sum();
     }
 
     // Get the heat properties of an element at an index
@@ -377,13 +392,16 @@ impl ElementGrid {
 /* Drawing */
 impl ElementGrid {
     /// Draw the texture as the color of each element
+    #[must_use]
     pub fn texture(&self) -> RawImage {
         let mut out = Vec::with_capacity(
-            self.coords.num_radial_lines() * self.coords.num_concentric_circles() * 4,
+            self.coords.num_radial_lines() as usize
+                * self.coords.num_concentric_circles() as usize
+                * 4,
         );
         for j in 0..self.coords.num_concentric_circles() {
             for k in 0..self.coords.num_radial_lines() {
-                let element = self.grid.get(JkVector { j, k });
+                let element = self.grid.get(InChunkJkVector { j, k });
                 let color = element.color().to_srgba().to_u8_array();
                 out.push(color[0]);
                 out.push(color[1]);
@@ -393,12 +411,17 @@ impl ElementGrid {
         }
         RawImage {
             pixels: out,
-            bounds: Rect::new(
-                self.coords.start_radial_line() as f32,
-                self.coords.start_concentric_circle_absolute() as f32,
-                self.coords.start_radial_line() as f32 + self.coords.num_radial_lines() as f32,
-                self.coords.start_concentric_circle_absolute() as f32
-                    + self.coords.num_concentric_circles() as f32,
+            bounds: URect::new(
+                u32::value_from(self.coords.start_radial_line()).expect("Very large number"),
+                u32::value_from(self.coords.start_concentric_circle_absolute())
+                    .expect("Very large number"),
+                u32::value_from(self.coords.start_radial_line() + self.coords.num_radial_lines())
+                    .expect("Very large number"),
+                u32::value_from(
+                    self.coords.start_concentric_circle_absolute()
+                        + self.coords.num_concentric_circles(),
+                )
+                .expect("Very large number."),
             ),
         }
     }

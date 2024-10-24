@@ -1,10 +1,12 @@
+#![expect(missing_docs)]
+#![expect(clippy::missing_docs_in_private_items)]
 use super::element::{Density, Element, ElementTakeOptions, ElementType, StateOfMatter};
 use crate::physics::fallingsand::convolution::behaviors::ElementGridConvolutionNeighbors;
 use crate::physics::fallingsand::data::element_grid::ElementGrid;
 use crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir;
-use crate::physics::fallingsand::util::vectors::JkVector;
 
-use crate::physics::util::clock::Clock;
+use crate::common::util::clock::Clock;
+use crate::common::util::vectors::InChunkJkVector as JkVector;
 use bevy::color::palettes::css::ORANGE;
 use bevy::color::Color;
 use rand::Rng;
@@ -61,7 +63,7 @@ impl Element for SolarPlasma {
             Ok(element) => {
                 if element.state_of_matter() <= StateOfMatter::Gas {
                     self.try_swap_me(
-                        below.unwrap(),
+                        below.expect("If Ok(element) then Ok(below)"),
                         target_chunk,
                         element_grid_conv,
                         current_time,
@@ -94,10 +96,10 @@ impl Element for SolarPlasma {
                     let mut rng = rand::thread_rng();
                     let rand_bool = rng.gen_bool(0.5);
                     match (element_l, element_r, rand_bool) {
-                        (Ok(element_l), Ok(_), false) => {
+                        (Ok(element_l), Ok(_), false) | (Ok(element_l), Err(_), _) => {
                             if element_l.state_of_matter() <= StateOfMatter::Gas {
                                 self.try_swap_me(
-                                    new_idx_l.unwrap(),
+                                    new_idx_l.expect("If Ok(element_l) then Ok(new_idx_l)"),
                                     target_chunk,
                                     element_grid_conv,
                                     current_time,
@@ -106,34 +108,10 @@ impl Element for SolarPlasma {
                                 ElementTakeOptions::PutBack
                             }
                         }
-                        (Ok(_), Ok(element_r), true) => {
+                        (Ok(_), Ok(element_r), true) | (Err(_), Ok(element_r), _) => {
                             if element_r.state_of_matter() <= StateOfMatter::Gas {
                                 self.try_swap_me(
-                                    new_idx_r.unwrap(),
-                                    target_chunk,
-                                    element_grid_conv,
-                                    current_time,
-                                )
-                            } else {
-                                ElementTakeOptions::PutBack
-                            }
-                        }
-                        (Ok(element_l), Err(_), _) => {
-                            if element_l.state_of_matter() <= StateOfMatter::Gas {
-                                self.try_swap_me(
-                                    new_idx_l.unwrap(),
-                                    target_chunk,
-                                    element_grid_conv,
-                                    current_time,
-                                )
-                            } else {
-                                ElementTakeOptions::PutBack
-                            }
-                        }
-                        (Err(_), Ok(element_r), _) => {
-                            if element_r.state_of_matter() <= StateOfMatter::Gas {
-                                self.try_swap_me(
-                                    new_idx_r.unwrap(),
+                                    new_idx_r.expect("If Ok(element_r) then Ok(new_idx_r)"),
                                     target_chunk,
                                     element_grid_conv,
                                     current_time,

@@ -2,7 +2,8 @@
 
 use bevy::{color::Color, ecs::component::Component, math::Vec2};
 
-use crate::physics::{fallingsand::util::mesh::OwnedMeshData, util::vectors::Vertex};
+use crate::common::util::mesh::OwnedMeshData;
+use crate::common::util::mesh::Vertex;
 
 /// Radius for circular entities
 #[derive(Component, Debug, Clone, Copy)]
@@ -13,9 +14,9 @@ impl Radius {
     #[must_use]
     pub fn mesh(self) -> OwnedMeshData {
         /// Number of vertices in the circle
-        const NB_VERTICES: usize = 100;
-        let mut vertices: Vec<Vertex> = Vec::with_capacity(NB_VERTICES);
-        let mut indices: Vec<u32> = Vec::with_capacity(NB_VERTICES);
+        const NB_VERTICES: u32 = 100;
+        let mut vertices: Vec<Vertex> = Vec::with_capacity(NB_VERTICES as usize);
+        let mut indices: Vec<u32> = Vec::with_capacity(NB_VERTICES as usize);
         for i in 0..NB_VERTICES {
             // We are working in f32
             #[allow(clippy::cast_precision_loss)]
@@ -29,7 +30,7 @@ impl Radius {
             });
             // indices only takes u32s
             #[allow(clippy::cast_possible_truncation)]
-            indices.push(i as u32);
+            indices.push(i);
         }
         OwnedMeshData::new(vertices, indices)
     }

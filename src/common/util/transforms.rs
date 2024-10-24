@@ -1,0 +1,36 @@
+use super::vectors::{ModelCoord, WorldCoord};
+use bevy::transform::components::Transform;
+use bevy::{render::camera::Camera, transform::components::GlobalTransform, window::Window};
+
+/// Take a mouse coordinate and translate it into a [`WorldCoord`] based on the [`Camera`]'s
+/// [`GlobalTransform`]
+///
+/// This is useful when the camera is free floating.
+#[must_use]
+pub fn get_mouse_world_position(
+    window: &Window,
+    camera: (&Camera, &GlobalTransform),
+) -> Option<WorldCoord> {
+    // check if the cursor is inside the window and get its position
+    // then, ask bevy to convert into world coordinates, and truncate to discard Z
+    if let Some(world_position) = window
+        .cursor_position()
+        .and_then(|cursor| camera.0.viewport_to_world(camera.1, cursor))
+        .map(|ray| ray.origin.truncate())
+    {
+        return Some(world_position.into());
+    }
+    None
+}
+
+/// Take a mouse coordinate and translate it into a [`ModelCoord`] based on the [`Camera`]'s
+/// [`Transform`].
+///
+/// This is useful when the camera is following something.
+#[must_use]
+pub fn get_mouse_model_position(
+    window: &Window,
+    camera: (&Camera, &Transform),
+) -> Option<ModelCoord> {
+    get_mouse_world_position(window, (camera.0, &((*camera.1).into()))).map(derive_more::Into::into)
+}

@@ -2,21 +2,101 @@
 //! For players, we will eventually create a mdbook describing gameplay.
 //! This is the entry point for the game. It installs the plugins and contains
 //! a couple of setup functions for creating different scenes.
-#[warn(
-    clippy::pedantic,
-    clippy::unwrap_used,
-    clippy::panic,
-    clippy::trivially_copy_pass_by_ref,
-    clippy::inefficient_to_string,
-    missing_docs,
-    clippy::missing_docs_in_private_items,
-    clippy::doc_markdown,
-    clippy::missing_errors_doc,
-    clippy::missing_fields_in_debug,
-    clippy::redundant_clone
-)]
-#[deny(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
-#[allow(clippy::too_many_lines)]
-pub mod entities;
-pub mod gui;
+
+use ::bevy::{
+    app::{App, FixedPostUpdate, FixedUpdate, PluginGroup, PluginGroupBuilder},
+    color::Color,
+    diagnostic::FrameTimeDiagnosticsPlugin,
+    log::{Level, LogPlugin},
+    prelude::{IntoSystemConfigs, IntoSystemSetConfigs},
+    render::{camera::ClearColor, texture::ImagePlugin},
+    time::{Fixed, Time},
+    transform::systems::{propagate_transforms, sync_simple_transforms},
+    DefaultPlugins,
+};
+use bevy::{
+    entities::celestials::celestial::DataPlugin,
+    gui::{brush, camera, element_picker, system_stepping::SteppingEguiPlugin, GuiUnifiedPlugin},
+    systemsets::{ComputeSet, DrawSet, MovementSet, SyncSet},
+};
+use bevy_egui::EguiPlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use physics::{orbits::nbody::NBodyPlugin, PHYSICS_FRAME_RATE};
+
+use bevy_mod_picking::low_latency_window_plugin;
+
+#[cfg(target_pointer_width = "32")]
+compile_error!("This game is not supported on 32-bit systems.");
+
+pub mod bevy;
+pub mod common;
 pub mod physics;
+
+/// All of our gui plugins
+pub struct OrbitingSandPluginGroup;
+
+impl PluginGroup for OrbitingSandPluginGroup {
+    fn build(self) -> PluginGroupBuilder {
+        PluginGroupBuilder::start::<Self>()
+            .add(NBodyPlugin)
+            .add(camera::CameraPlugin)
+            .add(brush::BrushPlugin)
+            .add(element_picker::ElementPickerPlugin)
+            .add(DataPlugin)
+            .add(GuiUnifiedPlugin)
+            .add(SteppingEguiPlugin::default())
+    }
+}
+
+/// Add the plugins that all examples should add
+pub fn add_common_plugins(app: &mut App) -> &mut App {
+    // Determine the log plugin based on whether debug assertions are enabled
+    let log_plugin = if cfg!(debug_assertions) {
+        LogPlugin {
+            level: Level::TRACE,
+            filter:
+                "wgpu=error,bevy_render=info,bevy_ecs=trace,bevy_egui=info,naga=info,winit=debug"
+                    .to_string(),
+            ..Default::default()
+        }
+    } else {
+        LogPlugin {
+            level: Level::INFO,
+            filter: "info,wgpu_core=warn,wgpu_hal=warn".into(),
+            ..Default::default()
+        }
+    };
+
+    app.add_plugins((
+        DefaultPlugins
+            .set(log_plugin)
+            .set(ImagePlugin::default_nearest())
+            .set(low_latency_window_plugin()),
+        FrameTimeDiagnosticsPlugin,
+        EguiPlugin,
+    ))
+    .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
+    .add_plugins(OrbitingSandPluginGroup)
+    .add_plugins(WorldInspectorPlugin::new())
+    .insert_resource(Time::<Fixed>::from_seconds(1.0 / PHYSICS_FRAME_RATE))
+    .add_systems(
+        FixedUpdate,
+        (propagate_transforms, sync_simple_transforms).in_set(SyncSet),
+    )
+    .configure_sets(
+        FixedUpdate,
+        (
+            MovementSet.after(ComputeSet),
+            SyncSet.after(MovementSet),
+            DrawSet.after(SyncSet),
+        ),
+    )
+    .configure_sets(
+        FixedPostUpdate,
+        (
+            MovementSet.after(ComputeSet),
+            SyncSet.after(MovementSet),
+            DrawSet.after(SyncSet),
+        ),
+    )
+}

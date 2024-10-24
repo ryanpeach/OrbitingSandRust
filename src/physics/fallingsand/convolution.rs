@@ -1,3 +1,4 @@
+#![expect(clippy::panic)]
 //! The convolution module contains the logic for getting elements from locations relative to another element
 //! in a way that is convienient for parallel processing of chunks.
 //!
@@ -58,7 +59,7 @@
 //!
 //! Please continue by reading the documentation for the [`self::behaviors`] module.
 
-pub mod behaviors;
-pub mod neighbor_grids;
-pub mod neighbor_identifiers;
-pub mod neighbor_indexes;
+pub(super) mod behaviors;
+mod neighbor_grids;
+pub(super) mod neighbor_identifiers;
+pub(super) mod neighbor_indexes;

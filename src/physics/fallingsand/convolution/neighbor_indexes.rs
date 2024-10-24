@@ -1,6 +1,6 @@
 //! Indexes in [`ChunkIjkVector`]s for all the neighbors of a chunk
-use crate::physics::fallingsand::util::vectors::ChunkIjkVector;
 
+use crate::common::util::vectors::ChunkIjkVector;
 /// The main type exported by this module
 /// Contains all the  [`ChunkIjkVector`] indexes for the convolution
 /// Check out the  [`super::neighbor_identifiers::ConvolutionIdentifier`] and
@@ -24,7 +24,7 @@ pub struct ElementGridConvolutionNeighborIdxsIter {
     /// The iterator for the bottom neighbor indexes
     bottom_neighbors_iter: BottomNeighborIdxsIter,
     /// The current index
-    index: usize,
+    index: u32,
 }
 
 impl Iterator for ElementGridConvolutionNeighborIdxsIter {
@@ -61,8 +61,17 @@ impl Iterator for ElementGridConvolutionNeighborIdxsIter {
     }
 }
 
+impl IntoIterator for &ElementGridConvolutionNeighborIdxs {
+    type IntoIter = ElementGridConvolutionNeighborIdxsIter;
+    type Item = ChunkIjkVector;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 impl ElementGridConvolutionNeighborIdxs {
     /// Get the iterator for the neighbor indexes
+    #[must_use]
     pub fn iter(&self) -> ElementGridConvolutionNeighborIdxsIter {
         ElementGridConvolutionNeighborIdxsIter {
             top_neighbors_iter: self.top.iter(),
@@ -73,6 +82,7 @@ impl ElementGridConvolutionNeighborIdxs {
     }
 
     /// Check if the given  [`ChunkIjkVector`] is contained in the neighbor indexes
+    #[must_use]
     pub fn contains(&self, chunk_idx: &ChunkIjkVector) -> bool {
         self.iter().any(|c| c == *chunk_idx)
     }
@@ -100,7 +110,7 @@ pub struct LeftRightNeighborIdxsIter {
     /// TODO: Shouldnt this always be Some?
     lr: Option<LeftRightNeighborIdxs>,
     /// The current index
-    index: usize,
+    index: u32,
 }
 
 impl Iterator for LeftRightNeighborIdxsIter {
@@ -121,8 +131,17 @@ impl Iterator for LeftRightNeighborIdxsIter {
     }
 }
 
+impl IntoIterator for &LeftRightNeighborIdxs {
+    type IntoIter = LeftRightNeighborIdxsIter;
+    type Item = ChunkIjkVector;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 impl LeftRightNeighborIdxs {
     /// Get the iterator for the left and right neighbor indexes
+    #[must_use]
     pub fn iter(&self) -> LeftRightNeighborIdxsIter {
         LeftRightNeighborIdxsIter {
             lr: Some(self.clone()),
@@ -168,7 +187,7 @@ pub struct TopNeighborIdxsIter {
     /// Whether or not there are top neighbors
     top: Option<TopNeighborIdxs>,
     /// The current index
-    index: usize,
+    index: u32,
 }
 
 impl Iterator for TopNeighborIdxsIter {
@@ -195,14 +214,22 @@ impl Iterator for TopNeighborIdxsIter {
                     _ => None,
                 }
             }
-            Some(TopNeighborIdxs::TopOfGrid) => None,
-            None => None,
+            Some(TopNeighborIdxs::TopOfGrid) | None => None,
         }
+    }
+}
+
+impl IntoIterator for &TopNeighborIdxs {
+    type IntoIter = TopNeighborIdxsIter;
+    type Item = ChunkIjkVector;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
     }
 }
 
 impl TopNeighborIdxs {
     /// Get the iterator for the top neighbor indexes
+    #[must_use]
     pub fn iter(&self) -> TopNeighborIdxsIter {
         TopNeighborIdxsIter {
             top: Some(self.clone()),
@@ -249,7 +276,7 @@ pub struct BottomNeighborIdxsIter {
     /// Whether or not there are bottom neighbors
     bottom: Option<BottomNeighborIdxs>,
     /// The current index
-    index: usize,
+    index: u32,
 }
 
 impl Iterator for BottomNeighborIdxsIter {
@@ -274,18 +301,26 @@ impl Iterator for BottomNeighborIdxsIter {
                     _ => None,
                 }
             }
-            Some(BottomNeighborIdxs::BottomOfGrid) => None,
-            None => None,
+            Some(BottomNeighborIdxs::BottomOfGrid) | None => None,
         }
     }
 }
 
 impl BottomNeighborIdxs {
     /// Get the iterator for the bottom neighbor indexes
-    pub fn iter(&self) -> BottomNeighborIdxsIter {
+    #[must_use]
+    fn iter(&self) -> BottomNeighborIdxsIter {
         BottomNeighborIdxsIter {
             bottom: Some(self.clone()),
             index: 0,
         }
+    }
+}
+
+impl IntoIterator for &BottomNeighborIdxs {
+    type IntoIter = BottomNeighborIdxsIter;
+    type Item = ChunkIjkVector;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
     }
 }

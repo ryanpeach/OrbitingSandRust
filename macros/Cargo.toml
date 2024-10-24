@@ -1,0 +1,52 @@
+[package]
+name = "macros"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+proc-macro = true
+
+[toolchain]
+channel = "stable"
+components = ["clippy"]
+
+[lints.rust]
+missing_docs = "warn"
+dead_code = "warn"
+
+[lints.rustdoc]
+missing_crate_level_docs = "warn"
+unescaped_backticks = "warn"
+private_intra_doc_links = "allow"
+
+[lints.clippy]
+# Enable specific Clippy lints
+pedantic = { level = "warn", priority = -1 }
+inefficient_to_string = "warn"
+missing_docs_in_private_items = "warn"
+doc_markdown = "warn"
+missing_fields_in_debug = "warn"
+redundant_clone = "warn"
+cast_possible_truncation = "deny"
+cast_precision_loss = "deny"
+cast_possible_wrap = "deny"
+cast_sign_loss = "deny"
+module_name_repetitions = "deny"
+needless_pass_by_value = "deny"
+trivially_copy_pass_by_ref = "deny"
+unwrap_used = "deny"
+panic = "deny"
+
+# Allow these lints
+expect_used = { level="allow", priority = 1 }
+too_many_lines = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+similar_names = "allow"
+type_complexity = "allow"
+large_enum_variant = "allow"
+mem_replace_with_default = "allow"
+
+[dependencies]
+quote = "1.0.37"
+syn = "2.0.82"

@@ -1,18 +1,8 @@
 //! This module contains all the physics related code.
-
-use bevy::app::{PluginGroup, PluginGroupBuilder};
+//! Most of this code tries to be bevy-agnostic. But it's not a hard rule.
 
 pub mod fallingsand;
 pub mod orbits;
-pub mod util;
 
 /// The number of physics frames per second.
-pub const PHYSICS_FRAME_RATE: f64 = 30.0;
-
-pub struct PhysicsPluginGroup;
-
-impl PluginGroup for PhysicsPluginGroup {
-    fn build(self) -> PluginGroupBuilder {
-        PluginGroupBuilder::start::<Self>().add(orbits::nbody::NBodyPlugin)
-    }
-}
+pub const PHYSICS_FRAME_RATE: f64 = 60.0;

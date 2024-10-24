@@ -1,0 +1,47 @@
+//! These documents are for game developers to understand the code, rather than for players.
+//! For players, we will eventually create a mdbook describing gameplay.
+//! This is the entry point for the game. It installs the plugins and contains
+//! a couple of setup functions for creating different scenes.
+use bevy::app::App;
+use bevy::app::PostStartup;
+use bevy::asset::AssetServer;
+use bevy::asset::Assets;
+use bevy::prelude::BuildChildren;
+use bevy::prelude::Commands;
+use bevy::prelude::Entity;
+use bevy::prelude::Mesh;
+use bevy::prelude::Query;
+use bevy::prelude::Res;
+use bevy::prelude::ResMut;
+use bevy::prelude::With;
+use bevy::sprite::ColorMaterial;
+use orbiting_sand::add_common_plugins;
+use orbiting_sand::bevy::entities::celestials::celestial;
+use orbiting_sand::bevy::entities::celestials::earthlike;
+use orbiting_sand::bevy::gui::camera::MainCamera;
+
+use orbiting_sand::bevy::gui::camera::CelestialIdx;
+
+/// Create the bevy app
+fn main() {
+    let mut app = App::new();
+    let app = add_common_plugins(&mut app);
+    app.add_systems(PostStartup, planet_only_setup).run();
+}
+
+/// Creates just a planet
+fn planet_only_setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    camera: Query<Entity, With<MainCamera>>,
+    asset_server: Res<AssetServer>,
+) {
+    // Create earth
+    let planet_data = earthlike::Builder::new().build();
+    let planet_id = celestial::Builder::new(&mut CelestialIdx(0), "Earth".to_string(), planet_data)
+        .build(&mut commands, &mut meshes, &mut materials, &asset_server);
+
+    // Parent the camera to the sun
+    commands.entity(planet_id).push_children(&[camera.single()]);
+}

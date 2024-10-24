@@ -1,3 +1,4 @@
+#![expect(missing_docs)]
 use bevy::{
     app::{App, Plugin, Update},
     ecs::system::{ResMut, Resource},

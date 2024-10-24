@@ -1,13 +1,13 @@
 //! A clock that can be passed to objects that need to know the last time they were updated.
 
+#![expect(missing_docs)]
+#![expect(clippy::missing_docs_in_private_items)]
 use std::{fmt::Debug, time::Duration};
 
 use bevy::{core::FrameCount, time::Time};
 
 /// A clock that can be passed to objects that need to know the last time they were updated.
 /// Combines the frame count and the time structs from the engine.
-/// WARNING: We are reusing the frame count and Time structs from the engine.
-///          however, since we are using getters this should be flexible if we change engines.
 #[derive(Default, Clone, Copy)]
 pub struct Clock {
     time: Time,
@@ -24,15 +24,19 @@ impl Debug for Clock {
 }
 
 impl Clock {
+    #[must_use]
     pub fn new(time: Time, frame: FrameCount) -> Self {
         Self { time, frame }
     }
+    #[must_use]
     pub fn current_time(&self) -> Duration {
         self.time.elapsed()
     }
+    #[must_use]
     pub fn last_delta(&self) -> Duration {
         self.time.delta()
     }
+    #[must_use]
     pub fn current_frame(&self) -> u32 {
         self.frame.0
     }

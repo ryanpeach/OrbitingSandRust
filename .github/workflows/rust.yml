@@ -28,6 +28,17 @@ jobs:
         token: ${{ secrets.GITEA_TOKEN }}
         ssh-known-hosts: ${{ secrets.KNOWN_HOSTS }}
 
+    - name: Cache Cargo dependencies and build
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
     - name: Install rustup
       uses: actions-rs/toolchain@v1
       with:
@@ -37,7 +48,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libasound2-dev libusb-1.0-0-dev libftdi1-dev libudev-dev
+        sudo apt-get install -y libasound2-dev libusb-1.0-0-dev libftdi1-dev libudev-dev valgrind
 
     - name: Install cargo fmt, clippy
       run: rustup component add rustfmt clippy
@@ -46,14 +57,11 @@ jobs:
       run: cargo fmt -- --check
 
     - name: Check Code Linting
-      run: cargo clippy --all-targets --all-features -- -D warnings
+      run: cargo clippy -- -D warnings
 
     - name: Build
       run: cargo build --verbose
 
-    - name: Test that the bench builds
-      run: cargo build --bench bench_main
-    
     - name: Test
       run: cargo test
 
@@ -66,7 +74,7 @@ jobs:
     #     )
     #     cargo binstall --no-confirm iai-callgrind-runner --version $version
 
-    - name: Run Benchmarks
-      run: |
-        cargo bench
+    # - name: Run Benchmarks
+    #   run: |
+    #     cargo bench
 

@@ -1,5 +1,34 @@
+exclude: "docs|.git"
+default_stages: [commit]
+fail_fast: false
+
 repos:
--   repo: https://github.com/doublify/pre-commit-rust
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-xml
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: no-commit-to-branch
+        args: [--branch, debug, --branch, master]
+      - id: pretty-format-json
+        args: ["--autofix"]
+
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.4.1
+    hooks:
+      - id: remove-tabs
+      - id: remove-crlf
+
+  # Rust
+  - repo: https://github.com/doublify/pre-commit-rust
     rev: v1.0
     hooks:
     -   id: fmt
