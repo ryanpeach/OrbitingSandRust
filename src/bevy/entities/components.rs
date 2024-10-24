@@ -1,9 +1,14 @@
 //! Components for entities
 
+use bevy::math::Rot2;
 use bevy::{color::Color, ecs::component::Component, math::Vec2};
 
 use crate::common::util::mesh::OwnedMeshData;
 use crate::common::util::mesh::Vertex;
+
+/// A rate of rotation in radians per second
+#[derive(Component, Debug, Clone, Copy)]
+pub struct RateOfRotation(pub Rot2);
 
 /// Radius for circular entities
 #[derive(Component, Debug, Clone, Copy)]

@@ -25,7 +25,7 @@ use bevy::ecs::query::{With, Without};
 use bevy::ecs::system::{Commands, Query, Res, ResMut};
 
 use bevy::hierarchy::{BuildChildren, Parent};
-use bevy::math::Vec2;
+use bevy::math::{Rot2, Vec2};
 
 use bevy::prelude::SpatialBundle;
 use bevy::render::mesh::Mesh;
@@ -40,10 +40,11 @@ use bevy::time::Time;
 use bevy::transform::components::{GlobalTransform, Transform};
 
 use crate::bevy::components::mesh::{GizmoDrawableGrid, GizmoDrawableLoop};
+use crate::bevy::entities::components::RateOfRotation;
 use crate::bevy::gui::camera::{
     CelestialIdx, MainCamera, OverlayLayer2, OverlayLayer3, SelectCelestial,
 };
-use crate::bevy::systemsets::{ComputeSet, DrawSet};
+use crate::bevy::systemsets::{ComputeSet, DrawSet, MovementSet};
 use crate::physics::fallingsand::data::element_directory::{ElementGridDir, Textures};
 use bevy::prelude::IntoSystemConfigs;
 use hashbrown::HashMap;
@@ -90,7 +91,12 @@ impl Plugin for DataPlugin {
         app.add_systems(
             FixedUpdate,
             (
-                (DataPlugin::process_system,).in_set(ComputeSet),
+                (
+                    DataPlugin::process_system,
+                ).in_set(ComputeSet),
+                (
+                    DataPlugin::rotation_system,
+                ).in_set(MovementSet),
                 (
                     DataPlugin::draw_wireframe_system,
                     DataPlugin::draw_outline_system,
@@ -103,7 +109,7 @@ impl Plugin for DataPlugin {
             Update,
             (
                 DataPlugin::wireframe_visibility_system,
-                DataPlugin::outline_visibility_system,
+                // DataPlugin::outline_visibility_system,
             ),
         );
         app.insert_resource(UpdatedTextures::default());
@@ -167,6 +173,8 @@ pub struct Builder {
     celestial_idx: CelestialIdx,
     /// Whether the celestial has a gravitational field
     gravitational: bool,
+    /// How fast in radians per second we are rotating clockwise
+    rate_of_rotation: Rot2
 }
 
 impl Builder {
@@ -179,9 +187,17 @@ impl Builder {
             velocity: Velocity(Vec2::new(0., 0.)),
             translation: Vec2::new(0., 0.),
             gravitational: true,
+            rate_of_rotation: Rot2::radians(0.0),
         };
         *idx = *idx + 1;
         out
+    }
+
+    /// Set [`Builder::rate_of_rotation`]
+    #[must_use]
+    pub fn rate_of_rotation(mut self, rate_of_rotation: Rot2) -> Self {
+        self.rate_of_rotation = rate_of_rotation;
+        self
     }
 
     /// Set [`Builder::velocity`]
@@ -331,6 +347,7 @@ impl Builder {
                     self.velocity,
                     self.celestial_data,
                     self.celestial_idx,
+                    RateOfRotation(self.rate_of_rotation),
                     SpatialBundle {
                         transform: Transform::from_translation(self.translation.extend(0.0)),
                         visibility: Visibility::Visible,
@@ -499,6 +516,19 @@ impl DataPlugin {
         }
     }
 
+    /// A constant rotation for the celestial
+    #[call_log_once]
+    pub fn rotation_system(
+        mut celestials: Query<(&RateOfRotation, &mut Transform), With<Data>>,
+        time: Res<Time>,
+    ) {
+        for (rate_of_rotation, mut transform) in celestials.iter_mut() {
+            let delta = rate_of_rotation.0.as_radians() * time.delta().as_secs_f32();
+            transform.rotate_z(delta);
+        }
+    }
+
+
     /// Draw the wireframe of the celestials cells
     #[call_log_once]
     pub fn draw_wireframe_system(
@@ -553,6 +583,7 @@ impl DataPlugin {
     }
 
     /// If the [`Camera`] is a child of a celestial [`Data`], make the [`Outline`] visible
+    #[allow(dead_code)]
     #[call_log_once]
     pub fn outline_visibility_system(
         mut outline_groups: Query<

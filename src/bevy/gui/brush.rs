@@ -86,7 +86,7 @@ impl BrushPlugin {
         };
         let brush = commands
             .spawn((
-                Radius(0.5),
+                Radius(2.0),
                 BrushComponent,
                 MaterialMesh2dBundle {
                     mesh: meshes.add(mesh).into(),
@@ -142,6 +142,7 @@ impl BrushPlugin {
             if brush_radius.0 < 0.5 {
                 brush_radius.0 = 0.5;
             }
+            brush_radius.0 = brush_radius.0.max(1.0);
             debug!("Brush radius changed to {:?}", brush_radius.0);
             *brush_transform = brush_transform.with_scale((Vec2::ONE * brush_radius.0).extend(0.0));
         }

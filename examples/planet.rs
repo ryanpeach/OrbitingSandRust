@@ -2,10 +2,13 @@
 //! For players, we will eventually create a mdbook describing gameplay.
 //! This is the entry point for the game. It installs the plugins and contains
 //! a couple of setup functions for creating different scenes.
+use std::f32::consts::PI;
+
 use bevy::app::App;
 use bevy::app::PostStartup;
 use bevy::asset::AssetServer;
 use bevy::asset::Assets;
+use bevy::math::Rot2;
 use bevy::prelude::BuildChildren;
 use bevy::prelude::Commands;
 use bevy::prelude::Entity;
@@ -40,6 +43,7 @@ fn planet_only_setup(
     // Create earth
     let planet_data = earthlike::Builder::new().build();
     let planet_id = celestial::Builder::new(&mut CelestialIdx(0), "Earth".to_string(), planet_data)
+        .rate_of_rotation(Rot2::radians(2.0*PI/100.0))
         .build(&mut commands, &mut meshes, &mut materials, &asset_server);
 
     // Parent the camera to the sun

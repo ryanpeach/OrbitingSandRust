@@ -203,7 +203,8 @@ impl CameraPlugin {
         if delta != 0. && !contexts.ctx_mut().is_pointer_over_area() {
             trace_once!("Zooming camera");
             for mut proj in &mut query {
-                proj.scale *= (1. + delta * time.delta_seconds() * 0.5).max(0.0001);
+                proj.scale *= 1. + delta * time.delta_seconds() * 0.5;
+                proj.scale = proj.scale.max(0.05);
             }
         }
     }

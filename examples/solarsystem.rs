@@ -2,11 +2,14 @@
 //! For players, we will eventually create a mdbook describing gameplay.
 //! This is the entry point for the game. It installs the plugins and contains
 //! a couple of setup functions for creating different scenes.
+use std::f32::consts::PI;
+
 use bevy::app::App;
 use bevy::app::PostStartup;
 use bevy::asset::AssetServer;
 use bevy::asset::Assets;
 use bevy::color::palettes::css::PURPLE;
+use bevy::math::Rot2;
 use bevy::math::Vec2;
 use bevy::prelude::default;
 use bevy::prelude::Circle;
@@ -52,6 +55,7 @@ fn solar_system_setup(
     let planet_data = earthlike::Builder::new().build();
     celestial::Builder::new(&mut idx, "Earth1".to_string(), planet_data)
         .translation(Vec2::new(-10000., 0.))
+        .rate_of_rotation(Rot2::radians(2.0*PI/100.0))
         .velocity(Velocity(Vec2::new(0., 1200.)))
         .build(&mut commands, &mut meshes, &mut materials, &asset_server);
 
@@ -59,6 +63,7 @@ fn solar_system_setup(
     let planet_data = earthlike::Builder::new().build();
     celestial::Builder::new(&mut idx, "Earth2".to_string(), planet_data)
         .translation(Vec2::new(10000., 0.))
+        .rate_of_rotation(Rot2::radians(2.0*PI/100.0))
         .velocity(Velocity(Vec2::new(0., -1200.)))
         .build(&mut commands, &mut meshes, &mut materials, &asset_server);
 
