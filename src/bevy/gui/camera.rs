@@ -25,6 +25,7 @@ use bevy::{
     time::Time,
     transform::components::Transform,
 };
+use bevy_egui::EguiContexts;
 use bevy_eventlistener::callbacks::ListenerInput;
 use bevy_mod_picking::events::{Down, Pointer};
 
@@ -193,12 +194,13 @@ impl CameraPlugin {
         time: Res<Time>,
         mut scroll_evr: EventReader<MouseWheel>,
         mut query: Query<&mut OrthographicProjection, With<MainCamera>>,
+        mut contexts: EguiContexts,
     ) {
         let mut delta = 0.;
         for ev in scroll_evr.read() {
             delta += ev.y;
         }
-        if delta != 0. {
+        if delta != 0. && !contexts.ctx_mut().is_pointer_over_area() {
             trace_once!("Zooming camera");
             for mut proj in &mut query {
                 proj.scale *= (1. + delta * time.delta_seconds() * 0.5).max(0.0001);
