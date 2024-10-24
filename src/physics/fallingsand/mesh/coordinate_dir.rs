@@ -5,20 +5,13 @@ use std::f64::consts::PI;
 
 use crate::bevy::entities::components::Radius;
 use crate::common::util::uom::Length;
-use crate::common::util::vectors::ModelCoord;
 use crate::common::util::vectors::{
     ChunkIjkVector, ChunkJkVector, FullIdx, IjkVector, InChunkJkVector,
 };
+use crate::common::util::vectors::{ModelCoord, RelJkVector};
 use crate::physics::fallingsand::util::grid::JkGrid;
 use bevy::math::Rect;
-
-use crate::entities::components::Radius;
-use crate::physics::fallingsand::util::grid::Grid;
-use crate::physics::fallingsand::util::vectors::{
-    ChunkIjkVector, IjkVector, JkVector, RelJkVector,
-};
-use crate::physics::orbits::components::Length;
-use crate::physics::util::vectors::RelXyPoint;
+use conv::{ConvAsUtil, ValueFrom};
 
 use super::chunk_coords::ChunkCoords;
 use super::chunk_coords::PartialLayerChunkCoordsBuilder;
@@ -274,50 +267,53 @@ impl Builder {
  * ========================================= */
 impl CoordinateDir {
     /// Used to get a chunk coordinates at a given chunk index
+    #[must_use]
     pub fn chunk_at_idx(&self, chunk_idx: ChunkIjkVector) -> ChunkCoords {
         if chunk_idx.i == 0 {
             *self.core_chunks().get(chunk_idx.into())
         } else {
-            *self.partial_chunks()[chunk_idx.i].get(chunk_idx.into())
+            *self.partial_chunks()[chunk_idx.i as usize].get(chunk_idx.into())
         }
     }
     #[must_use]
     pub fn chunk_bounding_box(&self, chunk_idx: ChunkIjkVector) -> Rect {
-        self.partial_chunks[chunk_idx.i]
+        self.partial_chunks[chunk_idx.i as usize]
             .get(chunk_idx.into())
             .bounding_box()
     }
     #[must_use]
     pub fn chunk_start_radius(&self, chunk_idx: ChunkIjkVector) -> f32 {
-        self.partial_chunks[chunk_idx.i]
+        self.partial_chunks[chunk_idx.i as usize]
             .get(chunk_idx.into())
             .start_radius()
     }
     #[must_use]
     pub fn chunk_end_radius(&self, chunk_idx: ChunkIjkVector) -> f32 {
-        self.partial_chunks[chunk_idx.i]
+        self.partial_chunks[chunk_idx.i as usize]
             .get(chunk_idx.into())
             .end_radius()
     }
     #[must_use]
     pub fn chunk_start_theta(&self, chunk_idx: ChunkIjkVector) -> f32 {
-        self.partial_chunks[chunk_idx.i]
+        self.partial_chunks[chunk_idx.i as usize]
             .get(chunk_idx.into())
             .start_theta()
     }
     #[must_use]
     pub fn chunk_end_theta(&self, chunk_idx: ChunkIjkVector) -> f32 {
-        self.partial_chunks[chunk_idx.i]
+        self.partial_chunks[chunk_idx.i as usize]
             .get(chunk_idx.into())
             .end_theta()
     }
-    pub fn chunk_num_radial_lines(&self, chunk_idx: ChunkIjkVector) -> usize {
-        self.partial_chunks[chunk_idx.i]
+    #[must_use]
+    pub fn chunk_num_radial_lines(&self, chunk_idx: ChunkIjkVector) -> u32 {
+        self.partial_chunks[chunk_idx.i as usize]
             .get(chunk_idx.into())
             .num_radial_lines()
     }
-    pub fn chunk_num_concentric_circles(&self, chunk_idx: ChunkIjkVector) -> usize {
-        self.partial_chunks[chunk_idx.i]
+    #[must_use]
+    pub fn chunk_num_concentric_circles(&self, chunk_idx: ChunkIjkVector) -> u32 {
+        self.partial_chunks[chunk_idx.i as usize]
             .get(chunk_idx.into())
             .num_concentric_circles()
     }
@@ -462,7 +458,8 @@ impl CoordinateDir {
         &self.partial_chunks[0]
     }
     /// Useful for getting all the partial chunks, useful for getting their shapes
-    pub fn partial_chunks(&self) -> &Vec<Grid<ChunkCoords>> {
+    #[must_use]
+    pub fn partial_chunks(&self) -> &Vec<JkGrid<ChunkJkVector, ChunkCoords>> {
         &self.partial_chunks
     }
     /// The number of concentric circles in a given layer
@@ -621,14 +618,17 @@ impl CoordinateDir {
     }
 
     /// Converts a [`RelJkVector`] into an absolute [`IjkVector`], given the `layer_num`.
+    /// In this system we are assuming [`RelJkVector`] is being used as an [`InChunkJkVector`] but
+    /// with the ability to go "out of bounds" in any direction.
     ///
     /// However, this is not as good as the methods in
     /// [`crate::physics::fallingsand::convolution`], its just quite a bit faster.
     /// Not suitable for element movement, but suitable for finding greater than or equal to all
     /// the possible points
+    #[must_use]
     pub fn fuzzy_rel_ijk_to_absolute_ijk(
         &self,
-        layer_num: usize,
+        layer_num: u32,
         rel_point: RelJkVector,
     ) -> Vec<IjkVector> {
         let mut out: Vec<IjkVector> = Vec::new();
@@ -637,12 +637,14 @@ impl CoordinateDir {
         out
     }
 
+    /// Helper for [`Self::fuzzy_rel_ijk_to_absolute_ijk`]
+    /// This first handles the `j` coordinate's behavior before handling the `k` coordinate
     fn fuzzy_rel_ijk_to_absolute_ijk_up_down_priority(
         &self,
-        layer_num: usize,
+        layer_num: u32,
         rel_point: RelJkVector,
     ) -> Vec<IjkVector> {
-        let mut out: Vec<(usize, RelJkVector)> = Vec::new();
+        let mut out: Vec<(u32, RelJkVector)> = Vec::new();
         for (new_layer, new_point) in
             self.fuzzy_rel_ijk_to_absolute_ijk_up_down(layer_num, rel_point)
         {
@@ -655,26 +657,28 @@ impl CoordinateDir {
         debug_assert!(out.iter().all(|(_, x)| x.rj >= 0));
         debug_assert!(out
             .iter()
-            .all(|(_, x)| x.rj < self.layer_num_concentric_circles(layer_num) as isize));
+            .all(|(_, x)| x.rj < i64::from(self.layer_num_concentric_circles(layer_num))));
         debug_assert!(out.iter().all(|(_, x)| x.rk >= 0));
         debug_assert!(out
             .iter()
-            .all(|(_, x)| x.rk < self.layer_num_radial_lines(layer_num) as isize));
+            .all(|(_, x)| x.rk < i64::from(self.layer_num_radial_lines(layer_num))));
         out.iter()
             .map(|(layer_num, new_point)| IjkVector {
                 i: *layer_num,
-                j: new_point.rj as usize,
-                k: new_point.rk as usize,
+                j: u32::value_from(new_point.rj).expect("Already checked if it was in range."),
+                k: u32::value_from(new_point.rk).expect("Already checked if it was in range."),
             })
             .collect()
     }
 
+    /// Helper for [`Self::fuzzy_rel_ijk_to_absolute_ijk`]
+    /// This first handles the `k` coordinate's behavior before handling the `j` coordinate
     fn fuzzy_rel_ijk_to_absolute_ijk_left_right_priority(
         &self,
-        layer_num: usize,
+        layer_num: u32,
         rel_point: RelJkVector,
     ) -> Vec<IjkVector> {
-        let mut out: Vec<(usize, RelJkVector)> = Vec::new();
+        let mut out: Vec<(u32, RelJkVector)> = Vec::new();
         for (new_layer, new_point) in self.fuzzy_rel_ijk_to_absolute_ijk_lr(layer_num, rel_point) {
             for (new_layer, new_point) in
                 self.fuzzy_rel_ijk_to_absolute_ijk_up_down(new_layer, new_point)
@@ -685,26 +689,31 @@ impl CoordinateDir {
         debug_assert!(out.iter().all(|(_, x)| x.rj >= 0));
         debug_assert!(out
             .iter()
-            .all(|(_, x)| x.rj < self.layer_num_concentric_circles(layer_num) as isize));
+            .all(|(_, x)| x.rj < i64::from(self.layer_num_concentric_circles(layer_num))));
         debug_assert!(out.iter().all(|(_, x)| x.rk >= 0));
         debug_assert!(out
             .iter()
-            .all(|(_, x)| x.rk < self.layer_num_radial_lines(layer_num) as isize));
+            .all(|(_, x)| x.rk < i64::from(self.layer_num_radial_lines(layer_num))));
         out.iter()
             .map(|(layer_num, new_point)| IjkVector {
                 i: *layer_num,
-                j: new_point.rj as usize,
-                k: new_point.rk as usize,
+                j: u32::value_from(new_point.rj)
+                    .expect("Should have been converted out of positive"),
+                k: u32::value_from(new_point.rk)
+                    .expect("Should have been converted out of positive"),
             })
             .collect()
     }
 
+    /// Helper for [`Self::fuzzy_rel_ijk_to_absolute_ijk`]
+    /// This handles the `j` coordinate's behavior
+    /// Which is simply changing layers when above or below the bounds of the chunk
     fn fuzzy_rel_ijk_to_absolute_ijk_up_down(
         &self,
-        layer_num: usize,
+        layer_num: u32,
         rel_point: RelJkVector,
-    ) -> Vec<(usize, RelJkVector)> {
-        if rel_point.rj >= self.layer_num_concentric_circles(layer_num) as isize {
+    ) -> Vec<(u32, RelJkVector)> {
+        if rel_point.rj >= i64::from(self.layer_num_concentric_circles(layer_num)) {
             self.fuzzy_rel_ijk_to_absolute_ijk_up(layer_num, rel_point)
         } else if rel_point.rj < 0 {
             self.fuzzy_rel_ijk_to_absolute_ijk_down(layer_num, rel_point)
@@ -713,11 +722,13 @@ impl CoordinateDir {
         }
     }
 
+    /// Helper for [`Self::fuzzy_rel_ijk_to_absolute_ijk_up_down`]
+    /// Just handles `j`'s above [`Self::layer_num_radial_lines`]
     fn fuzzy_rel_ijk_to_absolute_ijk_up(
         &self,
-        layer_num: usize,
+        layer_num: u32,
         rel_point: RelJkVector,
-    ) -> Vec<(usize, RelJkVector)> {
+    ) -> Vec<(u32, RelJkVector)> {
         if layer_num + 1 >= self.num_layers() {
             vec![]
         } else if self.layer_num_radial_lines(layer_num + 1)
@@ -750,11 +761,13 @@ impl CoordinateDir {
         }
     }
 
+    /// Helper for [`Self::fuzzy_rel_ijk_to_absolute_ijk_up_down`]
+    /// Just handles negative `j`'s
     fn fuzzy_rel_ijk_to_absolute_ijk_down(
         &self,
-        layer_num: usize,
+        layer_num: u32,
         rel_point: RelJkVector,
-    ) -> Vec<(usize, RelJkVector)> {
+    ) -> Vec<(u32, RelJkVector)> {
         if layer_num == 0 {
             vec![]
         } else if self.layer_num_radial_lines(layer_num - 1)
@@ -763,7 +776,7 @@ impl CoordinateDir {
             vec![(
                 layer_num - 1,
                 RelJkVector {
-                    rj: (self.layer_num_concentric_circles(layer_num) - 1) as isize,
+                    rj: i64::from(self.layer_num_concentric_circles(layer_num) - 1),
                     rk: rel_point.rk,
                 },
             )]
@@ -771,23 +784,25 @@ impl CoordinateDir {
             vec![(
                 layer_num - 1,
                 RelJkVector {
-                    rj: (self.layer_num_concentric_circles(layer_num) - 1) as isize,
+                    rj: i64::from(self.layer_num_concentric_circles(layer_num) - 1),
                     rk: rel_point.rk / 2,
                 },
             )]
         }
     }
 
+    /// Helper for [`Self::fuzzy_rel_ijk_to_absolute_ijk`]
+    /// Handles all left/right motion in `k` coordinate
     fn fuzzy_rel_ijk_to_absolute_ijk_lr(
         &self,
-        layer_num: usize,
+        layer_num: u32,
         rel_point: RelJkVector,
-    ) -> Vec<(usize, RelJkVector)> {
+    ) -> Vec<(u32, RelJkVector)> {
         vec![(
             layer_num,
             RelJkVector {
                 rj: rel_point.rj,
-                rk: rel_point.rk % (self.layer_num_radial_lines(layer_num) as isize),
+                rk: rel_point.rk % i64::from(self.layer_num_radial_lines(layer_num)),
             },
         )]
     }

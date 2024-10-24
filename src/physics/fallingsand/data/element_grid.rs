@@ -1,11 +1,13 @@
 #![expect(clippy::missing_docs_in_private_items)]
 use bevy::color::ColorToPacked;
-use bevy::math::Rect;
+use bevy::math::URect;
 use hashbrown::HashSet;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
+use crate::common::util::uom::Mass;
+use crate::common::util::vectors::InChunkJkVector;
 use crate::physics::fallingsand::dirtyrect::JkRect;
 use crate::physics::fallingsand::elements::element::{Element, ElementTakeOptions, ElementType};
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
@@ -16,8 +18,8 @@ use super::super::mesh::coordinate_dir::CoordinateDir;
 use super::super::util::grid::{GridOutOfBoundsError, JkGrid};
 use crate::common::util::clock::Clock;
 use crate::common::util::image::RawImage;
-use crate::common::util::vectors::InChunkJkVector;
 use anyhow::{bail, Result};
+use conv::ValueFrom;
 use itertools::iproduct;
 
 /// An element grid is a 2D grid of elements tied to a chunk
@@ -225,7 +227,7 @@ impl ElementGrid {
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
         dirty_rects: Option<Vec<JkRect>>,
         current_time: Clock,
-    ) -> HashSet<JkVector> {
+    ) -> HashSet<InChunkJkVector> {
         let changed_indexes = self.process_elements(
             coord_dir,
             element_grid_conv_neigh,
@@ -247,12 +249,12 @@ impl ElementGrid {
         element_grid_conv_neigh: &mut ElementGridConvolutionNeighbors,
         dirty_rects: Option<Vec<JkRect>>,
         current_time: Clock,
-    ) -> HashSet<JkVector> {
+    ) -> HashSet<InChunkJkVector> {
         let already_processed = self.already_processed();
         debug_assert!(!already_processed, "Already processed");
 
         // We return any changed indexes for bounding rectangles
-        let mut changed_indexes = HashSet::<JkVector>::new();
+        let mut changed_indexes = HashSet::<InChunkJkVector>::new();
 
         // By randomly shuffling the order we process the elements
         // we can avoid creating a "favorite direction" for the elements to move
@@ -260,8 +262,8 @@ impl ElementGrid {
         match dirty_rects {
             None => {
                 iproduct!(
-                    0..self.coords.num_concentric_circles(),
-                    0..self.coords.num_radial_lines()
+                    0..self.coords.num_concentric_circles() as usize,
+                    0..self.coords.num_radial_lines() as usize
                 )
                 .for_each(|x| iter.push(x));
             }

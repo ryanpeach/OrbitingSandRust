@@ -21,18 +21,17 @@
 use hashbrown::HashMap;
 use thiserror::Error;
 
-use crate::physics::{
-    fallingsand::{
+use crate::{
+    common::util::{
+        clock::Clock,
+        vectors::{ChunkIjkVector, InChunkJkVector, JkVector},
+    },
+    physics::fallingsand::{
         data::element_grid::ElementGrid,
         elements::element::Element,
-        mesh::chunk_coords::ChunkCoords,
-        mesh::coordinate_dir::CoordinateDir,
-        util::{
-            functions::modulo,
-            vectors::{ChunkIjkVector, JkVector},
-        },
+        mesh::{chunk_coords::ChunkCoords, coordinate_dir::CoordinateDir},
+        util::functions::modulo,
     },
-    util::clock::Clock,
 };
 
 use conv::ValueFrom;
@@ -228,11 +227,11 @@ impl ElementGridConvolutionNeighbors {
     pub fn idx_left_right_idx_from_center(
         &self,
         target_chunk_coords: &ChunkCoords,
-        pos: &JkVector,
+        pos: &InChunkJkVector,
         rk: isize,
     ) -> Result<ConvolutionIdx, ConvOutOfBoundsError> {
         // In the left right direction, unlike up down, every chunk has the same number of radial lines
-        let radial_lines = target_chunk.coords().num_radial_lines();
+        let radial_lines = target_chunk_coords.num_radial_lines();
         let radial_lines_i = isize::value_from(radial_lines).expect("32bit compilation disabled.");
         let pos_k = isize::value_from(pos.k).expect("32bit compilation disabled");
         // You should not be doing any loops that might make you re-target yourself
@@ -613,7 +612,7 @@ mod tests {
                 .idx_below_idx_from_center(
                     chunk.coords(),
                     element_dir.coordinate_dir(),
-                    &chunk_pos1.1,
+                    &chunk_pos1.pos,
                     1,
                 )
                 .unwrap();
@@ -718,7 +717,7 @@ mod tests {
                 .unwrap();
             let chunk = element_dir.chunk_at_chunk_ijk(chunk_pos1.chunk_idx);
             let should_eq_pos2 = package
-                .idx_left_right_idx_from_center(chunk.coords(), &chunk_pos1.1, n)
+                .idx_left_right_idx_from_center(chunk.coords(), &chunk_pos1.pos, n)
                 .unwrap();
             assert_eq!(
                 chunk_pos2.pos, should_eq_pos2.0,

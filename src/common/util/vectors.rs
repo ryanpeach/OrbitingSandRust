@@ -1,11 +1,14 @@
 //! A collection of coordinate types and their conversions
 //! Mostly for the [`ChunkCoords`] [`crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir`]
 #![warn(missing_docs)]
-#![warn(clippy::missing_docs_in_private_items)]
 
-use bevy::{color::Color, math::Vec2};
+use bevy::{
+    math::Vec2,
+    transform::components::{GlobalTransform, Transform},
+};
 
 use crate::physics::fallingsand::mesh::chunk_coords::ChunkCoords;
+use conv::ValueFrom;
 use derive_more::{Add, AddAssign, Sub, SubAssign};
 
 /// A coordinate system for  [`ndarray`]
@@ -13,48 +16,35 @@ use derive_more::{Add, AddAssign, Sub, SubAssign};
 /// Top left is (0, 0)
 /// ![ndarray coords](../../../../../assets/docs/wireframe/ndarray_coords.png)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct NdArrayCoords([usize; 2]);
+pub struct NdArrayCoords([u32; 2]);
 
 /// Instantiation
 impl NdArrayCoords {
     /// Create a new  [`NdArrayCoords`]
-    pub fn new(x: usize, y: usize) -> Self {
+    #[must_use]
+    pub fn new(x: u32, y: u32) -> Self {
         Self([x, y])
     }
 }
 
 impl NdArrayCoords {
-    /// Convert to a  [`JkVector`]
-    /// ndarray is row-major, so the jk vector is flipped
-    /// Bottom Right is (0, 0)
-    pub fn to_jk_vector(self, coords: &ChunkCoords) -> JkVector {
-        JkVector {
-            j: coords.num_concentric_circles() - 1 - self.y(),
-            k: coords.num_radial_lines() - 1 - self.x(),
-        }
-    }
-
     /// Get the column index
-    pub fn x(&self) -> usize {
+    #[must_use]
+    pub fn x(&self) -> u32 {
         self.0[0]
     }
 
     /// Get the row index
-    pub fn y(&self) -> usize {
+    #[must_use]
+    pub fn y(&self) -> u32 {
         self.0[1]
     }
 }
 
-impl From<NdArrayCoords> for [usize; 2] {
+impl From<NdArrayCoords> for [u32; 2] {
     fn from(val: NdArrayCoords) -> Self {
         val.0
     }
-}
-
-/// Constants
-impl NdArrayCoords {
-    /// The zero vector
-    pub const ZERO: Self = Self([0, 0]);
 }
 
 /// My personal coordinate type for the circular grids
@@ -73,20 +63,74 @@ impl NdArrayCoords {
 /// Bottom right is (0, 0)
 /// If you need to also know the layer number, use  [`IjkVector`]
 /// If you need a relative vector, use  [`RelJkVector`]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
-pub struct JkVector {
+/// Gives all the different kinds of jk vectors some common functions
+pub trait JkVector
+where
+    Self: Sized,
+{
+    /// Initialization
+    #[must_use]
+    fn new(j: u32, k: u32) -> Self;
     /// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
-    pub j: usize,
+    #[must_use]
+    fn j(&self) -> u32;
     /// The k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
-    pub k: usize,
+    #[must_use]
+    fn k(&self) -> u32;
+    /// To  [`NdArrayCoords`]
+    /// ndarray is row-major, so the jk vector is flipped
+    /// Top left is (0, 0)
+    /// Whereas in a Jk Vector, the bottom right is (0, 0)
+    #[must_use]
+    fn to_ndarray_coords(self, coords: &ChunkCoords) -> NdArrayCoords {
+        NdArrayCoords::new(
+            coords.num_radial_lines() - 1 - self.k(),
+            coords.num_concentric_circles() - 1 - self.j(),
+        )
+    }
 }
 
-/// To  [`NdArrayCoords`]
-/// ndarray is row-major, so the jk vector is flipped
-/// Top left is (0, 0)
-/// Whereas in a Jk Vector, the bottom right is (0, 0)
-impl JkVector {
+/// The difference between this and [`InChunkJkVector`]
+/// is that this assumes you are indexing within the entire layer.
+/// This is a cell index, NOT a chunk index
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
+pub struct LayerJkVector {
+    /// See [`JkVector::j`]
+    pub j: u32,
+    /// See [`JkVector::k`]
+    pub k: u32,
+}
+
+impl JkVector for LayerJkVector {
+    fn new(j: u32, k: u32) -> Self {
+        Self { j, k }
+    }
+    fn j(&self) -> u32 {
+        self.j
+    }
+    fn k(&self) -> u32 {
+        self.k
+    }
+}
+
+impl From<IjkVector> for LayerJkVector {
+    fn from(value: IjkVector) -> Self {
+        Self::new(value.j, value.k)
+    }
+}
+
+/// This is for the coordinates of the **chunk itself** within a layer.
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
+pub struct ChunkJkVector {
+    /// See [`JkVector::j`]
+    pub j: u32,
+    /// See [`JkVector::k`]
+    pub k: u32,
+}
+
+impl ChunkJkVector {
     /// Convert to a  [`NdArrayCoords`]
+    #[must_use]
     pub fn to_ndarray_coords(self, coords: &ChunkCoords) -> NdArrayCoords {
         NdArrayCoords::new(
             coords.num_radial_lines() - 1 - self.k,
@@ -95,44 +139,36 @@ impl JkVector {
     }
 }
 
-/// Convienient constants
-impl JkVector {
-    /// The zero vector
-    pub const ZERO: Self = Self { j: 0, k: 0 };
-}
-
-/// Instantiation
-impl JkVector {
-    /// Create a new  [`JkVector`]
-    pub fn new(j: usize, k: usize) -> Self {
+impl JkVector for ChunkJkVector {
+    fn new(j: u32, k: u32) -> Self {
         Self { j, k }
     }
-}
-
-impl From<ChunkIjkVector> for JkVector {
-    fn from(value: ChunkIjkVector) -> Self {
-        Self {
-            j: value.j,
-            k: value.k,
-        }
+    fn j(&self) -> u32 {
+        self.j
+    }
+    fn k(&self) -> u32 {
+        self.k
     }
 }
 
-impl From<RelJkVector> for JkVector {
-    fn from(value: RelJkVector) -> Self {
-        Self {
-            j: value.rj as usize,
-            k: value.rk as usize,
-        }
-    }
+/// See [`ChunkJkVector`] but this is for coordinates of a **cell** within a chunk.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Add, Sub, AddAssign, SubAssign)]
+pub struct InChunkJkVector {
+    /// See [`JkVector::j`]
+    pub j: u32,
+    /// See [`JkVector::k`]
+    pub k: u32,
 }
 
-impl From<IjkVector> for JkVector {
-    fn from(value: IjkVector) -> Self {
-        Self {
-            j: value.j,
-            k: value.k,
-        }
+impl JkVector for InChunkJkVector {
+    fn new(j: u32, k: u32) -> Self {
+        Self { j, k }
+    }
+    fn j(&self) -> u32 {
+        self.j
+    }
+    fn k(&self) -> u32 {
+        self.k
     }
 }
 
@@ -141,83 +177,204 @@ impl From<IjkVector> for JkVector {
 /// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct RelJkVector {
-    /// The relative j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
-    pub rj: isize,
-    /// The relative k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
-    pub rk: isize,
+    /// The relative j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive.
+    /// See [`JkVector::j`]
+    pub rj: i64,
+    /// The relative k coordinate, as in the tangential dimension,
+    /// positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
+    /// See [`JkVector::k`]
+    pub rk: i64,
 }
 
-/// Instantiation
-impl RelJkVector {
-    /// Create a new  [`RelJkVector`]
-    pub fn new(rj: isize, rk: isize) -> Self {
-        Self { rj, rk }
-    }
-}
-
-impl From<JkVector> for RelJkVector {
-    fn from(value: JkVector) -> Self {
-        RelJkVector {
-            rj: value.j as isize,
-            rk: value.k as isize,
+impl From<InChunkJkVector> for RelJkVector {
+    fn from(value: InChunkJkVector) -> Self {
+        Self {
+            rj: i64::from(value.j),
+            rk: i64::from(value.k),
         }
     }
 }
 
-/// Same as  [`JkVector`] but with i indicating the "layer number"
-/// The core is layer 0
-/// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
+impl From<RelJkVector> for InChunkJkVector {
+    fn from(value: RelJkVector) -> Self {
+        Self {
+            j: u32::value_from(value.rj).expect("Should be checked to be greater than 0"),
+            k: u32::value_from(value.rk).expect("Should be checked to be greater than 0"),
+        }
+    }
+}
+
+/// Defines both the chunk and the internal idx of the element
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct FullIdx {
+    /// The chunk index
+    pub chunk_idx: ChunkIjkVector,
+    /// The position of an element within a chunk
+    pub pos: InChunkJkVector,
+}
+
+/// Instantiation
+impl FullIdx {
+    /// Create a new [`FullIdx`]
+    #[must_use]
+    pub fn new(chunk_idx: ChunkIjkVector, pos: InChunkJkVector) -> Self {
+        Self { chunk_idx, pos }
+    }
+}
+
+/// Same as  [`JkVector`] but with i indicating the "layer number"
+///
+/// The core is layer 0
+///
+/// This particular class is in reference to an actual **cell** inside a [`crate::physics::fallingsand::data::element_directory::ElementGridDir`]
+/// or [`crate::physics::fallingsand::mesh::coordinate_dir::CoordinateDir`],
+/// NOT the index of the chunk itself, that is a [`ChunkIjkVector`]
+///
+/// You can consider this the "Absolute coordinates" of a celestial
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct IjkVector {
     /// The i coordinate, as in the layer number, the core is 0
-    pub i: usize,
+    pub i: u32,
     /// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
-    pub j: usize,
+    pub j: u32,
     /// The k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
-    pub k: usize,
+    pub k: u32,
 }
 
 impl IjkVector {
-    /// The zero vector
-    pub const ZERO: Self = Self { i: 0, j: 0, k: 0 };
     /// Instantiation
-    pub fn new(i: usize, j: usize, k: usize) -> Self {
+    #[must_use]
+    pub fn new(i: u32, j: u32, k: u32) -> Self {
         Self { i, j, k }
     }
 }
 
-/// A vertex in a mesh
-/// Originally from ggez
-/// TODO: move to bevy's types
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Vertex {
-    /// The position of the vertex
-    pub position: Vec2,
-    /// The texture coordinates of the vertex
-    pub uv: Vec2,
-    /// The color of the vertex
-    pub color: Color,
-}
-
-/// The  [`IjkVector`]of a chunk within an [`crate::physics::fallingsand::data::element_directory::ElementGridDir`]
+/// The  [`IjkVector`] of a chunk within a [`crate::physics::fallingsand::data::element_directory::ElementGridDir`]
 /// In this case Ijk relate to the index of the chunk itself, not
-/// perportional to the cells within the chunk
+/// perportional to the cells within the chunk. That would be a standard [`IjkVector`]
 /// ![jk vector](../../../../../assets/docs/wireframe/jk_coords.png)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct ChunkIjkVector {
     /// The i coordinate, as in the layer number, the core is 0
-    pub i: usize,
+    pub i: u32,
     /// The j coordinate, as in the radial dimension, towards the core is negative, away from the core is positive
-    pub j: usize,
+    pub j: u32,
     /// The k coordinate, as in the tangential dimension, positive is counter clockwise from unit circle 0 degrees which is starting from 3 o'clock east
-    pub k: usize,
+    pub k: u32,
 }
 
 impl ChunkIjkVector {
     /// Instantiation
-    pub fn new(i: usize, j: usize, k: usize) -> Self {
+    #[must_use]
+    pub fn new(i: u32, j: u32, k: u32) -> Self {
         Self { i, j, k }
     }
-    /// The zero vector
-    pub const ZERO: Self = Self { i: 0, j: 0, k: 0 };
+}
+
+impl From<ChunkIjkVector> for ChunkJkVector {
+    fn from(value: ChunkIjkVector) -> Self {
+        Self::new(value.j, value.k)
+    }
+}
+
+/// An xy vector that is relative to some entity.
+/// Using `Model` in accorance with [Bevy Matrix
+/// Names](https://bevyengine.org/news/bevy-0-14/#improved-matrix-naming)
+#[derive(Debug, Copy, Clone, PartialEq, Sub, Add)]
+pub struct ModelCoord(pub Vec2);
+
+impl From<ModelCoord> for Transform {
+    fn from(val: ModelCoord) -> Self {
+        Transform::from_translation(bevy::math::Vec3 {
+            x: val.0.x,
+            y: val.0.y,
+            z: 0.0,
+        })
+    }
+}
+
+impl ModelCoord {
+    /// Initialization
+    #[must_use]
+    pub fn new(x: f32, y: f32) -> Self {
+        Self(Vec2::new(x, y))
+    }
+}
+
+/// Coordinates in the cameras view
+///
+/// Using `View` in accorance with [Bevy Matrix
+/// Names](https://bevyengine.org/news/bevy-0-14/#improved-matrix-naming)
+#[derive(Debug, Copy, Clone, PartialEq, Sub, Add)]
+pub struct ViewCoord(pub Vec2);
+
+impl From<ViewCoord> for Transform {
+    fn from(val: ViewCoord) -> Self {
+        Transform::from_translation(bevy::math::Vec3 {
+            x: val.0.x,
+            y: val.0.y,
+            z: 0.0,
+        })
+    }
+}
+
+impl ViewCoord {
+    /// Initialization
+    #[must_use]
+    pub fn new(x: f32, y: f32) -> Self {
+        Self(Vec2::new(x, y))
+    }
+}
+
+/// Global coordinates in the world
+///
+/// Using `World` in accorance with [Bevy Matrix
+/// Names](https://bevyengine.org/news/bevy-0-14/#improved-matrix-naming)
+#[derive(Debug, Copy, Clone, PartialEq, Sub, Add)]
+pub struct WorldCoord(pub Vec2);
+
+impl From<WorldCoord> for Transform {
+    fn from(val: WorldCoord) -> Self {
+        Self::from_translation(bevy::math::Vec3 {
+            x: val.0.x,
+            y: val.0.y,
+            z: 0.0,
+        })
+    }
+}
+
+impl From<WorldCoord> for GlobalTransform {
+    fn from(val: WorldCoord) -> Self {
+        Self::from_translation(bevy::math::Vec3 {
+            x: val.0.x,
+            y: val.0.y,
+            z: 0.0,
+        })
+    }
+}
+
+impl From<Vec2> for WorldCoord {
+    fn from(val: Vec2) -> Self {
+        Self(val)
+    }
+}
+
+impl From<ModelCoord> for WorldCoord {
+    fn from(val: ModelCoord) -> Self {
+        Self(val.0)
+    }
+}
+
+impl From<WorldCoord> for ModelCoord {
+    fn from(val: WorldCoord) -> Self {
+        Self(val.0)
+    }
+}
+
+impl WorldCoord {
+    /// Initialization
+    #[must_use]
+    pub fn new(x: f32, y: f32) -> Self {
+        Self(Vec2::new(x, y))
+    }
 }
